@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,9 +23,10 @@
 namespace hyteg {
 namespace communication {
 
-int             MPITagProvider::maxMPITag_{ 0u };
-bool            MPITagProvider::poolExhausted_{ false };
-std::atomic_int MPITagProvider::nextMPITag_{ 0u };
+int                MPITagProvider::maxMPITag_{ 0u };
+bool               MPITagProvider::poolExhausted_{ false };
+std::atomic_int    MPITagProvider::nextMPITag_{ 0u };
+std::vector< int > MPITagProvider::returnedTags_;
 
 } // namespace communication
 } // namespace hyteg

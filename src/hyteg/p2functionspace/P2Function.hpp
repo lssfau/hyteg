@@ -101,11 +101,15 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///
    /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
    ///
-   /// Evaluation is performed in two steps:
+   /// Evaluation is performed in three steps:
    ///
    ///   1. For all volume primitives of the local subdomain:
-   ///      If a point-tet (point-triangle in 2D) inclusion test succeeds, the function returns true
-   ///      and the finite-element function is evaluated.
+   ///      If a point-tet (point-triangle in 2D) inclusion test succeeds,
+   ///      the function returns true and the finite-element function is evaluated. While checking all
+   ///      volume primitives, we store the primitive with the smallest computational point - primitive distance 
+   ///      that also fulfills a point pairing check. If a primitives's distance is smaller than the given
+   ///      distanceTolerance parameter, then the method can also return that primitive & respective computational
+   ///      domain point immediately. Use distanceTolerance = 0 to disable that feature.
    ///
    ///   2. Skipped, if radius is negative.
    ///      For all volume primitives of the local subdomain:
@@ -113,7 +117,11 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///      test is performed, if successful returns true, and the finite-element function is extrapolated
    ///      to the specified coordinate and evaluated, depending on the radius, this might introduce (large) errors.
    ///
-   /// If both tests fail, this function returns false, and no evaluation is performed (i.e. the returned, evaluated
+   ///   3. If approach #2 fails and useBestGuess is true, the primitive & respective computational domain point
+   ///      fulfilling the verifyPointPairing() check with the smallest computational point - primitive distance
+   ///      is returned, provided we found one in step 1.
+   ///
+   /// Otherwise, this function returns false, and no evaluation is performed (i.e. the returned, evaluated
    /// value is not set to anything meaningful).
    ///
    /// Note that two parallel processes that return true, may return _different_ values.
@@ -126,12 +134,16 @@ class P2Function final : public Function< P2Function< ValueType > >
    /// \param level refinement level
    /// \param value function value at the coordinate if search was successful
    /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
+   /// \param distanceTolerance during the initial loop over all volume primitives, immediately return a primitive that fulfills the verifyPointPairing() check and has small enough computational point-triangle distance. Set to 0 to disable this feature.
+   /// \param useBestGuess use the face/cell with the smallest computational point - primitive distance instead of returning false should both tests in mapFromPhysicalToComputationalDomain fail
    /// \return true if the function was evaluated successfully, false otherwise
    ///
    bool evaluate( const Point3D& physicalCoords,
                   uint_t         level,
                   ValueType&     value,
-                  real_t         searchToleranceRadius = real_c( 1e-05 ) ) const;
+                  real_t         searchToleranceRadius = real_c( 1e-05 ),
+                  real_t         distanceTolerance     = real_c( 0 ),
+                  bool           useBestGuess          = false ) const;
 
    void evaluateGradient( const Point3D& physicalCoords, uint_t level, Point3D& gradient ) const;
 

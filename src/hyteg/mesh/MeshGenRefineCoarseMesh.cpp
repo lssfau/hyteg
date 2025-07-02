@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Andreas Burkhart.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -212,6 +212,93 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
       }
       return newMesh;
    }
+}
+
+MeshInfo MeshInfo::refinedCoarseMesh2D( const MeshInfo& originalMesh, uint_t refinementSteps )
+{
+   // lambda function to do one refinement step
+   auto refineOnce = []( const MeshInfo& oldMesh ) {
+      MeshInfo newMesh = MeshInfo::emptyMeshInfo();
+
+      // find start for new vertex IDs
+      uint_t maxVertexId = 0;
+      for ( const auto& vertex : oldMesh.vertices_ )
+      {
+         if ( vertex.first > maxVertexId )
+         {
+            maxVertexId = vertex.first;
+         }
+      }
+      uint_t newVertexIdStart = maxVertexId + 1;
+      uint_t newVertexIds[3];
+
+      // copy vertices from old mesh
+      newMesh.vertices_ = oldMesh.vertices_;
+      // map from edge (sorted vertex ids) to vertex at mid-point
+      std::map< std::pair< IDType, IDType >, IDType > vertexAtMidPoint;
+
+      for ( const auto& face : oldMesh.faces_ )
+      {
+         // create new vertices at the middle points ///
+         // numbering corresponds to the edge numbering in the macro triangle
+         std::vector< IDType > oldVertexIds = face.second.getVertices();
+
+         std::array< std::pair< IDType, IDType >, 3 > edges = { sortedPair( oldVertexIds[0], oldVertexIds[1] ),
+                                                                sortedPair( oldVertexIds[0], oldVertexIds[2] ),
+                                                                sortedPair( oldVertexIds[1], oldVertexIds[2] ) };
+
+         std::vector< Point3D > newPoints( 3 );
+         for ( uint_t i = 0; i < 3; i++ )
+         {
+            newPoints[i] = getMidPoint( edges[i].first, edges[i].second, oldMesh );
+
+            // check if newPoint already exists in MeshInfo
+            if ( vertexAtMidPoint.count( edges[i] ) != 0 )
+            {
+               newVertexIds[i] = vertexAtMidPoint[edges[i]];
+            }
+            else
+            {
+               newVertexIds[i] = newVertexIdStart;
+               newVertexIdStart++;
+               MeshInfo::Vertex newVertex{ newVertexIds[i], newPoints[i], 0 };
+               newMesh.addVertex( newVertex );
+               vertexAtMidPoint[edges[i]] = newVertexIds[i];
+            }
+         }
+
+         // 3 faces contain the original vertices
+         newMesh.addFace( Face( { oldVertexIds[0], newVertexIds[0], newVertexIds[1] }, 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { oldVertexIds[0], newVertexIds[0] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[0], newVertexIds[1] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[1], oldVertexIds[0] } } ), 0 ) );
+
+         newMesh.addFace( Face( { newVertexIds[0], oldVertexIds[1], newVertexIds[2] }, 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[0], oldVertexIds[1] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { oldVertexIds[1], newVertexIds[2] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[2], newVertexIds[0] } } ), 0 ) );
+
+         newMesh.addFace( Face( { newVertexIds[1], newVertexIds[2], oldVertexIds[2] }, 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[1], newVertexIds[2] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[2], oldVertexIds[2] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { oldVertexIds[2], newVertexIds[1] } } ), 0 ) );
+
+         // 1 face is constructed from the new vertices
+         newMesh.addFace( Face( { newVertexIds[0], newVertexIds[2], newVertexIds[1] }, 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[0], newVertexIds[2] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[2], newVertexIds[1] } } ), 0 ) );
+         newMesh.addEdge( Edge( std::array< IDType, 2 >( { { newVertexIds[1], newVertexIds[0] } } ), 0 ) );
+      }
+      return newMesh;
+   };
+   // end of lambda function
+
+   MeshInfo newMesh = originalMesh;
+   for ( uint_t steps = 1; steps <= refinementSteps; steps++ )
+   {
+      newMesh = refineOnce( newMesh );
+   }
+   return newMesh;
 }
 
 } // namespace hyteg

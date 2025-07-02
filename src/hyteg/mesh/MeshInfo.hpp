@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -626,6 +626,8 @@ class MeshInfo
    /// \param oldMesh Original MeshIfno
    /// \param refinementSteps number of refinements
    static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
+
+   static MeshInfo refinedCoarseMesh2D( const MeshInfo& oldMesh, uint_t refinementSteps );
 
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };

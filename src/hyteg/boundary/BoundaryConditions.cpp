@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -89,6 +89,26 @@ BoundaryUID BoundaryCondition::createFreeslipBC( const std::string & name, const
    BoundaryUID boundaryUID( name );
    WALBERLA_CHECK_EQUAL( boundaryUIDToType_.count( boundaryUID ), 0, "Boundary condition with name '" << name << "' already exists!" )
    boundaryUIDToType_[ boundaryUID ] = DoFType::FreeslipBoundary;
+
+   for ( const auto & meshBoundaryFlag : meshBoundaryFlags )
+   {
+      meshFlagToID_[ meshBoundaryFlag ] = boundaryUID;
+   }
+
+   return boundaryUID;
+}
+
+BoundaryUID BoundaryCondition::createInnerBC( const std::string & name, const uint_t &meshBoundaryFlag )
+{
+   std::vector< uint_t > meshBoundaryFlags = { meshBoundaryFlag };
+   return createInnerBC( name, meshBoundaryFlags );
+}
+
+BoundaryUID BoundaryCondition::createInnerBC( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags )
+{
+   BoundaryUID boundaryUID( name );
+   WALBERLA_CHECK_EQUAL( boundaryUIDToType_.count( boundaryUID ), 0, "Boundary condition with name '" << name << "' already exists!" )
+   boundaryUIDToType_[ boundaryUID ] = DoFType::Inner;
 
    for ( const auto & meshBoundaryFlag : meshBoundaryFlags )
    {

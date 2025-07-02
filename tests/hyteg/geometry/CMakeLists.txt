@@ -3,3 +3,5 @@ waLBerla_execute_test(NAME SphereToolsTest1 COMMAND $<TARGET_FILE:SphereToolsTes
 waLBerla_execute_test(NAME SphereToolsTest2 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 2)
 waLBerla_execute_test(NAME SphereToolsTest4 COMMAND $<TARGET_FILE:SphereToolsTest> PROCESSES 4)
 
+waLBerla_compile_test(FILES closestPointTriangleTetrahedron3DTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME closestPointTriangleTetrahedron3DTest)

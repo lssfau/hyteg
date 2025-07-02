@@ -254,6 +254,13 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       adiosHelpers::readAllAttributes( io_, userAttributes );
    }
 
+   /// function to read user defined attributes, will abort, if attribute is not found
+   template < typename T >
+   T getUserAttributeValue( const std::string& name )
+   {
+      return adiosHelpers::getUserAttributeValueFromIo< T >( io_, name );
+   }
+
  private:
    /// central ADIOS2 interface objects
    ///@{

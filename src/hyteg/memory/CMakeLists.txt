@@ -4,5 +4,6 @@ target_sources( hyteg
     StencilMemory.hpp
     LevelWiseMemory.hpp
     FunctionMemory.hpp     
+    TempFunctionManager.hpp
 )
 

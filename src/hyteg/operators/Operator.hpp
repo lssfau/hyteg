@@ -116,7 +116,7 @@ class Operator
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
- protected:
+ public:
    void startTiming( const std::string& timerString ) const
    {
       if ( timingTree_ )

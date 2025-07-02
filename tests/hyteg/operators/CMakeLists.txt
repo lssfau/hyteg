@@ -20,6 +20,9 @@ waLBerla_execute_test(NAME DivergenceOperatorTest)
 waLBerla_compile_test(FILES ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core mixed_operator)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 
+waLBerla_compile_test(FILES ElementwiseAndConstantOperatorScalingTest.cpp DEPENDS hyteg core constant_stencil_operator mixed_operator)
+waLBerla_execute_test(NAME ElementwiseAndConstantOperatorScalingTest)
+
 waLBerla_compile_test(FILES ViscousOperatorsTest.cpp DEPENDS hyteg core mixed_operator opgen-composites-viscousblock)
 waLBerla_execute_test(NAME ViscousOperatorsTest)
 

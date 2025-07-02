@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
+#include "hyteg/indexing/MacroFaceIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -112,7 +113,15 @@ void VertexDoFAdditivePackInfo< ValueType >::packVertexForEdge( const Vertex*   
                                                                 const PrimitiveID&         receiver,
                                                                 walberla::mpi::SendBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Vertex -> Edge only meaningful in 2D." );
+
+   ValueType* vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
+
+   buffer << vertexData[0];
+   for ( size_t i = 0; i < sender->getNumNeighborEdges(); i++ )
+   {
+      buffer << vertexData[i];
+   }
 }
 
 template < typename ValueType >
@@ -120,13 +129,143 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromVertex( Edge*        
                                                                    const PrimitiveID&         sender,
                                                                    walberla::mpi::RecvBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Vertex -> Edge only meaningful in 2D." );
+
+   Vertex&    vertex   = *( storage_.lock()->getVertex( sender ) );
+   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType  tmp;
+
+   // unpack buffer
+   std::vector< ValueType > senderbuffer( vertex.getNumNeighborEdges() + 1 );
+   for ( size_t i = 0; i < vertex.getNumNeighborEdges() + 1; i++ )
+   {
+      buffer >> senderbuffer[i];
+   }
+
+   // handle vertex on edge
+   const uint_t vertexIdOnEdge = receiver->vertex_index( sender );
+   uint_t       vertexIndex;
+   uint_t       vertexIndexInner;
+   if ( vertexIdOnEdge == 0 )
+   {
+      vertexIndex      = 0;
+      vertexIndexInner = 1;
+   }
+   else
+   {
+      vertexIndex      = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      vertexIndexInner = levelinfo::num_microvertices_per_edge( level_ ) - 2;
+   }
+   edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndex, stencilDirection::VERTEX_C )] += senderbuffer[0];
+
+   // edge itself
+   uint_t edgeIndexOnVertex = vertex.edge_index( receiver->getID() );
+   edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndexInner, stencilDirection::VERTEX_C )] +=
+       senderbuffer[edgeIndexOnVertex + 1];
+
+   // iterate over edge neighbour faces
+   for ( uint_t neighborFace = 0; neighborFace < receiver->getNumNeighborFaces(); neighborFace++ )
+   {
+      Face& face = *( storage_.lock()->getFace( receiver->neighborFaces()[neighborFace] ) );
+      for ( auto& e : face.neighborEdges() )
+      {
+         Edge* neighbourEdgePtr = storage_.lock()->getEdge( e );
+         // in the case of multiple ranks this just ignores edges we do not need (ones with no connection to the vertex)
+         if ( neighbourEdgePtr != nullptr )
+         {
+            Edge& neighbourEdge = *( neighbourEdgePtr );
+
+            if ( ( neighbourEdge.getID() != receiver->getID() ) &&
+                 ( ( neighbourEdge.getVertexID0() == sender ) || ( neighbourEdge.getVertexID1() == sender ) ) )
+            {
+               uint_t edgeIndexOnVertexLocal = vertex.edge_index( neighbourEdge.getID() );
+               if ( vertexIdOnEdge == 0 )
+               {
+                  edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_W )] +=
+                      senderbuffer[edgeIndexOnVertexLocal + 1];
+               }
+               else if ( vertexIdOnEdge == 1 )
+               {
+                  edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_E )] +=
+                      senderbuffer[edgeIndexOnVertexLocal + 1];
+               }
+            }
+         }
+      }
+   }
 }
 
 template < typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalVertexToEdge( const Vertex* sender, Edge* receiver ) const
 {
-   WALBERLA_ABORT( "Additive communication Vertex -> Edge not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Vertex -> Edge only meaningful in 2D." );
+
+   // #################################
+   // ###### handle sending side ######
+   // #################################
+   ValueType* vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
+
+   // ###################################
+   // ###### handle receiving side ######
+   // ###################################
+   Vertex&    vertex   = *( storage_.lock()->getVertex( sender->getID() ) );
+   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+
+   // handle vertex on edge
+   const uint_t vertexIdOnEdge = receiver->vertex_index( sender->getID() );
+   uint_t       vertexIndex;
+   uint_t       vertexIndexInner;
+   if ( vertexIdOnEdge == 0 )
+   {
+      vertexIndex      = 0;
+      vertexIndexInner = 1;
+   }
+   else
+   {
+      vertexIndex      = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      vertexIndexInner = levelinfo::num_microvertices_per_edge( level_ ) - 2;
+   }
+   edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndex, stencilDirection::VERTEX_C )] += vertexData[0];
+
+   // edge itself
+   uint_t edgeIndexOnVertex = vertex.edge_index( receiver->getID() );
+   edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndexInner, stencilDirection::VERTEX_C )] +=
+       vertexData[edgeIndexOnVertex + 1];
+
+   // iterate over edge neighbour faces
+   for ( uint_t neighborFace = 0; neighborFace < receiver->getNumNeighborFaces(); neighborFace++ )
+   {
+      Face& face = *( storage_.lock()->getFace( receiver->neighborFaces()[neighborFace] ) );
+      for ( auto& e : face.neighborEdges() )
+      {
+         Edge* neighbourEdgePtr = storage_.lock()->getEdge( e );
+         // in the case of multiple ranks this just ignores edges we do not need (ones with no connection to the vertex)
+         if ( neighbourEdgePtr != nullptr )
+         {
+            Edge& neighbourEdge = *( neighbourEdgePtr );
+
+            if ( ( neighbourEdge.getID() != receiver->getID() ) &&
+                 ( ( neighbourEdge.getVertexID0() == sender->getID() ) || ( neighbourEdge.getVertexID1() == sender->getID() ) ) )
+            {
+               uint_t edgeIndexOnVertexLocal = vertex.edge_index( neighbourEdge.getID() );
+               if ( vertexIdOnEdge == 0 )
+               {
+                  edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_W )] +=
+                      vertexData[edgeIndexOnVertexLocal + 1];
+               }
+               else if ( vertexIdOnEdge == 1 )
+               {
+                  edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_E )] +=
+                      vertexData[edgeIndexOnVertexLocal + 1];
+               }
+            }
+         }
+      }
+   }
 }
 
 ///@}
@@ -138,7 +277,72 @@ void VertexDoFAdditivePackInfo< ValueType >::packEdgeForVertex( const Edge*     
                                                                 const PrimitiveID&         receiver,
                                                                 walberla::mpi::SendBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Vertex only meaningful in 2D." );
+
+   Vertex&    vertex   = *( storage_.lock()->getVertex( receiver ) );
+   ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType  tmp;
+
+   // create vector of correct size
+   std::vector< ValueType > senderbuffer( vertex.getNumNeighborEdges() + 1 );
+
+   // handle vertex on edge
+   const uint_t vertexIdOnEdge = sender->vertex_index( receiver );
+   uint_t       vertexIndex;
+   uint_t       vertexIndexInner;
+   if ( vertexIdOnEdge == 0 )
+   {
+      vertexIndex      = 0;
+      vertexIndexInner = 1;
+   }
+   else
+   {
+      vertexIndex      = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      vertexIndexInner = levelinfo::num_microvertices_per_edge( level_ ) - 2;
+   }
+   senderbuffer[0] = edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndex, stencilDirection::VERTEX_C )];
+
+   // edge itself
+   uint_t edgeIndexOnVertex = vertex.edge_index( sender->getID() );
+   senderbuffer[edgeIndexOnVertex + 1] =
+       edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndexInner, stencilDirection::VERTEX_C )];
+
+   // iterate over edge neighbour faces
+   for ( uint_t neighborFace = 0; neighborFace < sender->getNumNeighborFaces(); neighborFace++ )
+   {
+      Face& face = *( storage_.lock()->getFace( sender->neighborFaces()[neighborFace] ) );
+      for ( auto& e : face.neighborEdges() )
+      {
+         Edge* neighbourEdgePtr = storage_.lock()->getEdge( e );
+         // in the case of multiple ranks this just ignores edges we do not need (ones with no connection to the vertex)
+         if ( neighbourEdgePtr != nullptr )
+         {
+            Edge& neighbourEdge = *( neighbourEdgePtr );
+
+            if ( ( neighbourEdge.getID() != sender->getID() ) &&
+                 ( ( neighbourEdge.getVertexID0() == receiver ) || ( neighbourEdge.getVertexID1() == receiver ) ) )
+            {
+               uint_t edgeIndexOnVertexLocal = vertex.edge_index( neighbourEdge.getID() );
+               if ( vertexIdOnEdge == 0 )
+               {
+                  senderbuffer[edgeIndexOnVertexLocal + 1] = edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_W )];
+               }
+               else if ( vertexIdOnEdge == 1 )
+               {
+                  senderbuffer[edgeIndexOnVertexLocal + 1] = edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_E )];
+               }
+            }
+         }
+      }
+   }
+
+   // pack buffer
+   for ( size_t i = 0; i < vertex.getNumNeighborEdges() + 1; i++ )
+   {
+      buffer << senderbuffer[i];
+   }
 }
 
 template < typename ValueType >
@@ -146,13 +350,82 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromEdge( Vertex*      
                                                                    const PrimitiveID&         sender,
                                                                    walberla::mpi::RecvBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Vertex only meaningful in 2D." );
+
+   ValueType* vertexData     = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+   uint_t     edgeIdOnVertex = receiver->edge_index( sender );
+   ValueType  tmp;
+
+   for ( size_t i = 0; i < receiver->getNumNeighborEdges() + 1; i++ )
+   {
+      buffer >> tmp;
+      vertexData[i] += tmp;
+   }
 }
 
 template < typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToVertex( const Edge* sender, Vertex* receiver ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Vertex not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Vertex only meaningful in 2D." );
+
+   ValueType* edgeData   = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType* vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+   ValueType  tmp;
+
+   // create vector of correct size
+   std::vector< ValueType > senderbuffer( receiver->getNumNeighborEdges() + 1 );
+
+   // handle vertex on edge
+   const uint_t vertexIdOnEdge = sender->vertex_index( receiver->getID() );
+   uint_t       vertexIndex;
+   uint_t       vertexIndexInner;
+   if ( vertexIdOnEdge == 0 )
+   {
+      vertexIndex      = 0;
+      vertexIndexInner = 1;
+   }
+   else
+   {
+      vertexIndex      = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      vertexIndexInner = levelinfo::num_microvertices_per_edge( level_ ) - 2;
+   }
+   vertexData[0] += edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndex, stencilDirection::VERTEX_C )];
+
+   // edge itself
+   uint_t edgeIndexOnVertex = receiver->edge_index( sender->getID() );
+   vertexData[edgeIndexOnVertex + 1] +=
+       edgeData[vertexdof::macroedge::indexFromVertex( level_, vertexIndexInner, stencilDirection::VERTEX_C )];
+
+   // iterate over edge neighbour faces
+   for ( uint_t neighborFace = 0; neighborFace < sender->getNumNeighborFaces(); neighborFace++ )
+   {
+      Face& face = *( storage_.lock()->getFace( sender->neighborFaces()[neighborFace] ) );
+      for ( auto& e : face.neighborEdges() )
+      {
+         Edge* neighbourEdgePtr = storage_.lock()->getEdge( e );
+         // in the case of multiple ranks this just ignores edges we do not need (ones with no connection to the vertex)
+         if ( neighbourEdgePtr != nullptr )
+         {
+            Edge& neighbourEdge = *( neighbourEdgePtr );
+
+            if ( ( neighbourEdge.getID() != sender->getID() ) && ( ( neighbourEdge.getVertexID0() == receiver->getID() ) ||
+                                                                   ( neighbourEdge.getVertexID1() == receiver->getID() ) ) )
+            {
+               uint_t edgeIndexOnVertexLocal = receiver->edge_index( neighbourEdge.getID() );
+               if ( vertexIdOnEdge == 0 )
+               {
+                  vertexData[edgeIndexOnVertexLocal + 1] += edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_W )];
+               }
+               else if ( vertexIdOnEdge == 1 )
+               {
+                  vertexData[edgeIndexOnVertexLocal + 1] += edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+                      level_, vertexIndexInner, neighborFace, stencilDirection::VERTEX_E )];
+               }
+            }
+         }
+      }
+   }
 }
 
 ///@}
@@ -160,11 +433,28 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToVertex( const
 ///@{
 
 template < typename ValueType >
-void VertexDoFAdditivePackInfo< ValueType >::packEdgeForFace( const Edge* sender,
-                                                              const PrimitiveID& /*receiver*/,
+void VertexDoFAdditivePackInfo< ValueType >::packEdgeForFace( const Edge*                sender,
+                                                              const PrimitiveID&         receiver,
                                                               walberla::mpi::SendBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Face only meaningful in 2D." );
+
+   ValueType* edgeData  = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   uint_t     v_perEdge = levelinfo::num_microvertices_per_edge( level_ );
+
+   // edge DoFs
+   for ( uint_t i = 0; i < v_perEdge; i++ )
+   {
+      buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, i, stencilDirection::VERTEX_C )];
+   }
+
+   // inner face DoFs
+   uint_t faceIndexOnEdge = sender->face_index( receiver );
+   for ( uint_t i = 0; i < v_perEdge - 1; i++ )
+   {
+      buffer << edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+          level_, i, faceIndexOnEdge, stencilDirection::VERTEX_E )];
+   }
 }
 
 template < typename ValueType >
@@ -172,13 +462,61 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromEdge( Face*          
                                                                  const PrimitiveID&         sender,
                                                                  walberla::mpi::RecvBuffer& buffer ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Face only meaningful in 2D." );
+
+   ValueType*                      faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   uint_t                          edgeIndexOnFace = receiver->edge_index( sender );
+   indexing::FaceBoundaryDirection faceBorderDirection =
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
+
+   ValueType tmp;
+
+   // edge DoFs
+   for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
+   {
+      buffer >> tmp;
+      faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
+   }
+
+   // inner face DoFs
+   for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
+   {
+      buffer >> tmp;
+      faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
+   }
 }
 
 template < typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const
 {
-   WALBERLA_ABORT( "Additive communication Edge -> Face not supported." );
+   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Edge -> Face only meaningful in 2D." );
+
+   ValueType* edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType* faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   uint_t     edgeIndexOnFace = receiver->edge_index( sender->getID() );
+
+   // edge DoFs
+   uint_t                          idx = 0;
+   indexing::FaceBoundaryDirection faceBorderDirection =
+       indexing::getFaceBoundaryDirection( edgeIndexOnFace, receiver->getEdgeOrientation()[edgeIndexOnFace] );
+   for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
+   {
+      faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += edgeData[idx];
+      idx++;
+   }
+
+   // inner face DoFs
+   uint_t faceIndexOnEdge = sender->face_index( receiver->getID() );
+   uint_t v_perEdge       = levelinfo::num_microvertices_per_edge( level_ );
+
+   idx = 0;
+   for ( const auto& it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
+   {
+      faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] +=
+          edgeData[vertexdof::macroedge::indexFromVertexOnNeighborFace(
+              level_, idx, faceIndexOnEdge, stencilDirection::VERTEX_E )];
+      idx++;
+   }
 }
 
 ///@}

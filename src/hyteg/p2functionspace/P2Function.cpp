@@ -68,7 +68,9 @@ template < typename ValueType >
 bool P2Function< ValueType >::evaluate( const Point3D& physicalCoords,
                                         uint_t         level,
                                         ValueType&     value,
-                                        real_t         searchToleranceRadius ) const
+                                        real_t         searchToleranceRadius,
+                                        real_t         distanceTolerance,
+                                        bool           useBestGuess ) const
 {
    if constexpr ( !std::is_same< ValueType, real_t >::value )
    {
@@ -83,8 +85,8 @@ bool P2Function< ValueType >::evaluate( const Point3D& physicalCoords,
    {
       if ( !this->getStorage()->hasGlobalCells() )
       {
-         auto [found, faceID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain2D( this->getStorage(), physicalCoords, searchToleranceRadius );
+         auto [found, faceID, computationalCoords] = mapFromPhysicalToComputationalDomain2D(
+             this->getStorage(), physicalCoords, searchToleranceRadius, distanceTolerance, useBestGuess );
          if ( found )
          {
             value = P2::macroface::evaluate( level,
@@ -98,8 +100,8 @@ bool P2Function< ValueType >::evaluate( const Point3D& physicalCoords,
 
       else
       {
-         auto [found, cellID, computationalCoords] =
-             mapFromPhysicalToComputationalDomain3D( this->getStorage(), physicalCoords, searchToleranceRadius );
+         auto [found, cellID, computationalCoords] = mapFromPhysicalToComputationalDomain3D(
+             this->getStorage(), physicalCoords, searchToleranceRadius, distanceTolerance, useBestGuess );
          if ( found )
          {
             value = P2::macrocell::evaluate( level,

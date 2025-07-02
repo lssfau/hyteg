@@ -301,7 +301,7 @@ class BlockFunction
       WALBERLA_ASSERT_EQUAL( subFunc_.size(), other.getNumberOfBlocks() );
       for ( uint_t k = 0; k < subFunc_.size(); k++ )
       {
-         subFunc_[k]->setBoundaryCondition( other.getSubFunction( k ).getBoundaryCondition() );
+         subFunc_[k]->copyBoundaryConditionFromFunction( other.getSubFunction( k ) );
       }
    }
 

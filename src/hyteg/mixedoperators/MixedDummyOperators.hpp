@@ -37,6 +37,10 @@ class P2ToP1DummyOperator : public Operator< P2Function< real_t >, P1Function< r
    : Operator( storage, minLevel, maxLevel )
    {}
 
+   P2ToP1DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Function< real_t >& p )
+   : Operator( storage, minLevel, maxLevel )
+   {}   
+
    void apply( const P2Function< real_t >& src,
                const P1Function< real_t >& dst,
                size_t                      level,
@@ -53,6 +57,10 @@ class P1ToP2DummyOperator : public Operator< P1Function< real_t >, P2Function< r
    P1ToP2DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    {}
+
+   P1ToP2DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Function< real_t >& p)
+   : Operator( storage, minLevel, maxLevel )
+   {}   
 
    void apply( const P1Function< real_t >& src,
                const P2Function< real_t >& dst,

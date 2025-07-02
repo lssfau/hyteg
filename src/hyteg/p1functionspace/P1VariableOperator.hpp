@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
@@ -140,5 +141,7 @@ typedef P1VariableOperator< forms::p1_div_1_blending_q1 > P1BlendingDivOperator_
 
 typedef P1VariableOperator< forms::p1_div_k_grad_blending_q3 > P1BlendingDivkGradOperator;
 typedef P1VariableOperator< forms::p1_div_k_grad_affine_q3 >   P1AffineDivkGradOperator;
+
+typedef P1VariableOperator< P1LinearCombinationForm > P1VariableLinearCombinationOperator;
 
 } // namespace hyteg

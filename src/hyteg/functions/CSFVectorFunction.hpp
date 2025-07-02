@@ -69,10 +69,10 @@ class CSFVectorFunction
    uint_t getDimension() const { return compFunc_.size(); }
 
    /// Query function object for minimal level on which it defined
-   uint_t getMinLevel() { return compFunc_[0]->getMinLevel(); }
+   uint_t getMinLevel() const { return compFunc_[0]->getMinLevel(); }
 
    /// Query function object for maximal level on which it defined
-   uint_t getMaxLevel() { return compFunc_[0]->getMaxLevel(); }
+   uint_t getMaxLevel() const { return compFunc_[0]->getMaxLevel(); }
    /// @}
 
    /// @name Component access
@@ -248,7 +248,9 @@ class CSFVectorFunction
    /// @{
 
    /// Returns a BoundaryCondition object, which is identical for all component functions
-   BoundaryCondition getBoundaryCondition() const { return compFunc_[0]->getBoundaryCondition(); }
+   BoundaryCondition getBoundaryCondition() const {
+       return compFunc_[0]->getBoundaryCondition(); 
+   }
 
    /// Set boundary conditions, will be identical for all component functions
    void setBoundaryCondition( BoundaryCondition bc )
@@ -263,7 +265,10 @@ class CSFVectorFunction
    template < typename OtherType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherType >& other )
    {
-      setBoundaryCondition( other.getBoundaryCondition() );
+      for (uint_t k=0; k < compFunc_.size(); k++ )
+      {
+         setBoundaryCondition( other[k].getBoundaryCondition(), k );
+      }
    }
    /// @}
 

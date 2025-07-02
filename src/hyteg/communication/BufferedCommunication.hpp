@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 
 #pragma once
 #include <functional>
+#include <vector>
 
 #include "core/DataTypes.h"
 
@@ -75,6 +76,8 @@ class BufferedCommunicator
 
    BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage,
                          const LocalCommunicationMode&     localCommunicationMode = DIRECT );
+
+   ~BufferedCommunicator();
 
    /// All data that are registered via respective \ref PackInfo objects are exchanged
    void addPackInfo( const std::shared_ptr< PackInfo >& packInfo );
@@ -174,6 +177,9 @@ class BufferedCommunicator
    std::array< std::vector< std::function< void() > >, NUM_COMMUNICATION_DIRECTIONS > directCommunicationFunctions_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
+
+   // Claimed MPI Tags
+   std::vector< int > claimedMPITags_;
 };
 
 } // namespace communication

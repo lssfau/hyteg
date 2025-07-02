@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/types/types.hpp"
@@ -51,6 +52,31 @@ class IdentityPreconditioner : public Solver< OperatorType >
  private:
    UpdateType updateType_;
    DoFType    flag_;
+};
+
+template < class SrcType, class DstType >
+class IdentityOperator : public Operator< SrcType, DstType >
+{
+ public:
+   IdentityOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : Operator< SrcType, DstType >( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const SrcType& src,
+               const DstType& dst,
+               const uint_t   level,
+               const DoFType  flag,
+               UpdateType     updateType = Replace ) const
+   {
+      if ( updateType == Replace )
+      {
+         dst.assign( { 1.0 }, { src }, level, flag );
+      }
+      else
+      {
+         dst.assign( { 1.0, 1.0 }, { dst, src }, level, flag );
+      }
+   }
 };
 
 } // namespace hyteg

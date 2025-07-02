@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2022-2025 Nils Kohl, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,10 +23,11 @@
 #include "core/DataTypes.h"
 #include "core/math/Matrix3.h"
 
+#include "hyteg/geometry/ClosestPoint.hpp"
 #include "hyteg/geometry/Intersection.hpp"
-#include "hyteg/types/PointND.hpp"
-#include "hyteg/primitives/Face.hpp"
 #include "hyteg/primitives/Cell.hpp"
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/types/PointND.hpp"
 
 namespace hyteg {
 
@@ -40,62 +41,71 @@ using walberla::real_t;
 /// you have no information to which macro-face the point belongs on the computational domain.
 /// Figuring this out is then part of the task.
 ///
-/// We apply two approaches to solve the problem:
+/// We apply three approaches to solve the problem:
 ///
 ///   1. For all face primitives of the local subdomain:
-///      If a point-triangle inclusion test succeeds and the verifyPointPairing() method
-///      of the corresponding face returns true, then we return true, the ID of the face
-///      and the coordinates obtained from the inverse blending map of that face.
+///      If a point-triangle inclusion test succeeds and the verifyPointPairing() method of
+///      the corresponding face returns true, then we return true, the ID of the face and the
+///      coordinates obtained from the inverse blending map of that face. While checking all
+///      face primitives, we store the face with the smallest distance to the point that was mapped
+///      back to the computational domain that also fulfills the verifyPointPairing() check.
+///      If a face's distance is smaller than the given distanceTolerance parameter,
+///      then the method can also return that face & respective computational domain point immediately.
+///      Use distanceTolerance = 0 to disable that feature.
 ///
-///   2. If approach #1 fail and searchToleranceRadius is positive, we perform for all face
+///   2. If approach #1 fails and searchToleranceRadius is positive, we perform for all face
 ///      primitives of the local subdomain a circle-triangle intersection test. If this
 ///      is successful and the verifyPointPairing() method of the corresponding face returns
 ///      true, then we return true, the ID of the face and the coordinates obtained from the
 ///      inverse blending map of that face.
+///
+///   3. If approach #2 fails and returnBestGuess is true, the face & respective computational domain point
+///      fulfilling the verifyPointPairing() check with the smallest point face distance are returned,
+///      provided we found one in step 1.
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
-                                            real_t                              searchToleranceRadius )
+                                            real_t                              searchToleranceRadius,
+                                            real_t                              distanceTolerance = real_c( 0 ),
+                                            bool                                returnBestGuess   = false )
 {
-   bool        found = false;
+   bool        foundCandidate = false;
    PrimitiveID faceID;
    Point3D     computationalCoords;
+
+   real_t lowestTol = std::numeric_limits< real_t >::max();
 
    for ( const auto& it : storage->getFaces() )
    {
       Face& face = *it.second;
 
+      Point3D currentComputationalCoords;
+
       // map coordinates from physical to computational domain
-      face.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+      face.getGeometryMap()->evalFinv( physicalCoords, currentComputationalCoords );
 
-      bool faceIsCandidate =
-          isPointInTriangle( computationalCoords, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] );
+      real_t dist = ( currentComputationalCoords - closestPointTriangle2D( currentComputationalCoords,
+                                                                           face.getCoordinates()[0],
+                                                                           face.getCoordinates()[1],
+                                                                           face.getCoordinates()[2] ) )
+                        .norm();
 
-//#define BE_VERBOSE
-#ifdef BE_VERBOSE
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> FaceID = " << faceID );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Face is candidate = " << ( faceIsCandidate ? "TRUE" : "FALSE" ) );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Physical Coordinates = " << physicalCoords );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Computational Coordinates = " << computationalCoords );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> Face Vertices:" );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[0] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[1] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -> " << face.getCoordinates()[2] );
-      WALBERLA_LOG_INFO_ON_ROOT( " -----------------------------------------------------------" );
-#endif
-
-      // if face is candidate, check that this is actually the correct face
-      if ( faceIsCandidate && face.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+      if ( dist < lowestTol && face.getGeometryMap()->verifyPointPairing( currentComputationalCoords, physicalCoords ) )
       {
-         found  = true;
-         faceID = face.getID();
-         break;
+         foundCandidate      = true;
+         lowestTol           = dist;
+         faceID              = face.getID();
+         computationalCoords = currentComputationalCoords;
+
+         if ( std::fpclassify( dist ) == FP_ZERO || ( distanceTolerance > real_c( 0 ) && dist < distanceTolerance ) )
+         {
+            return { true, faceID, computationalCoords };
+         }
       }
    }
 
    // No face found? Try different approach
-   if ( !found && searchToleranceRadius > real_c( 0 ) )
+   if ( searchToleranceRadius > real_c( 0 ) )
    {
       for ( const auto& it : storage->getFaces() )
       {
@@ -112,14 +122,18 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 
          if ( faceIsCandidate && face.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
          {
-            found  = true;
             faceID = face.getID();
-            break;
+            return { true, faceID, computationalCoords };
          }
       }
    }
 
-   return { found, faceID, computationalCoords };
+   if ( foundCandidate && returnBestGuess )
+   {
+      return { true, faceID, computationalCoords };
+   }
+
+   return { false, faceID, computationalCoords };
 }
 
 /// Map point from 3D physical to 3D computational domain
@@ -129,55 +143,72 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 /// you have no information to which macro-cell the point belongs on the computational domain.
 /// Figuring this out is then part of the task.
 ///
-/// We apply two approaches to solve the problem:
+/// We apply three approaches to solve the problem:
 ///
 ///   1. For all cell primitives of the local subdomain:
-///      If a point-tetrahedron inclusion test succeeds and the verifyPointPairing() method
-///      of the corresponding cell returns true, then we return true, the ID of the cell
-///      and the coordinates obtained from the inverse blending map of that cell.
+///      If a point-triangle inclusion test succeeds and the verifyPointPairing() method of
+///      the corresponding cell returns true, then we return true, the ID of the cell and the
+///      coordinates obtained from the inverse blending map of that cell. While checking all
+///      cell primitives, we store the cell with the smallest distance to the point that was mapped
+///      back to the computational domain that also fulfills the verifyPointPairing() check.
+///      If a cell's distance is smaller than the given distanceTolerance parameter,
+///      then the method can also return that cell & respective computational domain point immediately.
+///      Use distanceTolerance = 0 to disable that feature.
 ///
-///   2. If approach #1 fail and searchToleranceRadius is positive, we perform for all cell
+///   2. If approach #1 fails and searchToleranceRadius is positive, we perform for all cell
 ///      primitives of the local subdomain a sphere-tetrahedron intersection test. If this
 ///      is successful and the verifyPointPairing() method of the corresponding cell returns
 ///      true, then we return true, the ID of the cell and the coordinates obtained from the
 ///      inverse blending map of that cell.
+///
+///   3. If approach #2 fails and returnBestGuess is true, the cell & respective computational domain point
+///      fulfilling the verifyPointPairing() check with the smallest point cell distance are returned,
+///      provided we found one in step 1.
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
-                                            real_t                              searchToleranceRadius )
+                                            real_t                              searchToleranceRadius,
+                                            real_t                              distanceTolerance = real_c( 0 ),
+                                            bool                                returnBestGuess   = false )
 {
-   bool        found = false;
+   bool        foundCandidate = false;
    PrimitiveID cellID;
    Point3D     computationalCoords;
+
+   real_t lowestTol = std::numeric_limits< real_t >::max();
 
    for ( const auto& it : storage->getCells() )
    {
       Cell& cell = *it.second;
 
+      Point3D currentComputationalCoords;
+
       // map coordinates from physical to computational domain
-      cell.getGeometryMap()->evalFinv( physicalCoords, computationalCoords );
+      cell.getGeometryMap()->evalFinv( physicalCoords, currentComputationalCoords );
 
-      bool cellIsCandidate = isPointInTetrahedron( computationalCoords,
-                                                   cell.getCoordinates()[0],
-                                                   cell.getCoordinates()[1],
-                                                   cell.getCoordinates()[2],
-                                                   cell.getCoordinates()[3],
-                                                   cell.getFaceInwardNormal( 0 ),
-                                                   cell.getFaceInwardNormal( 1 ),
-                                                   cell.getFaceInwardNormal( 2 ),
-                                                   cell.getFaceInwardNormal( 3 ) );
+      real_t dist = ( currentComputationalCoords - closestPointTetrahedron3D( currentComputationalCoords,
+                                                                              cell.getCoordinates()[0],
+                                                                              cell.getCoordinates()[1],
+                                                                              cell.getCoordinates()[2],
+                                                                              cell.getCoordinates()[3] ) )
+                        .norm();
 
-      // if cell is candidate, check that this is actually the correct cell
-      if ( cellIsCandidate && cell.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
+      if ( dist < lowestTol && cell.getGeometryMap()->verifyPointPairing( currentComputationalCoords, physicalCoords ) )
       {
-         found  = true;
-         cellID = cell.getID();
-         break;
+         foundCandidate      = true;
+         lowestTol           = dist;
+         cellID              = cell.getID();
+         computationalCoords = currentComputationalCoords;
+
+         if ( std::fpclassify( dist ) == FP_ZERO || ( distanceTolerance > real_c( 0 ) && dist < distanceTolerance ) )
+         {
+            return { true, cellID, computationalCoords };
+         }
       }
    }
 
    // No cell found? Try different approach
-   if ( !found && searchToleranceRadius > real_c( 0 ) )
+   if ( searchToleranceRadius > real_c( 0 ) )
    {
       for ( auto& it : storage->getCells() )
       {
@@ -196,14 +227,18 @@ inline std::tuple< bool, PrimitiveID, Point3D >
          // if cell is candidate, check that this is actually the correct cell
          if ( cellIsCandidate && cell.getGeometryMap()->verifyPointPairing( computationalCoords, physicalCoords ) )
          {
-            found  = true;
             cellID = cell.getID();
-            break;
+            return { true, cellID, computationalCoords };
          }
       }
    }
 
-   return { found, cellID, computationalCoords };
+   if ( foundCandidate && returnBestGuess )
+   {
+      return { true, cellID, computationalCoords };
+   }
+
+   return { false, cellID, computationalCoords };
 }
 
 } // namespace hyteg

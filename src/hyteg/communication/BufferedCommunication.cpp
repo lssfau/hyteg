@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,8 +44,10 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
    const bool serialRecvs = true;
    for ( auto& bufferSystem : bufferSystems_ )
    {
+      auto newTag = MPITagProvider::getMPITag();
+      claimedMPITags_.push_back( newTag );
       bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem(
-          walberla::mpi::MPIManager::instance()->comm(), MPITagProvider::getMPITag(), serialSends, serialRecvs ) );
+          walberla::mpi::MPIManager::instance()->comm(), newTag, serialSends, serialRecvs ) );
    }
 
    setupBeforeNextCommunication();
@@ -53,6 +55,14 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
    for ( auto& communicationInProgress : communicationInProgress_ )
    {
       communicationInProgress = false;
+   }
+}
+
+BufferedCommunicator::~BufferedCommunicator()
+{
+   for ( auto& tag : claimedMPITags_ )
+   {
+      MPITagProvider::returnMPITag( tag );
    }
 }
 
