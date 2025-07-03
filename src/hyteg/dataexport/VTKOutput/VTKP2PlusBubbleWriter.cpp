@@ -41,8 +41,6 @@ void VTKP2PlusBubbleWriter::write( const VTKOutput& mgr, std::ostream& output, c
       return;
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "  --->  VTKP2PlusBubbleWriter::write() was called!" );
-
    auto storage = mgr.storage_;
 
    const uint_t faceCountLevel = level;

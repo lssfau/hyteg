@@ -96,7 +96,6 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
    {
       vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
       edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
-      // volumeDoFFunction_.template communicate< SenderType, ReceiverType >( level ); <- member function does not exists! do we need this at all?
    }
 
    /// \brief Evaluate finite element function at a specific coordinates.

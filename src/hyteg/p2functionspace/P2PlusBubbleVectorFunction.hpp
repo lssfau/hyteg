@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -57,7 +57,7 @@ class P2PlusBubbleVectorFunction final : public CSFVectorFunction< P2PlusBubbleV
                                uint_t                                     vectorDim = 0 )
    : CSFVectorFunction< P2PlusBubbleVectorFunction< ValueType > >( _name )
    {
-      // since the scalar function does not work in 3D at the moment, we also to not allow three-component
+      // since the scalar function does not work in 3D at the moment, we also do not allow three-component
       // vector functions for the moment
       WALBERLA_ASSERT( vectorDim != 3, "P2PlusBubbleVectorfunction does not support 3-components, yet!" );
 
@@ -74,7 +74,7 @@ class P2PlusBubbleVectorFunction final : public CSFVectorFunction< P2PlusBubbleV
       }
    }
 
-   P2PlusBubbleVectorFunction( const std::string name, const std::vector< std::shared_ptr< P2Function< ValueType > > >& compFunc )
+   P2PlusBubbleVectorFunction( const std::string name, const std::vector< std::shared_ptr< P2PlusBubbleFunction< ValueType > > >& compFunc )
    : CSFVectorFunction< P2PlusBubbleVectorFunction< ValueType > >( name, compFunc )
    {}
 };

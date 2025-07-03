@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr.
+ * Copyright (c) 2017-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,9 +21,11 @@
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
 
 #include "VectorToVectorOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -106,16 +108,12 @@ class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncK
                               size_t                          level,
                               DoFType                         flag ) const final;
 
-   std::shared_ptr< VecFuncKind< ValueType > > getInverseDiagonalValues() const final
-   {
-      return this->extractInverseDiagonal();
-   }
+   std::shared_ptr< VecFuncKind< ValueType > > getInverseDiagonalValues() const final { return this->extractInverseDiagonal(); }
 
    void computeInverseDiagonalOperatorValues() final
    {
       this->VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >::computeInverseDiagonalOperatorValues();
    }
-
 };
 
 // ------------------------
@@ -124,22 +122,35 @@ class VectorLaplaceOperator : public VectorToVectorOperator< ValueType, VecFuncK
 typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator > P1ConstantVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator > P2ConstantVectorLaplaceOperator;
 
+extern template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator >;
+
 // ----------------------
 //  elementwise versions
 // ----------------------
-typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator > P1ElementwiseVectorLaplaceOperator;
-typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseAffineDivKGradOperator > P1ElementwiseVectorAffineDivKGradOperator;
-typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >
-    P1ElementwiseBlendingVectorLaplaceOperator;
+// clang-format off
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator >         P1ElementwiseVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseAffineDivKGradOperator >  P1ElementwiseVectorAffineDivKGradOperator;
+typedef VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator > P1ElementwiseBlendingVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator >         P2ElementwiseVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator > P2ElementwiseBlendingVectorLaplaceOperator;
 
-typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator > P2ElementwiseVectorLaplaceOperator;
-typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >
-    P2ElementwiseBlendingVectorLaplaceOperator;
+extern template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseAffineDivKGradOperator >;
+extern template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >;
 
 // ------------------
 //  special versions
 // ------------------
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >  P2BlendingVectorLaplaceOperator;
 typedef VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator > P2SurrogateVectorLaplaceOperator;
+typedef VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion > P2PlusBubbleVectorLaplaceOperator;
+
+extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2BlendingLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P2VectorFunction, P2SurrogateLaplaceOperator >;
+extern template class VectorLaplaceOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseDiffusion >;
+// clang-format on
 
 } // namespace hyteg

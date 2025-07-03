@@ -2,7 +2,7 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_compile_test(FILES PetscCreateFromLinCombTest.cpp DEPENDS hyteg core)
     waLBerla_execute_test(NAME PetscCreateFromLinCombTest COMMAND $<TARGET_FILE:PetscCreateFromLinCombTest>)
 
-    waLBerla_compile_test(FILES PetscMatrixAssemblyTest.cpp DEPENDS hyteg core mixed_operator)
+    waLBerla_compile_test(FILES PetscMatrixAssemblyTest.cpp DEPENDS hyteg core mixed_operator opgen-diffusion)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest>)
     waLBerla_execute_test(NAME PetscMatrixAssemblyTest2 COMMAND $<TARGET_FILE:PetscMatrixAssemblyTest> PROCESSES 2)
 

@@ -1,3 +1,6 @@
+waLBerla_compile_test(FILES MixedDG1AndP2PlusBubbleFormsTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MixedDG1AndP2PlusBubbleFormsTest)
+
 waLBerla_compile_test(FILES P2LinearCombinationFormTest.cpp DEPENDS hyteg core constant_stencil_operator)
 waLBerla_execute_test(NAME P2LinearCombinationFormTest)
 

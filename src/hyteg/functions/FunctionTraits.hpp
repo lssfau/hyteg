@@ -69,6 +69,8 @@ struct P2VectorFunctionTag
 {};
 struct P2PlusBubbleVectorFunctionTag
 {};
+struct CCRStokesFunctionTag
+{};
 struct DGVectorFunctionTag
 {};
 struct EGFunctionTag
@@ -102,8 +104,10 @@ class DGFunction;
 
 template < typename VType >
 class P0Function;
+
 template < typename VType >
 class DG1Function;
+
 namespace n1e1 {
 template < typename VType >
 class N1E1VectorFunction;
@@ -141,6 +145,9 @@ class P2VectorFunction;
 template < typename VType >
 class P2PlusBubbleVectorFunction;
 
+template < typename VType >
+class CCRStokesFunction;
+
 namespace dg {
 template < typename VType >
 class DGVectorFunction;
@@ -149,6 +156,7 @@ class DGVectorFunction;
 
 template < typename VType >
 class EGFunction;
+
 template < typename VType >
 class EGP0StokesFunction;
 
@@ -425,6 +433,18 @@ struct FunctionTrait< EGP0StokesFunction< VType > >
    typedef EGP0StokesFunctionTag Tag;
 
    static std::string getTypeName() { return "EGP0StokesFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
+};
+
+/// CCRStokes specialization
+template < typename VType >
+struct FunctionTrait< CCRStokesFunction< VType > >
+{
+   typedef VType                ValueType;
+   typedef CCRStokesFunctionTag Tag;
+
+   static std::string getTypeName() { return "CCRStokesFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };

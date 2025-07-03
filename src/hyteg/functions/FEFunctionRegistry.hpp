@@ -24,6 +24,7 @@
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/CCRStokesFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGVectorFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
@@ -158,6 +159,13 @@ class FEFunctionRegistry
 
       // EGP0StokesFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > > )
+      {
+         this->add( function.uvw() );
+         this->add( function.p() );
+      }
+
+      // CCRStokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, CCRStokesFunction< value_t > > )
       {
          this->add( function.uvw() );
          this->add( function.p() );
@@ -308,6 +316,13 @@ class FEFunctionRegistry
 
       // EGP0StokesFunction
       else if constexpr ( std::is_same_v< func_t< value_t >, EGP0StokesFunction< value_t > > )
+      {
+         this->remove( function.uvw() );
+         this->remove( function.p() );
+      }
+
+      // CCRStokesFunction
+      else if constexpr ( std::is_same_v< func_t< value_t >, CCRStokesFunction< value_t > > )
       {
          this->remove( function.uvw() );
          this->remove( function.p() );

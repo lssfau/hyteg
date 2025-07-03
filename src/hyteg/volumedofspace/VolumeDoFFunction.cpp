@@ -344,6 +344,12 @@ VolumeDoFFunction< ValueType >& VolumeDoFFunction< ValueType >::operator=( const
 template < typename ValueType >
 void VolumeDoFFunction< ValueType >::communicate( uint_t level )
 {
+   if ( this->storage_->getAdditionalHaloDepth() == 0 )
+   {
+      WALBERLA_ABORT( "AdditionalHaloDepth = 0 means there is nothing to communicate!\n"
+                      << "I am, thus, assuming that communicate() was called erroneously!" );
+   }
+
    if ( !this->storage_->hasGlobalCells() )
    {
       this->communicators_[level]->template startCommunication< Face, Face >();

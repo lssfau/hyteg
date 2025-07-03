@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,10 +19,12 @@
  */
 #pragma once
 
+#include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
@@ -69,6 +71,40 @@ class P1ToP2DummyOperator : public Operator< P1Function< real_t >, P2Function< r
                UpdateType                  updateType = Replace ) const
    {
       WALBERLA_ABORT( "P1ToP2DummyOperator::apply() should never be called!" );
+   }
+};
+
+class P2PlusBubbleToDG1DummyOperator : public Operator< P2PlusBubbleFunction< real_t >, DG1Function< real_t > >
+{
+ public:
+   P2PlusBubbleToDG1DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const P2PlusBubbleFunction< real_t >& src,
+               const DG1Function< real_t >&          dst,
+               size_t                                level,
+               DoFType                               flag,
+               UpdateType                            updateType = Replace ) const
+   {
+      WALBERLA_ABORT( "P2PlusBubbleToDG1DummyOperator::apply() should never be called!" );
+   }
+};
+
+class DG1ToP2PlusBubbleDummyOperator : public Operator< DG1Function< real_t >, P2PlusBubbleFunction< real_t > >
+{
+ public:
+   DG1ToP2PlusBubbleDummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   {}
+
+   void apply( const DG1Function< real_t >&          src,
+               const P2PlusBubbleFunction< real_t >& dst,
+               size_t                                level,
+               DoFType                               flag,
+               UpdateType                            updateType = Replace ) const
+   {
+      WALBERLA_ABORT( "DG1ToP2PlusBubbleDummyOperator::apply() should never be called!" );
    }
 };
 

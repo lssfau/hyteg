@@ -74,4 +74,7 @@ template class VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseMassOp
 // P2ElementwiseBlendingVectorMassOperator
 template class VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseBlendingMassOperator >;
 
+// P2PlusBubbleElementwiseVectorMassOperator
+template class VectorMassOperator< real_t, P2PlusBubbleVectorFunction, operatorgeneration::P2PlusBubbleElementwiseMass >;
+
 } // namespace hyteg

@@ -57,7 +57,7 @@ waLBerla_add_executable(NAME gmg_blending
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
-        DEPENDS hyteg mixed_operator)
+        DEPENDS hyteg mixed_operator opgen-diffusion)
 
 waLBerla_add_executable( NAME annulus
         FILES annulus.cpp
@@ -96,6 +96,7 @@ add_subdirectory(surfaces)
 
 if( HYTEG_BUILD_WITH_PETSC )
   add_subdirectory(2021-tokamak)
+  add_subdirectory(2025-CCR-Element)
 endif()
 
 if( HYTEG_TERRANEO_MODULE )
