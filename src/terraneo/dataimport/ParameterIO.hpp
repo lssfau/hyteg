@@ -293,6 +293,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
    simulationParam.simulationType         = mainConf.getParameter< std::string >( "simulationType" );
    simulationParam.compressible           = mainConf.getParameter< bool >( "compressible" );
+   simulationParam.frozenVelocity         = mainConf.getParameter< bool >( "frozenVelocity" );
    simulationParam.shearHeating           = mainConf.getParameter< bool >( "shearHeating" );
    if ( simulationParam.shearHeating )
    {

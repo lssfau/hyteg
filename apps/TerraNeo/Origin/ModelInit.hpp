@@ -434,7 +434,7 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *projectionOperator,
                                                             bcVelocity,
                                                             *( p2ScalarFunctionContainer["DensityFE"] ),
-                                                            false );
+                                                            TN.simulationParameters.frozenVelocity );
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
