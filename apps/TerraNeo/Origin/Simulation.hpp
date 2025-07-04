@@ -679,7 +679,7 @@ void ConvectionSimulation::setupStokesRHS()
       ////////////////
 
       // Provide the option to run incompressible simulations for test or educational purposes
-      if ( TN.simulationParameters.compressible )
+      if ( TN.simulationParameters.compressible && TN.simulationParameters.frozenVelocity )
       {
          // Update non-dimensional numbers for mass conservation equation
          if ( TN.simulationParameters.haveThermalExpProfile || TN.simulationParameters.haveSpecificHeatCapProfile )

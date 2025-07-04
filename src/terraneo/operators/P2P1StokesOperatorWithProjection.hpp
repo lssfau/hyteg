@@ -146,8 +146,15 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
       auto matProxyOp = mat->createCopy();
       viscousOperatorWrapped_.toMatrix( matProxyOp, src.uvw(), dst.uvw(), level, flag );
       divT.toMatrix( matProxyOp, src.p(), dst.uvw(), level, flag );
-      // div.toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
-      divCompressibleOperator_->toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
+
+      if ( !frozenVelocity_ )
+      {
+         divCompressibleOperator_->toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
+      }
+      else
+      {
+         div.toMatrix( matProxyOp, src.uvw(), dst.p(), level, flag );
+      }
 
       auto matProxyProjectionPost = mat->createCopy();
       projectNormal_.toMatrix( matProxyProjectionPost, src.uvw(), dst.uvw(), level, FreeslipBoundary );

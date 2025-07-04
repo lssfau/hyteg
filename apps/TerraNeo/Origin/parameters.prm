@@ -155,6 +155,8 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
+   frozenVelocity false;
+   
    shearHeating false;
    adiabaticHeating true;
    internalHeating true;
