@@ -58,11 +58,10 @@ void ConvectionSimulation::init()
    TN.simulationParameters.unknownsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, TN.domainParameters.maxLevel );
    TN.simulationParameters.unknownsStokes =
        numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMin      = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMax      = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.domainParameters.numProcessors = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   TN.simulationParameters.hMin = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
 
-   printConfig( TN );
+   // printConfig( TN );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    attributeList_["rCMB"]     = TN.domainParameters.rCMB;
@@ -120,6 +119,15 @@ void ConvectionSimulation::init()
       WALBERLA_LOG_INFO_ON_ROOT( "Create SQL database for runtime analysis" );
       initTimingDB();
    }
+
+   printConfig( TN, walberla::format( "%s/params.txt", modelPath.c_str() ) );
+
+   std::string logFilename   = walberla::format( "%s/logFile.txt", modelPath.c_str() );
+
+   WALBERLA_ROOT_SECTION()
+   {
+      walberla::logging::Logging::instance()->includeLoggingToFile( logFilename );
+   }
 }
 
 // Setup the domain
@@ -159,23 +167,43 @@ void ConvectionSimulation::setupBoundaryConditions()
    switch ( TN.simulationParameters.boundaryCond )
    {
    case 1:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createDirichletBC(
+          "TangentialDirichlet", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createDirichletBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       break;
 
    case 2:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createNeumannBC( "TangentialNeumann",
+                                          { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createFreeslipBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createFreeslipBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       TN.simulationParameters.boundaryCondFreeSlip = true;
       break;
 
    case 3:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createNeumannBC( "NeumannInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
+      bcVelocityThetaPhi.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createFreeslipBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       TN.simulationParameters.boundaryCondFreeSlip = true;
       break;
 
    default:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createDirichletBC(
+          "TangentialDirichlet", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createDirichletBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       break;
@@ -277,6 +305,14 @@ void ConvectionSimulation::setupFunctions()
       }
       }
    }
+
+   p2p1StokesFunctionContainer["VelocityFERotated"]->uvw().component( 0u ).setBoundaryCondition( bcVelocityThetaPhi );
+   p2p1StokesFunctionContainer["VelocityFERotated"]->uvw().component( 1u ).setBoundaryCondition( bcVelocityThetaPhi );
+   p2p1StokesFunctionContainer["VelocityFERotated"]->uvw().component( 2u ).setBoundaryCondition( bcVelocityR );
+
+   p2p1StokesFunctionContainer["StokesRHSRotated"]->uvw().component( 0u ).setBoundaryCondition( bcVelocityThetaPhi );
+   p2p1StokesFunctionContainer["StokesRHSRotated"]->uvw().component( 1u ).setBoundaryCondition( bcVelocityThetaPhi );
+   p2p1StokesFunctionContainer["StokesRHSRotated"]->uvw().component( 2u ).setBoundaryCondition( bcVelocityR );
 }
 
 void ConvectionSimulation::initialiseFunctions()
@@ -398,6 +434,29 @@ void ConvectionSimulation::initialiseFunctions()
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
    referenceTemperatureFct = [this]( const Point3D& x ) { return referenceTemperatureFunction( x ); };
+
+   std::function< real_t( const Point3D& ) > nX = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[0];
+   };
+
+   std::function< real_t( const Point3D& ) > nY = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[1];
+   };
+
+   std::function< real_t( const Point3D& ) > nZ = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[2];
+   };
+
+   for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; level++ )
+   {
+      p2VectorFunctionContainer["NormalsFS"]->interpolate( { nX, nY, nZ }, level, FreeslipBoundary );
+   }
 }
 
 void ConvectionSimulation::setupSolversAndOperators()
@@ -421,6 +480,9 @@ void ConvectionSimulation::setupSolversAndOperators()
    projectionOperator = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
+   rotationOperator =
+       std::make_shared< P2RotationOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
+
    p2ProlongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
 
    stokesOperator = std::make_shared< StokesOperator >(
@@ -436,9 +498,22 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *( p2ScalarFunctionContainer["DensityFE"] ),
                                                             TN.simulationParameters.frozenVelocity );
 
+   stokesOperatorOpgen =
+       std::make_shared< P2P1StokesOpgenRotationWrapper >( storage,
+                                                           TN.domainParameters.minLevel,
+                                                           TN.domainParameters.maxLevel,
+                                                           p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
+                                                           p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
+                                                           p2VectorFunctionContainer["NormalsFS"]->component( 0u ),
+                                                           p2VectorFunctionContainer["NormalsFS"]->component( 1u ),
+                                                           p2VectorFunctionContainer["NormalsFS"]->component( 2u ),
+                                                           0.0,
+                                                           *rotationOperator,
+                                                           bcVelocity );
+
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesSolverClass = std::make_shared< StokesMCFGMRESSolver< StokesOperatorFS, P2ProjectNormalOperator > >(
+      stokesSolverClass = std::make_shared< StokesMCFGMRESSolverWithProjection< StokesOperatorFS, P2ProjectNormalOperator > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
@@ -467,6 +542,18 @@ void ConvectionSimulation::setupSolversAndOperators()
    }
 
    stokesSolverFS = stokesSolverClass->getSolver();
+
+   stokesSolverOpgenClass = std::make_shared< StokesMCFGMRESSolver< P2P1StokesOpgenRotationWrapper, P2ProjectNormalOperator > >(
+       storage,
+       TN.domainParameters.minLevel,
+       TN.domainParameters.maxLevel,
+       stokesOperatorOpgen,
+       p2p1StokesFunctionContainer["StokesTmpProlongation"],
+       p2p1StokesFunctionContainer["StokesTmp1"],
+       p2p1StokesFunctionContainer["StokesTmp2"],
+       TN );
+
+   stokesSolverOpgen = stokesSolverOpgenClass->getSolver();
 
    P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );

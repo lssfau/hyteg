@@ -42,12 +42,6 @@ void ConvectionSimulation::step()
    walberla::WcTimer localTimerStep;
    if ( TN.simulationParameters.timeStep == 0 )
    {
-      //set up logging
-      WALBERLA_ROOT_SECTION()
-      {
-         walberla::logging::Logging::instance()->includeLoggingToFile( TN.outputParameters.outputDirectory + "/" +
-                                                                       TN.outputParameters.outputBaseName + ".out" );
-      }
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
@@ -282,19 +276,27 @@ void ConvectionSimulation::step()
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
    // calculateHeatflow( temperatureProfiles );
    calculateHeatflowIntegral( temperatureProfiles );
-   // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
-   for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
+
+   if ( TN.simulationParameters.checkTemperatureConsistency )
    {
-      // Redimensionalise temperature
-      real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
-      if ( ( temperatureProfiles->min[i] ) <= 0 )
+      // Consistency check for out of range Temperatures
+      for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
-                                                             << " detected at shell radii: "
-                                                             << temperatureProfiles->shellRadii[i] );
-         WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
-         dataOutput();
-         WALBERLA_ABORT( "Aborting simulation run" );
+         // Redimensionalise temperature
+         real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+
+         if ( ( temperatureProfiles->min[i] ) <
+                  TN.physicalParameters.surfaceTemp - TN.simulationParameters.temperatureConsistencyThreshold ||
+              ( temperatureProfiles->max[i] ) >
+                  TN.physicalParameters.cmbTemp + TN.simulationParameters.temperatureConsistencyThreshold )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Out_of_Range Temperature: " << temperatureProfiles->min[i] * dimFactor
+                                                                    << " detected at shell radii: "
+                                                                    << temperatureProfiles->shellRadii[i] );
+            WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
+            dataOutput();
+            WALBERLA_ABORT( "Aborting simulation run" );
+         }
       }
    }
 
@@ -447,20 +449,23 @@ void ConvectionSimulation::step()
    //                  DUMP OUTPUT                         //
    //######################################################//
 
-   if ( TN.outputParameters.outputMyr && ( ( TN.simulationParameters.modelRunTimeMa - TN.outputParameters.prevOutputTime ) >=
-                                           real_c( TN.outputParameters.outputIntervalMyr ) ) )
+   if ( TN.outputParameters.outputMyr )
+   {
+      if ( ( ( TN.simulationParameters.modelRunTimeMa - TN.outputParameters.prevOutputTime ) >=
+             real_c( TN.outputParameters.outputIntervalMyr ) ) )
+      {
+         dataOutput();
+      }
+   }
+   else
    {
       dataOutput();
    }
+
    // Individually decide when checkpoint data is dumped
    if ( TN.outputParameters.ADIOS2StoreCheckpoint )
    {
       outputCheckpoint();
-   }
-
-   if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0 )
-   {
-      dataOutput();
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -692,7 +697,6 @@ void ConvectionSimulation::setupStokesRHS()
 
          frozenVelocityRHS->apply(
              p2p1StokesFunctionContainer["VelocityFE"]->uvw(), p2p1StokesFunctionContainer["StokesRHS"]->p(), l, All );
-             
       }
       else
       {
@@ -728,6 +732,14 @@ void ConvectionSimulation::solveStokes()
       WALBERLA_LOG_INFO_ON_ROOT( "--------------------------" );
    }
 
+   rotationOperator->rotate( *( p2p1StokesFunctionContainer["VelocityFE"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
+   p2p1StokesFunctionContainer["VelocityFERotated"]->assign(
+       { 1.0 }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
+
+   rotationOperator->rotate( *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
+   p2p1StokesFunctionContainer["StokesRHSRotated"]->assign(
+       { 1.0 }, { *( p2p1StokesFunctionContainer["StokesRHS"] ) }, TN.domainParameters.maxLevel, All );
+
    real_t stokesResidual   = calculateStokesResidual( TN.domainParameters.maxLevel );
    real_t pressureResidual = calculatePressureResidual( TN.domainParameters.maxLevel );
    // For calculation of relative stokes Residual
@@ -756,12 +768,22 @@ void ConvectionSimulation::solveStokes()
 
    localTimer.start();
    storage->getTimingTree()->start( "TerraNeo solve Stokes" );
-   projectionOperator->project( *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
-   stokesSolverFS->solve( *stokesOperatorFS,
-                          *( p2p1StokesFunctionContainer["VelocityFE"] ),
-                          *( p2p1StokesFunctionContainer["StokesRHS"] ),
-                          TN.domainParameters.maxLevel );
-   // stokesSolver->solve( *stokesOperator, *(p2p1StokesFunctionContainer["VelocityFE"]), *(p2p1StokesFunctionContainer["StokesRHS"]), TN.domainParameters.maxLevel );
+   // projectionOperator->project( *( p2p1StokesFunctionContainer["StokesRHS"] ), TN.domainParameters.maxLevel, FreeslipBoundary );
+   // stokesSolverFS->solve( *stokesOperatorFS,
+   //                        *( p2p1StokesFunctionContainer["VelocityFE"] ),
+   //                        *( p2p1StokesFunctionContainer["StokesRHS"] ),
+   //                        TN.domainParameters.maxLevel );
+
+   stokesSolverOpgen->solve( *stokesOperatorOpgen,
+                             *( p2p1StokesFunctionContainer["VelocityFERotated"] ),
+                             *( p2p1StokesFunctionContainer["StokesRHSRotated"] ),
+                             TN.domainParameters.maxLevel );
+
+   p2p1StokesFunctionContainer["VelocityFE"]->assign(
+       { 1.0 }, { *p2p1StokesFunctionContainer["VelocityFERotated"] }, TN.domainParameters.maxLevel, All );
+   rotationOperator->rotate(
+       *( p2p1StokesFunctionContainer["VelocityFE"] ), TN.domainParameters.maxLevel, FreeslipBoundary, true );
+
    storage->getTimingTree()->stop( "TerraNeo solve Stokes" );
    localTimer.end();
 
@@ -796,32 +818,58 @@ void ConvectionSimulation::solveStokes()
 
 real_t ConvectionSimulation::calculateStokesResidual( uint_t level )
 {
-   stokesOperatorFS->apply( *( p2p1StokesFunctionContainer["VelocityFE"] ),
-                            *( p2p1StokesFunctionContainer["StokesTmp1"] ),
-                            level,
-                            Inner | NeumannBoundary | FreeslipBoundary );
-   p2p1StokesFunctionContainer["StokesTmp1"]->assign(
+   stokesOperatorOpgen->apply( *( p2p1StokesFunctionContainer["VelocityFERotated"] ),
+                               *( p2p1StokesFunctionContainer["StokesTmp3"] ),
+                               level,
+                               Inner | NeumannBoundary | FreeslipBoundary );
+
+   p2p1StokesFunctionContainer["StokesTmp3"]->assign(
        { real_c( 1 ), real_c( -1 ) },
-       { *( p2p1StokesFunctionContainer["StokesTmp1"] ), *( p2p1StokesFunctionContainer["StokesRHS"] ) },
+       { *( p2p1StokesFunctionContainer["StokesTmp3"] ), *( p2p1StokesFunctionContainer["StokesRHSRotated"] ) },
        level,
        Inner | NeumannBoundary | FreeslipBoundary );
-   return std::sqrt( p2p1StokesFunctionContainer["StokesTmp1"]->dotGlobal(
-       *( p2p1StokesFunctionContainer["StokesTmp1"] ), level, Inner | NeumannBoundary | FreeslipBoundary ) );
+   return ( std::sqrt( p2p1StokesFunctionContainer["StokesTmp3"]->dotGlobal(
+       *( p2p1StokesFunctionContainer["StokesTmp3"] ), level, Inner | NeumannBoundary | FreeslipBoundary ) ) );
+
+   // stokesOperatorFS->apply( *( p2p1StokesFunctionContainer["VelocityFE"] ),
+   //                          *( p2p1StokesFunctionContainer["StokesTmp1"] ),
+   //                          level,
+   //                          Inner | NeumannBoundary | FreeslipBoundary );
+   // p2p1StokesFunctionContainer["StokesTmp1"]->assign(
+   //     { real_c( 1 ), real_c( -1 ) },
+   //     { *( p2p1StokesFunctionContainer["StokesTmp1"] ), *( p2p1StokesFunctionContainer["StokesRHS"] ) },
+   //     level,
+   //     Inner | NeumannBoundary | FreeslipBoundary );
+   // return std::sqrt( p2p1StokesFunctionContainer["StokesTmp1"]->dotGlobal(
+   //     *( p2p1StokesFunctionContainer["StokesTmp1"] ), level, Inner | NeumannBoundary | FreeslipBoundary ) );
 }
 
 real_t ConvectionSimulation::calculatePressureResidual( uint_t level )
 {
-   stokesOperatorFS->apply( *( p2p1StokesFunctionContainer["VelocityFE"] ),
-                            *( p2p1StokesFunctionContainer["StokesTmp3"] ),
-                            level,
-                            Inner | NeumannBoundary | FreeslipBoundary );
+   stokesOperatorOpgen->apply( *( p2p1StokesFunctionContainer["VelocityFERotated"] ),
+                               *( p2p1StokesFunctionContainer["StokesTmp3"] ),
+                               level,
+                               Inner | NeumannBoundary | FreeslipBoundary );
+
    p2p1StokesFunctionContainer["StokesTmp3"]->p().assign(
        { real_c( 1 ), real_c( -1 ) },
-       { ( p2p1StokesFunctionContainer["StokesTmp3"]->p() ), ( p2p1StokesFunctionContainer["StokesRHS"]->p() ) },
+       { p2p1StokesFunctionContainer["StokesTmp3"]->p(), p2p1StokesFunctionContainer["StokesRHSRotated"]->p() },
        level,
        Inner | NeumannBoundary | FreeslipBoundary );
    return ( std::sqrt( p2p1StokesFunctionContainer["StokesTmp3"]->p().dotGlobal(
-       ( p2p1StokesFunctionContainer["StokesTmp3"]->p() ), level, Inner | NeumannBoundary | FreeslipBoundary ) ) );
+       p2p1StokesFunctionContainer["StokesTmp3"]->p(), level, Inner | NeumannBoundary | FreeslipBoundary ) ) );
+
+   // stokesOperatorFS->apply( *( p2p1StokesFunctionContainer["VelocityFE"] ),
+   //                          *( p2p1StokesFunctionContainer["StokesTmp3"] ),
+   //                          level,
+   //                          Inner | NeumannBoundary | FreeslipBoundary );
+   // p2p1StokesFunctionContainer["StokesTmp3"]->p().assign(
+   //     { real_c( 1 ), real_c( -1 ) },
+   //     { ( p2p1StokesFunctionContainer["StokesTmp3"]->p() ), ( p2p1StokesFunctionContainer["StokesRHS"]->p() ) },
+   //     level,
+   //     Inner | NeumannBoundary | FreeslipBoundary );
+   // return ( std::sqrt( p2p1StokesFunctionContainer["StokesTmp3"]->p().dotGlobal(
+   //     ( p2p1StokesFunctionContainer["StokesTmp3"]->p() ), level, Inner | NeumannBoundary | FreeslipBoundary ) ) );
 }
 
 real_t ConvectionSimulation::calculateEnergyResidual( uint_t level )

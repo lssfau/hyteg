@@ -75,6 +75,7 @@ struct SolverParameters
    // Stokes solver parameters
    uint_t numPowerIterations         = 25;
    uint_t FGMRESOuterIterations      = 5;
+   uint_t FGMRESRestartLength        = 5;
    real_t FGMRESTolerance            = 1e-6;
    uint_t uzawaIterations            = 5;
    real_t uzawaOmega                 = real_c( 0.3 );
@@ -116,7 +117,7 @@ struct SolverParameters
 struct OutputParameters
 {
    std::string outputDirectory = std::string( "output" );
-   std::string outputBaseName  = std::string( "conv_sim" );
+   std::string modelBaseName  = std::string( "conv_sim" );
 
    std::string ADIOS2OutputConfig = std::string( "ADIOS2config.xml" );
    std::string ADIOS2ParamKey     = std::string( "NumAggregators" );
@@ -138,13 +139,14 @@ struct OutputParameters
 
    uint_t ADIOS2StoreCheckpointFrequency = 100U;
 
-   bool   dataOutput        = true;
-   bool   vtk               = true;
-   bool   OutputVelocity    = true;
-   bool   OutputViscosity   = true;
-   bool   OutputTemperature = true;
-   uint_t OutputInterval    = 1;
-   uint_t checkpointCount   = 1;
+   bool   dataOutput             = true;
+   bool   vtk                    = true;
+   bool   OutputVelocity         = true;
+   bool   OutputViscosity        = true;
+   bool   OutputTemperature      = true;
+   uint_t OutputInterval         = 1;
+   uint_t OutputProfilesInterval = 1;
+   uint_t checkpointCount        = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -246,6 +248,11 @@ struct SimulationParameters
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
+
+   // Failsafe parameters
+   bool checkTemperatureConsistency = false;     // Check if radially averaged temperatures goes
+                                                 // out of the expected range [surfaceTemp, cmbTemp]
+   real_t temperatureConsistencyThreshold = 1.0; // Kelvin
 };
 
 enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t

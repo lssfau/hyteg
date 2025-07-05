@@ -95,11 +95,13 @@
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/helpers/Viscosity.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
+#include "terraneo/operators/P2P1StokesOperatorRotationOpgen.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
 #include "terraneo/operators/P2TransportTALAOperatorStd.hpp"
 #include "terraneo/solvers/MCSolverBase.hpp"
 #include "terraneo/solvers/StokesMCFGMRESSolver.hpp"
+#include "terraneo/solvers/StokesMCFGMRESSolverWithProjection.hpp"
 #include "terraneo/solvers/StokesMCUzawaSolver.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 
@@ -174,6 +176,9 @@ class ConvectionSimulation
 
    // Declare boundary condition objects for unknown functions for temperature and velocity
 
+   BoundaryCondition bcVelocityR;
+   BoundaryCondition bcVelocityThetaPhi;
+
    BoundaryCondition bcVelocity;
    BoundaryCondition bcTemperature;
 
@@ -211,6 +216,8 @@ class ConvectionSimulation
        { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "VelocityFERotated", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesRHSRotated", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp3", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
@@ -237,8 +244,9 @@ class ConvectionSimulation
        { "TemperatureAvrgVolumetric", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {};
-   std::map< std::string, std::shared_ptr< VectorFunctionP2 > >                    p2VectorFunctionContainer;
+   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
+       { "NormalsFS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
+   std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
 
    // Storage for primitives (includes functionality for distributed computing)
    std::shared_ptr< PrimitiveStorage > storage;
@@ -254,6 +262,10 @@ class ConvectionSimulation
    std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
 
+   std::shared_ptr< MCSolverBase< P2P1StokesOpgenRotationWrapper > > stokesSolverOpgenClass;
+   std::shared_ptr< P2P1StokesOpgenRotationWrapper >                 stokesOperatorOpgen;
+   std::shared_ptr< Solver< P2P1StokesOpgenRotationWrapper > >       stokesSolverOpgen;
+
    // Operators
    std::shared_ptr< StokesOperator >                         stokesOperator;
    std::shared_ptr< StokesOperatorFS >                       stokesOperatorFS;
@@ -265,6 +277,8 @@ class ConvectionSimulation
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
    std::shared_ptr< P2toP2QuadraticProlongation >       p2ProlongationOperator;
+
+   std::shared_ptr< P2RotationOperator > rotationOperator;
 
    std::shared_ptr< P2toP2QuadraticInjection > p2InjectionOperator;
 
@@ -279,6 +293,14 @@ class ConvectionSimulation
    std::shared_ptr< InexactUzawaPreconditioner< StokesOperator, StokesOperator::ViscousOperator_T, SchurOperator > >
                                                uzawaSmoother;
    std::shared_ptr< Solver< StokesOperator > > coarseGridSolver;
+
+   bool outputDirectoriesCreated = false;
+
+   std::string modelPath;
+   std::string modelParaviewPath;
+   std::string modelCheckpointPath;
+   std::string modelRadialProfilesPath;
+
    std::shared_ptr< hyteg::VTKOutput >         vtkOutput;
 
    // ADIOS2 data output

@@ -30,12 +30,47 @@ void ConvectionSimulation::setupOutput()
    WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
+   const std::string& outputDirectory = TN.outputParameters.outputDirectory;
+   const std::string& modelBaseName   = TN.outputParameters.modelBaseName;
+
+   if ( outputDirectoriesCreated == false )
+   {
+      modelPath = walberla::format( "%s/%s", outputDirectory.c_str(), modelBaseName.c_str() );
+
+      bool modelPathExists = std::filesystem::is_directory( modelPath );
+
+      WALBERLA_ROOT_SECTION()
+      {
+         if ( modelPathExists )
+         {
+            WALBERLA_ABORT( "Path with model name already exists, use override switch to overwrite data" );
+         }
+         else
+         {
+            std::filesystem::create_directory( modelPath );
+         }
+      }
+
+      modelParaviewPath       = walberla::format( "%s/output", modelPath.c_str() );
+      modelCheckpointPath     = walberla::format( "%s/checkpoint", modelPath.c_str() );
+      modelRadialProfilesPath = walberla::format( "%s/radialProfiles", modelPath.c_str() );
+
+      WALBERLA_ROOT_SECTION()
+      {
+         std::filesystem::create_directory( modelParaviewPath );
+         std::filesystem::create_directory( modelCheckpointPath );
+         std::filesystem::create_directory( modelRadialProfilesPath );
+      }
+
+      outputDirectoriesCreated = true;
+   }
+
    if ( TN.outputParameters.vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Output format: VTK" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      vtkOutput = std::make_shared< hyteg::VTKOutput >(
-          TN.outputParameters.outputDirectory, TN.outputParameters.outputBaseName, storage, TN.outputParameters.OutputInterval );
+      vtkOutput =
+          std::make_shared< hyteg::VTKOutput >( modelParaviewPath, modelBaseName, storage, TN.outputParameters.OutputInterval );
       vtkOutput->setVTKDataFormat( hyteg::vtk::DataFormat::BINARY );
    }
    else
@@ -43,10 +78,8 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       WALBERLA_LOG_INFO_ON_ROOT( "Output format: ADIOS2 - BP5" );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      _output = std::make_shared< AdiosWriter >( TN.outputParameters.outputDirectory,
-                                                 TN.outputParameters.outputBaseName,
-                                                 TN.outputParameters.ADIOS2OutputConfig,
-                                                 storage );
+      _output =
+          std::make_shared< AdiosWriter >( modelParaviewPath, modelBaseName, TN.outputParameters.ADIOS2OutputConfig, storage );
       _output->setParameter( TN.outputParameters.ADIOS2ParamKey, TN.outputParameters.ADIOS2Value );
 
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
@@ -60,6 +93,8 @@ void ConvectionSimulation::setupOutput()
       WALBERLA_LOG_INFO_ON_ROOT( "No submodule ADIOS2 enabled! " );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( "No data output! " );
+
+      WALBERLA_ABORT( "TerraNeo not compiled with ADIOS2 but output is requested with ADIOS2" );
 #endif
    }
 
@@ -176,6 +211,8 @@ void ConvectionSimulation::dataOutput()
    WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output   ****" );
    WALBERLA_LOG_INFO_ON_ROOT( "**************************" );
 
+   const std::string& modelBaseName = TN.outputParameters.modelBaseName;
+
    if ( !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
    {
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFunction =
@@ -241,7 +278,7 @@ void ConvectionSimulation::dataOutput()
    else if ( TN.outputParameters.dataOutput )
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      if( TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0u )
+      if ( TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0u )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
          storage->getTimingTree()->start( "Adios2 data output" );
@@ -253,11 +290,22 @@ void ConvectionSimulation::dataOutput()
            TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+
          checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
          checkpointExporter->registerFunction(
              *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
-                                              TN.outputParameters.ADIOS2StoreCheckpointFilename, attributeList_ );
+         checkpointExporter->storeCheckpoint( modelCheckpointPath, modelBaseName, attributeList_ );
+      }
+      else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
+                ( ( TN.simulationParameters.modelRunTimeMa ) >=
+                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+         checkpointExporter->registerFunction(
+             *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+         checkpointExporter->storeCheckpoint(
+             TN.outputParameters.ADIOS2StoreCheckpointPath, TN.outputParameters.ADIOS2StoreCheckpointFilename, attributeList_ );
       }
       else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
                 ( ( TN.simulationParameters.modelRunTimeMa ) >=
@@ -278,6 +326,7 @@ void ConvectionSimulation::dataOutput()
 
    if ( TN.outputParameters.outputProfiles )
    {
+      modelRadialProfilesPath = walberla::format( "%s/radialProfiles", modelPath.c_str() );
       // Redimensionalise tempeature to SI unit [K]
       for ( uint_t i = 0; i < temperatureProfiles->mean.size(); i++ )
       {
@@ -286,9 +335,10 @@ void ConvectionSimulation::dataOutput()
          temperatureProfiles->min[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
       }
 
-      temperatureProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                          TN.outputParameters.outputBaseName + "_TempProfile_" + std::to_string( outputTime ) +
-                                          ".dat",
+      temperatureProfiles->logToFile( walberla::format( "%s/%s_TempProfile_%s.dat",
+                                                        modelRadialProfilesPath.c_str(),
+                                                        modelBaseName.c_str(),
+                                                        std::to_string( outputTime ).c_str() ),
                                       "temperature" );
 
       real_t cmPerYear = 3.15e9;
@@ -299,10 +349,12 @@ void ConvectionSimulation::dataOutput()
          velocityProfiles->min[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
          velocityProfiles->rms[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
       }
-      velocityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + std::to_string( outputTime ) +
-                                       ".dat",
-                                   "velocity" );
+
+      velocityProfiles->logToFile( walberla::format( "%s/%s_VelocityProfile_%s.dat",
+                                                     modelRadialProfilesPath.c_str(),
+                                                     modelBaseName.c_str(),
+                                                     std::to_string( outputTime ).c_str() ),
+                                   "viscosity" );
 
       if ( TN.simulationParameters.tempDependentViscosity )
       {
@@ -313,9 +365,11 @@ void ConvectionSimulation::dataOutput()
             viscosityProfiles->max[i] *= TN.physicalParameters.referenceViscosity;
             viscosityProfiles->min[i] *= TN.physicalParameters.referenceViscosity;
          }
-         viscosityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                           TN.outputParameters.outputBaseName + "_ViscProfile_" + std::to_string( outputTime ) +
-                                           ".dat",
+
+         viscosityProfiles->logToFile( walberla::format( "%s/%s_ViscProfile_%s.dat",
+                                                         modelRadialProfilesPath.c_str(),
+                                                         modelBaseName.c_str(),
+                                                         std::to_string( outputTime ).c_str() ),
                                        "viscosity" );
       }
    }
