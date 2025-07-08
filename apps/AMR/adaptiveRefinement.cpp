@@ -620,12 +620,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    t_init = t1 - t0;
    WALBERLA_LOG_INFO_ON_ROOT( " -> number of global DoF: " << n_dof );
    auto v_mean = mesh.volume() / real_t( mesh.n_elements() );
-   auto h_mean = sqrt( 2 * v_mean );
-   if ( problem.dim == 3 )
-   {
-      h_mean = pow( 6 * v_mean, 1.0 / 3.0 );
-   }
-   h_mean /= real_t( 1 << l_max );
+   auto h_mean = pow( v_mean, 1.0 / real_t( mesh.dim() ) ) / real_t( 1 << l_max );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " -> h_mean = %3.3e", h_mean ) );
 
    // computation of residual and L2 error
@@ -1155,7 +1150,7 @@ int main( int argc, char* argv[] )
    const uint_t ref_type =
        parameters.getParameter< uint_t >( "refinement_strategy", adaptiveRefinement::Strategy::WEIGHTED_MEAN );
    const real_t p_refinement          = parameters.getParameter< real_t >( "p_refinement", 0.0 );
-   const bool   error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
+   bool         error_indicator       = parameters.getParameter< bool >( "error_indicator", false );
    bool         global_error_estimate = parameters.getParameter< bool >( "global_error_estimate", false );
 
    const uint_t l_min   = parameters.getParameter< uint_t >( "cg_level", 0 );
@@ -1188,17 +1183,16 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 #endif
 
-   if ( error_indicator && l_max - l_min < 1 )
+   if ( error_indicator && l_max <= l_min )
    {
-      WALBERLA_LOG_WARNING_ON_ROOT(
-          "Local error indicator requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 1." )
+      WALBERLA_LOG_WARNING_ON_ROOT( "Local error indicator requires at least 2 multigrid levels, i.e., microlevel > cg_level." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.error_indicator=0" );
-      global_error_estimate = 0;
+      error_indicator = 0;
    }
-   if ( global_error_estimate && l_max - l_min < 3 )
+   if ( global_error_estimate && l_max <= l_min + 1 )
    {
       WALBERLA_LOG_WARNING_ON_ROOT(
-          "Global error estimation requires at least 2 multigrid levels, i.e., microlevel - cg_level >= 3." )
+          "Global error estimation requires at least 3 multigrid levels, i.e., microlevel > cg_level+1." )
       WALBERLA_LOG_WARNING_ON_ROOT( "Resetting --Parameters.global_error_estimate=0" );
       global_error_estimate = 0;
    }
