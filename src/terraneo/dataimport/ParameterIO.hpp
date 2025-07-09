@@ -592,13 +592,13 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "----    Physical Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "Surface Temperature          : " << physicalParam.surfaceTemp );
+   WALBERLA_LOG_INFO_ON_ROOT( "Surface temperature          : " << physicalParam.surfaceTemp );
    WALBERLA_LOG_INFO_ON_ROOT( "Temperature CMB              : " << physicalParam.cmbTemp );
-   WALBERLA_LOG_INFO_ON_ROOT( "Thermal Conductivity         : " << physicalParam.thermalConductivity );
+   WALBERLA_LOG_INFO_ON_ROOT( "Thermal conductivity         : " << physicalParam.thermalConductivity );
    WALBERLA_LOG_INFO_ON_ROOT( "Grueneisen parameter         : " << physicalParam.grueneisenParameter );
-   WALBERLA_LOG_INFO_ON_ROOT( "Internal Heating Rate        : " << physicalParam.internalHeatingRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "Thermal Diffusivity          : " << physicalParam.thermalDiffusivity );
-   WALBERLA_LOG_INFO_ON_ROOT( "Characteristic Velocity      : " << physicalParam.characteristicVelocity );
+   WALBERLA_LOG_INFO_ON_ROOT( "Internal heating rate        : " << physicalParam.internalHeatingRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "Thermal diffusivity          : " << physicalParam.thermalDiffusivity );
+   WALBERLA_LOG_INFO_ON_ROOT( "Characteristic velocity      : " << physicalParam.characteristicVelocity );
 
    if ( simulationParam.haveTemperatureProfile )
    {
@@ -610,7 +610,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "viscosity                    : " << physicalParam.viscosity );
+      WALBERLA_LOG_INFO_ON_ROOT( "Viscosity                    : " << physicalParam.viscosity );
    }
    if ( simulationParam.haveThermalExpProfile )
    {
@@ -623,11 +623,11 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
 
    if ( simulationParam.haveSpecificHeatCapProfile )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Specific Heat cap. profile   : " << simulationParam.fileSpecificHeatCap );
+      WALBERLA_LOG_INFO_ON_ROOT( "Specific heat cap. profile   : " << simulationParam.fileSpecificHeatCap );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "speicific heat capacity      : " << physicalParam.specificHeatCapacity );
+      WALBERLA_LOG_INFO_ON_ROOT( "Specific heat capacity       : " << physicalParam.specificHeatCapacity );
    }
 
    if ( simulationParam.haveDensityProfile )
@@ -636,7 +636,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Reference Density            : " << physicalParam.referenceDensity );
+      WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
    }
 
    if ( simulationParam.haveViscosityProfile || simulationParam.tempDependentViscosity )
@@ -645,9 +645,9 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
       WALBERLA_LOG_INFO_ON_ROOT( "Viscosity upper bound        : " << physicalParam.viscosityUpperBound );
       if ( simulationParam.tempDependentViscosity )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "T dependent Viscosity type: " << simulationParam.tempDependentViscosityType );
-         WALBERLA_LOG_INFO_ON_ROOT( "Activation Energy         : " << physicalParam.activationEnergy );
-         WALBERLA_LOG_INFO_ON_ROOT( "Depth Viscosity Factor    : " << physicalParam.depthViscosityFactor );
+         WALBERLA_LOG_INFO_ON_ROOT( "T dependent viscosity type: " << simulationParam.tempDependentViscosityType );
+         WALBERLA_LOG_INFO_ON_ROOT( "Activation energy         : " << physicalParam.activationEnergy );
+         WALBERLA_LOG_INFO_ON_ROOT( "Depth viscosity factor    : " << physicalParam.depthViscosityFactor );
       }
    }
 
@@ -672,35 +672,40 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
       WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
       WALBERLA_LOG_INFO_ON_ROOT( "degree                       : " << initialisationParam.deg );
       WALBERLA_LOG_INFO_ON_ROOT( "order                        : " << initialisationParam.ord );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial temperature steepness: " << initialisationParam.initialTemperatureSteepness );
       break;
    case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
-      WALBERLA_LOG_INFO_ON_ROOT( "Random Superposition SPH" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Random superposition SPH" );
       WALBERLA_LOG_INFO_ON_ROOT( "tempInit                     : " << initialisationParam.tempInit );
       WALBERLA_LOG_INFO_ON_ROOT( "lmin                         : " << initialisationParam.lmin );
       WALBERLA_LOG_INFO_ON_ROOT( "lmax                         : " << initialisationParam.lmax );
       WALBERLA_LOG_INFO_ON_ROOT( "Random Seed                  : " << initialisationParam.superpositionSPHRandomSeed );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initial Temperature steepness: " << initialisationParam.initialTemperatureSteepness );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial temperature steepness: " << initialisationParam.initialTemperatureSteepness );
       break;
    case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
    default:
       WALBERLA_LOG_INFO_ON_ROOT( "White Noise" );
       break;
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "Buoyancy factor: " << initialisationParam.buoyancyFactor );
+   WALBERLA_LOG_INFO_ON_ROOT( "Buoyancy factor              : " << initialisationParam.buoyancyFactor );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Simulation Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Simulation type         : " << simulationParam.simulationType );
-   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns Temperature    : " << simulationParam.unknownsTemperature );
+   WALBERLA_LOG_INFO_ON_ROOT( "Boundary condition      : " << simulationParam.boundaryCond );
+   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns temperature    : " << simulationParam.unknownsTemperature );
    WALBERLA_LOG_INFO_ON_ROOT( "Unknowns Stokes         : " << simulationParam.unknownsStokes );
    WALBERLA_LOG_INFO_ON_ROOT( "hMin                    : " << simulationParam.hMin );
    WALBERLA_LOG_INFO_ON_ROOT( "hMax                    : " << simulationParam.hMax );
    WALBERLA_LOG_INFO_ON_ROOT( "Fixed timestep          : " << ( simulationParam.fixedTimestep ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "dtConstant              : " << simulationParam.dtConstant );
-   WALBERLA_LOG_INFO_ON_ROOT( "Timestep                : " << simulationParam.timestep );
+   if (simulationParam.fixedTimestep )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "dtConstant              : " << simulationParam.dtConstant );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "cflMax                  : " << simulationParam.cflMax );
    WALBERLA_LOG_INFO_ON_ROOT( "MaxNumTimesteps         : " << simulationParam.maxNumTimesteps );
    WALBERLA_LOG_INFO_ON_ROOT( "Compressible            : " << ( simulationParam.compressible ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
@@ -712,7 +717,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
 
    WALBERLA_LOG_INFO_ON_ROOT( "Adiabatic heating       : " << ( simulationParam.adiabaticHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Internal heating        : " << ( simulationParam.internalHeating ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "T-dependent Viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Frozen velocity         : " << ( simulationParam.frozenVelocity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "T-dependent viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.      : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT(
        "volumetric avrg Ref Temp.      : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
@@ -732,19 +738,20 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Output directory  : " << outputParam.outputDirectory );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Base Name  : " << outputParam.modelBaseName );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output base name  : " << outputParam.outputBaseName );
    WALBERLA_LOG_INFO_ON_ROOT( "data Output       : " << ( outputParam.dataOutput ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Interval   : " << outputParam.OutputInterval );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output interval   : " << outputParam.OutputInterval );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output temperature & viscosity profiles: "
+                                 << "true" );
    }
    else
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature Profiles: " << ( outputParam.outputProfiles ? "true" : "false" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output temperature profiles: " << ( outputParam.outputProfiles ? "true" : "false" ) );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( " " );
@@ -762,20 +769,22 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
       WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver tolerance                : " << solverParam.FGMRESTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "Uzawa smoother iterations              : " << solverParam.uzawaIterations );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid iterations           : " << solverParam.ABlockMGIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid pre-smoothing steps  : " << solverParam.ABlockMGPreSmooth );
       WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid post-smoothing steps : " << solverParam.ABlockMGPostSmooth );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid iterations             : " << solverParam.SchurMGIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid pre-smoothing steps    : " << solverParam.SchurMGPreSmooth );
       WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid post-smoothing steps   : " << solverParam.SchurMGPostSmooth );
-
       WALBERLA_LOG_INFO_ON_ROOT( "Diffusion max num iterations           : " << solverParam.diffusionMaxNumIterations );
-      WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U-tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
-
+      WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes kill-tolerance                  : " << solverParam.stokesKillTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( " " );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid iterations         : " << solverParam.ABlockCoarseGridIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid tolerance          : " << solverParam.ABlockCoarseGridTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur coarse grid iterations           : " << solverParam.SchurCoarseGridIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Schur coarse grid tolerance            : " << solverParam.SchurCoarseGridTolerance );
    }
    else if ( solverParam.solverFlag == 1u )
    {
