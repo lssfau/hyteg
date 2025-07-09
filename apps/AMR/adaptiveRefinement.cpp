@@ -230,12 +230,13 @@ struct ModelProblem
               P1Function< real_t >&                      u_h,
               P1Function< real_t >&                      b,
               uint_t                                     l_min,
-              uint_t                                     l_max ) const
+              uint_t                                     l_max,
+              bool                                       b_Mf = false ) const
    {
       using walberla::math::one_div_root_two;
       using walberla::math::pi;
 
-      // setup rhs function f and analytic solution u of pde
+      // setup rhs function f and analytic solution u of PDE
       std::function< real_t( const Point3D& ) > _f;
       std::function< real_t( const Point3D& ) > _u;
 
@@ -303,7 +304,7 @@ struct ModelProblem
       {
          auto omega = 2.0 * pi * n_w;
          auto alpha = p_w;
-         // v(t) = 1 - cos(φ(t)), φ(t) = ωte^(α(t-1))
+         // v(t) = 1 - cos(φ(t)), φ(t) = ω⋅t⋅e^(α(t-1))
          auto v = [=]( const real_t& t ) { return 1 - std::cos( omega * t * std::exp( alpha * ( t - 1.0 ) ) ); };
          // v''(t) = sin(φ)φ'' + cos(φ)φ'φ'
          auto d2v = [=]( const real_t& t ) {
@@ -412,6 +413,15 @@ struct ModelProblem
          auto _b = [=]( const Point3D& x ) -> real_t { return ( _f( x ) > 0.0 ) ? 1.0 : 0.0; };
          for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
             b.interpolate( _b, lvl );
+      }
+      else if ( b_Mf )
+      {
+         // compute rhs as b = Mf
+         Mass M( storage, l_min, l_max );
+         for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+         {
+            M.apply( f, b, lvl, All, Replace );
+         }
       }
       else
       {
@@ -543,7 +553,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        uint_t                                   n2,
                                        real_t                                   tol,
                                        real_t                                   cg_tol,
-                                       std::string                              vtkname,
+                                       std::string                              vtkName,
                                        bool                                     writePartitioning,
                                        bool                                     writeMeshfile,
                                        bool                                     printMeshData,
@@ -552,7 +562,8 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
                                        bool                                     global_error_estimate,
                                        uint_t                                   error_freq,
                                        uint_t                                   error_lvl,
-                                       bool                                     loadbalancing )
+                                       bool                                     loadbalancing,
+                                       bool                                     b_Mf = false )
 {
    // timing
    real_t t0, t1;
@@ -657,7 +668,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    };
 
    // initialize analytic solution, rhs and boundary values
-   problem.init( storage, u_anal, f, *u, b, l_min, l_max );
+   problem.init( storage, u_anal, f, *u, b, l_min, l_max, b_Mf );
 
    t1 = walberla::timing::getWcTime();
    t_init += t1 - t0;
@@ -687,6 +698,10 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       t_interpolate = 0;
       WALBERLA_LOG_INFO_ON_ROOT( " -> initialize u=0" );
    }
+
+   // For some reason the communication in A.apply takes insanely long when calling it for the first time.
+   // Therefore, we do one apply on a lower level first.
+   A->apply( *u, tmp, std::min( 2ul, l_max ), Inner | NeumannBoundary, Replace );
 
    // solver
    t0 = walberla::timing::getWcTime();
@@ -741,6 +756,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
 
    // initial residual
    real_t norm_r = compute_residual();
+
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ->  %10d |%17.2e |", 0, norm_r ) );
 
    // solve system
@@ -833,7 +849,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    printCurrentMemoryUsage();
 
    // export to vtk
-   if ( vtkname != "" )
+   if ( vtkName != "" )
    {
       // coefficient
       P1Function< real_t > k( "k", storage, l_max, l_max );
@@ -854,7 +870,7 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       err_abs.interpolate( _err_abs, l_max );
 
       // write vtk file
-      VTKOutput vtkOutput( "output", vtkname, storage );
+      VTKOutput vtkOutput( "output", vtkName, storage );
       vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput.add( k );
       vtkOutput.add( f );
@@ -872,33 +888,33 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
       errData["estL2error"] = err_el;
 
       writeDomainPartitioningVTK(
-          *storage, "output", vtkname + "_partitioning_vertices_ts" + std::to_string( refinement_step ), VTK_VERTEX, realData );
+          *storage, "output", vtkName + "_partitioning_vertices_ts" + std::to_string( refinement_step ), VTK_VERTEX, realData );
       writeDomainPartitioningVTK(
-          *storage, "output", vtkname + "_partitioning_edges_ts" + std::to_string( refinement_step ), VTK_LINE, realData );
+          *storage, "output", vtkName + "_partitioning_edges_ts" + std::to_string( refinement_step ), VTK_LINE, realData );
       if ( storage->hasGlobalCells() )
       {
          writeDomainPartitioningVTK(
-             *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, realData );
+             *storage, "output", vtkName + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, realData );
          writeDomainPartitioningVTK(
-             *storage, "output", vtkname + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, errData );
+             *storage, "output", vtkName + "_partitioning_cells_ts" + std::to_string( refinement_step ), VTK_TETRA, errData );
       }
       else
       {
          writeDomainPartitioningVTK(
-             *storage, "output", vtkname + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, errData );
+             *storage, "output", vtkName + "_partitioning_faces_ts" + std::to_string( refinement_step ), VTK_TRIANGLE, errData );
       }
    }
 
    if ( writeMeshfile )
    {
-      mesh.exportMesh( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".msh" );
+      mesh.exportMesh( "output/" + vtkName + "_mesh_" + std::to_string( refinement_step ) + ".msh" );
    }
 
    if ( printMeshData )
    {
       WALBERLA_ROOT_SECTION()
       {
-         std::ofstream file( "output/" + vtkname + "_mesh_" + std::to_string( refinement_step ) + ".dat" );
+         std::ofstream file( "output/" + vtkName + "_mesh_" + std::to_string( refinement_step ) + ".dat" );
 
          file << std::setw( 13 ) << "#||centroid||" << std::setw( 13 ) << "R" << std::setw( 13 ) << "V"
               << "\n";
@@ -946,7 +962,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                 uint_t                              max_iter_final,
                                 real_t                              tol_final,
                                 real_t                              cg_tol,
-                                std::string                         vtkname,
+                                std::string                         vtkName,
                                 bool                                writePartitioning,
                                 bool                                writeMeshfile,
                                 bool                                printMeshData,
@@ -954,7 +970,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                 bool                                global_error_estimate,
                                 uint_t                              error_freq,
                                 uint_t                              error_lvl,
-                                bool                                loadbalancing )
+                                bool                                loadbalancing,
+                                bool                                b_Mf )
 {
    // construct adaptive mesh
    adaptiveRefinement::Mesh mesh( setupStorage );
@@ -979,7 +996,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                           n2,
                                           tol,
                                           cg_tol,
-                                          vtkname,
+                                          vtkName,
                                           writePartitioning,
                                           writeMeshfile,
                                           printMeshData,
@@ -988,7 +1005,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                           global_error_estimate,
                                           error_freq,
                                           error_lvl,
-                                          loadbalancing );
+                                          loadbalancing,
+                                          b_Mf );
       else
          local_errors = solve< DivkGrad >( mesh,
                                            problem,
@@ -1003,7 +1021,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                            n2,
                                            tol,
                                            cg_tol,
-                                           vtkname,
+                                           vtkName,
                                            writePartitioning,
                                            writeMeshfile,
                                            printMeshData,
@@ -1012,7 +1030,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                                            global_error_estimate,
                                            error_freq,
                                            error_lvl,
-                                           loadbalancing );
+                                           loadbalancing,
+                                           b_Mf );
 
       if ( refinement >= n_ref )
       {
@@ -1071,7 +1090,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                            n2,
                            tol_final,
                            cg_tol,
-                           vtkname,
+                           vtkName,
                            writePartitioning,
                            writeMeshfile,
                            printMeshData,
@@ -1080,7 +1099,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                            global_error_estimate,
                            error_freq,
                            error_lvl,
-                           loadbalancing );
+                           loadbalancing,
+                           b_Mf );
       }
       else
       {
@@ -1097,7 +1117,7 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                             n2,
                             tol_final,
                             cg_tol,
-                            vtkname,
+                            vtkName,
                             writePartitioning,
                             writeMeshfile,
                             printMeshData,
@@ -1106,7 +1126,8 @@ void solve_for_each_refinement( const SetupPrimitiveStorage&        setupStorage
                             global_error_estimate,
                             error_freq,
                             error_lvl,
-                            loadbalancing );
+                            loadbalancing,
+                            b_Mf );
       }
    }
 }
@@ -1171,11 +1192,12 @@ int main( int argc, char* argv[] )
    uint_t       l2error       = parameters.getParameter< uint_t >( "l2error", 0 );
    const uint_t l2_err_lvl    = parameters.getParameter< uint_t >( "l2error_lvl", l_max );
 
-   std::string vtkname           = parameters.getParameter< std::string >( "vtkName", "" );
-   std::string inputmesh         = parameters.getParameter< std::string >( "initialMesh", "" );
+   std::string vtkName           = parameters.getParameter< std::string >( "vtkName", "" );
+   std::string inputMesh         = parameters.getParameter< std::string >( "initialMesh", "" );
    const bool  writePartitioning = parameters.getParameter< bool >( "writeDomainPartitioning", false );
    const bool  writeMeshfile     = parameters.getParameter< bool >( "writeMeshfile", false );
    const bool  printMeshData     = parameters.getParameter< bool >( "printMeshData", false );
+   const bool  b_Mf              = parameters.getParameter< bool >( "simpleRHS", false );
 
    const adaptiveRefinement::Strategy ref_strat{ adaptiveRefinement::Strategy::Type( ref_type ), p_refinement };
 
@@ -1205,14 +1227,14 @@ int main( int argc, char* argv[] )
 
    // setup model problem
    ModelProblem problem( mp, dim );
-   if ( vtkname == "auto" )
+   if ( vtkName == "auto" )
    {
-      vtkname = problem.name();
+      vtkName = problem.name();
    }
    problem.set_params( sigma, n_waves, squeeze_waves, kLo, kHi );
 
    // setup domain
-   auto setupStorage = domain( problem, N, inputmesh );
+   auto setupStorage = domain( problem, N, inputMesh );
 
    // print parameters
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
@@ -1239,6 +1261,14 @@ int main( int argc, char* argv[] )
    if ( ModelProblem::Type( mp ) == ModelProblem::JUMP_COEFF_REGULARIZED )
    {
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "sigma", sigma ) );
+   }
+   if ( b_Mf )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "RHS", "Simplified, i.e., b = M⋅f_h" ) );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "RHS", "Quadrature, i.e. b_i = ∫φ_i f" ) );
    }
    // todo: add output for new parameters when adding problems
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "initial resolution", N ) );
@@ -1276,10 +1306,10 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "max iterations (final solve)", max_iter_final ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %2.1e", "tolerance (final solve)", tol_final ) );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write vtk output", ( vtkname != "" ) ) );
-   if ( vtkname != "" )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write vtk output", ( vtkName != "" ) ) );
+   if ( vtkName != "" )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "vtk name", vtkname.c_str() ) );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %s", "vtk name", vtkName.c_str() ) );
    }
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write domain partitioning", writePartitioning ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %30s: %d", "write  mesh to file", writeMeshfile ) );
@@ -1302,7 +1332,7 @@ int main( int argc, char* argv[] )
                               max_iter_final,
                               tol_final,
                               cg_tol,
-                              vtkname,
+                              vtkName,
                               writePartitioning,
                               writeMeshfile,
                               printMeshData,
@@ -1310,7 +1340,8 @@ int main( int argc, char* argv[] )
                               global_error_estimate,
                               l2error,
                               l2_err_lvl,
-                              loadbalancing );
+                              loadbalancing,
+                              b_Mf );
 
    return 0;
 }
