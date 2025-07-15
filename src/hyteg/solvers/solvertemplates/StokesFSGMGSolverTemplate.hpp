@@ -68,6 +68,42 @@ namespace solvertemplates {
 
 // clang-format on
 
+void getRotationalModes( P2VectorFunction< real_t >& uX,
+                         P2VectorFunction< real_t >& uY,
+                         P2VectorFunction< real_t >& uZ,
+                         uint_t                      level )
+{
+   /***************************************************************************/
+   // Z axis mode
+
+   std::function< real_t( const Point3D& ) > zAxisModeX = []( const Point3D& x ) { return -x[1]; };
+   std::function< real_t( const Point3D& ) > zAxisModeY = []( const Point3D& x ) { return x[0]; };
+
+   uZ[0].interpolate( zAxisModeX, level, All );
+   uZ[1].interpolate( zAxisModeY, level, All );
+   uZ[2].interpolate( 0.0, level, All );
+
+   /***************************************************************************/
+   // X axis mode
+
+   std::function< real_t( const Point3D& ) > xAxisModeX = []( const Point3D& x ) { return -x[2]; };
+   std::function< real_t( const Point3D& ) > xAxisModeY = []( const Point3D& x ) { return x[1]; };
+
+   uX[1].interpolate( xAxisModeX, level, All );
+   uX[2].interpolate( xAxisModeY, level, All );
+   uX[0].interpolate( 0.0, level, All );
+
+   /***************************************************************************/
+   // Y axis mode
+
+   std::function< real_t( const Point3D& ) > yAxisModeX = []( const Point3D& x ) { return -x[0]; };
+   std::function< real_t( const Point3D& ) > yAxisModeY = []( const Point3D& x ) { return x[2]; };
+
+   uY[2].interpolate( yAxisModeX, level, All );
+   uY[0].interpolate( yAxisModeY, level, All );
+   uY[1].interpolate( 0.0, level, All );
+}
+
 // Things are still restricted to P2-P1 space
 template < typename StokesOperatorType, typename ProjectionType >
 inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
@@ -168,6 +204,12 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    // TODO: TO CHECK THIS!
    // auto Jacobi = std::make_shared< WeightedJacobiSmoother< SubstAType > >( storage, minLevel, maxLevel, 2.0 / 3.0 );
+
+   auto rotModeX = std::make_shared< P2VectorFunction< real_t > >( "rotModeX", storage, minLevel, minLevel );
+   auto rotModeY = std::make_shared< P2VectorFunction< real_t > >( "rotModeY", storage, minLevel, minLevel );
+   auto rotModeZ = std::make_shared< P2VectorFunction< real_t > >( "rotModeZ", storage, minLevel, minLevel );
+
+   getRotationalModes( *rotModeX, *rotModeY, *rotModeZ, minLevel );
 
    // auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< SubstAType > >( storage, minLevel );
    if ( ABlockCoarseGridPETSc == 1 )

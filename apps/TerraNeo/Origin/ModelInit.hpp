@@ -122,7 +122,7 @@ void ConvectionSimulation::init()
 
    printConfig( TN, walberla::format( "%s/params.txt", modelPath.c_str() ) );
 
-   std::string logFilename   = walberla::format( "%s/logFile.txt", modelPath.c_str() );
+   std::string logFilename = walberla::format( "%s/logFile.txt", modelPath.c_str() );
 
    WALBERLA_ROOT_SECTION()
    {
@@ -302,6 +302,34 @@ void ConvectionSimulation::setupFunctions()
       default: {
          p2VectorFunctionContainer.emplace( std::make_pair(
              p2VecNames, std::make_shared< VectorFunctionP2 >( p2VecNames, storage, p2VecMinLevel, p2VecMaxLevel ) ) );
+      }
+      }
+   }
+
+   for ( auto& [p0Names, p0MinLevel, p0MaxLevel, p0BcType] : p0ScalarFunctionDict )
+   {
+      p0MinLevel = TN.domainParameters.minLevel;
+      p0MaxLevel = TN.domainParameters.maxLevel;
+   }
+
+   for ( auto [p0Names, p0MinLevel, p0MaxLevel, p0BcType] : p0ScalarFunctionDict )
+   {
+      switch ( p0BcType )
+      {
+      case BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION: {
+         WALBERLA_LOG_WARNING_ON_ROOT( "bcVelocity looks odd for P2Function" );
+         p0ScalarFunctionContainer.emplace( std::make_pair(
+             p0Names, std::make_shared< ScalarFunctionP0 >( p0Names, storage, p0MinLevel, p0MaxLevel, bcVelocity ) ) );
+      }
+      break;
+      case BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION: {
+         p0ScalarFunctionContainer.emplace( std::make_pair(
+             p0Names, std::make_shared< ScalarFunctionP0 >( p0Names, storage, p0MinLevel, p0MaxLevel, bcTemperature ) ) );
+      }
+      break;
+      default: {
+         p0ScalarFunctionContainer.emplace(
+             std::make_pair( p0Names, std::make_shared< ScalarFunctionP0 >( p0Names, storage, p0MinLevel, p0MaxLevel ) ) );
       }
       }
    }
@@ -498,18 +526,40 @@ void ConvectionSimulation::setupSolversAndOperators()
                                                             *( p2ScalarFunctionContainer["DensityFE"] ),
                                                             TN.simulationParameters.frozenVelocity );
 
-   stokesOperatorOpgen =
-       std::make_shared< P2P1StokesOpgenRotationWrapper >( storage,
-                                                           TN.domainParameters.minLevel,
-                                                           TN.domainParameters.maxLevel,
-                                                           p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
-                                                           p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
-                                                           p2VectorFunctionContainer["NormalsFS"]->component( 0u ),
-                                                           p2VectorFunctionContainer["NormalsFS"]->component( 1u ),
-                                                           p2VectorFunctionContainer["NormalsFS"]->component( 2u ),
-                                                           0.0,
-                                                           *rotationOperator,
-                                                           bcVelocity );
+   if constexpr ( std::is_same_v< ViscosityFunction_T, P1Function< real_t > > )
+   {
+      stokesOperatorOpgen =
+          std::make_shared< StokesOperatorOpgen_T >( storage,
+                                                     TN.domainParameters.minLevel,
+                                                     TN.domainParameters.maxLevel,
+                                                     p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
+                                                     p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 0u ),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 1u ),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 2u ),
+                                                     0.0,
+                                                     *rotationOperator,
+                                                     bcVelocity );
+   }
+   else if constexpr ( std::is_same_v< ViscosityFunction_T, P0Function< real_t > > )
+   {
+      stokesOperatorOpgen =
+          std::make_shared< StokesOperatorOpgen_T >( storage,
+                                                     TN.domainParameters.minLevel,
+                                                     TN.domainParameters.maxLevel,
+                                                     *( p0ScalarFunctionContainer["ViscosityFEP0"] ),
+                                                     p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 0u ),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 1u ),
+                                                     p2VectorFunctionContainer["NormalsFS"]->component( 2u ),
+                                                     0.0,
+                                                     *rotationOperator,
+                                                     bcVelocity );
+   }
+   else
+   {
+      WALBERLA_ABORT("Nope");
+   }
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
@@ -543,15 +593,16 @@ void ConvectionSimulation::setupSolversAndOperators()
 
    stokesSolverFS = stokesSolverClass->getSolver();
 
-   stokesSolverOpgenClass = std::make_shared< StokesMCFGMRESSolver< P2P1StokesOpgenRotationWrapper, P2ProjectNormalOperator > >(
-       storage,
-       TN.domainParameters.minLevel,
-       TN.domainParameters.maxLevel,
-       stokesOperatorOpgen,
-       p2p1StokesFunctionContainer["StokesTmpProlongation"],
-       p2p1StokesFunctionContainer["StokesTmp1"],
-       p2p1StokesFunctionContainer["StokesTmp2"],
-       TN );
+   stokesSolverOpgenClass =
+       std::make_shared< StokesMCFGMRESSolver< StokesOperatorOpgen_T, P2ProjectNormalOperator > >(
+           storage,
+           TN.domainParameters.minLevel,
+           TN.domainParameters.maxLevel,
+           stokesOperatorOpgen,
+           p2p1StokesFunctionContainer["StokesTmpProlongation"],
+           p2p1StokesFunctionContainer["StokesTmp1"],
+           p2p1StokesFunctionContainer["StokesTmp2"],
+           TN );
 
    stokesSolverOpgen = stokesSolverOpgenClass->getSolver();
 

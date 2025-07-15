@@ -198,6 +198,19 @@ void ConvectionSimulation::updateViscosity()
    p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
        viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, TN.domainParameters.maxLevel, All );
 
+   communication::syncFunctionBetweenPrimitives( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
+                                                 TN.domainParameters.maxLevel );
+
+   P1toP0Conversion( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
+                     *( p0ScalarFunctionContainer["ViscosityFEP0"] ),
+                     TN.domainParameters.maxLevel,
+                     AveragingType::ARITHMETIC_QP );
+
+   P0toP0AveragedInjection p0toP0AveragedInjection( AveragingType::ARITHMETIC, false );
+
+   p0toP0AveragedInjection.restrictToAllLowerLevels( *( p0ScalarFunctionContainer["ViscosityFEP0"] ),
+                                                     TN.domainParameters.maxLevel );
+
    real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxDoFValue( TN.domainParameters.maxLevel ) *
                          TN.physicalParameters.referenceViscosity;
 

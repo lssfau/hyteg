@@ -26,7 +26,7 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
-
+#include "hyteg_operators/operators/rigid_body_mode_angular/P2VectorElementwiseRigidBodyModeAngularIcosahedralShellMap.hpp"
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
 // PETSc
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
@@ -81,7 +81,8 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
                                        const DensityFunction_T&                            rhoP1,
                                        const bool                                          frozenVelocity = true,
                                        std::shared_ptr< P2P1TaylorHoodFunction< real_t > > tmp            = nullptr,
-                                       std::shared_ptr< P2VectorFunction< real_t > >       tmpVec         = nullptr )
+                                       std::shared_ptr< P2VectorFunction< real_t > >       tmpVec         = nullptr,
+                                       const real_t rotFactor = 0.0 )
    : Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >( storage, minLevel, maxLevel )
    , frozenVelocity_( frozenVelocity )
    , stokesOperator_( storage, minLevel, maxLevel, mu )
@@ -90,6 +91,7 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
    , viscousOperatorWrapped_( storage, minLevel, maxLevel, mu, projectNormal, bcVelocity, tmpVec )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , massOperator( storage, minLevel, maxLevel )
+   , rotationalModeOperator( storage, minLevel, maxLevel, rotFactor )
    {
       if ( tmp == nullptr )
       {
@@ -132,6 +134,9 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
       }
 
       stokesOperator_.getBT().apply( tmp_->p(), dst.uvw(), level, flag, Add );
+
+      rotationalModeOperator.apply(tmp_->uvw(), dst.uvw(), level, flag, Add);
+
       projectNormal_.project( dst, level, FreeslipBoundary );
 
       vertexdof::projectMean( dst.p(), level );
@@ -181,6 +186,8 @@ class P2P1FullStokesProjectionFSTemplate : public Operator< P2P1TaylorHoodFuncti
    P1PSPGInvDiagOperator pspg_inv_diag_;
 
    P2ElementwiseBlendingMassOperator massOperator;
+
+   operatorgeneration::P2VectorElementwiseRigidBodyModeAngularIcosahedralShellMap rotationalModeOperator;
 
    const ViscousOperatorFS_T& getA() const { return viscousOperatorWrapped_; }
    const DivOperator_T&       getB() const { return stokesOperator_.getB(); }

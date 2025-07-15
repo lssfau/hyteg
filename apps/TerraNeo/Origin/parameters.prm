@@ -126,7 +126,7 @@ Parameters
    // If the following profiles are uncommented they are used as appropriate field,
    // and if commented, a constant value (non-dim to 1.0) is used
    //
-   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
    // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
@@ -149,6 +149,8 @@ Parameters
    // default: 1
 
    boundaryCond 2;
+
+   rotFactor 0.25;
 
    // Model simulation type: ConvectionModel / CirculationModel
 
@@ -213,7 +215,7 @@ Parameters
 
    // 0 - HyTeG MinRes solver
    // 1 - PETSc solver
-   PETScFlag 0;
+   PETScFlag 1;
 
 
    // Uzawa solver parameters
@@ -228,19 +230,19 @@ Parameters
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
    uzawaOmega 0.3;
-   ABlockMGPreSmooth 3;
+   ABlockMGPreSmooth 1;
    ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
-   FGMRESOuterIterations 10;
-   FGMRESRestartLength 10;
+   FGMRESOuterIterations 7;
+   FGMRESRestartLength 7;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
    ABlockCoarseGridIterations 10;
    ABlockCoarseGridTolerance 1e-10;
-   SchurMGIterations 100;
+   SchurMGIterations 25;
    SchurMGTolerance 1e-12;
    SchurMGPreSmooth 3;
    SchurMGPostSmooth 3;
@@ -271,9 +273,9 @@ Parameters
    
    OutputVelocity true;
    OutputTemperature true;
-   OutputInterval 10;
+   OutputInterval 1;
    OutputProfilesInterval 10;
-   OutputVertexDoFs true;
+   OutputVertexDoFs false;
 
    //If desired: output per Myr:
 

@@ -445,6 +445,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    }
 
    /*############ SOLVER PARAMETERS ############*/
+   solverParam.rotFactor = mainConf.getParameter< real_t >( "rotFactor" );
+
    solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
    solverParam.solverPETSc = mainConf.getParameter< uint_t >( "PETScFlag" );
 

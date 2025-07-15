@@ -112,6 +112,8 @@ struct SolverParameters
    real_t diffusionAbsoluteResidualUTolerance = real_c( 10000 );
 
    real_t gmresApproximationToleranceTransport = real_c( 1e-5 );
+
+   real_t rotFactor = 0.0;
 };
 // Output parameters
 struct OutputParameters

@@ -73,6 +73,8 @@
 #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
+#include "hyteg/gridtransferoperators/P1toP0Conversion.hpp"
+#include "hyteg/gridtransferoperators/P0toP0AveragedInjection.hpp"
 
 #include "sqlite/SQLite.h"
 // HOG generated HyTeG operator
@@ -116,7 +118,7 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation() {};
+   ~ConvectionSimulation(){};
 
    void init();
 
@@ -136,6 +138,7 @@ class ConvectionSimulation
    typedef P2Function< real_t >                                                        ScalarFunction;
    typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunctionP2P1;
    typedef P2Function< real_t >                                                        ScalarFunctionP2;
+   typedef P0Function< real_t >                                                        ScalarFunctionP0;
    typedef P2VectorFunction< real_t >                                                  VectorFunctionP2;
    typedef P1Function< real_t >                                                        ScalarFunctionP1;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
@@ -146,6 +149,12 @@ class ConvectionSimulation
    typedef hyteg::operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap        FrozenVelocityOperator;
 
    typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
+
+   using ViscosityFunction_T   = P1Function< real_t >;
+   using StokesOperatorOpgen_T = P2P1StokesOpgenRotationWrapper;
+
+  //  using ViscosityFunction_T   = P0Function< real_t >;
+  //  using StokesOperatorOpgen_T = P2P1StokesP0ViscousOpgenRotationWrapper;
 
    // typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS StokesOperatorP1Visc;
 
@@ -248,6 +257,10 @@ class ConvectionSimulation
        { "NormalsFS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
 
+   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p0ScalarFunctionDict = {
+       { "ViscosityFEP0", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
+   std::map< std::string, std::shared_ptr< ScalarFunctionP0 > > p0ScalarFunctionContainer;
+
    // Storage for primitives (includes functionality for distributed computing)
    std::shared_ptr< PrimitiveStorage > storage;
 
@@ -262,9 +275,9 @@ class ConvectionSimulation
    std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
 
-   std::shared_ptr< MCSolverBase< P2P1StokesOpgenRotationWrapper > > stokesSolverOpgenClass;
-   std::shared_ptr< P2P1StokesOpgenRotationWrapper >                 stokesOperatorOpgen;
-   std::shared_ptr< Solver< P2P1StokesOpgenRotationWrapper > >       stokesSolverOpgen;
+   std::shared_ptr< MCSolverBase< StokesOperatorOpgen_T > > stokesSolverOpgenClass;
+   std::shared_ptr< StokesOperatorOpgen_T >                 stokesOperatorOpgen;
+   std::shared_ptr< Solver< StokesOperatorOpgen_T > >       stokesSolverOpgen;
 
    // Operators
    std::shared_ptr< StokesOperator >                         stokesOperator;
@@ -301,7 +314,7 @@ class ConvectionSimulation
    std::string modelCheckpointPath;
    std::string modelRadialProfilesPath;
 
-   std::shared_ptr< hyteg::VTKOutput >         vtkOutput;
+   std::shared_ptr< hyteg::VTKOutput > vtkOutput;
 
    // ADIOS2 data output
 #ifdef HYTEG_BUILD_WITH_ADIOS2
