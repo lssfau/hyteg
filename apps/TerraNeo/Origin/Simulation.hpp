@@ -324,27 +324,18 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                                                                                   TN.domainParameters.maxLevel ) );
 
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
-
-   if ( TN.simulationParameters.checkTemperatureConsistency )
+   // calculateHeatflow( temperatureProfiles );
+   calculateHeatflowIntegral( temperatureProfiles );
+   // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
+   for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
    {
-      // Consistency check for out of range Temperatures
-      for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
+      // Redimensionalise temperature
+      real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+      if ( ( temperatureProfiles->min[i] ) <= 0 )
       {
-         // Redimensionalise temperature
-         real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
-
-         if ( ( temperatureProfiles->min[i] ) <
-                  TN.physicalParameters.surfaceTemp - TN.simulationParameters.temperatureConsistencyThreshold ||
-              ( temperatureProfiles->max[i] ) >
-                  TN.physicalParameters.cmbTemp + TN.simulationParameters.temperatureConsistencyThreshold )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( "Out_of_Range Temperature: " << temperatureProfiles->min[i] * dimFactor
-                                                                    << " detected at shell radii: "
-                                                                    << temperatureProfiles->shellRadii[i] );
-            WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
-            dataOutput();
-            WALBERLA_ABORT( "Aborting simulation run" );
-         }
+         WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
+                                                             << " detected at shell radii: "
+                                                             << temperatureProfiles->shellRadii[i] );
       }
    }
 
