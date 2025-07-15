@@ -23,10 +23,18 @@ Parameters
    nRad 2;
    threeDim true;
 
+
    // Refinement level
 
    maxLevel 4;
-   minLevel 2;
+   minLevel 0;
+
+   // Set this to define the INTERIOR layer boundaries between macro elements explicitly,
+   // allowing a non-equal radial subdivision. This will override the definition of nRad.
+   // The number of radial layers will be equivalent to nRad=(# of layer boundaries specified + 2).
+   // 
+   //inputMacroLayers 5371000;
+ 
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -165,9 +173,9 @@ Parameters
    compressible true;
    frozenVelocity false;
    
-   shearHeating false;
-   adiabaticHeating false;
-   internalHeating false;
+   shearHeating true;
+   adiabaticHeating true;
+   internalHeating true;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -177,12 +185,12 @@ Parameters
 
    // Time steps 
 
-   maxNumTimeSteps 5000;
+   maxNumTimeSteps 1000;
    fixedTimeStep false;
    predictorCorrector false;
    // Maximum timestep size in Ma
    maxTimeStepSize 100;
-   cflMax 0.8;
+   cflMax 0.6;
    dtConstant 100;
 
    particleLocationRadius 0.01;
@@ -312,7 +320,7 @@ Parameters
    ADIOS2StartFromCheckpoint false;
 
    // In steps
-   ADIOS2StoreCheckpointFrequency 10;
+   ADIOS2StoreCheckpointFrequency 1000;
 
    // ADIOS2 parameter keys and values for data output
 

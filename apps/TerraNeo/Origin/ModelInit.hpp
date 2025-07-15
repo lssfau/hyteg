@@ -141,7 +141,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupDo
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    meshInfo          = MeshInfo::meshSphericalShell(
-       TN.domainParameters.nTan, TN.domainParameters.nRad, TN.domainParameters.rMin, TN.domainParameters.rMax );
+       TN.domainParameters.nTan, TN.domainParameters.macroLayers );
 
    auto setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -418,7 +418,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    auto temperatureRadialProfile            = computeRadialProfile( *( temperatureP2 ),
                                                          TN.domainParameters.rMin,
                                                          TN.domainParameters.rMax,
-                                                         TN.domainParameters.nRad,
+                                                         TN.domainParameters.macroLayers,
                                                          TN.domainParameters.maxLevel );
    temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
@@ -426,7 +426,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    auto velocityRadialProfile = computeRadialProfile( velocityPressureFE->uvw(),
                                                       TN.domainParameters.rMin,
                                                       TN.domainParameters.rMax,
-                                                      TN.domainParameters.nRad,
+                                                      TN.domainParameters.macroLayers,
                                                       TN.domainParameters.maxLevel );
    velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
 
@@ -436,7 +436,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
       auto viscosityRadialProfile = computeRadialProfile( *( viscosityP2 ),
                                                           TN.domainParameters.rMin,
                                                           TN.domainParameters.rMax,
-                                                          TN.domainParameters.nRad,
+                                                          TN.domainParameters.macroLayers,
                                                           TN.domainParameters.maxLevel );
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }

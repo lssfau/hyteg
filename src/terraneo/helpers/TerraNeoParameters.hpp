@@ -59,6 +59,8 @@ struct DomainParameters
    uint_t maxLevel      = 1;
    uint_t numProcessors = 1;
 
+   std::vector< real_t > macroLayers;
+
    real_t domainVolume() const
    {
       return ( real_c( 4.0 ) / real_c( 3.0 ) ) * walberla::math::pi * rMax * rMax * rMax -

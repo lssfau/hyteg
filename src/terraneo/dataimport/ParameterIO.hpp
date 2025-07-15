@@ -85,6 +85,20 @@ struct ParameterFileVersion
    bool operator>=( const ParameterFileVersion& other ) const { return !( *this < other ); }
 };
 
+// Helper function to convert vector to string for logging
+template < typename T >
+std::string vectorToString( const std::vector< T >& vec)
+{
+   std::ostringstream oss;
+   for ( size_t i = 0; i < vec.size(); ++i )
+   {
+      oss << vec[i];
+      if ( i != vec.size() - 1 )
+         oss << ", ";
+   }
+   return oss.str();
+}
+
 /**
  * @brief Loads the radial profiles if provided via the main configuration block.
  *
@@ -169,6 +183,51 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.mantleThickness = domainParam.rSurface - domainParam.rCMB;
    domainParam.rMin              = domainParam.rCMB / ( domainParam.rSurface - domainParam.rCMB );
    domainParam.rMax              = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
+
+   // Read macro layer radii from parameter file
+   if ( mainConf.isDefined( "inputMacroLayers" ) ) 
+   {
+      std::string macroLayersStr;
+      std::string layerRadius;
+ 
+      macroLayersStr = mainConf.getParameter< std::string >( "inputMacroLayers" );
+      std::stringstream ss(macroLayersStr);
+      
+      // Parse input string to vector 
+      while ( std::getline( ss, layerRadius, ',' ) )
+      {
+	 // Trim leading/trailing spaces
+         layerRadius.erase( 0, layerRadius.find_first_not_of( " \t" ) );
+	 layerRadius.erase( layerRadius.find_last_not_of( " \t" ) +1 );
+         domainParam.macroLayers.push_back( real_c( std::stof( layerRadius ) ) );
+      }
+      // non-dimensionalize the boundary radii
+      for ( real_t& entry : domainParam.macroLayers ) 
+      {
+         entry = entry / ( domainParam.rSurface - domainParam.rCMB );
+      }
+      
+      // Sort macroLayers to ensure ordering from bottom to top boundary
+      std::sort( domainParam.macroLayers.begin(), domainParam.macroLayers.end() );
+      
+      // Add outer boundaries
+      domainParam.macroLayers.insert( domainParam.macroLayers.begin(), domainParam.rMin );
+      domainParam.macroLayers.push_back( domainParam.rMax );
+
+      // Override nRad
+      domainParam.nRad = static_cast< uint_t >( domainParam.macroLayers.size() );
+   }
+   // else determine equally spaced layer radii from nRad
+   else
+   {
+      real_t layerRadius;
+
+      for ( uint_t layer = 0; layer < domainParam.nRad; layer ++ )
+      { 
+         layerRadius = domainParam.rMin + real_c( layer ) * (domainParam.rMax - domainParam.rMin ) / real_c( domainParam.nRad - 1);
+	 domainParam.macroLayers.push_back( layerRadius );
+      }
+   }
 
    /*############ MODEL PARAMETERS ############*/
    if ( mainConf.isDefined( "temperatureInputProfile" ) )
@@ -587,6 +646,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "minLevel     : " << domainParam.minLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "maxLevel     : " << domainParam.maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "Domain Volume: " << domainParam.domainVolume() );
+   WALBERLA_LOG_INFO_ON_ROOT( "Radii of macro layers: " << vectorToString( domainParam.macroLayers ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Physical Parameters    ----" )

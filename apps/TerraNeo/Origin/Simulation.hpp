@@ -320,7 +320,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( temperatureP2 ),
                                                                                   TN.domainParameters.rMin,
                                                                                   TN.domainParameters.rMax,
-                                                                                  TN.domainParameters.nRad,
+                                                                                  TN.domainParameters.macroLayers,
                                                                                   TN.domainParameters.maxLevel ) );
 
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
@@ -354,7 +354,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    velocityProfiles                      = std::make_shared< RadialProfile >( computeRadialProfile( velocityPressureFE->uvw(),
                                                                                TN.domainParameters.rMin,
                                                                                TN.domainParameters.rMax,
-                                                                               TN.domainParameters.nRad,
+                                                                               TN.domainParameters.macroLayers,
                                                                                TN.domainParameters.maxLevel ) );
    TN.physicalParameters.velocityProfile = velocityProfiles->rms;
 
@@ -364,7 +364,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( velocityPressureFE ),
                                                                                    TN.domainParameters.rMin,
                                                                                    TN.domainParameters.rMax,
-                                                                                   TN.domainParameters.nRad,
+                                                                                   TN.domainParameters.macroLayers,
                                                                                    TN.domainParameters.maxLevel ) );
    }
 
@@ -468,11 +468,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
       //update ref temp vector based on new temperature field
 
-      temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( temperatureP2 ),
-                                                                                     TN.domainParameters.rMin,
-                                                                                     TN.domainParameters.rMax,
-                                                                                     TN.domainParameters.nRad,
-                                                                                     TN.domainParameters.maxLevel ) );
+      temperatureProfiles =
+          std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                                   TN.domainParameters.rMin,
+                                                                   TN.domainParameters.rMax,
+                                                                   TN.domainParameters.macroLayers,
+                                                                   TN.domainParameters.maxLevel ) );
 
       TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
@@ -497,11 +498,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       // update viscosity Profiles for logging
       if ( TN.simulationParameters.tempDependentViscosity )
       {
-         viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( velocityPressureFE ),
-                                                                                      TN.domainParameters.rMin,
-                                                                                      TN.domainParameters.rMax,
-                                                                                      TN.domainParameters.nRad,
-                                                                                      TN.domainParameters.maxLevel ) );
+         viscosityProfiles =
+             std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
+                                                                      TN.domainParameters.rMin,
+                                                                      TN.domainParameters.rMax,
+                                                                      TN.domainParameters.macroLayers,
+                                                                      TN.domainParameters.maxLevel ) );
       }
    }
 
