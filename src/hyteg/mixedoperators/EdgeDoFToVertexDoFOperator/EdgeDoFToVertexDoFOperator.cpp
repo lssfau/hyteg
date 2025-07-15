@@ -24,6 +24,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_divT_affine_q2.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFPetsc.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_add.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_replace.hpp"
@@ -94,6 +95,55 @@ EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator
    if ( this->getStorage()->hasGlobalCells() )
    {
       // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
+      assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
+                                                              this->minLevel_,
+                                                              this->maxLevel_,
+                                                              getVertexStencil3DID(),
+                                                              getEdgeStencil3DID(),
+                                                              getFaceStencil3DID(),
+                                                              getCellStencilID(),
+                                                              form_ );
+   }
+   else
+   {
+      assembleStencils();
+   }
+}
+
+template < class EdgeDoFToVertexDoFForm >
+void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::regenerateStencils()
+{
+   // reset stencils
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      for ( auto& it : storage_->getVertices() )
+      {
+         Vertex& vertex         = *it.second;
+         auto    vertex_stencil = vertex.getData( vertexStencilID_ )->getPointer( level );
+         auto    stencilSize    = vertex.getData( vertexStencilID_ )->getSize( level );
+         std::memset( vertex_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face         = *it.second;
+         auto  face_stencil = face.getData( faceStencilID_ )->getPointer( level );
+         auto  stencilSize  = face.getData( faceStencilID_ )->getSize( level );
+         std::memset( face_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge         = *it.second;
+         auto  edge_stencil = edge.getData( edgeStencilID_ )->getPointer( level );
+         auto  stencilSize  = edge.getData( edgeStencilID_ )->getSize( level );
+         std::memset( edge_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+   }
+
+   // re-assemble stencils
+   if ( this->getStorage()->hasGlobalCells() )
+   {
       assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
                                                               this->minLevel_,
                                                               this->maxLevel_,
@@ -447,7 +497,10 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                if ( hyteg::globalDefines::useGeneratedKernels && updateType == Add )
                {
 #ifdef HYTEG_USE_GENERATED_KERNELS
-                  WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Generated" ); }
+                  WALBERLA_NON_OPENMP_SECTION()
+                  {
+                     this->timingTree_->start( "Generated" );
+                  }
                   auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
                   auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
                   auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
@@ -536,14 +589,23 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply( const EdgeDoFF
                          neighbor_cell_1_local_vertex_id_1,
                          neighbor_cell_1_local_vertex_id_2 );
                   }
-                  WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Generated" ); }
+                  WALBERLA_NON_OPENMP_SECTION()
+                  {
+                     this->timingTree_->stop( "Generated" );
+                  }
 #endif
                }
                else
                {
-                  WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Not generated" ); }
+                  WALBERLA_NON_OPENMP_SECTION()
+                  {
+                     this->timingTree_->start( "Not generated" );
+                  }
                   applyFace3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-                  WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Not generated" ); }
+                  WALBERLA_NON_OPENMP_SECTION()
+                  {
+                     this->timingTree_->stop( "Not generated" );
+                  }
                }
             }
             else
@@ -848,4 +910,7 @@ template class EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble     
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise > >;
 // clang-format on
 
+template class EdgeDoFToVertexDoFOperator< forms::p2_to_p1_divT_0_affine_q2 >;
+template class EdgeDoFToVertexDoFOperator< forms::p2_to_p1_divT_1_affine_q2 >;
+template class EdgeDoFToVertexDoFOperator< forms::p2_to_p1_divT_2_affine_q2 >;
 } // namespace hyteg

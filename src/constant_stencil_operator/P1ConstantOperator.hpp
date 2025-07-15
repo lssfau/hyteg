@@ -52,6 +52,8 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
    using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_face;
    using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_face3D;
    using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_variableStencil_cell;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_stencil_vertices3D;
+   using P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::assemble_stencil_vertices;
 
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -79,6 +81,19 @@ class P1ConstantOperator : public P1Operator< P1Form, Diagonal, Lumped, InvertDi
       // This callback to the parent class is need for SFINAE.hpp to detect the method. PLEASE DO NOT REMOVE!
       return P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::getInverseDiagonalValues();
    }
+
+   void smooth_jac( const P1Function< ValueType >& dst,
+                    const P1Function< ValueType >& rhs,
+                    const P1Function< ValueType >& src,
+                    const ValueType                relax,
+                    size_t                         level,
+                    DoFType                        flag ) const override
+   {
+      // This callback to the parent class is need for SFINAE.hpp to detect the method. PLEASE DO NOT REMOVE!
+      return P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_jac( dst, rhs, src, relax, level, flag );
+   }
+
+   void regenerateStencils();
 
  protected:
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////

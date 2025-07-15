@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/fenics/fenics.hpp"
 #include "hyteg/forms/P2Form.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/Matrix.hpp"
@@ -34,6 +35,27 @@ class P2FormHyTeG : public P2Form
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const override = 0;
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override = 0;
+
+   /// Transitional routine to allow 2D HyTeG forms inplace of FEniCS forms until we clean up the interfaces
+   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
+   {
+      Matrix6r elMat;
+      integrateAll( coords, elMat );
+      out[0] = elMat( 0, 0 );
+      out[1] = elMat( 0, 1 );
+      out[2] = elMat( 0, 2 );
+   }
+
+   /// Transitional routine to allow 3D HyTeG forms inplace of FEniCS forms until we clean up the interfaces
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
+   {
+      Matrix10r elMat;
+      integrateAll( coords, elMat );
+      out[0] = elMat( 0, 0 );
+      out[1] = elMat( 0, 1 );
+      out[2] = elMat( 0, 2 );
+      out[3] = elMat( 0, 3 );
+   }
 };
 
 } // namespace hyteg

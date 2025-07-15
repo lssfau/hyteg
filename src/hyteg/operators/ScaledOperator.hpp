@@ -34,8 +34,9 @@
 namespace hyteg {
 
 // Wrapper for a scaled operator using GEMV
-// Having a SrcFunctionType and DstFunctionType is a deliberate choice here, since the NoOperator class does not have these types.
-// Please do not change this.
+// Having a SrcFunctionType and DstFunctionType is a DELIBERATE choice here, since the NoOperator class does not have these types, which is used in the MC app.
+// The NoOperator class otherwise cannot be a stand-in for an arbitrary (scalable) operator.
+// PLEASE DO NOT CHANGE THIS (unless you also know a solution for the NoOperator issue).
 template < class OperatorType, class SrcFunctionType, class DstFunctionType >
 class ScaledOperator : public hyteg::Operator< SrcFunctionType, DstFunctionType >,
                        public hyteg::OperatorWithInverseDiagonal< SrcFunctionType >,
@@ -95,7 +96,7 @@ class ScaledOperator : public hyteg::Operator< SrcFunctionType, DstFunctionType 
          }
 
          WALBERLA_ABORT(
-             "Scaled operator does not support getInverseDiagonalValues. Maybe the operator does not have a matching source and destination type?" );
+             "Scaled operator does not support getInverseDiagonalValues. Maybe the operator does not have a matching source and destination type? Check if the method is hidden to SFINAE.hpp, e.g., it could be method from the parent class." );
          return nullptr;
       }
       else
@@ -116,7 +117,7 @@ class ScaledOperator : public hyteg::Operator< SrcFunctionType, DstFunctionType 
          else
          {
             WALBERLA_ABORT(
-                "Scaled operator does not support computeInverseDiagonalOperatorValues. Maybe the operator does not have a matching source and destination type?" );
+                "Scaled operator does not support computeInverseDiagonalOperatorValues. Maybe the operator does not have a matching source and destination type? Check if the method is hidden to SFINAE.hpp, e.g., it could be method from the parent class." );
          }
       }
       else
@@ -141,12 +142,32 @@ class ScaledOperator : public hyteg::Operator< SrcFunctionType, DstFunctionType 
          else
          {
             WALBERLA_ABORT(
-                "Scaled operator does not support smooth_jac. Maybe the operator does not have a matching source and destination type?" );
+                "Scaled operator does not support smooth_jac. Maybe the operator does not have a matching source and destination type? Check if the method is hidden to SFINAE.hpp, e.g., it could be method from the parent class." );
          }
       }
       else
       {
          WALBERLA_ABORT( "Cannot call smooth_jac on scaled NoOperator." );
+      }
+   }
+
+   void computeAndStoreLocalElementMatrices()
+   {
+      if constexpr ( !std::is_same< OperatorType, hyteg::NoOperator >::value )
+      {
+         if constexpr ( hyteg::SFINAE::has_computeAndStoreLocalElementMatrices< OperatorType >() )
+         {
+            op_->computeAndStoreLocalElementMatrices();
+         }
+         else
+         {
+            WALBERLA_ABORT(
+                "Scaled operator does not support computeAndStoreLocalElementMatrices. Maybe it is not an elementwise operator? Check if the method is hidden to SFINAE.hpp, e.g., it could be method from the parent class." );
+         }
+      }
+      else
+      {
+         WALBERLA_ABORT( "Cannot call computeAndStoreLocalElementMatrices on scaled NoOperator." );
       }
    }
 

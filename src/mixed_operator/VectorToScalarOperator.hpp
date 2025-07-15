@@ -157,12 +157,39 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ToP1ElementwiseBlendingDivzOperator >
     P2ToP1ElementwiseBlendingDivOperator;
 
+typedef VectorToScalarOperator< P2VectorFunction,
+                                P1Function,
+                                P2ToP1ElementwiseBlendingDivxQFOperator,
+                                P2ToP1ElementwiseBlendingDivyQFOperator,
+                                P2ToP1ElementwiseBlendingDivzQFOperator >
+    P2ToP1ElementwiseBlendingDivQFOperator;    
+
 typedef VectorToScalarOperator< P1VectorFunction,
                                 P1Function,
                                 P1ElementwiseDivXOperator,
                                 P1ElementwiseDivYOperator,
                                 P1ElementwiseDivZOperator >
     P1ToP1ElementwiseDivOperator;
+
+typedef VectorToScalarOperator< P2VectorFunction,
+                                P1Function,
+                                P2ToP1ConstantDivTxOperator,
+                                P2ToP1ConstantDivTyOperator,
+                                P2ToP1ConstantDivTzOperator >
+    P2ToP1ConstantDivTOperator;
+typedef VectorToScalarOperator< P2VectorFunction,
+                                P1Function,
+                                P2ToP1ElementwiseBlendingDivTxOperator,
+                                P2ToP1ElementwiseBlendingDivTyOperator,
+                                P2ToP1ElementwiseBlendingDivTzOperator >
+    P2ToP1ElementwiseBlendingDivTOperator;
+
+typedef VectorToScalarOperator< P2VectorFunction,
+                                P1Function,
+                                P2ToP1ElementwiseDivTxOperator,
+                                P2ToP1ElementwiseDivTyOperator,
+                                P2ToP1ElementwiseDivTzOperator >
+    P2ToP1ElementwiseDivTOperator;    
 
 typedef VectorToScalarOperator< P2VectorFunction,
                                 P1Function,

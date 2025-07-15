@@ -182,7 +182,6 @@ class P1FenicsForm : public P1Form
       elMat = tmp.cast< real_t >();
    }
 
-   inline void setGeometryMap( const std::shared_ptr< GeometryMap >& map ) override { WALBERLA_UNUSED( map ); }
 };
 
 } // namespace hyteg

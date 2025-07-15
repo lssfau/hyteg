@@ -41,7 +41,7 @@ class Form
    /// \note
    /// - This method is used e.g. by the ElementwiseOperators.
    /// - In the case of the FEniCS forms the map is ignored.
-   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) const
    {
       // Check would make sense. However, there are some corner cases, where
       // in 3D nobody calls setGeometryMap on the P2RowSumForm, in which case
@@ -52,7 +52,7 @@ class Form
    }
 
  protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
+   mutable std::shared_ptr< GeometryMap > geometryMap_;
 };
 
 } // namespace hyteg

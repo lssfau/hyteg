@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Andreas Wagner, Marcus Mohr.
+ * Copyright (c) 2021-2025 Andreas Wagner, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,8 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/logging/Logging.h"
 
 #include "hyteg/types/types.hpp"
 
@@ -38,8 +40,19 @@ class WeightedJacobiSmoothable
                             const Function&              rhs,
                             const Function&              tmp,
                             typename Function::valueType relax,
-                            size_t                       level,
+                            uint_t                       level,
                             DoFType                      flag ) const = 0;
+
+   virtual void smooth_jac_scaled( const typename Function::valueType& alpha,
+                                   const Function&                     dst,
+                                   const Function&                     rhs,
+                                   const Function&                     tmp,
+                                   typename Function::valueType        relax,
+                                   uint_t                              level,
+                                   DoFType                             flag ) const
+   {
+      WALBERLA_ABORT( "smooth_jac_scaled() not implemented in derived class!" );
+   };
 };
 
 template < typename Function >
@@ -57,7 +70,7 @@ class GSSmoothable
  public:
    virtual ~GSSmoothable() = default;
 
-   virtual void smooth_gs( const Function& dst, const Function& rhs, size_t level, DoFType flag ) const = 0;
+   virtual void smooth_gs( const Function& dst, const Function& rhs, uint_t level, DoFType flag ) const = 0;
 };
 
 template < typename Function >
@@ -66,7 +79,7 @@ class GSBackwardsSmoothable
  public:
    virtual ~GSBackwardsSmoothable() = default;
 
-   virtual void smooth_gs_backwards( const Function& dst, const Function& rhs, size_t level, DoFType flag ) const = 0;
+   virtual void smooth_gs_backwards( const Function& dst, const Function& rhs, uint_t level, DoFType flag ) const = 0;
 };
 
 template < typename Function >
@@ -78,7 +91,7 @@ class SORSmoothable
    virtual void smooth_sor( const Function&              dst,
                             const Function&              rhs,
                             typename Function::valueType relax,
-                            size_t                       level,
+                            uint_t                       level,
                             DoFType                      flag ) const = 0;
 };
 
@@ -91,7 +104,7 @@ class SORBackwardsSmoothable
    virtual void smooth_sor_backwards( const Function&              dst,
                                       const Function&              rhs,
                                       typename Function::valueType relax,
-                                      size_t                       level,
+                                      uint_t                       level,
                                       DoFType                      flag ) const = 0;
 };
 
@@ -101,8 +114,12 @@ class OperatorWithInverseDiagonal
  public:
    virtual ~OperatorWithInverseDiagonal() = default;
 
-   virtual std::shared_ptr< Function > getInverseDiagonalValues() const = 0;
-   virtual void computeInverseDiagonalOperatorValues() = 0;
+   virtual std::shared_ptr< Function > getInverseDiagonalValues() const       = 0;
+   virtual void                        computeInverseDiagonalOperatorValues() = 0;
+   virtual void                        computeInverseDiagonalOperatorValuesScaled( const typename Function::valueType& alpha )
+   {
+      WALBERLA_ABORT( "computeInverseDiagonalOperatorValuesScaled() not implemented in derived class!" );
+   };
 };
 
 } // namespace hyteg

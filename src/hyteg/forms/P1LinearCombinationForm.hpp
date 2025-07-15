@@ -155,7 +155,7 @@ class P1LinearCombinationForm : public P1Form
       }
    }
 
-   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) override
+   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) const override
    {
       for ( auto& form : unowned_forms_ )
       {

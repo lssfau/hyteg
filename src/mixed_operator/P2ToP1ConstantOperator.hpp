@@ -34,6 +34,7 @@
 #pragma warning( pop )
 #endif
 
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_divT_affine_q2.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -60,7 +61,7 @@ class P2ToP1ConstantOperator : public Operator< P2Function< real_t >, P1Function
                const P1Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override
    {
       vertexToVertex.apply( src.getVertexDoFFunction(), dst, level, flag, updateType );
       edgeToVertex.apply( src.getEdgeDoFFunction(), dst, level, flag, Add );
@@ -70,7 +71,7 @@ class P2ToP1ConstantOperator : public Operator< P2Function< real_t >, P1Function
                   const P2Function< idx_t >&                  src,
                   const P1Function< idx_t >&                  dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       vertexToVertex.toMatrix( mat, src.getVertexDoFFunction(), dst, level, flag );
       edgeToVertex.toMatrix( mat, src.getEdgeDoFFunction(), dst, level, flag );
@@ -94,5 +95,9 @@ typedef P2ToP1ConstantOperator<
     P2ToP1ConstantDivyOperator;
 typedef P2ToP1ConstantOperator< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >
     P2ToP1ConstantDivzOperator;
+
+typedef P2ToP1ConstantOperator< forms::p2_to_p1_divT_0_affine_q2 > P2ToP1ConstantDivTxOperator;
+typedef P2ToP1ConstantOperator< forms::p2_to_p1_divT_1_affine_q2 > P2ToP1ConstantDivTyOperator;
+typedef P2ToP1ConstantOperator< forms::p2_to_p1_divT_2_affine_q2 > P2ToP1ConstantDivTzOperator;
 
 } // namespace hyteg

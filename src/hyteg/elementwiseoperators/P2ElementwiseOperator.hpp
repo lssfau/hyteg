@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Marcus Mohr.
+ * Copyright (c) 2017-2025 Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,12 +31,20 @@
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif
+#include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_centroid_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_centroid_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_full_stokes_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_k_mass_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_k_mass_centroid_blending_q6.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q5.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_secondDerivativeTestForm_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_manual/p2_neighbour_form.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
@@ -65,8 +73,27 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel,
+                          bool                                       needsInverseDiagEntries );
+
+   P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
+                          size_t                                     maxLevel,
                           const P2Form&                              form,
                           bool                                       needsInverseDiagEntries );
+
+   void gemv( const real_t&               alpha,
+              const P2Function< real_t >& src,
+              const real_t&               beta,
+              const P2Function< real_t >& dst,
+              uint_t                      level,
+              DoFType                     flag ) const override final;
+
+   void applyScaled( const real_t&               alpha,
+                     const P2Function< real_t >& src,
+                     const P2Function< real_t >& dst,
+                     uint_t                      level,
+                     DoFType                     flag,
+                     UpdateType                  updateType = Replace ) const override final;
 
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -76,11 +103,32 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false, false, real_c( 1 ) ); }
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true, false, real_c( 1 ) ); }
+
+   void computeLumpedDiagonalOperatorValues() { computeDiagonalOperatorValues( false, true, real_c( 1 ) ); }
+   void computeLumpedInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true, true, real_c( 1 ) ); }
+
+   /// Trigger (re)computation of scaled inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValuesScaled( const real_t& alpha ) override final
+   {
+      computeDiagonalOperatorValues( true, false, alpha );
+   }
+
+   void computeLumpedInverseDiagonalOperatorValuesScaled( const real_t& alpha )
+   {
+      computeDiagonalOperatorValues( true, true, alpha );
+   }
+
+   /// Trigger (re)computation of scaled diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValuesScaled( const real_t& alpha ) { computeDiagonalOperatorValues( false, false, alpha ); }
+
+   void computeLumpedDiagonalOperatorValuesScaled( const real_t& alpha ) { computeDiagonalOperatorValues( false, true, alpha ); }
 
    std::shared_ptr< P2Function< real_t > > getDiagonalValues() const
    {
@@ -98,11 +146,35 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
       return inverseDiagonalValues_;
    };
 
+   std::shared_ptr< P2Function< real_t > > getLumpedDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          lumpedDiagonalValues_,
+          "Lumped diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return lumpedDiagonalValues_;
+   };
+
+   std::shared_ptr< P2Function< real_t > > getLumpedInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          lumpedInverseDiagonalValues_,
+          "Lumped inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return lumpedInverseDiagonalValues_;
+   };
+
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
    /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
    /// If the local element matrices need to be recomputed again, simply call this method again.
    void computeAndStoreLocalElementMatrices();
+
+   void smooth_jac_scaled( const real_t&               alpha,
+                           const P2Function< real_t >& dst,
+                           const P2Function< real_t >& rhs,
+                           const P2Function< real_t >& src,
+                           real_t                      omega,
+                           uint_t                      level,
+                           DoFType                     flag ) const override;
 
    void smooth_jac( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,
@@ -120,6 +192,23 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    {
       WALBERLA_ABORT( "SOR not implemented for P2ElementwiseOperator." )
    }
+
+   /// Assemble operator as sparse matrix with scaling
+   ///
+   /// \param alpha constant scaling of the matrix
+   /// \param mat   a sparse matrix proxy
+   /// \param src   P2Function for determining column indices
+   /// \param dst   P2Function for determining row indices
+   /// \param level le2el in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   void toMatrixScaled( const real_t&                               alpha,
+                        const std::shared_ptr< SparseMatrixProxy >& mat,
+                        const P2Function< idx_t >&                  src,
+                        const P2Function< idx_t >&                  dst,
+                        uint_t                                      level,
+                        DoFType                                     flag ) const override;
 
    /// Assemble operator as sparse matrix.
    ///
@@ -158,7 +247,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                      const real_t* const    srcEdgeData,
                                      real_t* const          dstVertexData,
                                      real_t* const          dstEdgeData,
-                                     const Matrix6r&        elMat ) const;
+                                     const Matrix6r&        elMat,
+                                     const real_t&          alpha ) const;
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -175,7 +265,9 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                              const idx_t                  yIdx,
                                              const P2Elements::P2Element& element,
                                              real_t* const                dstVertexData,
-                                             real_t* const                dstEdgeData );
+                                             real_t* const                dstEdgeData,
+                                             const real_t&                alpha,
+                                             bool                         lumped );
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -190,7 +282,9 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                              const indexing::Index&  microCell,
                                              const celldof::CellType cType,
                                              real_t* const           vertexData,
-                                             real_t* const           edgeData );
+                                             real_t* const           edgeData,
+                                             const real_t&           alpha,
+                                             bool                    lumped );
 
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
@@ -201,7 +295,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstVertexIdx,
-                               const idx_t* const                          dstEdgeIdx ) const;
+                               const idx_t* const                          dstEdgeIdx,
+                               const real_t&                               alpha ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
@@ -211,16 +306,19 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          srcEdgeIdx,
                                const idx_t* const                          dstVertexIdx,
-                               const idx_t* const                          dstEdgeIdx ) const;
+                               const idx_t* const                          dstEdgeIdx,
+                               const real_t&                               alpha ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
    ///
    /// \param invert if true, assembles the function carrying the inverse of the diagonal
-   void computeDiagonalOperatorValues( bool invert );
+   void computeDiagonalOperatorValues( bool invert, bool lumped, const real_t& alpha );
 
    std::shared_ptr< P2Function< real_t > > diagonalValues_;
    std::shared_ptr< P2Function< real_t > > inverseDiagonalValues_;
+   std::shared_ptr< P2Function< real_t > > lumpedDiagonalValues_;
+   std::shared_ptr< P2Function< real_t > > lumpedInverseDiagonalValues_;
 
    P2Form form_;
 
@@ -348,7 +446,8 @@ void localMatrixVectorMultiply3D( uint_t                 level,
                                   const real_t* const    srcEdgeData,
                                   real_t* const          dstVertexData,
                                   real_t* const          dstEdgeData,
-                                  const Matrix10r&       elMat );
+                                  const Matrix10r&       elMat,
+                                  const real_t&          alpha );
 
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
@@ -361,13 +460,25 @@ typedef P2ElementwiseOperator<
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
 
-typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 > P2ElementwiseBlendingMassOperator;
-typedef P2ElementwiseOperator< P2Form_laplace >             P2ElementwiseBlendingLaplaceOperator;
+typedef P2ElementwiseOperator< forms::p2_mass_blending_q5 >   P2ElementwiseBlendingMassOperator;
+typedef P2ElementwiseOperator< forms::p2_k_mass_blending_q6 > P2ElementwiseBlendingKMassOperator;
+
+typedef P2ElementwiseOperator< forms::p2_k_mass_centroid_blending_q6 > P2ElementwiseBlendingKMassOperator_Centroid;
+
+typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 
 typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
 
-typedef P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 > P2ElementwiseAffineDivKGradOperator;
+typedef P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >   P2ElementwiseAffineDivKGradOperator;
+typedef P2ElementwiseOperator< forms::p2_div_k_grad_blending_q4 > P2ElementwiseBlendingDivKGradOperator;
+
+typedef P2ElementwiseOperator< forms::p2_div_k_grad_centroid_affine_q3 >   P2ElementwiseAffineDivKGradOperator_Centroid;
+typedef P2ElementwiseOperator< forms::p2_div_k_grad_centroid_blending_q4 > P2ElementwiseBlendingDivKGradOperator_Centroid;
+
+typedef P2ElementwiseOperator< forms::p2_secondDerivativeTestForm_blending_q3 > P2ElementwiseBlendingSecondDerivativeTestOperator;
+
+typedef P2ElementwiseOperator< forms::p2_neighbour_form > P2ElementwiseNeighbourOperator;
 
 } // namespace hyteg

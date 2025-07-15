@@ -240,6 +240,7 @@ GEMVType applyComputeInverseDiagonalOperatorValuesScaled( OperatorType&         
    }
 }
 
+/// @brief Assumes that you have precalculated the scaled inverse diagonals, e.g., via applyComputeInverseDiagonalOperatorValuesScaled.
 template < class OperatorType >
 GEMVType applySmoothJacScaled( OperatorType&                                    Op,
                                const typename OperatorType::srcType::valueType& alpha,
@@ -272,12 +273,12 @@ GEMVType applySmoothJacScaled( OperatorType&                                    
             Op.startTiming( "smooth_jac" );
 
             // compute the current residual
-            applyGEMV< OperatorType >( Op, alpha, src, real_c( 0 ), dst, level, flag );
-            dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
+            Op.apply( src, dst, level, flag, hyteg::UpdateType::Replace );
+            dst.assign( { real_c( 1 ), real_c( -alpha ) }, { rhs, dst }, level, flag );
 
             // perform Jacobi update step
             dst.multElementwise( { *Op.getInverseDiagonalValues(), dst }, level, flag );
-            dst.assign( { 1.0, omega }, { src, dst }, level, flag );
+            dst.assign( { real_c( 1 ), omega }, { src, dst }, level, flag );
 
             Op.stopTiming( "smooth_jac" );
 
