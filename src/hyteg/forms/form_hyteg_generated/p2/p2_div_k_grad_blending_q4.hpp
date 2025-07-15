@@ -44,6 +44,8 @@ class p2_div_k_grad_blending_q4 : public P2FormHyTeG
 
  public:
 
+   ~p2_div_k_grad_blending_q4() {}
+
    p2_div_k_grad_blending_q4() { WALBERLA_ABORT("Not implemented."); }
 
    p2_div_k_grad_blending_q4( std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_2D_k, std::function< real_t ( const Point3D & ) > _callback_Scalar_Variable_Coefficient_3D_k )

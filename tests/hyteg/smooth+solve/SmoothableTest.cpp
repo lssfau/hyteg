@@ -151,7 +151,7 @@ int main( int argc, char** argv )
    //  ScalarOperators
    // =================
    runCheck< P1ConstantLaplaceOperator >( { true, true, true, true, true, true }, "P1ConstantLaplaceOperator" );
-   runCheck< P2ConstantLaplaceOperator, false >( { true, true, true, false, false, false }, "P2ConstantLaplaceOperator (in 2D)" );
+   runCheck< P2ConstantLaplaceOperator, true >( { true, true, true, false, false, true }, "P2ConstantLaplaceOperator (in 2D)" );
 
    runCheck< P1BlendingLaplaceOperator >( { true, true, true, false, false, true }, "P1BlendingLaplaceOperator" );
 
@@ -163,7 +163,7 @@ int main( int argc, char** argv )
    // =========================
    runCheck< P1ConstantVectorLaplaceOperator >( { true, true, true, true, true, true }, "P1ConstantVectorLaplaceOperator" );
 
-   runCheck< P2ConstantVectorLaplaceOperator, false >( { true, true, true, false, false, false },
+   runCheck< P2ConstantVectorLaplaceOperator, true >( { true, true, true, false, false, true },
                                                        "P2ConstantVectorLaplaceOperator (in 2D)" );
 
    runCheck< P1ElementwiseAffineEpsilonOperator, true, true >( { false, false, false, false, false, true },

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Marcus Mohr, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,7 +28,10 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_centroid_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_pspg_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_manual/p1_neighbour_form.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -47,37 +50,52 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                               public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
  public:
-   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                          size_t                                     minLevel,
-                          size_t                                     maxLevel,
+                          uint_t                                     minLevel,
+                          uint_t                                     maxLevel,
                           const P1Form&                              form );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                          size_t                                     minLevel,
-                          size_t                                     maxLevel,
+                          uint_t                                     minLevel,
+                          uint_t                                     maxLevel,
                           const P1Form&                              form,
                           bool                                       needsInverseDiagEntries );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
-               size_t                      level,
+               uint_t                      level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const override final;
+
+   void applyScaled( const real_t&               alpha,
+                     const P1Function< real_t >& src,
+                     const P1Function< real_t >& dst,
+                     uint_t                      level,
+                     DoFType                     flag,
+                     UpdateType                  updateType = Replace ) const override final;
 
    void gemv( const real_t&               alpha,
               const P1Function< real_t >& src,
               const real_t&               beta,
               const P1Function< real_t >& dst,
-              size_t                      level,
+              uint_t                      level,
               DoFType                     flag ) const override final;
+
+   void smooth_jac_scaled( const real_t&               alpha,
+                           const P1Function< real_t >& dst,
+                           const P1Function< real_t >& rhs,
+                           const P1Function< real_t >& src,
+                           real_t                      omega,
+                           uint_t                      level,
+                           DoFType                     flag ) const override;
 
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& src,
                     real_t                      omega,
-                    size_t                      level,
+                    uint_t                      level,
                     DoFType                     flag ) const override;
 
    /// Assemble operator as sparse matrix
@@ -95,6 +113,23 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                   uint_t                                      level,
                   DoFType                                     flag ) const override;
 
+   /// Assemble operator as sparse matrix with scaling
+   ///
+   /// \param alpha constant scaling of the matrix
+   /// \param mat   a sparse matrix proxy
+   /// \param src   P1Function for determining column indices
+   /// \param dst   P1Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   void toMatrixScaled( const real_t&                               alpha,
+                        const std::shared_ptr< SparseMatrixProxy >& mat,
+                        const P1Function< idx_t >&                  src,
+                        const P1Function< idx_t >&                  dst,
+                        uint_t                                      level,
+                        DoFType                                     flag ) const override;
+
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
    /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
@@ -103,11 +138,32 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false, false, real_c( 1 ) ); }
 
    /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true ); }
+   void computeInverseDiagonalOperatorValues() override final { computeDiagonalOperatorValues( true, false, real_c( 1 ) ); }
+
+   void computeLumpedDiagonalOperatorValues() { computeDiagonalOperatorValues( false, true, real_c( 1 ) ); }
+   void computeLumpedInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true, true, real_c( 1 ) ); }
+
+   /// Trigger (re)computation of scaled inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValuesScaled( const real_t& alpha ) override final
+   {
+      computeDiagonalOperatorValues( true, false, alpha );
+   }
+
+   void computeLumpedInverseDiagonalOperatorValuesScaled( const real_t& alpha )
+   {
+      computeDiagonalOperatorValues( true, true, alpha );
+   }
+
+   /// Trigger (re)computation of scaled diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValuesScaled( const real_t& alpha ) { computeDiagonalOperatorValues( false, false, alpha ); }
+
+   void computeLumpedDiagonalOperatorValuesScaled( const real_t& alpha ) { computeDiagonalOperatorValues( false, true, alpha ); }
 
    std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
    {
@@ -125,6 +181,22 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       return inverseDiagonalValues_;
    };
 
+   std::shared_ptr< P1Function< real_t > > getLumpedDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          lumpedDiagonalValues_,
+          "Lumped diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return lumpedDiagonalValues_;
+   };
+
+   std::shared_ptr< P1Function< real_t > > getLumpedInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          lumpedInverseDiagonalValues_,
+          "Lumped inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return lumpedInverseDiagonalValues_;
+   };
+
  private:
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -139,7 +211,9 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                              const idx_t                                xIdx,
                                              const idx_t                                yIdx,
                                              const P1Elements::P1Elements2D::P1Element& element,
-                                             real_t* const                              dstVertexData );
+                                             real_t* const                              dstVertexData,
+                                             const real_t&                              alpha,
+                                             bool                                       lumped = false );
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -152,7 +226,9 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                              const uint_t            level,
                                              const indexing::Index&  microCell,
                                              const celldof::CellType cType,
-                                             real_t* const           vertexData );
+                                             real_t* const           vertexData,
+                                             const real_t&           alpha,
+                                             bool                    lumped = false );
 
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
@@ -161,7 +237,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                const idx_t                                 yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
                                const idx_t* const                          srcIdx,
-                               const idx_t* const                          dstIdx ) const;
+                               const idx_t* const                          dstIdx,
+                               const real_t&                               alpha ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
@@ -169,16 +246,19 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
                                const idx_t* const                          srcIdx,
-                               const idx_t* const                          dstIdx ) const;
+                               const idx_t* const                          dstIdx,
+                               const real_t&                               alpha ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
    ///
    /// \param invert if true, assembles the function carrying the inverse of the diagonal
-   void computeDiagonalOperatorValues( bool invert );
+   void computeDiagonalOperatorValues( bool invert, bool lumped, const real_t& alpha );
 
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
+   std::shared_ptr< P1Function< real_t > > lumpedDiagonalValues_;
+   std::shared_ptr< P1Function< real_t > > lumpedInverseDiagonalValues_;
 
    P1Form form_;
 
@@ -281,6 +361,12 @@ typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
 
-typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
+typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >   P1ElementwiseKMassOperator;
+
+typedef P1ElementwiseOperator< forms::p1_k_mass_centroid_blending_q4 > P1ElementwiseBlendingKMassOperator_Centroid;
+
+typedef P1ElementwiseOperator< forms::p1_pspg_blending_q2 > P1ElementwiseBlendingPSPGOperator;
+
+typedef P1ElementwiseOperator< forms::p1_neighbour_form > P1ElementwiseNeighbourOperator;
 
 } // namespace hyteg

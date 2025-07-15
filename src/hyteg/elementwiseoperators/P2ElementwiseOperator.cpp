@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Marcus Mohr.
+ * Copyright (c) 2017-2025 Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -44,6 +44,14 @@ template < class P2Form >
 P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
                                                         size_t                                     maxLevel,
+                                                        bool                                       needsInverseDiagEntries )
+: P2ElementwiseOperator< P2Form >( storage, minLevel, maxLevel, P2Form(), needsInverseDiagEntries )
+{}
+
+template < class P2Form >
+P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
+                                                        size_t                                     maxLevel,
                                                         const P2Form&                              form,
                                                         bool                                       needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
@@ -63,7 +71,8 @@ void localMatrixVectorMultiply3D( uint_t                 level,
                                   const real_t* const    srcEdgeData,
                                   real_t* const          dstVertexData,
                                   real_t* const          dstEdgeData,
-                                  const Matrix10r&       elMat )
+                                  const Matrix10r&       elMat,
+                                  const real_t&          alpha )
 {
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -84,7 +93,7 @@ void localMatrixVectorMultiply3D( uint_t                 level,
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat * elVecOld;
+   elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
    for ( int k = 0; k < 4; ++k )
@@ -98,11 +107,12 @@ void localMatrixVectorMultiply3D( uint_t                 level,
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
-                                             const P2Function< real_t >& dst,
-                                             size_t                      level,
-                                             DoFType                     flag,
-                                             UpdateType                  updateType ) const
+void P2ElementwiseOperator< P2Form >::gemv( const real_t&               alpha,
+                                            const P2Function< real_t >& src,
+                                            const real_t&               beta,
+                                            const P2Function< real_t >& dst,
+                                            uint_t                      level,
+                                            DoFType                     flag ) const
 {
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
@@ -125,14 +135,22 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
    }
    this->storage_->getTimingTree()->stop( "sync source communication" );
 
-   if ( updateType == Replace )
+   // Formerly updateType == Replace
+   const bool betaIsZero = std::fpclassify( beta ) == FP_ZERO;
+   // Formerly updateType == Add
+   const bool betaIsOne = std::fpclassify( beta - real_c( 1.0 ) ) == FP_ZERO;
+
+   if ( betaIsZero )
    {
       // We need to zero the destination array (including halos).
       // However, we must not zero out anything that is not flagged with the specified BCs.
       // Therefore we first zero out everything that flagged, and then, later,
       // the halos of the highest dim primitives.
-
       dst.interpolate( real_c( 0 ), level, flag );
+   }
+   else if ( !betaIsOne )
+   {
+      dst.assign( { beta }, { dst }, level, flag );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -198,7 +216,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
                   assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
                }
 
-               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, elMat );
+               localMatrixVectorMultiply3D(
+                   level, micro, cType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, elMat, alpha );
             }
          }
       }
@@ -208,16 +227,11 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
       this->storage_->getTimingTree()->stop( "additive communication" );
    }
 
@@ -287,7 +301,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
                   assembleLocalElementMatrix2D( face, level, micro, fType, form_, elMat );
                }
 
-               localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, elMat );
+               localMatrixVectorMultiply2D(
+                   level, micro, fType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, elMat, alpha );
             }
          }
       }
@@ -296,29 +311,48 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
-      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >(
-          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
    }
 
    this->stopTiming( "apply" );
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
-                                                  const P2Function< real_t >& rhs,
-                                                  const P2Function< real_t >& src,
-                                                  real_t                      omega,
-                                                  size_t                      level,
-                                                  DoFType                     flag ) const
+void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
+                                             const P2Function< real_t >& dst,
+                                             uint_t                      level,
+                                             DoFType                     flag,
+                                             UpdateType                  updateType ) const
+{
+   return gemv( real_c( 1 ), src, ( updateType == Replace ? real_c( 0 ) : real_c( 1 ) ), dst, level, flag );
+}
+
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::applyScaled( const real_t&               alpha,
+                                                   const P2Function< real_t >& src,
+                                                   const P2Function< real_t >& dst,
+                                                   uint_t                      level,
+                                                   DoFType                     flag,
+                                                   UpdateType                  updateType ) const
+{
+   return gemv( alpha, src, ( updateType == Replace ? real_c( 0 ) : real_c( 1 ) ), dst, level, flag );
+}
+
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::smooth_jac_scaled( const real_t&               alpha,
+                                                         const P2Function< real_t >& dst,
+                                                         const P2Function< real_t >& rhs,
+                                                         const P2Function< real_t >& src,
+                                                         real_t                      omega,
+                                                         size_t                      level,
+                                                         DoFType                     flag ) const
 {
    this->startTiming( "smooth_jac" );
 
    // compute the current residual
-   this->apply( src, dst, level, flag );
+   this->applyScaled( alpha, src, dst, level, flag );
    dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
    // perform Jacobi update step
@@ -329,6 +363,17 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
 }
 
 template < class P2Form >
+void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
+                                                  const P2Function< real_t >& rhs,
+                                                  const P2Function< real_t >& src,
+                                                  real_t                      omega,
+                                                  size_t                      level,
+                                                  DoFType                     flag ) const
+{
+   smooth_jac_scaled( real_c( 1 ), dst, rhs, src, omega, level, flag );
+}
+
+template < class P2Form >
 void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( uint_t                 level,
                                                                    const indexing::Index& microFace,
                                                                    facedof::FaceType      fType,
@@ -336,7 +381,8 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( uint_t       
                                                                    const real_t* const    srcEdgeData,
                                                                    real_t* const          dstVertexData,
                                                                    real_t* const          dstEdgeData,
-                                                                   const Matrix6r&        elMat ) const
+                                                                   const Matrix6r&        elMat,
+                                                                   const real_t&          alpha ) const
 {
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
@@ -357,7 +403,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( uint_t       
    }
 
    // apply matrix (operator locally)
-   elVecNew = elMat * elVecOld;
+   elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
    for ( int k = 0; k < 3; ++k )
@@ -371,25 +417,50 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( uint_t       
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert )
+void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert, bool lumped, const real_t& alpha )
 {
    std::shared_ptr< P2Function< real_t > > targetFunction;
+
    if ( invert )
    {
-      if ( !inverseDiagonalValues_ )
+      if ( !lumped )
       {
-         inverseDiagonalValues_ =
-             std::make_shared< P2Function< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+         if ( !inverseDiagonalValues_ )
+         {
+            inverseDiagonalValues_ =
+                std::make_shared< P2Function< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+         }
+         targetFunction = inverseDiagonalValues_;
       }
-      targetFunction = inverseDiagonalValues_;
+      else
+      {
+         if ( !lumpedInverseDiagonalValues_ )
+         {
+            lumpedInverseDiagonalValues_ =
+                std::make_shared< P2Function< real_t > >( "lumped inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+         }
+         targetFunction = lumpedInverseDiagonalValues_;
+      }
    }
    else
    {
-      if ( !diagonalValues_ )
+      if ( !lumped )
       {
-         diagonalValues_ = std::make_shared< P2Function< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
+         if ( !diagonalValues_ )
+         {
+            diagonalValues_ = std::make_shared< P2Function< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
+         }
+         targetFunction = diagonalValues_;
       }
-      targetFunction = diagonalValues_;
+      else
+      {
+         if ( !lumpedDiagonalValues_ )
+         {
+            lumpedDiagonalValues_ =
+                std::make_shared< P2Function< real_t > >( "lumped diagonal entries", storage_, minLevel_, maxLevel_ );
+         }
+         targetFunction = lumpedDiagonalValues_;
+      }
    }
 
    for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
@@ -422,7 +493,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
             {
                for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
                {
-                  computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData, diagEdgeData );
+                  computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData, diagEdgeData, alpha, lumped );
                }
             }
          }
@@ -465,19 +536,20 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
                {
                   // we associate two elements with current micro-vertex
                   computeLocalDiagonalContributions2D(
-                      face, level, xIdx, yIdx, P2Elements::P2Face::elementN, vertexData, edgeData );
+                      face, level, xIdx, yIdx, P2Elements::P2Face::elementN, vertexData, edgeData, alpha, lumped );
                   computeLocalDiagonalContributions2D(
-                      face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+                      face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData, alpha, lumped );
                }
                --inner_rowsize;
 
                // final micro-vertex in row has only one associated micro-face
                computeLocalDiagonalContributions2D(
-                   face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+                   face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData, alpha, lumped );
             }
 
             // top north-west micro-element not treated, yet
-            computeLocalDiagonalContributions2D( face, level, 1, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+            computeLocalDiagonalContributions2D(
+                face, level, 1, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData, alpha, lumped );
          }
 
          // Push result to lower-dimensional primitives
@@ -572,14 +644,15 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
                                                                            const idx_t                  yIdx,
                                                                            const P2Elements::P2Element& element,
                                                                            real_t* const                dstVertexData,
-                                                                           real_t* const                dstEdgeData )
+                                                                           real_t* const                dstEdgeData,
+                                                                           const real_t&                alpha,
+                                                                           bool                         lumped )
 {
-   Matrix6r                elMat;
+   Matrix6r                elMat = Matrix6r::Zero();
    indexing::Index         nodeIdx;
    indexing::Index         offset;
    Point3D                 v0, v1, v2;
    std::array< uint_t, 6 > dofDataIdx;
-   P2Form                  form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -590,8 +663,8 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( { v0, v1, v2 }, elMat );
+   form_.setGeometryMap( face.getGeometryMap() );
+   form_.integrateAll( { v0, v1, v2 }, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -603,13 +676,26 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    dofDataIdx[5] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[3] );
 
    // add local contributions to diagonal entries
-   dstVertexData[dofDataIdx[0]] += elMat( 0, 0 );
-   dstVertexData[dofDataIdx[1]] += elMat( 1, 1 );
-   dstVertexData[dofDataIdx[2]] += elMat( 2, 2 );
+   if ( !lumped )
+   {
+      dstVertexData[dofDataIdx[0]] += elMat( 0, 0 ) * alpha;
+      dstVertexData[dofDataIdx[1]] += elMat( 1, 1 ) * alpha;
+      dstVertexData[dofDataIdx[2]] += elMat( 2, 2 ) * alpha;
 
-   dstEdgeData[dofDataIdx[3]] += elMat( 3, 3 );
-   dstEdgeData[dofDataIdx[4]] += elMat( 4, 4 );
-   dstEdgeData[dofDataIdx[5]] += elMat( 5, 5 );
+      dstEdgeData[dofDataIdx[3]] += elMat( 3, 3 ) * alpha;
+      dstEdgeData[dofDataIdx[4]] += elMat( 4, 4 ) * alpha;
+      dstEdgeData[dofDataIdx[5]] += elMat( 5, 5 ) * alpha;
+   }
+   else
+   {
+      dstVertexData[dofDataIdx[0]] += elMat.colwise().sum()[0] * alpha;
+      dstVertexData[dofDataIdx[1]] += elMat.colwise().sum()[1] * alpha;
+      dstVertexData[dofDataIdx[2]] += elMat.colwise().sum()[2] * alpha;
+
+      dstEdgeData[dofDataIdx[3]] += elMat.colwise().sum()[3] * alpha;
+      dstEdgeData[dofDataIdx[4]] += elMat.colwise().sum()[4] * alpha;
+      dstEdgeData[dofDataIdx[5]] += elMat.colwise().sum()[5] * alpha;
+   }
 }
 
 template < class P2Form >
@@ -618,7 +704,9 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
                                                                            const indexing::Index&  microCell,
                                                                            const celldof::CellType cType,
                                                                            real_t* const           vertexData,
-                                                                           real_t* const           edgeData )
+                                                                           real_t* const           edgeData,
+                                                                           const real_t&           alpha,
+                                                                           bool                    lumped )
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -630,9 +718,8 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix10r elMat = Matrix10r::Zero();
-   P2Form    form( form_ );
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
+   form_.setGeometryMap( cell.getGeometryMap() );
+   form_.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -644,11 +731,25 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    // add contributions for central stencil weights
    for ( int k = 0; k < 4; ++k )
    {
-      vertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k );
+      if ( !lumped )
+      {
+         vertexData[vertexDoFIndices[uint_c( k )]] += elMat( k, k ) * alpha;
+      }
+      else
+      {
+         vertexData[vertexDoFIndices[uint_c( k )]] += elMat.colwise().sum()[k] * alpha;
+      }
    }
    for ( int k = 4; k < 10; ++k )
    {
-      edgeData[edgeDoFIndices[uint_c( k - 4 )]] += elMat( k, k );
+      if ( !lumped )
+      {
+         edgeData[edgeDoFIndices[uint_c( k - 4 )]] += elMat( k, k ) * alpha;
+      }
+      else
+      {
+         edgeData[edgeDoFIndices[uint_c( k - 4 )]] += elMat.colwise().sum()[k] * alpha;
+      }
    }
 }
 template < class P2Form >
@@ -657,13 +758,14 @@ P2Form P2ElementwiseOperator< P2Form >::getForm() const
    return form_;
 }
 
-// Assemble operator as sparse matrix
+// Assemble operator as scaled sparse matrix
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                const P2Function< idx_t >&                  src,
-                                                const P2Function< idx_t >&                  dst,
-                                                uint_t                                      level,
-                                                DoFType                                     flag ) const
+void P2ElementwiseOperator< P2Form >::toMatrixScaled( const real_t&                               alpha,
+                                                      const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                      const P2Function< idx_t >&                  src,
+                                                      const P2Function< idx_t >&                  dst,
+                                                      uint_t                                      level,
+                                                      DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
@@ -699,7 +801,7 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
                localMatrixAssembly3D(
-                   mat, cell, level, micro, cType, srcVertexIndices, srcEdgeIndices, dstVertexIndices, dstEdgeIndices );
+                   mat, cell, level, micro, cType, srcVertexIndices, srcEdgeIndices, dstVertexIndices, dstEdgeIndices, alpha );
             }
          }
       }
@@ -748,7 +850,8 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
                                       srcVertexIndices,
                                       srcEdgeIndices,
                                       dstVertexIndices,
-                                      dstEdgeIndices );
+                                      dstEdgeIndices,
+                                      alpha );
                localMatrixAssembly2D( mat,
                                       face,
                                       level,
@@ -758,7 +861,8 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
                                       srcVertexIndices,
                                       srcEdgeIndices,
                                       dstVertexIndices,
-                                      dstEdgeIndices );
+                                      dstEdgeIndices,
+                                      alpha );
             }
             --inner_rowsize;
 
@@ -772,7 +876,8 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
                                    srcVertexIndices,
                                    srcEdgeIndices,
                                    dstVertexIndices,
-                                   dstEdgeIndices );
+                                   dstEdgeIndices,
+                                   alpha );
          }
 
          // top north-west micro-element not treated, yet
@@ -785,9 +890,21 @@ void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMat
                                 srcVertexIndices,
                                 srcEdgeIndices,
                                 dstVertexIndices,
-                                dstEdgeIndices );
+                                dstEdgeIndices,
+                                alpha );
       }
    }
+}
+
+// Assemble operator as sparse matrix
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                const P2Function< idx_t >&                  src,
+                                                const P2Function< idx_t >&                  dst,
+                                                uint_t                                      level,
+                                                DoFType                                     flag ) const
+{
+   return toMatrixScaled( real_c( 1 ), mat, src, dst, level, flag );
 }
 
 template < class P2Form >
@@ -800,9 +917,10 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
                                                              const idx_t* const                          srcVertexIdx,
                                                              const idx_t* const                          srcEdgeIdx,
                                                              const idx_t* const                          dstVertexIdx,
-                                                             const idx_t* const                          dstEdgeIdx ) const
+                                                             const idx_t* const                          dstEdgeIdx,
+                                                             const real_t&                               alpha ) const
 {
-   Matrix6r                elMat;
+   Matrix6r                elMat = Matrix6r::Zero();
    indexing::Index         nodeIdx;
    indexing::Index         offset;
    Point3D                 v0, v1, v2;
@@ -852,7 +970,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
-      blockMatData[i] = elMat.data()[i];
+      blockMatData[i] = elMat.data()[i] * alpha;
    }
 
    // add local matrix into global matrix
@@ -868,7 +986,8 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( const std::shared_p
                                                              const idx_t* const                          srcVertexIdx,
                                                              const idx_t* const                          srcEdgeIdx,
                                                              const idx_t* const                          dstVertexIdx,
-                                                             const idx_t* const                          dstEdgeIdx ) const
+                                                             const idx_t* const                          dstEdgeIdx,
+                                                             const real_t&                               alpha ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -909,7 +1028,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( const std::shared_p
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
-      blockMatData[i] = elMat.data()[i];
+      blockMatData[i] = elMat.data()[i] * alpha;
    }
 
    // add local matrix into global matrix
@@ -933,6 +1052,9 @@ template class P2ElementwiseOperator< P2Form_divKgrad >;
 // P2ElementwiseBlendingMassOperator
 template class P2ElementwiseOperator< forms::p2_mass_blending_q5 >;
 
+// P2ElementwiseBlendingKMassOperator
+template class P2ElementwiseOperator< forms::p2_k_mass_blending_q6 >;
+
 // P2ElementwiseBlendingLaplaceOperator
 template class P2ElementwiseOperator< P2Form_laplace >;
 
@@ -942,7 +1064,21 @@ template class P2ElementwiseOperator< P2LinearCombinationForm >;
 // Needed for P2Blending(Inverse)DiagonalOperator
 template class P2ElementwiseOperator< P2RowSumForm >;
 
+// P2ElementwiseKMassOperator_Centroid
+template class P2ElementwiseOperator< forms::p2_k_mass_centroid_blending_q6 >;
+
+// P2ElementwiseSecondDerivativeTestOperator
+template class P2ElementwiseOperator< forms::p2_secondDerivativeTestForm_blending_q3 >;
+
+// P2ElementwiseNeighbourOperator
+template class P2ElementwiseOperator< forms::p2_neighbour_form >;
+
+// P2DivKGradCentroid
+template class P2ElementwiseOperator< forms::p2_div_k_grad_centroid_affine_q3 >;
+template class P2ElementwiseOperator< forms::p2_div_k_grad_centroid_blending_q4 >;
+
 template class P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >;
+template class P2ElementwiseOperator< forms::p2_div_k_grad_blending_q4 >;
 
 template class P2ElementwiseOperator< forms::p2_linear_form_blending_q7 >;
 

@@ -37,6 +37,9 @@
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_div_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_divT_affine_q2.hpp"
+
 #include "constant_stencil_operator/P1generatedKernels//apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
 #include "constant_stencil_operator/P1generatedKernels//apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
 #include "constant_stencil_operator/P1generatedKernels//apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
@@ -74,6 +77,34 @@ P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::P1Con
 : P1Operator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >( storage, minLevel, maxLevel, form )
 {
    // pre-assemble edge, face and cell stencils
+   assembleStencils();
+}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::regenerateStencils()
+{
+   // reset vertex stencils
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      for ( auto& it : storage_->getVertices() )
+      {
+         Vertex& vertex         = *it.second;
+         auto    vertex_stencil = vertex.getData( vertexStencilID_ )->getPointer( level );
+         auto    stencilSize    = vertex.getData( vertexStencilID_ )->getSize( level );
+         std::memset( vertex_stencil, 0, stencilSize * sizeof( ValueType ) );
+      }
+   }
+
+   // re-assemble stencils
+   if ( storage_->hasGlobalCells() )
+   {
+      assemble_stencil_vertices3D();
+   }
+   else
+   {
+      assemble_stencil_vertices();
+   }
+
    assembleStencils();
 }
 
@@ -398,12 +429,12 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueT
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_sor_face3D_generated(
-    Face&                                                    face,
+    Face&                                                       face,
     const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
     const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId,
-    const uint_t&                                            level,
+    const uint_t&                                               level,
     ValueType                                                   relax,
-    const bool&                                              backwards ) const
+    const bool&                                                 backwards ) const
 {
 #ifdef HYTEG_USE_GENERATED_KERNELS
    if constexpr ( std::is_same< ValueType, double >::value )
@@ -606,12 +637,12 @@ inline void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueT
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal, typename ValueType >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal, ValueType >::smooth_sor_cell_generated(
-    Cell&                                                    cell,
+    Cell&                                                       cell,
     const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId,
     const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& rhsId,
-    const uint_t&                                            level,
+    const uint_t&                                               level,
     ValueType                                                   relax,
-    const bool&                                              backwards ) const
+    const bool&                                                 backwards ) const
 {
 #ifdef HYTEG_USE_GENERATED_KERNELS
    if constexpr ( std::is_same< ValueType, double >::value )
@@ -804,9 +835,16 @@ template class P1ConstantOperator< P1LinearCombinationForm >;
 template class P1ConstantOperator< P1WrapperForm< P2LinearCombinationForm > >;
 template class P1ConstantOperator< P1WrapperForm< P2RowSumForm > >;
 
+template class P1ConstantOperator< P1WrapperForm< forms::p1_to_p2_div_0_affine_q2 > >;
+template class P1ConstantOperator< P1WrapperForm< forms::p1_to_p2_div_1_affine_q2 > >;
+template class P1ConstantOperator< P1WrapperForm< forms::p1_to_p2_div_2_affine_q2 > >;
+
+template class P1ConstantOperator< P1WrapperForm< forms::p2_to_p1_divT_0_affine_q2 > >;
+template class P1ConstantOperator< P1WrapperForm< forms::p2_to_p1_divT_1_affine_q2 > >;
+template class P1ConstantOperator< P1WrapperForm< forms::p2_to_p1_divT_2_affine_q2 > >;
+
 // Mostly for testing, as the P1ConstantOperator inherently was designed to support lumping
 template class P1ConstantOperator< P1RowSumForm >;
-
 
 // The following instantiations are required as building blocks in the P1ConstantEpsilonOperator class
 // clang-format off

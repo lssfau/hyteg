@@ -53,9 +53,9 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
+#include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
-#include "hyteg/p2functionspace/P2MacroCell.hpp"
 
 #include "constant_stencil_operator/P2MacroEdge.hpp"
 #include "constant_stencil_operator/P2generatedKernels/sor_2D_macroface_P2_update_edgedofs.hpp"
@@ -111,6 +111,38 @@ void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,
    edgeToEdge.apply( src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), level, flag, updateType );
    vertexToEdge.apply( src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), level, flag, Add );
 }
+
+template < class P2Form >
+void P2ConstantOperator< P2Form >::computeInverseDiagonalOperatorValues()
+{
+   if ( !inverseDiagonalValues_ )
+   {
+      inverseDiagonalValues_ =
+          std::make_shared< P2Function< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+   }
+
+   // Since we only call this once and both functions go out of scope afterwards using
+   // these temporary functions should be fine here.
+   P2Function< real_t > Zero( "P2ConstantOperator_Zero", storage_, minLevel_, maxLevel_ );
+   P2Function< real_t > One( "P2ConstantOperator_One", storage_, minLevel_, maxLevel_ );
+
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      Zero.setToZero( level );
+      One.interpolate( real_c( 1 ), level, hyteg::All );
+
+      smooth_jac( *inverseDiagonalValues_, One, Zero, real_c( 1 ), level, All );
+   }
+}
+
+template < class P2Form >
+std::shared_ptr< P2Function< real_t > > P2ConstantOperator< P2Form >::getInverseDiagonalValues() const
+{
+   WALBERLA_CHECK_NOT_NULLPTR(
+       inverseDiagonalValues_,
+       "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+   return inverseDiagonalValues_;
+};
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_gs( const P2Function< real_t >& dst,

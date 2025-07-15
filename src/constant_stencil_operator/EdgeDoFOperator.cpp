@@ -26,18 +26,17 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
+
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_2D_macroface_edgedof_to_edgedof_add.hpp"
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macroface_one_sided_edgedof_to_edgedof_add.hpp"
 #include "constant_stencil_operator/EdgeDoFGeneratedKernels/apply_3D_macroface_one_sided_edgedof_to_edgedof_replace.hpp"
-#include "hyteg/forms/P2LinearCombinationForm.hpp"
-#include "hyteg/forms/P2RowSumForm.hpp"
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
-#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
-
-
 
 namespace hyteg {
 
@@ -86,6 +85,41 @@ EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< Primitiv
    {
       assembleEdgeToEdgeStencils< EdgeDoFForm >(
           storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
+   }
+   else
+   {
+      assembleStencils();
+   }
+}
+
+template < class EdgeDoFForm >
+void EdgeDoFOperator< EdgeDoFForm >::regenerateStencils()
+{
+   // reset stencils
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face         = *it.second;
+         auto  face_stencil = face.getData( faceStencilID_ )->getPointer( level );
+         auto  stencilSize  = face.getData( faceStencilID_ )->getSize( level );
+         std::memset( face_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge         = *it.second;
+         auto  edge_stencil = edge.getData( edgeStencilID_ )->getPointer( level );
+         auto  stencilSize  = edge.getData( edgeStencilID_ )->getSize( level );
+         std::memset( edge_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+   }
+
+   // re-assemble stencils
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      assembleEdgeToEdgeStencils< EdgeDoFForm >(
+          this->getStorage(), this->minLevel_, this->maxLevel_, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
    }
    else
    {

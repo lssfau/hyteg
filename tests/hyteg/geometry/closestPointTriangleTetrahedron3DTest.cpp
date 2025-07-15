@@ -168,7 +168,15 @@ int main( int argc, char** argv )
    real_t  compDist;
    real_t  maxDist = std::numeric_limits< real_t >::min();
 
-   for ( uint_t k = 0; k < 5000; k++ )
+   uint_t maxiterations = 5000;
+
+   // This test is extremely slow in debug mode, hence we cut off earlier here.
+   WALBERLA_DEBUG_SECTION()
+   {
+      maxiterations = 500;
+   }
+
+   for ( uint_t k = 0; k < maxiterations; k++ )
    {
       P = { walberla::math::realRandom( real_c( 0 ), real_c( 4 ) ),
             walberla::math::realRandom( real_c( 0 ), real_c( 4 ) ),

@@ -56,6 +56,9 @@ using walberla::uint_t;
 namespace hyteg {
 
 // Some SFINAE tricks that can be used to determine if an operator (or class in general) provides a given method
+// It only detects if an operator implements a method directly. An inherited method will not be detected.
+// This is by design since we have many iterfaces with default "not implemented" methods that would otherwise be detected.
+// However you might need to overwrite a method with a call to the parent class for it to be detected in some cases.
 namespace SFINAE {
 
 DEFINE_CLASS_METHOD_CHECK( applyScaled,
@@ -97,6 +100,8 @@ DEFINE_CLASS_METHOD_CHECK( computeInverseDiagonalOperatorValues, void, (), );
 DEFINE_CLASS_METHOD_CHECK( getInverseDiagonalValues, std::shared_ptr< typename OperatorType::srcType >, (), const );
 
 DEFINE_CLASS_METHOD_CHECK( computeLumpedInverseDiagonalOperatorValues, void, (), );
+
+DEFINE_CLASS_METHOD_CHECK( computeAndStoreLocalElementMatrices, void, (), );
 
 DEFINE_CLASS_METHOD_CHECK( getLumpedInverseDiagonalValues, std::shared_ptr< typename OperatorType::srcType >, (), const );
 

@@ -22,6 +22,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_div_affine_q2.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_add.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
@@ -79,6 +80,46 @@ VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator
    storage->addFaceData( faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil3D" );
    storage->addCellData( cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil" );
 
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      assembleVertexToEdgeStencils< VertexDoFToEdgeDoFForm >( this->getStorage(),
+                                                              this->minLevel_,
+                                                              this->maxLevel_,
+                                                              getEdgeStencil3DID(),
+                                                              getFaceStencil3DID(),
+                                                              getCellStencilID(),
+                                                              form_ );
+   }
+   else
+   {
+      assembleStencils();
+   }
+}
+
+template < class VertexDoFToEdgeDoFForm >
+void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::regenerateStencils()
+{
+   // reset stencils
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face         = *it.second;
+         auto  face_stencil = face.getData( faceStencilID_ )->getPointer( level );
+         auto  stencilSize  = face.getData( faceStencilID_ )->getSize( level );
+         std::memset( face_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge         = *it.second;
+         auto  edge_stencil = edge.getData( edgeStencilID_ )->getPointer( level );
+         auto  stencilSize  = edge.getData( edgeStencilID_ )->getSize( level );
+         std::memset( edge_stencil, 0, stencilSize * sizeof( real_t ) );
+      }
+   }
+
+   // re-assemble stencils
    if ( this->getStorage()->hasGlobalCells() )
    {
       assembleVertexToEdgeStencils< VertexDoFToEdgeDoFForm >( this->getStorage(),
@@ -166,8 +207,8 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
    using namespace P2Elements;
 
    // Initialize memory for local 6x6 matrices
-   Matrix6r local_stiffness_gray;
-   Matrix6r local_stiffness_blue;
+   // Matrix6r local_stiffness_gray;
+   // Matrix6r local_stiffness_blue;
 
    // Assemble stencils on all levels
    for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
@@ -714,5 +755,9 @@ template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble     
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_7_otherwise > >;
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise > >;
 // clang-format on
+
+template class VertexDoFToEdgeDoFOperator< forms::p1_to_p2_div_0_affine_q2 >;
+template class VertexDoFToEdgeDoFOperator< forms::p1_to_p2_div_1_affine_q2 >;
+template class VertexDoFToEdgeDoFOperator< forms::p1_to_p2_div_2_affine_q2 >;
 
 } // namespace hyteg

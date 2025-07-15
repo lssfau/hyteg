@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Marcus Mohr, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,7 +21,11 @@
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divT_blending_q6.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_div_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_div_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_k_mass_blending_q5.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/operators/Operator.hpp"
@@ -52,17 +56,53 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
  public:
    P1ToP2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
+   P1ToP2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                              size_t                                     minLevel,
+                              size_t                                     maxLevel,
+                              const P1toP2Form&                          form );
+
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
    /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
    /// If the local element matrices need to be recomputed again, simply call this method again.
    void computeAndStoreLocalElementMatrices();
 
+   void gemv( const real_t&               alpha,
+              const P1Function< real_t >& src,
+              const real_t&               beta,
+              const P2Function< real_t >& dst,
+              uint_t                      level,
+              DoFType                     flag ) const override final;
+
+   void applyScaled( const real_t&               alpha,
+                     const P1Function< real_t >& src,
+                     const P2Function< real_t >& dst,
+                     uint_t                      level,
+                     DoFType                     flag,
+                     UpdateType                  updateType = Replace ) const override final;
+
    void apply( const P1Function< real_t >& src,
                const P2Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const;
+               UpdateType                  updateType = Replace ) const override final;
+
+   /// Assemble operator as sparse matrix with scaling
+   ///
+   /// \param alpha constant scaling of the matrix
+   /// \param mat   a sparse matrix proxy
+   /// \param src   P1Function for determining column indices
+   /// \param dst   P2Function for determining row indices
+   /// \param level le2el in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   void toMatrixScaled( const real_t&                               alpha,
+                        const std::shared_ptr< SparseMatrixProxy >& mat,
+                        const P1Function< idx_t >&                  src,
+                        const P2Function< idx_t >&                  dst,
+                        uint_t                                      level,
+                        DoFType                                     flag ) const override;
 
    /// Assemble operator as sparse matrix
    ///
@@ -77,7 +117,7 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                   const P1Function< idx_t >&                  src,
                   const P2Function< idx_t >&                  dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag ) const override;
 
  private:
    /// compute product of element local vector with element matrix
@@ -97,7 +137,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                      const real_t* const    srcVertexData,
                                      real_t* const          dstVertexData,
                                      real_t* const          dstEdgeData,
-                                     const Matrixr< 6, 3 >& elMat ) const;
+                                     const Matrixr< 6, 3 >& elMat,
+                                     const real_t&          alpha ) const;
 
    /// compute product of element local vector with element matrix
    ///
@@ -116,7 +157,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                      const real_t* const     srcVertexData,
                                      real_t* const           dstVertexData,
                                      real_t* const           dstEdgeData,
-                                     const Matrixr< 10, 4 >& elMat ) const;
+                                     const Matrixr< 10, 4 >& elMat,
+                                     const real_t&           alpha ) const;
 
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
@@ -126,7 +168,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                const P2Elements::P2Element&                element,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          dstVertexIdx,
-                               const idx_t* const                          dstEdgeIdx ) const;
+                               const idx_t* const                          dstEdgeIdx,
+                               const real_t&                               alpha ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
@@ -135,7 +178,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                                const celldof::CellType                     cType,
                                const idx_t* const                          srcVertexIdx,
                                const idx_t* const                          dstVertexIdx,
-                               const idx_t* const                          dstEdgeIdx ) const;
+                               const idx_t* const                          dstEdgeIdx,
+                               const real_t&                               alpha ) const;
 
    void assembleLocalElementMatrix2D( const Face&            face,
                                       uint_t                 level,
@@ -203,7 +247,8 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
       return localElementMatrices3D_.at( cell.getID() ).at( level ).at( idx );
    }
 
-   bool localElementMatricesPrecomputed_;
+   P1toP2Form form_;
+   bool       localElementMatricesPrecomputed_;
 
    /// Pre-computed local element matrices.
    /// localElementMatrices_[macroCellID][level][cellIdx] = mat6x3
@@ -230,5 +275,19 @@ typedef P1ToP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p
 typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2ElementwiseBlendingDivTxOperator;
 typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2ElementwiseBlendingDivTyOperator;
 typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2ElementwiseBlendingDivTzOperator;
+
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_0_affine_q2 > P1ToP2ElementwiseDivxOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_1_affine_q2 > P1ToP2ElementwiseDivyOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_2_affine_q2 > P1ToP2ElementwiseDivzOperator;
+
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_0_blending_q3 > P1ToP2ElementwiseBlendingDivxOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_1_blending_q3 > P1ToP2ElementwiseBlendingDivyOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_div_2_blending_q3 > P1ToP2ElementwiseBlendingDivzOperator;
+
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_k_mass_blending_q5 > P1ToP2ElementwiseBlendingKMassOperator;
+
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divT_0_blending_q6 > P1ToP2ElementwiseBlendingDivTxQFOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divT_1_blending_q6 > P1ToP2ElementwiseBlendingDivTyQFOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divT_2_blending_q6 > P1ToP2ElementwiseBlendingDivTzQFOperator;
 
 } // namespace hyteg

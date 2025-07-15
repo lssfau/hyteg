@@ -23,6 +23,7 @@ target_sources( hyteg
     P2TransferOperators.hpp
     P2VariableOperator.hpp
     P2VectorFunction.hpp
+    P2FullViscousTDependentOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( polynomial )

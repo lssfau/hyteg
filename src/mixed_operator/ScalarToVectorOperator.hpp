@@ -153,6 +153,13 @@ typedef ScalarToVectorOperator< P1Function,
     P1ToP2ElementwiseBlendingDivTOperator;
 
 typedef ScalarToVectorOperator< P1Function,
+                                P2VectorFunction,
+                                P1ToP2ElementwiseBlendingDivTxQFOperator,
+                                P1ToP2ElementwiseBlendingDivTyQFOperator,
+                                P1ToP2ElementwiseBlendingDivTzQFOperator >
+    P1ToP2ElementwiseBlendingDivTQFOperator;
+
+typedef ScalarToVectorOperator< P1Function,
                                 P1VectorFunction,
                                 P1ElementwiseDivTXOperator,
                                 P1ElementwiseDivTYOperator,
@@ -165,7 +172,26 @@ typedef ScalarToVectorOperator< P1Function,
                                 P1ToP2ElementwiseDivTyOperator,
                                 P1ToP2ElementwiseDivTzOperator >
     P1ToP2ElementwiseDivTOperator;
+typedef ScalarToVectorOperator< P1Function,
+                                P2VectorFunction,
+                                P1ToP2ConstantDivxOperator,
+                                P1ToP2ConstantDivyOperator,
+                                P1ToP2ConstantDivzOperator >
+    P1ToP2ConstantDivOperator;
 
+typedef ScalarToVectorOperator< P1Function,
+                                P2VectorFunction,
+                                P1ToP2ElementwiseDivxOperator,
+                                P1ToP2ElementwiseDivyOperator,
+                                P1ToP2ElementwiseDivzOperator >
+    P1ToP2ElementwiseDivOperator;
+
+typedef ScalarToVectorOperator< P1Function,
+                                P2VectorFunction,
+                                P1ToP2ElementwiseBlendingDivxOperator,
+                                P1ToP2ElementwiseBlendingDivyOperator,
+                                P1ToP2ElementwiseBlendingDivzOperator >
+    P1ToP2ElementwiseBlendingDivOperator;
 typedef ScalarToVectorOperator< P1Function, P1VectorFunction, P1DivTxOperator, P1DivTyOperator, P1DivTzOperator >
     P1ConstantDivTOperator;
 

@@ -22,6 +22,21 @@ target_sources( hyteg
     p1_div_k_grad_blending_q1.cpp
     p1_div_k_grad_blending_q1.hpp
     p1_div_k_grad_blending_q3.cpp
+    p1_diffusion_blending_q3.cpp
+    p1_epsiloncc_blending_q2.cpp
+    p1_divt_blending_q1.cpp
+    p1_mass_blending_q4.cpp
+    p1_epsiloncc_affine_q2.cpp
+    p1_pspg_affine_q2.cpp
+    p1_pspg_blending_q2.cpp
+    p1_full_stokesvar_affine_q1.cpp
+    p1_k_mass_affine_q4.cpp
+    p1_mass_affine_qe.cpp
+    p1_diffusion_blending_q1.cpp
+    p1_div_k_grad_blending_q1.hpp
+    p1_div_k_grad_affine_q1.hpp
+    p1_divt_affine_q1.cpp
+    p1_div_k_grad_affine_q3.hpp
     p1_div_k_grad_blending_q3.hpp
     p1_divdiv_affine_q2.cpp
     p1_divdiv_affine_q2.hpp
@@ -36,6 +51,7 @@ target_sources( hyteg
     p1_epsiloncc_blending_q2.hpp
     p1_epsilonvar_affine_q2.cpp
     p1_epsilonvar_affine_q2.hpp
+    p1_pspg_blending_q2.hpp
     p1_epsilonvar_blending_q2.cpp
     p1_epsilonvar_blending_q2.hpp
     p1_full_stokescc_affine_q1.cpp
@@ -54,5 +70,9 @@ target_sources( hyteg
     p1_mass_blending_q4.hpp
     p1_pspg_affine_q2.cpp
     p1_pspg_affine_q2.hpp
+    p1_k_mass_centroid_blending_q4.hpp
+    p1_k_mass_centroid_blending_q4.cpp
+    p1_div_k_grad_centroid_blending_q3.hpp
+    p1_div_k_grad_centroid_blending_q3.cpp
 )
 

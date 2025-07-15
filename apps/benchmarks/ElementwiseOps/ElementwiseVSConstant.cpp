@@ -42,16 +42,16 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-template< class P2ElementwiseOperator >
-void performBenchmark( hyteg::P2Function< double >&         src,
-                       hyteg::P2Function< double >&         dstConst,
-                       hyteg::P2Function< double >&         dstElem,
-                       hyteg::P2ConstantLaplaceOperator&    constantOperator,
-                       P2ElementwiseOperator& elementwiseOperator,
-                       hyteg::Cell&                         cell,
-                       walberla::WcTimingTree&              timingTree,
-                       uint_t                               level,
-                       uint_t                               startiterations )
+template < class P2ElementwiseOperator >
+void performBenchmark( hyteg::P2Function< double >&      src,
+                       hyteg::P2Function< double >&      dstConst,
+                       hyteg::P2Function< double >&      dstElem,
+                       hyteg::P2ConstantLaplaceOperator& constantOperator,
+                       P2ElementwiseOperator&            elementwiseOperator,
+                       hyteg::Cell&                      cell,
+                       walberla::WcTimingTree&           timingTree,
+                       uint_t                            level,
+                       uint_t                            startiterations )
 {
    const std::string benchInfoString = "level" + ( level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) ) +
                                        "-numProcs" + std::to_string( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -182,14 +182,8 @@ void performBenchmark( hyteg::P2Function< double >&         src,
             {
                hyteg::Matrix10r elMat;
                hyteg::assembleLocalElementMatrix3D( cell, level, micro, cType, elementwiseOperator.getForm(), elMat );
-               hyteg::localMatrixVectorMultiply3D( level,
-                                                   micro,
-                                                   cType,
-                                                   srcVertexPtr,
-                                                   srcEdgePtr,
-                                                   dstElemVertexPtr,
-                                                   dstElemEdgePtr,
-                                                   elMat );
+               hyteg::localMatrixVectorMultiply3D(
+                   level, micro, cType, srcVertexPtr, srcEdgePtr, dstElemVertexPtr, dstElemEdgePtr, elMat, real_c( 1 ) );
             }
          }
       }
@@ -218,7 +212,7 @@ int main( int argc, char** argv )
 
    walberla::WcTimingTree timingTree;
 
-   auto meshInfo = hyteg::MeshInfo::meshCuboid( hyteg::Point3D(  0, 0, 0  ), hyteg::Point3D(  1, 1, 1  ), 1, 1, 1 );
+   auto meshInfo = hyteg::MeshInfo::meshCuboid( hyteg::Point3D( 0, 0, 0 ), hyteg::Point3D( 1, 1, 1 ), 1, 1, 1 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    //setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
@@ -233,7 +227,7 @@ int main( int argc, char** argv )
    hyteg::P2Function< double > dstElem( "dstElem", storage, minLevel, maxLevel );
    hyteg::P2Function< double > diff( "diff", storage, minLevel, maxLevel );
 
-   hyteg::P2ConstantLaplaceOperator    constantOperator( storage, minLevel, maxLevel );
+   hyteg::P2ConstantLaplaceOperator constantOperator( storage, minLevel, maxLevel );
    //hyteg::P2ElementwiseLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
    hyteg::P2ElementwiseBlendingLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
 

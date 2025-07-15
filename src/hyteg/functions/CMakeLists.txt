@@ -12,5 +12,6 @@ target_sources( hyteg
     FunctionWrapper.hpp
     GenericFunction.hpp
     VectorFunctionTools.hpp
+    PressureMeanProjection.hpp
 )
 

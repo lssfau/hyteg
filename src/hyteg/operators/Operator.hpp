@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Boerge Struempfel, Daniel Drzisga, Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -72,11 +72,27 @@ class Operator
    // Needed in VectorToVectorOperator
    virtual void apply( const SourceFunction&      src,
                        const DestinationFunction& dst,
-                       size_t                     level,
+                       uint_t                     level,
                        DoFType                    flag,
                        UpdateType                 updateType = Replace ) const
    {
       WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
+   };
+
+   /// Implements
+   ///
+   ///   y ← ɑAx + ɣy
+   ///
+   /// where ɑ is scalar, A is this operator, x is the "src" function, y is the "dst" function and
+   /// ɣ ∈ { 0, 1 } for UpdateType Replace and Add respectively.
+   virtual void applyScaled( const typename SourceFunction::valueType& alpha,
+                             const SourceFunction&                     src,
+                             const DestinationFunction&                dst,
+                             uint_t                                    level,
+                             DoFType                                   flag,
+                             UpdateType                                updateType = Replace ) const
+   {
+      WALBERLA_ABORT( "applyScaled() not implemented in derived class!" );
    };
 
    /// Implements the BLAS level 2 routine gemv:
@@ -94,7 +110,7 @@ class Operator
                       const SourceFunction&                          src,
                       const typename DestinationFunction::valueType& beta,
                       const DestinationFunction&                     dst,
-                      size_t                                         level,
+                      uint_t                                         level,
                       DoFType                                        flag ) const
    {
       WALBERLA_ABORT( "gemv() not implemented in derived class!" );
@@ -103,10 +119,21 @@ class Operator
    virtual void toMatrix( const std::shared_ptr< SparseMatrixProxy >&             mat,
                           const typename srcType::template FunctionType< idx_t >& src,
                           const typename dstType::template FunctionType< idx_t >& dst,
-                          size_t                                                  level,
+                          uint_t                                                  level,
                           DoFType                                                 flag ) const
    {
       WALBERLA_ABORT( "toMatrix() not implemented in derived class!" );
+   }
+
+   /// scales the assembled matrix with a constant alpha
+   virtual void toMatrixScaled( const typename SourceFunction::valueType&               alpha,
+                                const std::shared_ptr< SparseMatrixProxy >&             mat,
+                                const typename srcType::template FunctionType< idx_t >& src,
+                                const typename dstType::template FunctionType< idx_t >& dst,
+                                uint_t                                                  level,
+                                DoFType                                                 flag ) const
+   {
+      WALBERLA_ABORT( "toMatrixScaled() not implemented in derived class!" );
    }
 
  protected:

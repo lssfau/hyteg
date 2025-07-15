@@ -41,13 +41,14 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                            public GSSmoothable< P2Function< real_t > >,
                            public GSBackwardsSmoothable< P2Function< real_t > >,
                            public SORSmoothable< P2Function< real_t > >,
-                           public SORBackwardsSmoothable< P2Function< real_t > >
+                           public SORBackwardsSmoothable< P2Function< real_t > >,
+                           public OperatorWithInverseDiagonal< P2Function< real_t > >
 {
  public:
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P2Form& form );
 
-   const P1ConstantOperator< P1WrapperForm<P2Form> >& getVertexToVertexOpr() const { return vertexToVertex; }
+   const P1ConstantOperator< P1WrapperForm< P2Form > >& getVertexToVertexOpr() const { return vertexToVertex; }
 
    const EdgeDoFToVertexDoFOperator< P2Form >& getEdgeToVertexOpr() const { return edgeToVertex; }
 
@@ -111,6 +112,12 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     size_t                      level,
                     DoFType                     flag ) const override;
 
+   /// Uses smooth_jac to calculate the inverse diagonal (this is a workaround and should be changed in the future).
+   /// Currently does not work in 3D, since the implementation of smooth_jac is missing.
+   void computeInverseDiagonalOperatorValues() override;
+
+   std::shared_ptr< P2Function< real_t > > getInverseDiagonalValues() const override;
+
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2Function< idx_t >&                  src,
                   const P2Function< idx_t >&                  dst,
@@ -152,12 +159,14 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                                 DoFType                     flag,
                                 const bool&                 backwards = false ) const;
 
-   P1ConstantOperator< P1WrapperForm<P2Form> >         vertexToVertex;
-   EdgeDoFToVertexDoFOperator< P2Form > edgeToVertex;
-   VertexDoFToEdgeDoFOperator< P2Form > vertexToEdge;
-   EdgeDoFOperator< P2Form >            edgeToEdge;
+   P1ConstantOperator< P1WrapperForm< P2Form > > vertexToVertex;
+   EdgeDoFToVertexDoFOperator< P2Form >          edgeToVertex;
+   VertexDoFToEdgeDoFOperator< P2Form >          vertexToEdge;
+   EdgeDoFOperator< P2Form >                     edgeToEdge;
 
    P2Form form_;
+
+   std::shared_ptr< P2Function< real_t > > inverseDiagonalValues_;
 };
 
 typedef P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >

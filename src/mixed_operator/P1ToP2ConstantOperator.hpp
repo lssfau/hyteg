@@ -33,6 +33,7 @@
 #pragma warning( pop )
 #endif
 
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_div_affine_q2.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -58,7 +59,7 @@ class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function
                const P2Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override
    {
       vertexToVertex.apply( src, dst.getVertexDoFFunction(), level, flag, updateType );
       vertexToEdge.apply( src, dst.getEdgeDoFFunction(), level, flag, updateType );
@@ -68,7 +69,7 @@ class P1ToP2ConstantOperator : public Operator< P1Function< real_t >, P2Function
                   const P1Function< idx_t >&                  src,
                   const P2Function< idx_t >&                  dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const
+                  DoFType                                     flag ) const override
    {
       vertexToVertex.toMatrix( mat, src, dst.getVertexDoFFunction(), level, flag );
       vertexToEdge.toMatrix( mat, src, dst.getEdgeDoFFunction(), level, flag );
@@ -92,5 +93,9 @@ typedef P1ToP2ConstantOperator<
     P1ToP2ConstantDivTyOperator;
 typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP2ConstantDivTzOperator;
+
+    typedef P1ToP2ConstantOperator< forms::p1_to_p2_div_0_affine_q2 > P1ToP2ConstantDivxOperator;
+typedef P1ToP2ConstantOperator< forms::p1_to_p2_div_1_affine_q2 > P1ToP2ConstantDivyOperator;
+typedef P1ToP2ConstantOperator< forms::p1_to_p2_div_2_affine_q2 > P1ToP2ConstantDivzOperator;
 
 } // namespace hyteg

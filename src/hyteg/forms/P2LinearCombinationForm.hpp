@@ -51,7 +51,7 @@ class P2LinearCombinationForm : public P2Form
    // ---------------------------
    //  2D versions for triangles
    // ---------------------------
-   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -62,7 +62,7 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrateEdgeToVertex( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -73,7 +73,7 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrateVertexToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -84,7 +84,7 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
+   void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -95,7 +95,7 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const override
    {
       elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -109,7 +109,7 @@ class P2LinearCombinationForm : public P2Form
    // ----------------------------
    //  3D versions for tetrahedra
    // ----------------------------
-   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       out.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -120,17 +120,17 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2LinearCombinationFenicsForm not implemented for 3D!" );
    }
 
-   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2LinearCombinationFenicsForm not implemented for 3D!" );
    }
 
-   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
       WALBERLA_ABORT( "P2LinearCombinationFenicsForm not implemented for 3D!" );
    }
@@ -141,7 +141,7 @@ class P2LinearCombinationForm : public P2Form
 
    real_t integrate( const std::array< Point3D, 4 >&     coords,
                      const P2Form::dofPosByVertexPair3D& cntrPos,
-                     const P2Form::dofPosByVertexPair3D& leafPos ) const
+                     const P2Form::dofPosByVertexPair3D& leafPos ) const override
    {
       real_t out = 0;
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -153,7 +153,7 @@ class P2LinearCombinationForm : public P2Form
 
    std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
                                     const P2Form::dofPosByVertexPair3D&                cntrPos,
-                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
+                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const override
    {
       std::vector< real_t > out( leafPos.size(), 0 );
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -167,7 +167,7 @@ class P2LinearCombinationForm : public P2Form
       return out;
    }
 
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const override
    {
       elMat.setZero();
       for ( uint_t i = 0; i < forms_.size(); i++ )
@@ -178,7 +178,7 @@ class P2LinearCombinationForm : public P2Form
       }
    }
 
-   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap ) const override
    {
       for ( auto& form : forms_ )
       {

@@ -10,7 +10,6 @@ target_sources( hyteg
   P1Form.cpp
   P1Form.hpp
   P1LinearCombinationForm.hpp
-  P1LinearCombinationForm.hpp
   P1RowSumForm.hpp
   P1WrapperForm.hpp
   P1ZeroForm.hpp

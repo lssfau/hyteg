@@ -31,6 +31,7 @@
 #endif
 
 #include "hyteg/fenics/fenics.hpp"
+#include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
@@ -54,13 +55,15 @@ class VertexDoFToEdgeDoFOperator final : public Operator< P1Function< real_t >, 
                const EdgeDoFFunction< real_t >& dst,
                size_t                           level,
                DoFType                          flag,
-               UpdateType                       updateType = Replace ) const;
+               UpdateType                       updateType = Replace ) const override;
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< idx_t >&                  src,
                   const EdgeDoFFunction< idx_t >&             dst,
                   size_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag ) const override;
+
+   void regenerateStencils();
 
    /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
    const PrimitiveDataID< StencilMemory< real_t >, Edge >& getEdgeStencilID() const { return edgeStencilID_; }
@@ -243,11 +246,13 @@ typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, fen
 typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > > VertexToEdgeDivTxOperator;
 typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > > VertexToEdgeDivTyOperator;
 
-typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >
+typedef VertexDoFToEdgeDoFOperator<
+    P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >
     P1ToP2DivTxVertexToEdgeOperator;
-typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >
+typedef VertexDoFToEdgeDoFOperator<
+    P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >
     P1ToP2DivTyVertexToEdgeOperator;
-typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
+typedef VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP2DivTzVertexToEdgeOperator;
 
 } // namespace hyteg
