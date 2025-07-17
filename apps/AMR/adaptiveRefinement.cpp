@@ -885,7 +885,18 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    {
       std::map< std::string, std::map< PrimitiveID, real_t > > realData;
       std::map< std::string, std::map< PrimitiveID, real_t > > errData;
-      errData["estL2error"] = err_el;
+
+      if ( error_freq > 0 )
+      {
+         errData["estL2error"] = err_el;
+      }
+      else
+      {
+         for ( auto& [err, id] : err_2_elwise_loc )
+         {
+            errData["estL2error"][id] = err;
+         }
+      }
 
       writeDomainPartitioningVTK(
           *storage, "output", vtkName + "_partitioning_vertices_ts" + std::to_string( refinement_step ), VTK_VERTEX, realData );
