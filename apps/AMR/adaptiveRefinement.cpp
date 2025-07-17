@@ -788,6 +788,12 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
          break;
    }
 
+   auto tt = storage->getTimingTree();
+   WALBERLA_ROOT_SECTION()
+   {
+      std::cout << *tt;
+   }
+
    // apply error indicator
    adaptiveRefinement::ErrorVector err_2_elwise_loc;
    if ( error_indicator || global_error_estimate )
