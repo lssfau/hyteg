@@ -157,39 +157,42 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       if ( TN.outputParameters.OutputTemperature )
       {
-         _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
-         _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
+         // _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
+         // _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
+         _output->add( *( p1ScalarFunctionContainer["TemperatureFEP1"] ) );
       }
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         if ( TN.outputParameters.outputVertexDoFs )
-         {
-            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
-            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
-            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
-         }
-         else
-         {
-            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
-         }
-         _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
+         _output->add( *( p1VectorFunctionContainer["VelocityFEP1"] ) );
+         
+         // if ( TN.outputParameters.outputVertexDoFs )
+         // {
+         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
+         // }
+         // else
+         // {
+         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
+         // }
+         // _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
       }
       else
       {
-         _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
+         // _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
       }
 
-      _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
-      if ( TN.outputParameters.outputVertexDoFs )
-      {
-         _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
-      }
-      else
+      // _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
+      // if ( TN.outputParameters.outputVertexDoFs )
+      // {
+      //    _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
+      // }
+      // else
 
-      {
-         _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
-      }
+      // {
+      //    _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      // }
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
 
@@ -213,7 +216,7 @@ void ConvectionSimulation::dataOutput()
 
    const std::string& modelBaseName = TN.outputParameters.modelBaseName;
 
-   if ( !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
+   if ( false && !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
    {
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFunction =
           [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {

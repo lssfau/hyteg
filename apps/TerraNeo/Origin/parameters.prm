@@ -19,7 +19,7 @@ Parameters
 
    // Refinement level
 
-   maxLevel 5;
+   maxLevel 4;
    minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
@@ -126,7 +126,7 @@ Parameters
    // If the following profiles are uncommented they are used as appropriate field,
    // and if commented, a constant value (non-dim to 1.0) is used
    //
-   viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
    // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
@@ -160,8 +160,8 @@ Parameters
    frozenVelocity false;
    
    shearHeating false;
-   adiabaticHeating true;
-   internalHeating true;
+   adiabaticHeating false;
+   internalHeating false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -176,7 +176,7 @@ Parameters
    predictorCorrector false;
    // Maximum timestep size in Ma
    maxTimeStepSize 100;
-   cflMax 1;
+   cflMax 0.8;
    dtConstant 100;
 
    // Adaptive reference Temperature 
@@ -304,7 +304,7 @@ Parameters
    ADIOS2Value 32;
 
    outputDirectory ./output;
-   modelBaseName TerraNeo;
+   modelBaseName TerraNeo_Debug;
 
    // Output of a. json file containing timing tree informationf
 

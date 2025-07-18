@@ -40,6 +40,8 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/gridtransferoperators/P0toP0AveragedInjection.hpp"
+#include "hyteg/gridtransferoperators/P1toP0Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
@@ -73,8 +75,6 @@
 #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-#include "hyteg/gridtransferoperators/P1toP0Conversion.hpp"
-#include "hyteg/gridtransferoperators/P0toP0AveragedInjection.hpp"
 
 #include "sqlite/SQLite.h"
 // HOG generated HyTeG operator
@@ -82,6 +82,7 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/mass/P1ToP2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
@@ -100,11 +101,12 @@
 #include "terraneo/operators/P2P1StokesOperatorRotationOpgen.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2TransportRHSOperator.hpp"
-#include "terraneo/operators/P2TransportTALAOperatorStd.hpp"
+#include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/solvers/MCSolverBase.hpp"
 #include "terraneo/solvers/StokesMCFGMRESSolver.hpp"
 #include "terraneo/solvers/StokesMCFGMRESSolverWithProjection.hpp"
 #include "terraneo/solvers/StokesMCUzawaSolver.hpp"
+#include "terraneo/types/types.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 
 namespace terraneo {
@@ -114,6 +116,16 @@ inline TerraNeoParameters TN;
 class ConvectionSimulation
 {
  public:
+
+   using P2P1StokesFunction_T = P2P1TaylorHoodFunction< real_t >;
+
+   using P2VectorFunction_T = P2VectorFunction< real_t >;
+   using P1VectorFunction_T = P1VectorFunction< real_t >;
+
+   using P2ScalarFunction_T = P2Function< real_t >;
+   using P1ScalarFunction_T = P1Function< real_t >;
+   using P0ScalarFunction_T = P0Function< real_t >;
+
    // no default constructor allowed
    ConvectionSimulation() = delete;
 
@@ -140,23 +152,32 @@ class ConvectionSimulation
    typedef P2Function< real_t >                                                        ScalarFunctionP2;
    typedef P0Function< real_t >                                                        ScalarFunctionP0;
    typedef P2VectorFunction< real_t >                                                  VectorFunctionP2;
+   typedef P1VectorFunction< real_t >                                                  VectorFunctionP1;
    typedef P1Function< real_t >                                                        ScalarFunctionP1;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
    typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
    typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator BlockLaplaceOperator;
    typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
    typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
-   typedef hyteg::operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap        FrozenVelocityOperator;
 
    typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
 
-   using ViscosityFunction_T   = P1Function< real_t >;
-   using StokesOperatorOpgen_T = P2P1StokesOpgenRotationWrapper;
+   static constexpr terraneo::ViscosityFunctionTypes viscType = terraneo::ViscosityFunctionTypes::P1;
 
-  //  using ViscosityFunction_T   = P0Function< real_t >;
-  //  using StokesOperatorOpgen_T = P2P1StokesP0ViscousOpgenRotationWrapper;
+   using ViscosityFunction_T = std::conditional_t<
+       viscType == terraneo::ViscosityFunctionTypes::P0,
+       P0Function< real_t >,
+       std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1, P1Function< real_t >, P2Function< real_t > > >;
 
-   // typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS StokesOperatorP1Visc;
+   using StokesOperator_T              = std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P0,
+                                                std::nullptr_t,
+                                                std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1,
+                                                                    P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS,
+                                                                    P2P1StokesFullIcosahedralShellMapOperatorFS > >;
+   using StokesOperatorRotationOpgen_T = std::conditional_t<
+       viscType == terraneo::ViscosityFunctionTypes::P0,
+       P2P1StokesP0ViscousOpgenRotationWrapper,
+       std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1, P2P1StokesOpgenRotationWrapper, std::nullptr_t > >;
 
    void setupDomain();
    void setupBoundaryConditions();
@@ -257,6 +278,18 @@ class ConvectionSimulation
        { "NormalsFS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
 
+   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p1ScalarFunctionDict = {
+       { "ViscosityFEP1", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "ShearHeatingTermCoeffP1", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
+       { "TemperatureFEP1", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
+       { "EnergyRHSP1", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
+   std::map< std::string, std::shared_ptr< ScalarFunctionP1 > > p1ScalarFunctionContainer;
+
+   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p1VectorFunctionDict = {
+       { "VelocityFEP1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "VelocityFEPrevP1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
+   std::map< std::string, std::shared_ptr< VectorFunctionP1 > > p1VectorFunctionContainer;
+
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p0ScalarFunctionDict = {
        { "ViscosityFEP0", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< ScalarFunctionP0 > > p0ScalarFunctionContainer;
@@ -265,7 +298,6 @@ class ConvectionSimulation
    std::shared_ptr< PrimitiveStorage > storage;
 
    // Solvers
-
    std::shared_ptr< FGMRESSolver< StokesOperator > >                  stokesSolver;
    std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > > stokesABlockSmoother;
 
@@ -274,17 +306,28 @@ class ConvectionSimulation
 
    std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
+   std::shared_ptr< CGSolver< P1TransportIcosahedralShellMapOperator > > transportSolverP1;
 
-   std::shared_ptr< MCSolverBase< StokesOperatorOpgen_T > > stokesSolverOpgenClass;
-   std::shared_ptr< StokesOperatorOpgen_T >                 stokesOperatorOpgen;
-   std::shared_ptr< Solver< StokesOperatorOpgen_T > >       stokesSolverOpgen;
+   std::shared_ptr< MCSolverBase< StokesOperatorRotationOpgen_T > > stokesSolverOpgenClass;
+   std::shared_ptr< Solver< StokesOperatorRotationOpgen_T > >       stokesSolverOpgen;
 
    // Operators
+
+   std::shared_ptr< StokesOperator_T >              stokesOperator_;
+   std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorRotationOpgen_;
+
+  //  std::shared_ptr< StokesOperator_T >              stokesOperator;
+   std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorOpgen;
+
    std::shared_ptr< StokesOperator >                         stokesOperator;
    std::shared_ptr< StokesOperatorFS >                       stokesOperatorFS;
    std::shared_ptr< SchurOperator >                          schurOperator;
    std::shared_ptr< MMOCTransport< ScalarFunction > >        transportOperator;
    std::shared_ptr< P2TransportIcosahedralShellMapOperator > transportOperatorTALA;
+
+   std::shared_ptr< MMOCTransport< ScalarFunctionP1 > >      transportOperatorMMOCP1;
+   std::shared_ptr< P1TransportIcosahedralShellMapOperator > transportOperatorP1;
+
    // std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
    std::shared_ptr< DiffusionOperator >                 diffusionOperator;
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
@@ -297,15 +340,7 @@ class ConvectionSimulation
 
    std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
 
-   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSX;
-   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSY;
-   std::shared_ptr< FrozenVelocityOperator > frozenVelocityRHSZ;
-
    std::shared_ptr< FrozenVelocityFullOperator > frozenVelocityRHS;
-
-   std::shared_ptr< InexactUzawaPreconditioner< StokesOperator, StokesOperator::ViscousOperator_T, SchurOperator > >
-                                               uzawaSmoother;
-   std::shared_ptr< Solver< StokesOperator > > coarseGridSolver;
 
    bool outputDirectoriesCreated = false;
 

@@ -477,11 +477,11 @@ inline real_t
          }
          else
          {
-            result = P2::macrocell::evaluate( level,
-                                              cell,
-                                              computationalLocation,
-                                              function.getVertexDoFFunction().getCellDataID(),
-                                              function.getEdgeDoFFunction().getCellDataID() );
+            result = P2::macrocell::evaluateWithCaution( level,
+                                                         cell,
+                                                         computationalLocation,
+                                                         function.getVertexDoFFunction().getCellDataID(),
+                                                         function.getEdgeDoFFunction().getCellDataID() );
          }
       }
       else
@@ -615,7 +615,7 @@ inline void
          }
          else
          {
-            P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
+            P2::macrocell::evaluateWithCaution( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
          }
       }
       else
