@@ -437,4 +437,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
    }
 }
 
+std::function< real_t( const Point3D&, const std::vector< real_t >& ) > DoFCounter( real_t threshold )
+{
+   return [threshold]( const Point3D&, const std::vector< real_t >& values )
+   {
+      return ( values[0] < threshold ) ? 1.0 : 0.0;
+   };
+}
+
 } // namespace terraneo

@@ -326,19 +326,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
    // calculateHeatflow( temperatureProfiles );
    calculateHeatflowIntegral( temperatureProfiles );
-   // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
-   for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
-   {
-      // Redimensionalise temperature
-      real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
-      if ( ( temperatureProfiles->min[i] ) <= 0 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
-                                                             << " detected at shell radii: "
-                                                             << temperatureProfiles->shellRadii[i] );
-      }
-   }
-
+   
    solveStokes();
 
    // Compute rms velocity radially
@@ -468,22 +456,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
       TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
-      // Consistency check for unreasonable low min Temperatures of Tmin <= 0 K
-      for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
-      {
-         // Redimensionalise temperature
-         real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
-         if ( ( temperatureProfiles->min[i] ) <= 0 )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
-                                                                << " detected at shell radii: "
-                                                                << temperatureProfiles->shellRadii[i] );
-            WALBERLA_LOG_INFO_ON_ROOT( "Dump data" );
-            dataOutput();
-            WALBERLA_ABORT( "Aborting simulation run" );
-         }
-      }
-
       solveStokes();
 
       // update viscosity Profiles for logging
@@ -497,6 +469,33 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                                                                       TN.domainParameters.maxLevel ) );
       }
    }
+
+   // Check for Tmin <= 0 K
+   bool negativesEncountered = false;
+   for ( uint_t i = 0; i < temperatureProfiles->min.size(); i++ )
+   {
+      // Redimensionalise temperature
+      real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
+      if ( ( temperatureProfiles->min[i] ) <= 0 )
+      {
+	 negativesEncountered = true;
+         WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
+                                                             << " detected at shell radii: "
+                                                             << temperatureProfiles->shellRadii[i] );
+      }
+   }
+   if ( negativesEncountered )
+   {	
+      // Count the occurrences of negative temperatures in the wole domain  
+      real_t threshold = 0.0;
+      p2ScalarFunctionContainer[ "NegativeCounter" ]->interpolate(
+	 DoFCounter( threshold ), { *(p2ScalarFunctionContainer[ "TemperatureFE" ]) },
+	 TN.domainParameters.maxLevel, All );
+      real_t count = p2ScalarFunctionContainer[ "NegativeCounter" ]->sumGlobal( TN.domainParameters.maxLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "Total of " << count
+		                             << " negative temperatures detected." );
+   }
+
 
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
 
