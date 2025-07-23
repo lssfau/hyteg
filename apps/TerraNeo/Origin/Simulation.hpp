@@ -95,7 +95,7 @@ void ConvectionSimulation::step()
 
       ++TN.simulationParameters.timeStep;
       p2p1StokesFunctionContainer["VelocityFEPrev"]->assign(
-          { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel - 1, All );
+          { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -104,7 +104,7 @@ void ConvectionSimulation::step()
    real_t vMax = velocityMaxMagnitude( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
                                        p2p1StokesFunctionContainer["StokesTmp1"]->uvw().component( 0u ),
                                        *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ),
-                                       TN.domainParameters.maxLevel - 1,
+                                       TN.domainParameters.maxLevel,
                                        All );
 
    TN.simulationParameters.dtPrev = TN.simulationParameters.dt;
@@ -193,52 +193,52 @@ void ConvectionSimulation::step()
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   // transportOperator->step( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-   //                          p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
-   //                          p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw(),
-   //                          TN.domainParameters.maxLevel,
-   //                          hyteg::Inner,
-   //                          TN.simulationParameters.dt,
-   //                          1,
-   //                          true,
-   //                          true,
-   //                          false );
+   transportOperator->step( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                            p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                            p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw(),
+                            TN.domainParameters.maxLevel,
+                            hyteg::Inner,
+                            TN.simulationParameters.dt,
+                            1,
+                            true,
+                            true,
+                            false );
 
-   for ( uint_t iDim = 0u; iDim < ( storage->hasGlobalCells() ? 3u : 2u ); iDim++ )
-   {
-      // p1VectorFunctionContainer["VelocityFEP1"]->component( iDim ).assign(
-      //     { 1.0 },
-      //     { p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( iDim ).getVertexDoFFunction() },
-      //     TN.domainParameters.maxLevel,
-      //     All );
+   // for ( uint_t iDim = 0u; iDim < ( storage->hasGlobalCells() ? 3u : 2u ); iDim++ )
+   // {
+   //    // p1VectorFunctionContainer["VelocityFEP1"]->component( iDim ).assign(
+   //    //     { 1.0 },
+   //    //     { p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( iDim ).getVertexDoFFunction() },
+   //    //     TN.domainParameters.maxLevel,
+   //    //     All );
 
-      // p1VectorFunctionContainer["VelocityFEPrevP1"]->component( iDim ).assign(
-      //     { 1.0 },
-      //     { p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().component( iDim ).getVertexDoFFunction() },
-      //     TN.domainParameters.maxLevel,
-      //     All );
+   //    // p1VectorFunctionContainer["VelocityFEPrevP1"]->component( iDim ).assign(
+   //    //     { 1.0 },
+   //    //     { p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().component( iDim ).getVertexDoFFunction() },
+   //    //     TN.domainParameters.maxLevel,
+   //    //     All );
 
-      P2toP1Conversion( p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().component( iDim ),
-                        p1VectorFunctionContainer["VelocityFEPrevP1"]->component( iDim ),
-                        TN.domainParameters.maxLevel,
-                        All );
+   //    P2toP1Conversion( p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().component( iDim ),
+   //                      p1VectorFunctionContainer["VelocityFEPrevP1"]->component( iDim ),
+   //                      TN.domainParameters.maxLevel,
+   //                      All );
 
-      P2toP1Conversion( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( iDim ),
-                        p1VectorFunctionContainer["VelocityFEP1"]->component( iDim ),
-                        TN.domainParameters.maxLevel,
-                        All );
-   }
+   //    P2toP1Conversion( p2p1StokesFunctionContainer["VelocityFE"]->uvw().component( iDim ),
+   //                      p1VectorFunctionContainer["VelocityFEP1"]->component( iDim ),
+   //                      TN.domainParameters.maxLevel,
+   //                      All );
+   // }
 
-   transportOperatorMMOCP1->step( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
-                                  *( p1VectorFunctionContainer["VelocityFEP1"] ),
-                                  *( p1VectorFunctionContainer["VelocityFEPrevP1"] ),
-                                  TN.domainParameters.maxLevel,
-                                  hyteg::Inner,
-                                  TN.simulationParameters.dt,
-                                  1,
-                                  true,
-                                  false,
-                                  false );
+   // transportOperatorMMOCP1->step( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
+   //                                *( p1VectorFunctionContainer["VelocityFEP1"] ),
+   //                                *( p1VectorFunctionContainer["VelocityFEPrevP1"] ),
+   //                                TN.domainParameters.maxLevel,
+   //                                hyteg::Inner,
+   //                                TN.simulationParameters.dt,
+   //                                1,
+   //                                true,
+   //                                false,
+   //                                false );
 
    // Reset temperature on boundary to initial values
 
@@ -283,7 +283,7 @@ void ConvectionSimulation::step()
 
    // update velocity field storing the velocity field of the Prev timestep
    p2p1StokesFunctionContainer["VelocityFEPrev"]->assign(
-       { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel - 1, All );
+       { real_c( 1 ) }, { *( p2p1StokesFunctionContainer["VelocityFE"] ) }, TN.domainParameters.maxLevel, All );
 
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
@@ -304,16 +304,16 @@ void ConvectionSimulation::step()
 
    //update ref temp vector based on new temperature field
 
-   P1toP2Conversion( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
-                     *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                     TN.domainParameters.maxLevel - 1,
-                     All );
+   // P1toP2Conversion( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
+   //                   *( p2ScalarFunctionContainer["TemperatureFE"] ),
+   //                   TN.domainParameters.maxLevel - 1,
+   //                   All );
 
-   P2toP2QuadraticProlongation prolongationP2;
+   // P2toP2QuadraticProlongation prolongationP2;
 
-   prolongationP2.prolongate(*( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.maxLevel - 1, All );
+   // prolongationP2.prolongate(*( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.maxLevel - 1, All );
 
-   temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
+   temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
                                                                                   TN.domainParameters.rMin,
                                                                                   TN.domainParameters.rMax,
                                                                                   TN.domainParameters.nRad,
@@ -613,19 +613,19 @@ void ConvectionSimulation::solveEnergy()
        All );
 
    // Assemble RHS
-   // transportOperatorTALA->applyRHS( *( p2ScalarFunctionContainer["EnergyRHSWeak"] ), TN.domainParameters.maxLevel, All );
-   transportOperatorP1->applyRHS( *( p1ScalarFunctionContainer["EnergyRHSP1"] ), TN.domainParameters.maxLevel, All );
+   transportOperatorTALA->applyRHS( *( p2ScalarFunctionContainer["EnergyRHSWeak"] ), TN.domainParameters.maxLevel, All );
+   // transportOperatorP1->applyRHS( *( p1ScalarFunctionContainer["EnergyRHSP1"] ), TN.domainParameters.maxLevel, All );
 
    // Solve
-   // transportSolverTALA->solve( *transportOperatorTALA,
-   //                             *( p2ScalarFunctionContainer["TemperatureFE"] ),
-   //                             *( p2ScalarFunctionContainer["EnergyRHSWeak"] ),
-   //                             TN.domainParameters.maxLevel );
+   transportSolverTALA->solve( *transportOperatorTALA,
+                               *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                               *( p2ScalarFunctionContainer["EnergyRHSWeak"] ),
+                               TN.domainParameters.maxLevel );
 
-   transportSolverP1->solve( *transportOperatorP1,
-                             *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
-                             *( p1ScalarFunctionContainer["EnergyRHSP1"] ),
-                             TN.domainParameters.maxLevel );
+   // transportSolverP1->solve( *transportOperatorP1,
+   //                           *( p1ScalarFunctionContainer["TemperatureFEP1"] ),
+   //                           *( p1ScalarFunctionContainer["EnergyRHSP1"] ),
+   //                           TN.domainParameters.maxLevel );
 
    if ( !TN.simulationParameters.compressible && TN.simulationParameters.volAvrgTemperatureDev )
    {
@@ -661,7 +661,7 @@ void ConvectionSimulation::setupStokesRHS()
    operatorgeneration::P1ToP2ElementwiseMassIcosahedralShellMap p1ToP2Mass(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   for ( uint_t l = TN.domainParameters.maxLevel - 1; l <= TN.domainParameters.maxLevel - 1; l++ )
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
       ////////////////////
       //    Momentum    //
@@ -672,8 +672,8 @@ void ConvectionSimulation::setupStokesRHS()
              return vals[0] - refTemp;
           };
 
-      P1toP2Conversion(
-          *( p1ScalarFunctionContainer["TemperatureFEP1"] ), *( p2ScalarFunctionContainer["TemperatureFE"] ), l, All );
+      // P1toP2Conversion(
+      //     *( p1ScalarFunctionContainer["TemperatureFEP1"] ), *( p2ScalarFunctionContainer["TemperatureFE"] ), l, All );
 
       p2ScalarFunctionContainer["TemperatureDev"]->interpolate(
           calculateTDev, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, l, All );
@@ -856,7 +856,7 @@ void ConvectionSimulation::solveStokes()
    stokesSolverFS->solve( *stokesOperatorFS,
                           *( p2p1StokesFunctionContainer["VelocityFE"] ),
                           *( p2p1StokesFunctionContainer["StokesRHS"] ),
-                          TN.domainParameters.maxLevel - 1 );
+                          TN.domainParameters.maxLevel );
 
    // stokesSolverOpgen->solve( *stokesOperatorOpgen,
    //                           *( p2p1StokesFunctionContainer["VelocityFERotated"] ),

@@ -180,6 +180,175 @@ inline void evaluate( const uint_t&                                             
    }
 }
 
+inline std::map< uint_t, std::pair< const real_t*, uint_t > > getP1HigherLevelToP2LowerLevelMap( const Cell&    cell,
+                                                                                          const real_t*  vertexDoFData,
+                                                                                          const real_t*  edgeDoFData,
+                                                                                          const Point3D& coordinates,
+                                                                                          uint_t         p2Level )
+{
+   const uint_t p1level = p2Level + 1;
+   const uint_t p2level = p2Level;
+
+   auto microCellIndicesP2 = vertexdof::macrocell::detail::findLocalMicroCell( p2level, cell, coordinates );
+
+   indexing::Index vertexIndex0 = indexing::Index(
+       int_c( microCellIndicesP2[0].x() ), int_c( microCellIndicesP2[0].y() ), int_c( microCellIndicesP2[0].z() ) );
+   indexing::Index vertexIndex1 = indexing::Index(
+       int_c( microCellIndicesP2[1].x() ), int_c( microCellIndicesP2[1].y() ), int_c( microCellIndicesP2[1].z() ) );
+   indexing::Index vertexIndex2 = indexing::Index(
+       int_c( microCellIndicesP2[2].x() ), int_c( microCellIndicesP2[2].y() ), int_c( microCellIndicesP2[2].z() ) );
+   indexing::Index vertexIndex3 = indexing::Index(
+       int_c( microCellIndicesP2[3].x() ), int_c( microCellIndicesP2[3].y() ), int_c( microCellIndicesP2[3].z() ) );
+
+   auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
+   auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );
+   auto edgeIndex2 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex2 );
+   auto edgeIndex3 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex3 );
+   auto edgeIndex4 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex3 );
+   auto edgeIndex5 = edgedof::calcEdgeDoFIndex( vertexIndex2, vertexIndex3 );
+
+   auto edgeOrientation0 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
+   auto edgeOrientation1 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex2 );
+   auto edgeOrientation2 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex2 );
+   auto edgeOrientation3 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex3 );
+   auto edgeOrientation4 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex3 );
+   auto edgeOrientation5 = edgedof::calcEdgeDoFOrientation( vertexIndex2, vertexIndex3 );
+
+   const auto tetV0ArrayIdx =
+       vertexdof::macrocell::index( p2level, microCellIndicesP2[0].x(), microCellIndicesP2[0].y(), microCellIndicesP2[0].z() );
+   const auto tetV1ArrayIdx =
+       vertexdof::macrocell::index( p2level, microCellIndicesP2[1].x(), microCellIndicesP2[1].y(), microCellIndicesP2[1].z() );
+   const auto tetV2ArrayIdx =
+       vertexdof::macrocell::index( p2level, microCellIndicesP2[2].x(), microCellIndicesP2[2].y(), microCellIndicesP2[2].z() );
+   const auto tetV3ArrayIdx =
+       vertexdof::macrocell::index( p2level, microCellIndicesP2[3].x(), microCellIndicesP2[3].y(), microCellIndicesP2[3].z() );
+
+   const auto tetE0ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex0.x() ), uint_c( edgeIndex0.y() ), uint_c( edgeIndex0.z() ), edgeOrientation0 );
+   const auto tetE1ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex1.x() ), uint_c( edgeIndex1.y() ), uint_c( edgeIndex1.z() ), edgeOrientation1 );
+   const auto tetE2ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex2.x() ), uint_c( edgeIndex2.y() ), uint_c( edgeIndex2.z() ), edgeOrientation2 );
+   const auto tetE3ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex3.x() ), uint_c( edgeIndex3.y() ), uint_c( edgeIndex3.z() ), edgeOrientation3 );
+   const auto tetE4ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex4.x() ), uint_c( edgeIndex4.y() ), uint_c( edgeIndex4.z() ), edgeOrientation4 );
+   const auto tetE5ArrayIdx = edgedof::macrocell::index(
+       p2level, uint_c( edgeIndex5.x() ), uint_c( edgeIndex5.y() ), uint_c( edgeIndex5.z() ), edgeOrientation5 );
+
+   const auto tetV0P1Idx = vertexdof::macrocell::index(
+       p1level, microCellIndicesP2[0].x() * 2, microCellIndicesP2[0].y() * 2, microCellIndicesP2[0].z() * 2 );
+
+   const auto tetV1P1Idx = vertexdof::macrocell::index(
+       p1level, microCellIndicesP2[1].x() * 2, microCellIndicesP2[1].y() * 2, microCellIndicesP2[1].z() * 2 );
+
+   const auto tetV2P1Idx = vertexdof::macrocell::index(
+       p1level, microCellIndicesP2[2].x() * 2, microCellIndicesP2[2].y() * 2, microCellIndicesP2[2].z() * 2 );
+
+   const auto tetV3P1Idx = vertexdof::macrocell::index(
+       p1level, microCellIndicesP2[3].x() * 2, microCellIndicesP2[3].y() * 2, microCellIndicesP2[3].z() * 2 );
+
+   std::map< uint_t, std::pair< const real_t*, uint_t > > p1ToP2Map;
+
+   p1ToP2Map[tetV0P1Idx] = std::make_pair( vertexDoFData, tetV0ArrayIdx );
+   p1ToP2Map[tetV1P1Idx] = std::make_pair( vertexDoFData, tetV1ArrayIdx );
+   p1ToP2Map[tetV2P1Idx] = std::make_pair( vertexDoFData, tetV2ArrayIdx );
+   p1ToP2Map[tetV3P1Idx] = std::make_pair( vertexDoFData, tetV3ArrayIdx );
+
+   std::function< uint_t( const hyteg::indexing::Index&, const uint_t&, const edgedof::EdgeDoFOrientation& ) >
+       getP1IdxFromP2Index =
+           []( const hyteg::indexing::Index& itIdx, const uint_t& p1Level, const edgedof::EdgeDoFOrientation& edgeOrientation ) {
+              if ( edgeOrientation == edgedof::EdgeDoFOrientation::X )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::Y )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::Z )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 + 1 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::XY )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::YZ )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::XZ )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 + 1 );
+              }
+              else if ( edgeOrientation == edgedof::EdgeDoFOrientation::XYZ )
+              {
+                 return vertexdof::macrocell::index( p1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 );
+              }
+              else
+              {
+                 WALBERLA_ABORT( "Should not be here" );
+              }
+           };
+
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex0, p1level, edgeOrientation0 )] = std::make_pair( edgeDoFData, tetE0ArrayIdx );
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex1, p1level, edgeOrientation1 )] = std::make_pair( edgeDoFData, tetE1ArrayIdx );
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex2, p1level, edgeOrientation2 )] = std::make_pair( edgeDoFData, tetE2ArrayIdx );
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex3, p1level, edgeOrientation3 )] = std::make_pair( edgeDoFData, tetE3ArrayIdx );
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex4, p1level, edgeOrientation4 )] = std::make_pair( edgeDoFData, tetE4ArrayIdx );
+   p1ToP2Map[getP1IdxFromP2Index( edgeIndex5, p1level, edgeOrientation5 )] = std::make_pair( edgeDoFData, tetE5ArrayIdx );
+
+   return p1ToP2Map;
+}
+
+inline bool evaluateP1WithP2FunctionData( const Cell&    cell,
+                                     const real_t*  vertexDoFData,
+                                     const real_t*  edgeDoFData,
+                                     const Point3D& coordinates,
+                                     uint_t         p2Level,
+                                     real_t& val )
+{
+   uint_t p1level = p2Level + 1;
+
+   auto p1ToP2Map = getP1HigherLevelToP2LowerLevelMap( cell, vertexDoFData, edgeDoFData, coordinates, p2Level );
+
+   auto microCellIndicesP1 = vertexdof::macrocell::detail::findLocalMicroCell( p1level, cell, coordinates );
+
+   auto microP1Tet0 = vertexdof::macrocell::coordinateFromIndex( p1level, cell, microCellIndicesP1[0] );
+   auto microP1Tet1 = vertexdof::macrocell::coordinateFromIndex( p1level, cell, microCellIndicesP1[1] );
+   auto microP1Tet2 = vertexdof::macrocell::coordinateFromIndex( p1level, cell, microCellIndicesP1[2] );
+   auto microP1Tet3 = vertexdof::macrocell::coordinateFromIndex( p1level, cell, microCellIndicesP1[3] );
+
+   const auto tetV0ArrayIdx =
+       vertexdof::macrocell::index( p1level, microCellIndicesP1[0].x(), microCellIndicesP1[0].y(), microCellIndicesP1[0].z() );
+   const auto tetV1ArrayIdx =
+       vertexdof::macrocell::index( p1level, microCellIndicesP1[1].x(), microCellIndicesP1[1].y(), microCellIndicesP1[1].z() );
+   const auto tetV2ArrayIdx =
+       vertexdof::macrocell::index( p1level, microCellIndicesP1[2].x(), microCellIndicesP1[2].y(), microCellIndicesP1[2].z() );
+   const auto tetV3ArrayIdx =
+       vertexdof::macrocell::index( p1level, microCellIndicesP1[3].x(), microCellIndicesP1[3].y(), microCellIndicesP1[3].z() );
+
+   auto xLocal =
+       vertexdof::macrocell::detail::transformToLocalTet( microP1Tet0, microP1Tet1, microP1Tet2, microP1Tet3, coordinates );
+
+   if( p1ToP2Map.find(tetV0ArrayIdx) == p1ToP2Map.end()|| p1ToP2Map.find(tetV1ArrayIdx) == p1ToP2Map.end() ||
+       p1ToP2Map.find(tetV2ArrayIdx) == p1ToP2Map.end()|| p1ToP2Map.find(tetV3ArrayIdx) == p1ToP2Map.end() )
+   {
+    return false;
+   }
+
+   real_t valueTet0 = p1ToP2Map.at( tetV0ArrayIdx ).first[p1ToP2Map.at( tetV0ArrayIdx ).second];
+   real_t valueTet1 = p1ToP2Map.at( tetV1ArrayIdx ).first[p1ToP2Map.at( tetV1ArrayIdx ).second];
+   real_t valueTet2 = p1ToP2Map.at( tetV2ArrayIdx ).first[p1ToP2Map.at( tetV2ArrayIdx ).second];
+   real_t valueTet3 = p1ToP2Map.at( tetV3ArrayIdx ).first[p1ToP2Map.at( tetV3ArrayIdx ).second];
+
+   val = valueTet0 * ( real_c( 1.0 ) - xLocal[0] - xLocal[1] - xLocal[2] ) + valueTet1 * xLocal[0] +
+                valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
+
+   return true;
+}
+
 template < typename ValueType >
 inline void evaluateWithCaution( const uint_t&,
                                  const Cell&,
@@ -320,31 +489,34 @@ inline void evaluateWithCaution( const uint_t&                                  
 
       results[i] = scaleV0 + scaleV1 + scaleV2 + scaleV3 + scaleE0 + scaleE1 + scaleE2 + scaleE3 + scaleE4 + scaleE5;
 
-      if ( ( results[i] < std::min( { valueTetV0,
-                                      valueTetV1,
-                                      valueTetV2,
-                                      valueTetV3,
-                                      valueTetE0,
-                                      valueTetE1,
-                                      valueTetE2,
-                                      valueTetE3,
-                                      valueTetE4,
-                                      valueTetE5 },
-                                    std::less< real_t >() ) ) ||
-           ( results[i] > std::max( { valueTetV0,
-                                      valueTetV1,
-                                      valueTetV2,
-                                      valueTetV3,
-                                      valueTetE0,
-                                      valueTetE1,
-                                      valueTetE2,
-                                      valueTetE3,
-                                      valueTetE4,
-                                      valueTetE5 },
-                                    std::less< real_t >() ) ) )
+      if ( ( results[i] + walberla::real_comparison::Epsilon< real_t >::value < std::min( { valueTetV0,
+                                                                                            valueTetV1,
+                                                                                            valueTetV2,
+                                                                                            valueTetV3,
+                                                                                            valueTetE0,
+                                                                                            valueTetE1,
+                                                                                            valueTetE2,
+                                                                                            valueTetE3,
+                                                                                            valueTetE4,
+                                                                                            valueTetE5 },
+                                                                                          std::less< real_t >() ) ) ||
+           ( results[i] - walberla::real_comparison::Epsilon< real_t >::value > std::max( { valueTetV0,
+                                                                                            valueTetV1,
+                                                                                            valueTetV2,
+                                                                                            valueTetV3,
+                                                                                            valueTetE0,
+                                                                                            valueTetE1,
+                                                                                            valueTetE2,
+                                                                                            valueTetE3,
+                                                                                            valueTetE4,
+                                                                                            valueTetE5 },
+                                                                                          std::less< real_t >() ) ) )
       {
-         results[i] =
+          if( !evaluateP1WithP2FunctionData( cell, vertexdofData, edgedofData, coordinates, level, results[i] ) )
+          {
+            results[i] =
              valueTetV0 * ( real_c( 1.0 ) - xi_1 - xi_2 - xi_3 ) + valueTetV1 * xi_1 + valueTetV2 * xi_2 + valueTetV3 * xi_3;
+          }
       }
    }
 }

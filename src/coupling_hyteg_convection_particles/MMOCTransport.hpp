@@ -633,7 +633,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
                                    const FunctionType&                                    uy,
                                    const FunctionType&                                    uz,
                                    const uint_t&                                          level,
-                                   const DoFType&,
+                                   const DoFType& flag,
                                    const TimeSteppingScheme& timeSteppingScheme,
                                    const real_t&             initialOffset )
 {
@@ -737,6 +737,11 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
          // if ( storage.onBoundary( it.primitiveID(), true ) )
          //   continue;
 
+         if( flag != storage.getPrimitive( it.primitiveID() )->getMeshBoundaryFlag() )
+         {
+            continue;
+         }
+
          Point3D physicalLocation;
          auto    primitive = storage.getPrimitive( it.primitiveID() );
          primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
@@ -810,6 +815,12 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
       for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
       {
+
+         if( flag != storage.getPrimitive( it.primitiveID() )->getMeshBoundaryFlag() )
+         {
+            continue;
+         }
+
          //      if ( storage.onBoundary( it.primitiveID(), true ) )
          //         continue;
 
@@ -1688,7 +1699,7 @@ class MMOCTransport
    walberla::convection_particles::data::ParticleStorage particleStorage_;
    real_t                                                particleLocationRadius_;
 
-   real_t particleLocationRadiusTol_ = 0.1;
+   real_t particleLocationRadiusTol_ = 0.01;
    bool   p1Evaluate_                = false;
 
    HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING;

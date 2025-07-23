@@ -216,7 +216,7 @@ void ConvectionSimulation::dataOutput()
 
    const std::string& modelBaseName = TN.outputParameters.modelBaseName;
 
-   if ( false && !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
+   if ( !TN.simulationParameters.adaptiveRefTemp || TN.simulationParameters.timeStep == 0 )
    {
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > temperatureDevFunction =
           [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
