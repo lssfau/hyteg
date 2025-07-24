@@ -479,7 +479,13 @@ struct RadialProfile
 /// \return a filled RadialProfile struct
 
 template < typename FunctionType >
-RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, std::vector< real_t > layers, uint_t level )
+RadialProfile computeRadialProfile(
+    const FunctionType&                       u,
+    real_t                                    rMin,
+    real_t                                    rMax,
+    std::vector< real_t >                     layers,
+    uint_t                                    level,
+    std::function< real_t( const Point3D& ) > radiusFunc = []( const Point3D& x ) { return x.norm(); } )
 {
    WALBERLA_CHECK_LESS_EQUAL( rMin, rMax );
 
@@ -506,7 +512,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > gatherValues =
        [&]( const Point3D& x, const std::vector< real_t >& values ) {
-          real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+          real_t radius = radiusFunc( x ); // std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
           auto scalarValue = real_c( 0.0 );
 
@@ -576,7 +582,13 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
 }
 
 template < typename FunctionType >
-RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t rMax, uint_t nRad, uint_t level )
+RadialProfile computeRadialProfile(
+    const FunctionType&                       u,
+    real_t                                    rMin,
+    real_t                                    rMax,
+    uint_t                                    nRad,
+    uint_t                                    level,
+    std::function< real_t( const Point3D& ) > radiusFunc = []( const Point3D& x ) { return x.norm(); } )
 {
    std::vector< real_t > layers( nRad, 0.0 );
    for ( uint_t layer = 0; layer < nRad; layer++ )
@@ -584,7 +596,7 @@ RadialProfile computeRadialProfile( const FunctionType& u, real_t rMin, real_t r
       layers[layer] = radiusOfMacroMeshShell( layer, rMin, rMax, nRad );
    }
 
-   return computeRadialProfile( u, rMin, rMax, layers, level );
+   return computeRadialProfile( u, rMin, rMax, layers, level, radiusFunc );
 }
 
 } //namespace terraneo

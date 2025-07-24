@@ -1,0 +1,44 @@
+Parameters
+{
+    nx 3;
+    ny 3;
+    nz 3;
+
+    minLevel 0;
+    maxLevel 2;
+
+    AiniPerturb 0.1;
+    RayleighNumber 1e5;
+
+    k_ 1.0;
+    
+    dt 2e-6;
+
+    cflMax 1.2;
+    nCouplingIter 1;
+
+    cautionedEvaluate true;
+
+    stokesDirectSolver false;
+
+    p1MMOC true;
+    p1Diffusion true;
+
+    stokesMinresIter 1000;
+    stokesMinresTol 1e-12;
+
+    transportGmresIter 1000;
+    transportGmresTol 1e-20;
+
+    allowedRelativeMassDifference 1.0;
+
+    simulationTime 10.0;
+    maxTimeSteps 25000;
+
+    outputFilename TestCube;
+    outputPath ./output/;
+
+    profilePath ./output/profiles/;
+
+    vtkWriteFrequency 1;
+}

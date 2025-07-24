@@ -394,7 +394,7 @@ inline real_t
                                 const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                 const uint_t&                                                          level,
                                 const bool&               setParticlesOutsideDomainToZero,
-                                const bool&               p1Evaluate                 = false,
+                                const bool&               cautionedEvaluate          = false,
                                 HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING,
                                 std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain_ = nullptr )
 {
@@ -438,19 +438,11 @@ inline real_t
       }
       else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
       {
-         if ( p1Evaluate )
-         {
-            result = vertexdof::macroface::evaluate(
-                level, face, computationalLocation, function.getVertexDoFFunction().getFaceDataID() );
-         }
-         else
-         {
-            result = P2::macroface::evaluate( level,
-                                              face,
-                                              computationalLocation,
-                                              function.getVertexDoFFunction().getFaceDataID(),
-                                              function.getEdgeDoFFunction().getFaceDataID() );
-         }
+         result = P2::macroface::evaluate( level,
+                                           face,
+                                           computationalLocation,
+                                           function.getVertexDoFFunction().getFaceDataID(),
+                                           function.getEdgeDoFFunction().getFaceDataID() );
       }
       else
       {
@@ -470,18 +462,21 @@ inline real_t
       }
       else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
       {
-         if ( p1Evaluate )
-         {
-            result = vertexdof::macrocell::evaluate(
-                level, cell, computationalLocation, function.getVertexDoFFunction().getCellDataID() );
-         }
-         else
+         if ( cautionedEvaluate )
          {
             result = P2::macrocell::evaluateWithCaution( level,
                                                          cell,
                                                          computationalLocation,
                                                          function.getVertexDoFFunction().getCellDataID(),
                                                          function.getEdgeDoFFunction().getCellDataID() );
+         }
+         else
+         {
+            result = P2::macrocell::evaluate( level,
+                                              cell,
+                                              computationalLocation,
+                                              function.getVertexDoFFunction().getCellDataID(),
+                                              function.getEdgeDoFFunction().getCellDataID() );
          }
       }
       else
@@ -500,7 +495,7 @@ inline void
                                 const uint_t&                                                          level,
                                 std::vector< real_t >&                                                 results,
                                 const bool&               setParticlesOutsideDomainToZero,
-                                const bool&               p1Evaluate                 = false,
+                                const bool&               cautionedEvaluate          = false,
                                 HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING,
                                 std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain_ = nullptr )
 {
@@ -550,19 +545,11 @@ inline void
          }
          else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
          {
-            if ( p1Evaluate )
-            {
-               results[i] = vertexdof::macroface::evaluate(
-                   level, face, computationalLocation, functions[i].getVertexDoFFunction().getFaceDataID() );
-            }
-            else
-            {
-               results[i] = P2::macroface::evaluate( level,
-                                                     face,
-                                                     computationalLocation,
-                                                     functions[i].getVertexDoFFunction().getFaceDataID(),
-                                                     functions[i].getEdgeDoFFunction().getFaceDataID() );
-            }
+            results[i] = P2::macroface::evaluate( level,
+                                                  face,
+                                                  computationalLocation,
+                                                  functions[i].getVertexDoFFunction().getFaceDataID(),
+                                                  functions[i].getEdgeDoFFunction().getFaceDataID() );
          }
          else
          {
@@ -605,17 +592,13 @@ inline void
       }
       else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
       {
-         if ( p1Evaluate )
+         if ( cautionedEvaluate )
          {
-            for ( uint_t i = 0; i < functions.size(); i++ )
-            {
-               results[i] = vertexdof::macrocell::evaluate(
-                   level, cell, computationalLocation, functions[i].getVertexDoFFunction().getCellDataID() );
-            }
+            P2::macrocell::evaluateWithCaution( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
          }
          else
          {
-            P2::macrocell::evaluateWithCaution( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
+            P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
          }
       }
       else
@@ -633,7 +616,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
                                    const FunctionType&                                    uy,
                                    const FunctionType&                                    uz,
                                    const uint_t&                                          level,
-                                   const DoFType& flag,
+                                   const DoFType&,
                                    const TimeSteppingScheme& timeSteppingScheme,
                                    const real_t&             initialOffset )
 {
@@ -737,11 +720,6 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
          // if ( storage.onBoundary( it.primitiveID(), true ) )
          //   continue;
 
-         if( flag != storage.getPrimitive( it.primitiveID() )->getMeshBoundaryFlag() )
-         {
-            continue;
-         }
-
          Point3D physicalLocation;
          auto    primitive = storage.getPrimitive( it.primitiveID() );
          primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
@@ -815,12 +793,6 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
       for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
       {
-
-         if( flag != storage.getPrimitive( it.primitiveID() )->getMeshBoundaryFlag() )
-         {
-            continue;
-         }
-
          //      if ( storage.onBoundary( it.primitiveID(), true ) )
          //         continue;
 
@@ -917,7 +889,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                  const TimeSteppingScheme& timeSteppingScheme,
                                  const real_t&             particleLocationRadius,
                                  const bool&               setParticlesOutsideDomainToZero,
-                                 const bool&               p1Evaluate                = false,
+                                 const bool&               cautionedEvaluate         = false,
                                  HandleOutsideDomainMethod handleOutsideDomainMethod = HandleOutsideDomainMethod::DO_NOTHING,
                                  std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain = nullptr )
 {
@@ -972,7 +944,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                      level,
                                      results,
                                      setParticlesOutsideDomainToZero,
-                                     p1Evaluate,
+                                     cautionedEvaluate,
                                      handleOutsideDomainMethod,
                                      projectPointsBackOutsideDomain );
          p->getKRef()[0][0] = -results[0];
@@ -1016,7 +988,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                         level,
                                         results,
                                         setParticlesOutsideDomainToZero,
-                                        p1Evaluate,
+                                        cautionedEvaluate,
                                         handleOutsideDomainMethod,
                                         projectPointsBackOutsideDomain );
             evaluateAtParticlePosition( storage,
@@ -1025,7 +997,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                         level,
                                         resultsLastTimeStep,
                                         setParticlesOutsideDomainToZero,
-                                        p1Evaluate,
+                                        cautionedEvaluate,
                                         handleOutsideDomainMethod,
                                         projectPointsBackOutsideDomain );
             p->getKRef()[stage][0] = -( ( 1.0 - c[stage] ) * results[0] + c[stage] * resultsLastTimeStep[0] );
@@ -1069,7 +1041,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                                  const uint_t&             numberOfCreatedParticles,
                                  const bool                globalMaxLimiter                = true,
                                  const bool                setParticlesOutsideDomainToZero = false,
-                                 const bool&               p1Evaluate                      = false,
+                                 const bool&               cautionedEvaluate               = false,
                                  HandleOutsideDomainMethod handleOutsideDomainMethod = HandleOutsideDomainMethod::DO_NOTHING,
                                  std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain = nullptr )
 {
@@ -1093,7 +1065,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                                                           p,
                                                           level,
                                                           setParticlesOutsideDomainToZero,
-                                                          p1Evaluate,
+                                                          cautionedEvaluate,
                                                           handleOutsideDomainMethod,
                                                           projectPointsBackOutsideDomain );
       if ( globalMaxLimiter )
@@ -1433,7 +1405,7 @@ class MMOCTransport
             setParticlesOutsideDomainToZero );
    }
 
-   void setP1Evaluate( bool p1Evaluate ) { p1Evaluate_ = p1Evaluate; }
+   void setCautionedEvaluate( bool cautionedEvaluate ) { cautionedEvaluate_ = cautionedEvaluate; }
 
    void setParticleLocalRadiusTolerance( real_t particleLocationRadiusTol )
    {
@@ -1509,7 +1481,7 @@ class MMOCTransport
                            timeSteppingSchemeConvection_,
                            particleLocationRadius_,
                            setParticlesOutsideDomainToZero,
-                           p1Evaluate_,
+                           cautionedEvaluate_,
                            handleOutsideDomainMethod_,
                            projectPointsBackOutsideDomain_ );
       storage_->getTimingTree()->stop( "Particle integration" );
@@ -1524,7 +1496,7 @@ class MMOCTransport
                            numberOfCreatedParticles_,
                            globalMaxLimiter,
                            setParticlesOutsideDomainToZero,
-                           p1Evaluate_,
+                           cautionedEvaluate_,
                            handleOutsideDomainMethod_,
                            projectPointsBackOutsideDomain_ );
       storage_->getTimingTree()->stop( "Temperature evaluation" );
@@ -1700,7 +1672,7 @@ class MMOCTransport
    real_t                                                particleLocationRadius_;
 
    real_t particleLocationRadiusTol_ = 0.01;
-   bool   p1Evaluate_                = false;
+   bool   cautionedEvaluate_         = false;
 
    HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING;
 
