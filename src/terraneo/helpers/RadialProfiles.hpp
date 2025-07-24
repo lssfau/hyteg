@@ -426,11 +426,12 @@ struct RadialProfile
             WALBERLA_ABORT( "Failed to open file \"" << fileName << "\" for logging radial profiles. " )
          }
 
-         outFile << std::string( "Radius  " ) << fieldName << std::string( "_Mean " ) << fieldName << std::string( "_Max " )
-                 << fieldName << std::string( "_Min " ) << fieldName << std::string( "_rms \n" );
-         for ( uint_t shell = 0; shell < shellRadii.size(); ++shell )
+         outFile << std::string( "#Radius  " ) << fieldName << std::string( "_mean " ) << fieldName << std::string( "_max " )
+                 << fieldName << std::string( "_min " ) << fieldName << std::string( "_rms \n" );
+         //for ( uint_t shell = 0; shell < shellRadii.size(); ++shell )
+	 for ( uint_t shell = shellRadii.size(); shell-- > 0;)
          {
-            outFile << walberla::format( "%6.4f  %7.4f  %6.4f  %6.4f \n",
+            outFile << walberla::format( "%6.4f  %9.4f  %9.4f  %9.4f \n",
                                          shellRadii.at( shell ),
                                          mean.at( shell ),
                                          max.at( shell ),
