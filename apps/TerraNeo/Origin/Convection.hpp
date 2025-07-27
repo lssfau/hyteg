@@ -116,7 +116,6 @@ inline TerraNeoParameters TN;
 class ConvectionSimulation
 {
  public:
-
    using P2P1StokesFunction_T = P2P1TaylorHoodFunction< real_t >;
 
    using P2VectorFunction_T = P2VectorFunction< real_t >;
@@ -130,7 +129,7 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation(){};
+   ~ConvectionSimulation() {};
 
    void init();
 
@@ -162,22 +161,48 @@ class ConvectionSimulation
 
    typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
 
-   static constexpr terraneo::ViscosityFunctionTypes viscType = terraneo::ViscosityFunctionTypes::P1;
+   static constexpr terraneo::FEFunctionTypes viscType        = terraneo::FEFunctionTypes::P1;
+   static constexpr terraneo::FEFunctionTypes temperatureType = terraneo::FEFunctionTypes::P2;
+   static constexpr terraneo::FEFunctionTypes energyCoeffType = terraneo::FEFunctionTypes::P2;
+
+   using TransportOperator_T = std::conditional_t<
+       temperatureType == terraneo::FEFunctionTypes::P2 && energyCoeffType == terraneo::FEFunctionTypes::P2,
+       terraneo::P2TransportIcosahedralShellMapOperator,
+       std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P2 && energyCoeffType == terraneo::FEFunctionTypes::P1,
+                           terraneo::P2TransportP1CoefficientsIcosahedralShellMapOperator,
+                           std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P1 &&
+                                                   energyCoeffType == terraneo::FEFunctionTypes::P1,
+                                               terraneo::P1TransportIcosahedralShellMapOperator,
+                                               std::nullptr_t > > >;
+
+   using TemperatureFunction_T = std::conditional_t<
+       temperatureType == terraneo::FEFunctionTypes::P1,
+       P1Function< real_t >,
+       std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P2, P2Function< real_t >, std::nullptr_t > >;
 
    using ViscosityFunction_T = std::conditional_t<
-       viscType == terraneo::ViscosityFunctionTypes::P0,
+       viscType == terraneo::FEFunctionTypes::P0,
        P0Function< real_t >,
-       std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1, P1Function< real_t >, P2Function< real_t > > >;
-
-   using StokesOperator_T              = std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P0,
+       std::conditional_t< viscType == terraneo::FEFunctionTypes::P1, P1Function< real_t >, P2Function< real_t > > >;
+   using StokesOperator_T = std::conditional_t< viscType == terraneo::FEFunctionTypes::P0,
                                                 std::nullptr_t,
-                                                std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1,
+                                                std::conditional_t< viscType == terraneo::FEFunctionTypes::P1,
                                                                     P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS,
                                                                     P2P1StokesFullIcosahedralShellMapOperatorFS > >;
+
    using StokesOperatorRotationOpgen_T = std::conditional_t<
-       viscType == terraneo::ViscosityFunctionTypes::P0,
+       viscType == terraneo::FEFunctionTypes::P0,
        P2P1StokesP0ViscousOpgenRotationWrapper,
-       std::conditional_t< viscType == terraneo::ViscosityFunctionTypes::P1, P2P1StokesOpgenRotationWrapper, std::nullptr_t > >;
+       std::conditional_t< viscType == terraneo::FEFunctionTypes::P1, P2P1StokesOpgenRotationWrapper, std::nullptr_t > >;
+
+   using ProjectionOperator_T = P2ProjectNormalOperator;
+   using RotationOperator_T   = P2RotationOperator;
+
+   using P1ScalarMassOperator_T = operatorgeneration::P1ElementwiseMassIcosahedralShellMap;
+   using P2ScalarMassOperator_T = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
+
+   using P1VectorMassOperator_T = P1ElementwiseBlendingVectorMassOperator;
+   using P2VectorMassOperator_T = P2ElementwiseBlendingVectorMassOperator;
 
    void setupDomain();
    void setupBoundaryConditions();
@@ -242,6 +267,9 @@ class ConvectionSimulation
      * BoundaryConditionType = (Velocity or Temperature or No Boundary condition)
      * >
      */
+   //
+   // TODO: Implement a seperate FE Function container for TerraNeo when the crashes get annoying
+   //
    std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2p1StokesFunctionDict = {
        { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
@@ -304,7 +332,13 @@ class ConvectionSimulation
    std::shared_ptr< MCSolverBase< StokesOperatorFS > > stokesSolverClass;
    std::shared_ptr< Solver< StokesOperatorFS > >       stokesSolverFS;
 
-   std::shared_ptr< CGSolver< DiffusionOperator > >                      diffusionSolver;
+   std::shared_ptr< MCSolverBase< StokesOperator_T > > stokesMCSolver_;
+   std::shared_ptr< Solver< StokesOperator_T > >       stokesSolver_;
+
+   std::shared_ptr< MCSolverBase< StokesOperatorRotationOpgen_T > > stokesRotationOpgenMCSolver_;
+   std::shared_ptr< Solver< StokesOperatorRotationOpgen_T > >       stokesRotationOpgenSolver_;
+
+   std::shared_ptr< CGSolver< TransportOperator_T > >                    temperatureTransportSolver_;
    std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
    std::shared_ptr< CGSolver< P1TransportIcosahedralShellMapOperator > > transportSolverP1;
 
@@ -316,31 +350,32 @@ class ConvectionSimulation
    std::shared_ptr< StokesOperator_T >              stokesOperator_;
    std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorRotationOpgen_;
 
-  //  std::shared_ptr< StokesOperator_T >              stokesOperator;
    std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorOpgen;
 
-   std::shared_ptr< StokesOperator >                         stokesOperator;
-   std::shared_ptr< StokesOperatorFS >                       stokesOperatorFS;
-   std::shared_ptr< SchurOperator >                          schurOperator;
+   std::shared_ptr< StokesOperatorFS > stokesOperatorFS;
+
+   std::shared_ptr< MMOCTransport< TemperatureFunction_T > > temperatureMMOCOperator_;
+   std::shared_ptr< TransportOperator_T >                    temperatureTransportOperator_;
+
    std::shared_ptr< MMOCTransport< ScalarFunction > >        transportOperator;
    std::shared_ptr< P2TransportIcosahedralShellMapOperator > transportOperatorTALA;
 
    std::shared_ptr< MMOCTransport< ScalarFunctionP1 > >      transportOperatorMMOCP1;
    std::shared_ptr< P1TransportIcosahedralShellMapOperator > transportOperatorP1;
 
-   // std::shared_ptr< P2TransportRHSIcosahedralShellMapOperator > transportOperatorRHS;
-   std::shared_ptr< DiffusionOperator >                 diffusionOperator;
+   std::shared_ptr< P2ScalarMassOperator_T > p2ScalarMassOperator_;
+
+   std::shared_ptr< ProjectionOperator_T > projectionOperator_;
+   std::shared_ptr< RotationOperator_T >   rotationOperator_;
+
    std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
    std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
-   std::shared_ptr< P2toP2QuadraticProlongation >       p2ProlongationOperator;
 
    std::shared_ptr< P2RotationOperator > rotationOperator;
 
-   std::shared_ptr< P2toP2QuadraticInjection > p2InjectionOperator;
-
-   std::shared_ptr< P2TransportP1CoefficientsIcosahedralShellMapOperator > transportOperatorP1Coefficients;
-
-   std::shared_ptr< FrozenVelocityFullOperator > frozenVelocityRHS;
+   std::shared_ptr< P2toP2QuadraticProlongation > p2ProlongationOperator_;
+   std::shared_ptr< P2toP2QuadraticInjection >    p2InjectionOperator_;
+   std::shared_ptr< FrozenVelocityFullOperator >  frozenVelocityRHS_;
 
    bool outputDirectoriesCreated = false;
 
@@ -371,6 +406,8 @@ class ConvectionSimulation
    std::function< real_t( const Point3D& ) > oppositeGravityX;
    std::function< real_t( const Point3D& ) > oppositeGravityY;
    std::function< real_t( const Point3D& ) > oppositeGravityZ;
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > shearHeatingCoeffCalc;
 
    std::function< real_t( const Point3D& ) > normalX = []( const Point3D& x ) { return -x[0] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return -x[1] / x.norm(); };

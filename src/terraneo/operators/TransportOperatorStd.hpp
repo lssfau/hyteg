@@ -26,21 +26,22 @@
 #include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradAnnulusMap.hpp"
+#include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGradIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ElementwiseKMassP1CoefficientIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/mass/P1ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/terraneo/P1ElementwiseShearHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P1ElementwiseShearHeating.hpp"
+#include "hyteg_operators/operators/terraneo/P1ElementwiseShearHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeating.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
@@ -548,40 +549,40 @@ using P2TransportOperator = ImplicitTransportOperatorStdTemplate< hyteg::operato
                                                                   hyteg::P2Function< real_t >,
                                                                   hyteg::P2P1TaylorHoodFunction< real_t > >;
 
-// using P2TransportAnnulusMapOperator =
-//     ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassAnnulusMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseKMassAnnulusMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseShearHeatingAnnulusMap,
-//                                           P2Function< real_t >,
-//                                           P2Function< real_t >,
-//                                           P2P1TaylorHoodFunction< real_t > >;
+using P2TransportAnnulusMapOperator =
+    ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassAnnulusMap,
+                                          hyteg::operatorgeneration::P2ElementwiseKMassAnnulusMap,
+                                          hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap,
+                                          hyteg::operatorgeneration::P2ElementwiseShearHeatingAnnulusMap,
+                                          hyteg::P2Function< real_t >,
+                                          hyteg::P2Function< real_t >,
+                                          hyteg::P2P1TaylorHoodFunction< real_t > >;
 
-// using P2TransportIcosahedralShellMapOperator =
-//     ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseKMassIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap,
-//                                           P2Function< real_t >,
-//                                           P2Function< real_t >,
-//                                           P2P1TaylorHoodFunction< real_t > >;
+using P2TransportIcosahedralShellMapOperator =
+    ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseKMassIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseShearHeatingIcosahedralShellMap,
+                                          hyteg::P2Function< real_t >,
+                                          hyteg::P2Function< real_t >,
+                                          hyteg::P2P1TaylorHoodFunction< real_t > >;
 
-// using P2TransportP1CoefficientsIcosahedralShellMapOperator =
-//     ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap,
-//                                           P2Function< real_t >,
-//                                           P1Function< real_t >,
-//                                           P2P1TaylorHoodFunction< real_t > >;
+using P2TransportP1CoefficientsIcosahedralShellMapOperator =
+    ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P2ElementwiseShearHeatingP1ViscosityIcosahedralShellMap,
+                                          hyteg::P2Function< real_t >,
+                                          hyteg::P1Function< real_t >,
+                                          hyteg::P2P1TaylorHoodFunction< real_t > >;
 
-// using P1TransportIcosahedralShellMapOperator =
-//     ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P1ElementwiseMassIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P1ElementwiseDivKGradIcosahedralShellMap,
-//                                           hyteg::operatorgeneration::P1ElementwiseShearHeatingIcosahedralShellMap,
-//                                           P1Function< real_t >,
-//                                           P1Function< real_t >,
-//                                           P2P1TaylorHoodFunction< real_t > >;
+using P1TransportIcosahedralShellMapOperator =
+    ImplicitTransportOperatorStdTemplate< hyteg::operatorgeneration::P1ElementwiseMassIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P1ElementwiseDivKGradIcosahedralShellMap,
+                                          hyteg::operatorgeneration::P1ElementwiseShearHeatingIcosahedralShellMap,
+                                          hyteg::P1Function< real_t >,
+                                          hyteg::P1Function< real_t >,
+                                          hyteg::P2P1TaylorHoodFunction< real_t > >;
 
 } // namespace terraneo

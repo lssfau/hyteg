@@ -23,7 +23,7 @@
 namespace terraneo
 {
 
-enum class ViscosityFunctionTypes
+enum class FEFunctionTypes
 {
     P0,
     P1,
