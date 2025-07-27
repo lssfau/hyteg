@@ -61,6 +61,13 @@ class EGP0StokesFunction : public BlockFunction< ValueType >
           _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() ) );
    }
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const
+   {
+      this->subFunc_[0]->template unwrap< EGFunction< ValueType > >().setToZero( level );
+      this->subFunc_[1]->template unwrap< P0Function< ValueType > >().setToZero( level );
+   }
+
    [[nodiscard]] const EGFunction< ValueType >& uvw() const
    {
       return this->subFunc_[0]->template unwrap< EGFunction< ValueType > >();

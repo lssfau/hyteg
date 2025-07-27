@@ -70,8 +70,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 1: FGMRES
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
-                                         const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
+                                         const real_t   relativeTolerance          = 1e-12,
+                                         const real_t   absoluteTolerance          = 1e-12,
                                          const uint_t&  velocityPreconditionerType = 1,
                                          const uint_t&  pressurePreconditionerType = 1,
                                          const uint_t&  krylovSolverType           = 0 )
@@ -85,7 +86,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , bVec( "bVec", petscCommunicator_ )
    , nullspaceVec_( "nullspaceVec", petscCommunicator_ )
    , storage_( storage )
-   , tolerance_( tolerance )
+   , relativeTolerance_( relativeTolerance )
+   , absoluteTolerance_( absoluteTolerance )
    , maxIterations_( maxIterations )
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
@@ -117,7 +119,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
-   void setTolerance( real_t tol ) { tolerance_ = tol; }
+   void setTolerance( real_t absoluteTolerance ) { absoluteTolerance_ = absoluteTolerance; }
 
    void setMaxIt( uint_t maxIt ) { maxIterations_ = maxIt; }
 
@@ -179,7 +181,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          WALBERLA_ABORT( "Invalid solver type for PETSc block prec MinRes solver." )
       }
 
-      KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      KSPSetTolerances( ksp, relativeTolerance_, absoluteTolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_FALSE );
       KSPSetFromOptions( ksp );
 
@@ -276,7 +278,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          PCFieldSplitSetGKBDelay( pc, 5 );
          PCFieldSplitSetGKBMaxit( pc, maxIterations_ );
          PCFieldSplitSetGKBNu( pc, 0 );
-         PCFieldSplitSetGKBTol( pc, tolerance_ );
+         PCFieldSplitSetGKBTol( pc, absoluteTolerance_ );
          PCSetUp( pc );
 
          // one SubKsp: solver for M
@@ -285,7 +287,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
          // CG for M system
          KSPSetType( sub_ksps_[0], KSPCG );
-         KSPSetTolerances( sub_ksps_[0], tolerance_ / 10, tolerance_ / 10, PETSC_DEFAULT, maxIterations_ );
+         KSPSetTolerances( sub_ksps_[0], absoluteTolerance_ / 10, absoluteTolerance_ / 10, PETSC_DEFAULT, maxIterations_ );
          PC H_pc;
          KSPGetPC( sub_ksps_[0], &H_pc );
          PCSetType( H_pc, PCNONE );
@@ -563,7 +565,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
-   real_t tolerance_;
+   real_t relativeTolerance_;
+   real_t absoluteTolerance_;
    idx_t  maxIterations_;
 
    KSP          ksp;

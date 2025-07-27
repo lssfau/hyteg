@@ -90,7 +90,7 @@ real_t cmpMacroMicroRefinementTest( uint_t microRefinementLevel, uint_t macroRef
    sol.interpolate( solFunc, level );
 
    // Solve system.
-   PETScCGSolver< P1ConstantLaplaceOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   PETScCGSolver< P1ConstantLaplaceOperator > solverA( storage, level, 10000, 1e-12, 1e-12, numerator );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );

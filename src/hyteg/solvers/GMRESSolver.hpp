@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 Maximilian Dechant, Andreas Wagner, Andreas Burkhart.
+* Copyright (c) 2024-2025 Maximilian Dechant, Andreas Wagner, Andreas Burkhart.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,7 @@
 #include "core/timing/TimingTree.h"
 
 #include "hyteg/functions/FunctionTools.hpp"
+#include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -37,7 +38,7 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::uint_t;
 
-/// Left preconditioned FGMRES implementation following:
+/// Left preconditioned GMRES implementation following:
 /// Saad, Youcef and Schultz, Martin H.
 /// "GMRES: A Generalized Minimal Residual Algorithm for Solving Nonsymmetric Linear Systems "
 /// SIAM Journal on Scientific and Statistical Computing , Vol. 7, No. 3, p. 856-869, 1986
@@ -61,12 +62,14 @@ class GMRESSolver : public Solver< OperatorType >
        const std::shared_ptr< PrimitiveStorage >& storage,
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
-       uint_t                                     maxKrylowDim   = 1000,
+       uint_t                                     maxKrylowDim      = 1000,
+       real_t                                     approxRelativeTOL = 1e-16,
+       real_t                                     approxAbsoluteTOL = 1e-16,
+       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >(),
        uint_t                                     restartLength  = 1000,
        real_t                                     arnoldiTOL     = 1e-16,
-       real_t                                     approxTOL      = 1e-16,
        real_t                                     doubleOrthoTOL = 0,
-       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >(),
+       bool                                       lowMemoryMode  = false,
        std::function< bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t, real_t ) >
            iterationHook =
                []( uint_t              it,
@@ -74,14 +77,14 @@ class GMRESSolver : public Solver< OperatorType >
                    const FunctionType& x,
                    const FunctionType& b,
                    uint_t              level,
-                   real_t              ApproxError,
+                   real_t              ApproxRes,
                    real_t              wNorm ) {
                   WALBERLA_UNUSED( it );
                   WALBERLA_UNUSED( A );
                   WALBERLA_UNUSED( x );
                   WALBERLA_UNUSED( b );
                   WALBERLA_UNUSED( level );
-                  WALBERLA_UNUSED( ApproxError );
+                  WALBERLA_UNUSED( ApproxRes );
                   WALBERLA_UNUSED( wNorm );
                   return false;
                },
@@ -93,19 +96,26 @@ class GMRESSolver : public Solver< OperatorType >
    , restartLength_( restartLength )
    , numberOfIterations_( maxKrylowDim )
    , arnoldiTOL_( arnoldiTOL )
-   , approxTOL_( approxTOL )
+   , approxRelativeTOL_( approxRelativeTOL )
+   , approxAbsoluteTOL_( approxAbsoluteTOL )
    , doubleOrthoTOL_( doubleOrthoTOL )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo_( false )
    , preconditioner_( preconditioner )
-   , r0_( "r0", storage_, minLevel_, maxLevel_ )
-   , rPrec_( "rPrec", storage_, minLevel_, maxLevel_ )
-   , wPrec_( "wPrec", storage_, minLevel_, maxLevel_ )
-   , orthoDiff_( "orthoDiff", storage_, minLevel_, maxLevel_ )
+   , name_( "GMRES" )
    , timingTree_( storage->getTimingTree() )
    , iterationHook_( iterationHook )
    , generateSolutionForHook_( generateSolutionForHook )
-   {}
+   , lowMemoryMode_( lowMemoryMode )
+   {
+      if ( !lowMemoryMode_ )
+      {
+         r0_        = std::make_shared< FunctionType >( "r0", storage, minLevel, maxLevel );
+         rPrec_     = std::make_shared< FunctionType >( "rPrec", storage_, minLevel_, maxLevel_ );
+         wPrec_     = std::make_shared< FunctionType >( "wPrec", storage, minLevel, maxLevel );
+         orthoDiff_ = std::make_shared< FunctionType >( "orthoDiff", storage, minLevel, maxLevel );
+      }
+   }
 
    uint_t getIterations() { return numberOfIterations_; }
 
@@ -115,11 +125,24 @@ class GMRESSolver : public Solver< OperatorType >
 
    void setRestartLength( uint_t restartLength ) { restartLength_ = restartLength; }
 
+   void setName( std::string newName ) { name_ = newName; }
+
    void setPreconditioner( std::shared_ptr< Solver< OperatorType > > preconditioner ) { preconditioner_ = preconditioner; }
 
-   void setAbsoluteTolerance( double atol ) { approxTOL_ = atol; }
+   void setAbsoluteTolerance( double atol ) { approxAbsoluteTOL_ = atol; }
+
+   void setRelativeTolerance( double rtol ) { approxRelativeTOL_ = rtol; }
 
    void setDoubleOrthogonalizationTolerance( double tol ) { doubleOrthoTOL_ = tol; }
+
+   void setIterationHook(
+       std::function< bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t, real_t ) >
+           iterationHook )
+   {
+      iterationHook_ = iterationHook;
+   };
+
+   void setGenerateSolutionForHook_( bool generateSolutionForHook ) { generateSolutionForHook_ = generateSolutionForHook; };
 
    ~GMRESSolver() = default;
 
@@ -127,15 +150,40 @@ class GMRESSolver : public Solver< OperatorType >
    {
       timingTree_->start( "GMRES Solver" );
 
-      copyBCs( x, r0_ );
-      copyBCs( x, rPrec_ );
-      copyBCs( x, wPrec_ );
-      copyBCs( x, orthoDiff_ );
+      std::shared_ptr< FunctionType > r0Solve;
+      std::shared_ptr< FunctionType > rPrecSolve;
+      std::shared_ptr< FunctionType > wPrecSolve;
+      std::shared_ptr< FunctionType > orthoDiffSolve;
 
-      real_t approxERR = approxTOL_ + 1;
-      bool   callback  = false;
+      if ( !lowMemoryMode_ )
+      {
+         r0Solve        = r0_;
+         rPrecSolve     = rPrec_;
+         wPrecSolve     = wPrec_;
+         orthoDiffSolve = orthoDiff_;
+      }
+      else
+      {
+         r0Solve        = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         rPrecSolve     = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         wPrecSolve     = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         orthoDiffSolve = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+      }
 
-      init( A, x, b, level );
+      r0Solve->setToZero( level );
+      rPrecSolve->setToZero( level );
+      wPrecSolve->setToZero( level );
+      orthoDiffSolve->setToZero( level );
+
+      copyBCs( x, *r0Solve );
+      copyBCs( x, *rPrecSolve );
+      copyBCs( x, *wPrecSolve );
+      copyBCs( x, *orthoDiffSolve );
+
+      real_t residual = approxAbsoluteTOL_ + 1;
+      bool   callback = false;
+
+      init( A, x, b, level, r0Solve, rPrecSolve, false );
 
       for ( uint_t j = 1; j < maxKrylowDim_; j++ )
       {
@@ -143,8 +191,8 @@ class GMRESSolver : public Solver< OperatorType >
          if ( j % restartLength_ == 0 )
          {
             generateFinalApproximation( x, level );
-            init( A, x, b, level );
-            WALBERLA_LOG_INFO_ON_ROOT( "[GMRES] restarted " );
+            init( A, x, b, level, r0Solve, rPrecSolve, true );
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] restarted " );
             continue;
          }
          int currentIndex = j % restartLength_;
@@ -158,19 +206,19 @@ class GMRESSolver : public Solver< OperatorType >
          }
          else
          {
-            vecV_[currentIndex].interpolate( 0.0, level, flag_ );
+            vecV_[currentIndex].setToZero( level );
          }
 
          // main algorithmic steps (b), 1 and (b), 2
-         A.apply( vecV_[currentIndex - 1], vecV_[currentIndex], level, flag_ ); // (b), 1, left preconditioned
-         wPrec_.interpolate( 0.0, level, flag_ );                               // (b), 1, left preconditioned
-         preconditioner_->solve( A, wPrec_, vecV_[currentIndex], level );       // (b), 1, left preconditioned
-         vecV_[currentIndex].assign( { 1.0 }, { wPrec_ }, level, flag_ );       // (b), 1, left preconditioned
+         A.apply( vecV_[currentIndex - 1], vecV_[currentIndex], level, flag_ );          // (b), 1, left preconditioned
+         wPrecSolve->setToZero( level );                                                 // (b), 1, left preconditioned
+         preconditioner_->solve( A, *wPrecSolve, vecV_[currentIndex], level );           // (b), 1, left preconditioned
+         vecV_[currentIndex].assign( { real_c( 1.0 ) }, { *wPrecSolve }, level, flag_ ); // (b), 1, left preconditioned
 
          // resize H to the appropriate size
          H_.conservativeResize( currentIndex + 1, currentIndex );
-         H_.block( currentIndex, 0, 1, currentIndex ) = MatrixXr::Zero(1, currentIndex);
-         H_.block( 0, currentIndex-1, currentIndex + 1, 1 ) = MatrixXr::Zero(currentIndex + 1, 1);
+         H_.block( currentIndex, 0, 1, currentIndex )         = MatrixXr::Zero( 1, currentIndex );
+         H_.block( 0, currentIndex - 1, currentIndex + 1, 1 ) = MatrixXr::Zero( currentIndex + 1, 1 );
 
          // (b), 3
          for ( uint_t i = 1; i <= currentIndex; i++ )
@@ -183,17 +231,17 @@ class GMRESSolver : public Solver< OperatorType >
          // check if double orthogonalisation should be used
          if ( doubleOrthoTOL_ > 0 )
          {
-            A.apply( vecV_[currentIndex - 1], orthoDiff_, level, flag_ );
-            wPrec_.interpolate( 0.0, level, flag_ );
-            preconditioner_->solve( A, wPrec_, orthoDiff_, level );
-            orthoDiff_.assign( { 1.0, -1.0 }, { wPrec_, vecV_[currentIndex] }, level, flag_ );
+            A.apply( vecV_[currentIndex - 1], *orthoDiffSolve, level, flag_ );
+            wPrecSolve->setToZero( level );
+            preconditioner_->solve( A, *wPrecSolve, *orthoDiffSolve, level );
+            orthoDiffSolve->assign( { real_c( 1.0 ), real_c( -1.0 ) }, { *wPrecSolve, vecV_[currentIndex] }, level, flag_ );
          }
 
-         if ( doubleOrthoTOL_ <= 0 || std::sqrt( orthoDiff_.dotGlobal( orthoDiff_, level, flag_ ) ) > doubleOrthoTOL_ )
+         if ( doubleOrthoTOL_ <= 0 || std::sqrt( orthoDiffSolve->dotGlobal( *orthoDiffSolve, level, flag_ ) ) > doubleOrthoTOL_ )
          {
             if ( printInfo_ )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( "[GMRES] invoked double-orthogonalization at iteration " << j );
+               WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] invoked double-orthogonalization at iteration " << j );
             }
             for ( uint_t i = 1; i <= ( currentIndex ); i++ )
             {
@@ -204,39 +252,62 @@ class GMRESSolver : public Solver< OperatorType >
          }
 
          real_t wNorm = std::sqrt( vecV_[currentIndex].dotGlobal( vecV_[currentIndex], level, flag_ ) ); // (b), 4
-         H_( currentIndex, currentIndex - 1 ) = wNorm;                                                   // (b), 4
-         y_                                   = hessenbergMinimizer( beta_, H_, Q_, 1, approxERR );      // compute y_m
          if ( printInfo_ )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( "[GMRES] approximated residual after " << j << " iterations : " << approxERR );
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] wNorm = " << wNorm );
+         }
+         H_( currentIndex, currentIndex - 1 ) = wNorm;                                             // (b), 4
+         y_                                   = hessenbergMinimizer( beta_, H_, Q_, 1, residual ); // compute y_m
+         if ( printInfo_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] iter: " << j << ", approx. residual: " << residual
+                                           << " ; approx. relative residual: " << ( residual / initRes_ ) );
          }
          vecV_[currentIndex].assign( { real_c( 1.0 ) / wNorm }, { vecV_[currentIndex] }, level, flag_ ); // (b), 4
 
          if ( generateSolutionForHook_ )
          {
             // reuse r0 to hold the current solution
-            r0_.assign( { 1.0 }, { x }, level, All );
-            generateFinalApproximation( r0_, level );
-            callback = iterationHook_( j, A, r0_, b, level, approxERR, wNorm );
+            r0Solve->assign( { real_c( 1.0 ) }, { x }, level, All );
+            generateFinalApproximation( *r0Solve, level );
+            callback = iterationHook_( j, A, *r0Solve, b, level, residual, wNorm );
          }
          else
          {
-            callback = iterationHook_( j, A, x, b, level, approxERR, wNorm );
+            callback = iterationHook_( j, A, x, b, level, residual, wNorm );
          }
 
          if ( callback )
          {
             if ( printInfo_ )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( "[GMRES] iteration hook stopped the solver after " << std::defaultfloat << j
-                                                                                             << " iterations" );
+               WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] iteration hook stopped the solver after " << std::defaultfloat << j
+                                              << " iterations" );
             }
             numberOfIterations_ = j;
             break;
          }
 
-         if ( wNorm <= arnoldiTOL_ || approxERR <= approxTOL_ )
+         if ( wNorm <= arnoldiTOL_ )
          {
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] reached an Arnoldi tolerance of " << arnoldiTOL_
+                                           << " for the wNorm after " << std::defaultfloat << j << " iterations" );
+            numberOfIterations_ = j;
+            break;
+         }
+
+         if ( residual <= approxAbsoluteTOL_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] reached an approximate absolute tolerance of " << approxAbsoluteTOL_
+                                           << " after " << std::defaultfloat << j << " iterations" );
+            numberOfIterations_ = j;
+            break;
+         }
+
+         if ( residual / initRes_ <= approxRelativeTOL_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] reached an approximate relative tolerance of " << approxRelativeTOL_
+                                           << " after " << std::defaultfloat << j << " iterations" );
             numberOfIterations_ = j;
             break;
          }
@@ -247,18 +318,32 @@ class GMRESSolver : public Solver< OperatorType >
       return;
    }
 
+   /// deletes all stored functions, on a new solve new ones will be generated
+   void clearFunctionCache() { vecV_.clear(); }
+
  private:
-   void init( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
+   void init( const OperatorType&                    A,
+              const FunctionType&                    x,
+              const FunctionType&                    b,
+              const uint_t                           level,
+              const std::shared_ptr< FunctionType >& r0Solve,
+              const std::shared_ptr< FunctionType >& rPrecSolve,
+              bool                                   isReset )
    {
       // start of the algorithm
-      A.apply( x, r0_, level, flag_ );                       // (a), 1
-      r0_.assign( { 1.0, -1.0 }, { b, r0_ }, level, flag_ ); // (a), 1
+      A.apply( x, *r0Solve, level, flag_ );                            // (a), 1
+      r0Solve->assign( { 1.0, -1.0 }, { b, *r0Solve }, level, flag_ ); // (a), 1
 
       // compute the norm of the initial residual
-      rPrec_.interpolate( 0.0, level, flag_ );                 // (a), 2, left preconditioned residual
-      preconditioner_->solve( A, rPrec_, r0_, level );         // (a), 2, left preconditioned residual
-      r0_.assign( { 1.0 }, { rPrec_ }, level, flag_ );         // (a), 2, left preconditioned residual
-      beta_ = std::sqrt( r0_.dotGlobal( r0_, level, flag_ ) ); // (a), 2, left preconditioned residual
+      rPrecSolve->interpolate( 0.0, level, flag_ );                      // (a), 2, left preconditioned residual
+      preconditioner_->solve( A, *rPrecSolve, *r0Solve, level );         // (a), 2, left preconditioned residual
+      r0Solve->assign( { 1.0 }, { *rPrecSolve }, level, flag_ );         // (a), 2, left preconditioned residual
+      beta_ = std::sqrt( r0Solve->dotGlobal( *r0Solve, level, flag_ ) ); // (a), 2, left preconditioned residual
+
+      if ( isReset == false )
+      {
+         initRes_ = beta_;
+      }
 
       // init matrices H, Q
       H_ = MatrixXr::Zero( 0, 0 );
@@ -269,12 +354,12 @@ class GMRESSolver : public Solver< OperatorType >
       {
          FunctionType v0( "v0", storage_, minLevel_, maxLevel_ );
          copyBCs( x, v0 );
-         v0.assign( { real_c( 1.0 ) / beta_ }, { r0_ }, level, flag_ );
+         v0.assign( { real_c( 1.0 ) / beta_ }, { *r0Solve }, level, flag_ );
          vecV_.push_back( v0 );
       }
       else
       {
-         vecV_[0].assign( { real_c( 1.0 ) / beta_ }, { r0_ }, level, flag_ );
+         vecV_[0].assign( { real_c( 1.0 ) / beta_ }, { *r0Solve }, level, flag_ );
       }
    }
 
@@ -285,26 +370,30 @@ class GMRESSolver : public Solver< OperatorType >
    uint_t                                     restartLength_;
    uint_t                                     numberOfIterations_;
    real_t                                     arnoldiTOL_;
-   real_t                                     approxTOL_;
+   real_t                                     approxRelativeTOL_;
+   real_t                                     approxAbsoluteTOL_;
    real_t                                     doubleOrthoTOL_;
    hyteg::DoFType                             flag_;
    bool                                       printInfo_;
    std::shared_ptr< Solver< OperatorType > >  preconditioner_;
+   std::string                                name_;
 
-   real_t                      beta_;
-   std::vector< FunctionType > vecV_;
-   MatrixXr                    H_;
-   MatrixXr                    Q_;
-   VectorXr                    y_;
-   FunctionType                r0_;
-   FunctionType                rPrec_;
-   FunctionType                wPrec_;
-   FunctionType                orthoDiff_;
+   real_t                          beta_;
+   real_t                          initRes_;
+   std::vector< FunctionType >     vecV_;
+   MatrixXr                        H_;
+   MatrixXr                        Q_;
+   VectorXr                        y_;
+   std::shared_ptr< FunctionType > r0_;
+   std::shared_ptr< FunctionType > rPrec_;
+   std::shared_ptr< FunctionType > wPrec_;
+   std::shared_ptr< FunctionType > orthoDiff_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
    std::function< bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t, real_t ) >
         iterationHook_;
    bool generateSolutionForHook_;
+   bool lowMemoryMode_;
 
    void generateFinalApproximation( const FunctionType& x, uint_t level )
    {
@@ -329,8 +418,8 @@ class GMRESSolver : public Solver< OperatorType >
       inputMatrix.conservativeResize( originalRows + expandBy, originalCols + expandBy );
 
       // new values need to be initialised
-      inputMatrix.block( originalRows, 0, expandBy, originalCols ) = MatrixXr::Zero(expandBy, originalCols);
-      inputMatrix.block( 0, originalCols, originalRows, expandBy ) = MatrixXr::Zero(originalRows, expandBy);
+      inputMatrix.block( originalRows, 0, expandBy, originalCols )        = MatrixXr::Zero( expandBy, originalCols );
+      inputMatrix.block( 0, originalCols, originalRows, expandBy )        = MatrixXr::Zero( originalRows, expandBy );
       inputMatrix.block( originalRows, originalCols, expandBy, expandBy ) = MatrixXr::Identity( expandBy, expandBy );
 
       // // Alternative:
@@ -357,7 +446,7 @@ class GMRESSolver : public Solver< OperatorType >
       return answer;
    }
 
-   VectorXr hessenbergMinimizer( real_t beta, MatrixXr& H, MatrixXr& Q, int numUnfinishedColumns, real_t& approxERR )
+   VectorXr hessenbergMinimizer( real_t beta, MatrixXr& H, MatrixXr& Q, int numUnfinishedColumns, real_t& residual )
    {
       VectorXr approxVector;
 
@@ -392,7 +481,7 @@ class GMRESSolver : public Solver< OperatorType >
       MatrixXr equationLeftSide  = H.block( 0, 0, H.cols(), H.cols() );
       VectorXr targetVector      = Q * getUnitVector( H.rows(), 0, beta );
       VectorXr equationRightSide = targetVector.head( H.cols() );
-      approxERR                  = std::abs( targetVector( targetVector.rows() - 1 ) );
+      residual                   = std::abs( targetVector( targetVector.rows() - 1 ) );
 
       return triangSolver( equationLeftSide, equationRightSide );
    }

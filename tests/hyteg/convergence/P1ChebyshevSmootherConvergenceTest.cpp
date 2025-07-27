@@ -70,7 +70,7 @@ void runTest()
       smoother->setupCoefficients( order, spectralRadius );
 
       auto coarseGridSolver =
-          std::make_shared< CGSolver< P1LaplaceOperatorType > >( storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+          std::make_shared< CGSolver< P1LaplaceOperatorType > >( storage, minLevel, minLevel, max_coarse_iter, real_c(0), coarse_tolerance );
       auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
       auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 

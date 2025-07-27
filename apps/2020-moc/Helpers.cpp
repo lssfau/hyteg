@@ -270,7 +270,7 @@ void solve( MeshInfo&               meshInfo,
    if ( enableDiffusion )
    {
       solver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >(
-          storage, level, level, std::numeric_limits< uint_t >::max(), 1e-12 );
+          storage, level, level, std::numeric_limits< uint_t >::max(), real_c(0), 1e-12 );
    }
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(

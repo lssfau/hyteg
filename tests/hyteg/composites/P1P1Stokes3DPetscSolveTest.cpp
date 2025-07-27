@@ -155,7 +155,7 @@ void petscSolveTest( const uint_t&   solverType,
 
    PETScLUSolver< P1P1StokesOperator >                        solver_0( storage, level );
    PETScMinResSolver< P1P1StokesOperator >                    solver_1( storage, level );
-   PETScBlockPreconditionedStokesSolver< P1P1StokesOperator > solver_2( storage, level, 1e-12 );
+   PETScBlockPreconditionedStokesSolver< P1P1StokesOperator > solver_2( storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), 1e-12 );
 
    walberla::WcTimer timer;
    switch ( solverType )

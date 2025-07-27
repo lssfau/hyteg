@@ -119,12 +119,13 @@ real_t VectorLaplace( const std::string& name,
    switch ( solverType )
    {
    case 0: {
-      PETScCGSolver< EGSIPGLaplaceOperator > solver( storage, level, numerator, 1e-15, 1e-15 );
+      PETScCGSolver< EGSIPGLaplaceOperator > solver(
+          storage, level, std::numeric_limits< PetscInt >::max(), 1e-15, 1e-15, numerator );
       solver.solve( L, u, rhs, level );
       break;
    }
    case 1: {
-      CGSolver< EGSIPGLaplaceOperator > solver( storage, level, level, 10000, 1e-15 );
+      CGSolver< EGSIPGLaplaceOperator > solver( storage, level, level, 10000, real_c( 0 ), 1e-15 );
       solver.solve( L, u, rhs, level );
       break;
    }

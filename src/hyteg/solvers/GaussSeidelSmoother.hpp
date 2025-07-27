@@ -32,7 +32,7 @@ class GaussSeidelSmoother : public Solver< OperatorType >
 {
  public:
    GaussSeidelSmoother()
-   : flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   : flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    {}
 
    void solve( const OperatorType&                   A,

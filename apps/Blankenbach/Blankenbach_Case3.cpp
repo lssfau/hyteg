@@ -422,11 +422,11 @@ void runBenchmark( real_t      cflMax,
    MassOperatorPressure            MPressure( storage, level, level );
    MMOCTransport< ScalarFunction > transport( storage, level, level, TimeSteppingScheme::RK4 );
 
-   auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, 1e-14 );
+   auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, real_c(0), 1e-14 );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto stokesSolver =
-       std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 1e-08, 5000, 4, 1 );
+       std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 5000, real_c(1e-30), 1e-08, 4, 1 );
    stokesSolver->reassembleMatrix( false );
 #else
    auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-14, 5000 );

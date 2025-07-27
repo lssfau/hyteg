@@ -199,7 +199,7 @@ FE_t solve( const OpType                        opType,
    u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::Inner );
 
    // define solver
-   auto cg           = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_min, cg_iter, cg_tol );
+   auto cg           = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_min, cg_iter, real_c(0), cg_tol );
    auto restriction  = std::make_shared< R_t >();
    auto prolongation = std::make_shared< P_t >();
    auto smoother     = std::make_shared< hyteg::GaussSeidelSmoother< A_t > >();

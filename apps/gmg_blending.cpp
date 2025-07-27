@@ -214,9 +214,9 @@ int main(int argc, char* argv[])
   //  real_t npointsCoarse = npoints_helper.dotGlobal(npoints_helper, interpolationLevel);
 
   auto coarseLaplaceSolverPoly =
-      std::make_shared< hyteg::CGSolver< SolveOperatorPoly > >( storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+      std::make_shared< hyteg::CGSolver< SolveOperatorPoly > >( storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
   auto coarseLaplaceSolverNodal =
-      std::make_shared< hyteg::CGSolver< SolveOperatorNodal > >( storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+      std::make_shared< hyteg::CGSolver< SolveOperatorNodal > >( storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
 
   auto restrictionOperator           = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
   auto prolongationOperator          = std::make_shared< hyteg::P1toP1LinearProlongation<> >();

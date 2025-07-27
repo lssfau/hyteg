@@ -316,7 +316,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    else if ( coarseGridSettings.solverType == 1 )
    {
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
+          storage, minLevel, coarseGridSettings.maxIterations, real_c(1e-30), coarseGridSettings.absoluteResidualTolerance, 1 );
       petscSolverInternalTmp->setVerbose( true );
       coarseGridSolverInternal = petscSolverInternalTmp;
    }
@@ -336,7 +336,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          else
          {
             auto slvr = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-                storage, l, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
+                storage, l, coarseGridSettings.maxIterations, real_c(1e-30), coarseGridSettings.absoluteResidualTolerance, 1 );
             slvr->setVerbose( true );
             fmgLevelWiseSolver.push_back( slvr );
          }

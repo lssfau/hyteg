@@ -69,7 +69,7 @@ void dgPetscApplyTest( uint_t level, const MeshInfo& meshInfo, real_t eps )
 
    // interpolation of some function into the src vector
    tmp.evaluateLinearFunctional( srcFunction, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
+   PETScCGSolver< DGOperator > solverM( storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    solverM.solve( M, src, tmp, level );
 
    numerator.enumerate( level );

@@ -217,12 +217,12 @@ enum class MeshType
 };
 
 const std::map< std::string, MeshType > meshTypeStrings = {
-    {"square", MeshType::SQUARE},
-    {"cube", MeshType::CUBE},
-    {"symmetricCube", MeshType::SYMMETRIC_CUBE},
-    {"sphericalShell", MeshType::SPHERICAL_SHELL},
-    {"tDomain", MeshType::T_DOMAIN},
-    {"snake", MeshType::SNAKE},
+    { "square", MeshType::SQUARE },
+    { "cube", MeshType::CUBE },
+    { "symmetricCube", MeshType::SYMMETRIC_CUBE },
+    { "sphericalShell", MeshType::SPHERICAL_SHELL },
+    { "tDomain", MeshType::T_DOMAIN },
+    { "snake", MeshType::SNAKE },
 };
 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
@@ -240,11 +240,11 @@ void calculateErrorAndResidual( const uint_t&          level,
                                 long double&    LInfResidual,
                                 long double&    L2Residual )
 {
-   error.assign( {1.0, -1.0}, {uExact, u}, level, All );
+   error.assign( { 1.0, -1.0 }, { uExact, u }, level, All );
 
    tmp.interpolate( real_c( 0 ), level, All );
    A.apply( u, tmp, level, Inner );
-   residual.assign( {1.0, -1.0}, {f, tmp}, level, All );
+   residual.assign( { 1.0, -1.0 }, { f, tmp }, level, All );
 
    auto num = numberOfGlobalDoFs< typename Function::Tag >( *u.getStorage(), level );
 
@@ -271,14 +271,15 @@ void calculateErrorAndResidualStokes( const uint_t&                             
                                       const std::function< real_t( const Point3D& ) >& exactP,
                                       const bool&                                      projectPressure )
 {
-   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::VectorComponentType::Tag >( *u.uvw()[0].getStorage(), level );
+   auto numU =
+       numberOfGlobalDoFs< typename Function::VelocityFunction_T::VectorComponentType::Tag >( *u.uvw()[0].getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p().getStorage(), level );
 
    // residual (storing in error function to minimize mem overhead)
 
    error.interpolate( real_c( 0 ), level, All );
    A.apply( u, error, level, Inner | NeumannBoundary );
-   error.assign( {1.0, -1.0}, {f, error}, level, All );
+   error.assign( { 1.0, -1.0 }, { f, error }, level, All );
 
    real_t sumVelocityResidualDot = 0.0;
    sumVelocityResidualDot += error.uvw()[0].dotGlobal( error.uvw()[0], level, Inner | NeumannBoundary );
@@ -300,7 +301,7 @@ void calculateErrorAndResidualStokes( const uint_t&                             
 
    error.uvw().interpolate( { exactU, exactV, exactW }, level, All );
    error.p().interpolate( exactP, level, All );
-   error.assign( {1.0, -1.0}, {error, u}, level, All );
+   error.assign( { 1.0, -1.0 }, { error, u }, level, All );
 
    if ( projectPressure )
    {
@@ -349,7 +350,7 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto solver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, level );
 #else
-   auto solver = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
+   auto solver     = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
 #endif
    solver->solve( A, u, f, level );
 
@@ -391,16 +392,17 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.uvw()[2], f.uvw()[2], level, All );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-30, 1e-16 );
-   auto solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, level, 1e-16 );
+   // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, std::numeric_limits< PetscInt >::max(), 1e-30, 1e-16 );
+   auto solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+       storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), 1e-16 );
    // auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 #else
-   auto cgVelocity =
-       std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >( storage, level, level, 0, 1e-14 );
+   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
+       storage, level, level, 0, real_c( 0 ), 1e-14 );
    auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
        storage, level, level ); //, 1, cgVelocity );
    auto solver = std::make_shared< MinResSolver< StokesOperator > >(
-       storage, level, level, std::numeric_limits< uint_t >::max(), 1e-16, preconditioner );
+       storage, level, level, std::numeric_limits< uint_t >::max(), 1e-16, real_c( 1e-16 ), preconditioner );
 #endif
    solver->solve( A, u, f, level );
 
@@ -721,12 +723,12 @@ void DCStokesRHSSetup( const std::shared_ptr< PrimitiveStorage >&,
 
 template <>
 void DCStokesRHSSetup< P1P1StokesOperator, P1StokesFunction< real_t > >( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                       const uint_t&                              p1Level,
-                                                                       const P1P1StokesOperator&           p1StokesOperator,
-                                                                       const P1StokesFunction< real_t >& u,
-                                                                       const P1StokesFunction< real_t >& p1DefectCorrectionRHS,
-                                                                       const std::function< real_t( const Point3D& ) >& rhsU,
-                                                                       const std::function< real_t( const Point3D& ) >& rhsV )
+                                                                         const uint_t&                              p1Level,
+                                                                         const P1P1StokesOperator&         p1StokesOperator,
+                                                                         const P1StokesFunction< real_t >& u,
+                                                                         const P1StokesFunction< real_t >& p1DefectCorrectionRHS,
+                                                                         const std::function< real_t( const Point3D& ) >& rhsU,
+                                                                         const std::function< real_t( const Point3D& ) >& rhsV )
 {
    const uint_t p2Level = p1Level - 1;
 
@@ -771,7 +773,7 @@ void DCStokesRHSSetup< P1P1StokesOperator, P1StokesFunction< real_t > >( const s
 
    // defect correction
    // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
-   p1DefectCorrectionRHS.assign( {1.0, -1.0, 1.0}, {f_P2_on_P1_space, Au_P2_converted_to_P1, Au_P1}, p1Level, All );
+   p1DefectCorrectionRHS.assign( { 1.0, -1.0, 1.0 }, { f_P2_on_P1_space, Au_P2_converted_to_P1, Au_P1 }, p1Level, All );
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "-> time DC: RHS calculation:     " << std::fixed << std::setprecision( 2 ) << std::setw( 10 )
                                                                   << timer.last() << "s" )
@@ -791,9 +793,9 @@ template <>
 void DCStokesRunCycle< P1P1StokesOperator, P1StokesFunction< real_t > >(
     const std::shared_ptr< GeometricMultigridSolver< P1P1StokesOperator > >& solver,
     const P1P1StokesOperator&                                                p1StokesOperator,
-    const P1StokesFunction< real_t >&                                      u,
-    const P1StokesFunction< real_t >&                                      f_dc,
-    const uint_t&                                                          level )
+    const P1StokesFunction< real_t >&                                        u,
+    const P1StokesFunction< real_t >&                                        f_dc,
+    const uint_t&                                                            level )
 {
    solver->solve( p1StokesOperator, u, f_dc, level );
 }
@@ -895,7 +897,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    StokesFunction u( "u", storage, minLevel, maxLevel );
    StokesFunction f( "f", storage, minLevel, maxLevel );
 
-   StokesFunction error( "error", storage, minLevel, maxLevel );
+   auto error = std::make_shared< StokesFunction >( "error", storage, minLevel, maxLevel );
 
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
@@ -923,25 +925,26 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    for ( uint_t l = 1; l <= maxLevel; l++ )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Measuring time of " << numSpMVandGSIterations << " SpMV on level " << l << " ..." );
-      error.interpolate( 0.42, l );
-      storage->getTimingTree()->start( "SpMV level " + std::to_string(l) );
+      error->interpolate( 0.42, l );
+      storage->getTimingTree()->start( "SpMV level " + std::to_string( l ) );
       timer.reset();
       for ( uint_t i = 0; i < numSpMVandGSIterations; i++ )
       {
-         storage->getTimingTree()->start( "SpMV iteration " + std::to_string(i) );
-         A.apply( error, u, l, Inner | NeumannBoundary );
-         storage->getTimingTree()->stop( "SpMV iteration " + std::to_string(i) );
+         storage->getTimingTree()->start( "SpMV iteration " + std::to_string( i ) );
+         A.apply( *error, u, l, Inner | NeumannBoundary );
+         storage->getTimingTree()->stop( "SpMV iteration " + std::to_string( i ) );
       }
       timer.end();
-      storage->getTimingTree()->stop( "SpMV level " + std::to_string(l) );
+      storage->getTimingTree()->stop( "SpMV level " + std::to_string( l ) );
       u.interpolate( 0, l );
-      error.interpolate( 0, l );
+      error->interpolate( 0, l );
       WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
    }
 
    for ( uint_t l = 1; l <= maxLevel; l++ )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Measuring time of " << numSpMVandGSIterations << " Uzawa relaxations (with single fwd GS) on level " << l << " ..." );
+      WALBERLA_LOG_INFO_ON_ROOT( "Measuring time of " << numSpMVandGSIterations
+                                                      << " Uzawa relaxations (with single fwd GS) on level " << l << " ..." );
       u.interpolate( 0.42, l );
       f.interpolate( 0.42, l );
       {
@@ -952,22 +955,22 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
              std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
 
          auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >(
-             storage, uzawaVelocityPreconditioner, error, l, l, sorRelax, Inner | NeumannBoundary, 1, false, 1 );
+             storage, uzawaVelocityPreconditioner, *error, l, l, sorRelax, Inner | NeumannBoundary, 1, false, 1 );
 
-         storage->getTimingTree()->start( "Uzawa level " + std::to_string(l) );
+         storage->getTimingTree()->start( "Uzawa level " + std::to_string( l ) );
          timer.reset();
          for ( uint_t i = 0; i < numSpMVandGSIterations; i++ )
          {
-            storage->getTimingTree()->start( "Uzawa iteration " + std::to_string(i) );
+            storage->getTimingTree()->start( "Uzawa iteration " + std::to_string( i ) );
             smoother->solve( A, u, f, l );
-            storage->getTimingTree()->stop( "Uzawa iteration " + std::to_string(i) );
+            storage->getTimingTree()->stop( "Uzawa iteration " + std::to_string( i ) );
          }
          timer.end();
-         storage->getTimingTree()->stop( "Uzawa level " + std::to_string(l) );
+         storage->getTimingTree()->stop( "Uzawa level " + std::to_string( l ) );
       }
       u.interpolate( 0, l );
       f.interpolate( 0, l );
-      error.interpolate( 0, l );
+      error->interpolate( 0, l );
       WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
    }
    storage->getTimingTree()->stop( "SpMV and Uzawa measurements" );
@@ -990,7 +993,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    VTKOutput vtkOutput( "vtk", "MultigridStudies", storage );
    vtkOutput.add( u );
    vtkOutput.add( f );
-   vtkOutput.add( error );
+   vtkOutput.add( *error );
 
    ///////////////////////////
    // Output exact solution //
@@ -998,11 +1001,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    if ( outputVTK )
    {
-      error.uvw().interpolate( { exactU, exactV, exactW }, maxLevel );
-      error.p().interpolate( exactP, maxLevel );
+      error->uvw().interpolate( { exactU, exactV, exactW }, maxLevel );
+      error->p().interpolate( exactP, maxLevel );
 
       VTKOutput exactSolutionVTKOutput( "vtk", "MultigridStudiesExact", storage );
-      exactSolutionVTKOutput.add( error );
+      exactSolutionVTKOutput.add( *error );
       exactSolutionVTKOutput.write( maxLevel );
    }
 
@@ -1017,10 +1020,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       u.uvw().interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
 
       // using error as tmp function here
-      error.uvw().interpolate( { rhsU, rhsV, rhsW }, level, All );
-      M.apply( error.uvw()[0], f.uvw()[0], level, All );
-      M.apply( error.uvw()[1], f.uvw()[1], level, All );
-      M.apply( error.uvw()[2], f.uvw()[2], level, All );
+      error->uvw().interpolate( { rhsU, rhsV, rhsW }, level, All );
+      M.apply( error->uvw()[0], f.uvw()[0], level, All );
+      M.apply( error->uvw()[1], f.uvw()[1], level, All );
+      M.apply( error->uvw()[2], f.uvw()[2], level, All );
    }
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
@@ -1063,22 +1066,28 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    {
       const uint_t velocityDoFsThisLevel =
           storage->hasGlobalCells() ?
-              3 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level ) :
-              2 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level );
+              3 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                    level ) :
+              2 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                    level );
       const uint_t dofsThisLevel =
           numberOfGlobalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + velocityDoFsThisLevel;
 
       const uint_t minVelocityDoFsThisLevel =
           storage->hasGlobalCells() ?
-              3 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level ) :
-              2 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level );
+              3 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                      level ) :
+              2 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                      level );
       const uint_t minDoFsThisLevel =
           minNumberOfLocalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + minVelocityDoFsThisLevel;
 
       const uint_t maxVelocityDoFsThisLevel =
           storage->hasGlobalCells() ?
-              3 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level ) :
-              2 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage, level );
+              3 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                      level ) :
+              2 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::VectorComponentType::Tag >( *storage,
+                                                                                                                      level );
       const uint_t maxDoFsThisLevel =
           maxNumberOfLocalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + maxVelocityDoFsThisLevel;
 
@@ -1129,7 +1138,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
-                                                                        error,
+                                                                        *error,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         sorRelax,
@@ -1270,8 +1279,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
           coarseGridSolverStorage,
           coarseGridMaxLevel,
-          coarseResidualTolerance,
           coarseGridMaxIterations,
+          real_c( 1e-30 ),
+          coarseResidualTolerance,
           coarseGridSolverVelocityPreconditionerType );
       petscSolverInternalTmp->setVerbose( true );
       coarseGridSolverInternal = petscSolverInternalTmp;
@@ -1296,6 +1306,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
                                                                                      coarseGridMaxLevel,
                                                                                      coarseGridMaxIterations,
                                                                                      coarseResidualTolerance,
+                                                                                     real_c( 1e-16 ),
                                                                                      preconditioner );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" )
@@ -1333,7 +1344,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
                                        A,
                                        u,
                                        f,
-                                       error,
+                                       *error,
                                        _l2ErrorU,
                                        _l2ErrorP,
                                        _l2ResidualU,
@@ -1381,7 +1392,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    timer.reset();
    calculateErrorAndResidualStokes(
-       maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
+       maxLevel, A, u, f, *error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
    timer.end();
    timeError = timer.last();
 
@@ -1437,7 +1448,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
                                        A,
                                        u,
                                        f,
-                                       error,
+                                       *error,
                                        l2ErrorU,
                                        l2ErrorP,
                                        l2ResidualU,
@@ -1550,7 +1561,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
                                        A,
                                        u,
                                        f,
-                                       error,
+                                       *error,
                                        l2ErrorU,
                                        l2ErrorP,
                                        l2ResidualU,
@@ -1723,7 +1734,7 @@ void setup( int argc, char** argv )
    const bool        projectPressureAfterRestriction = mainConf.getParameter< bool >( "projectPressureAfterRestriction" );
    const uint_t      minLevel                        = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t      maxLevel                        = ( discretization == "P1" ? mainConf.getParameter< uint_t >( "maxLevel" ) :
-                                                      mainConf.getParameter< uint_t >( "maxLevel" ) - 1 );
+                                                                                  mainConf.getParameter< uint_t >( "maxLevel" ) - 1 );
    const bool        calculateDiscretizationError    = mainConf.getParameter< bool >( "calculateDiscretizationError" );
    const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
    const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
@@ -1994,7 +2005,7 @@ void setup( int argc, char** argv )
          {
             for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
             {
-               cubes.insert( {h, j, k} );
+               cubes.insert( { h, j, k } );
             }
          }
       }
@@ -2012,8 +2023,8 @@ void setup( int argc, char** argv )
             {
                for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
                {
-                  cubes.insert( {juncBaseX + i, -( w + 1 ), k} );
-                  cubes.insert( {juncBaseX + i, w + int_c( tDomainDiameter ), k} );
+                  cubes.insert( { juncBaseX + i, -( w + 1 ), k } );
+                  cubes.insert( { juncBaseX + i, w + int_c( tDomainDiameter ), k } );
                }
             }
          }
@@ -2114,7 +2125,7 @@ void setup( int argc, char** argv )
       {
          for ( int col = 0; col < int_c( snakeRowLength ); col++ )
          {
-            cubes.insert( {col, 2 * row, 0} );
+            cubes.insert( { col, 2 * row, 0 } );
          }
       }
 
@@ -2122,11 +2133,11 @@ void setup( int argc, char** argv )
       {
          if ( row % 2 == 0 )
          {
-            cubes.insert( {int_c( snakeRowLength ) - 1, 2 * row + 1, 0} );
+            cubes.insert( { int_c( snakeRowLength ) - 1, 2 * row + 1, 0 } );
          }
          else
          {
-            cubes.insert( {0, 2 * row + 1, 0} );
+            cubes.insert( { 0, 2 * row + 1, 0 } );
          }
       }
 
@@ -2191,8 +2202,7 @@ void setup( int argc, char** argv )
       rhsV = shellRhsV;
       rhsW = shellRhsW;
 
-      auto meshInfo =
-          MeshInfo::meshCuboid( leftBottom3D, Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+      auto meshInfo = MeshInfo::meshCuboid( leftBottom3D, Point3D( 1, 1, 1 ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );

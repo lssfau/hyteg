@@ -136,7 +136,7 @@ void ElementwiseDivKGradCGTest( const std::string& meshFile, const uint_t level,
    u.interpolate( boundary, level, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, level );
 
-   auto solver = CGSolver< ElementwiseOperator >( storage, level, level, 1000, 1e-12 );
+   auto solver = CGSolver< ElementwiseOperator >( storage, level, level, 1000, real_c(0), 1e-12 );
    solver.solve( L, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, u_exact }, level );

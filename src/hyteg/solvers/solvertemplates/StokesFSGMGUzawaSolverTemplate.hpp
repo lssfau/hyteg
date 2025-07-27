@@ -111,8 +111,9 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    uint_t powerIterations = numPowerIteration;
 
-   auto smoother = std::make_shared< ChebyshevSmootherWithFreeSlipProjection< typename StokesOperatorType::VelocityOperator_T > >(
-       storage, minLevel, maxLevel, projectionOperator );
+   auto smoother =
+       std::make_shared< ChebyshevSmoother< typename StokesOperatorType::VelocityOperator_T, P2ProjectNormalOperator > >(
+           storage, minLevel, maxLevel, false, projectionOperator, FreeslipBoundary );
 
    std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
@@ -136,12 +137,12 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
       PETScManager petscManager;
       auto         coarseGridrelativeTolerance = coarseGridTol;
       auto         PETScCoarseGridSolver       = std::make_shared< PETScMinResSolver< StokesOperatorType > >(
-          storage, minLevel, coarseGridrelativeTolerance, coarseGridTol, coarseGridIter );
+          storage, minLevel, coarseGridIter, coarseGridrelativeTolerance, coarseGridTol );
       PETScCoarseGridSolver->reassembleMatrix( true );
       _coarseGridSolver = PETScCoarseGridSolver;
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "PETSc module not found or enabled. Switching to HyTeG MinRes." );
-      // Fall back to HyTeG MinRes solver 
+      // Fall back to HyTeG MinRes solver
 #endif
    }
    if ( !coarseGridSolverPETSc || !_coarseGridSolver )

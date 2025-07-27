@@ -556,9 +556,9 @@ void tokamak( TokamakDomain         tokamakDomain,
          auto       actualCoarseGridSolver =
              std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
                                                                      minLevel,
+                                                                     maxIterationsCoarseGrid,
                                                                      relativeResidualToleranceCoarseGrid,
-                                                                     absoluteResidualToleranceCoarseGrid,
-                                                                     maxIterationsCoarseGrid );
+                                                                     absoluteResidualToleranceCoarseGrid );
          coarseGridSolver = actualCoarseGridSolver;
       }
       else

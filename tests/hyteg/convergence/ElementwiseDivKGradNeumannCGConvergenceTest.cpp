@@ -96,7 +96,7 @@ void ElementwiseDivKGradCGTest( const uint_t dim, const uint_t level, const real
    b.assign( { 1, -ones.dotGlobal( b, level ) / N }, { b, ones }, level );
 
    // solve
-   auto solver = CGSolver< ElementwiseOperator >( storage, level, level, 1000, 1e-12 );
+   auto solver = CGSolver< ElementwiseOperator >( storage, level, level, 1000, real_c(0), 1e-12 );
    solver.solve( A, u, b, level );
    // orthogonally project u onto range(A)
    u.assign( { 1, -ones.dotGlobal( u, level ) / N }, { u, ones }, level );

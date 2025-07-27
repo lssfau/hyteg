@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,6 +31,13 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
    typedef P1toP1LinearProlongation<> VelocityProlongation_T;
    typedef P1toP1LinearProlongation<> PressureProlongation_T;
 
+   P1P1StokesToP1P1StokesProlongation()
+   : P1P1StokesToP1P1StokesProlongation( false )
+   {}
+   P1P1StokesToP1P1StokesProlongation( bool projectMeanAfterProlongation )
+   : projectMeanAfterProlongation_( projectMeanAfterProlongation )
+   {}
+
    void prolongate( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
       for ( uint_t k = 0; k < function.uvw().getDimension(); k++ )
@@ -38,6 +45,11 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
          prolongationOperator_.prolongate( function.uvw()[k], sourceLevel, flag );
       }
       prolongationOperator_.prolongate( function.p(), sourceLevel, flag );
+
+      if ( projectMeanAfterProlongation_ )
+      {
+         vertexdof::projectMean( function.p(), sourceLevel + 1 );
+      }
    }
 
    void prolongateAndAdd( const P1StokesFunction< real_t >& function,
@@ -49,9 +61,16 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
          prolongationOperator_.prolongateAndAdd( function.uvw()[k], sourceLevel, flag );
       }
       prolongationOperator_.prolongateAndAdd( function.p(), sourceLevel, flag );
+
+      if ( projectMeanAfterProlongation_ )
+      {
+         vertexdof::projectMean( function.p(), sourceLevel + 1 );
+      }
    }
 
  private:
    P1toP1LinearProlongation<> prolongationOperator_;
+
+   bool projectMeanAfterProlongation_;
 };
 } // namespace hyteg

@@ -174,7 +174,7 @@ int main( int argc, char* argv[] )
    auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1P1StokesOperator > >(
        storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37 );
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1P1StokesOperator > >(
-       storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
+       storage, minLevel, minLevel, solverMaxiter, 1e-16, real_c( 1e-16 ), pressurePreconditioner );
    auto restrictionOperator  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();
    auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
 

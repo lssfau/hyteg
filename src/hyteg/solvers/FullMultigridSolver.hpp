@@ -71,7 +71,7 @@ class FullMultigridSolver : public Solver< OperatorType >
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , cyclesPerLevel_( cyclesPerLevel )
-   , flag_( Inner | NeumannBoundary )
+   , flag_( Inner | NeumannBoundary | FreeslipBoundary )
    , postCycleCallback_( postCycleCallback )
    , postProlongateCallback_( postProlongateCallback )
    , timingTree_( storage->getTimingTree() )

@@ -125,7 +125,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    if ( testPETScSolver )
    {
 #ifdef HYTEG_BUILD_WITH_PETSC
-      solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFS > >( storage, maxLevel, 1e-15, 2000, 4 );
+      solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFS > >( storage, maxLevel, 2000, real_c(1e-30), 1e-15, 4 );
 #else
       WALBERLA_ABORT( "HyTeG was not built with PETSc." )
 #endif

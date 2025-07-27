@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
+#include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/types/PointND.hpp"
@@ -40,35 +41,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
  public:
    using FunctionType = typename OperatorType::srcType;
    using ValueType    = typename FunctionTrait< FunctionType >::ValueType;
-
-   GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
-                             std::shared_ptr< Solver< OperatorType > >               smoother,
-                             std::shared_ptr< Solver< OperatorType > >               coarseSolver,
-                             std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
-                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
-                             uint_t                                                  minLevel,
-                             uint_t                                                  maxLevel,
-                             uint_t                                                  preSmoothSteps                = 3,
-                             uint_t                                                  postSmoothSteps               = 3,
-                             uint_t                                                  smoothIncrementOnCoarserGrids = 0,
-                             CycleType                                               cycleType         = CycleType::VCYCLE,
-                             bool                                                    constantRHS       = false,
-                             real_t                                                  constantRHSScalar = real_c( 0 ) )
-   : GeometricMultigridSolver( storage,
-                               FunctionType( "gmg_tmp", storage, minLevel, maxLevel ),
-                               smoother,
-                               coarseSolver,
-                               restrictionOperator,
-                               prolongationOperator,
-                               minLevel,
-                               maxLevel,
-                               preSmoothSteps,
-                               postSmoothSteps,
-                               smoothIncrementOnCoarserGrids,
-                               cycleType,
-                               constantRHS,
-                               constantRHSScalar )
-   {}
 
    /// \brief A generic geometric multigrid solver.
    ///
@@ -87,7 +59,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    /// \param constantRHSScalar             The constant RHS, if constantRHS is true.
    ///
    GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
-                             const FunctionType&                                     tmpFunction,
+                             const std::shared_ptr< FunctionType >&                  tmpFunction,
                              std::shared_ptr< Solver< OperatorType > >               smoother,
                              std::shared_ptr< Solver< OperatorType > >               coarseSolver,
                              std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
@@ -98,24 +70,95 @@ class GeometricMultigridSolver : public Solver< OperatorType >
                              uint_t                                                  postSmoothSteps               = 3,
                              uint_t                                                  smoothIncrementOnCoarserGrids = 0,
                              CycleType                                               cycleType         = CycleType::VCYCLE,
+                             bool                                                    lowMemoryMode     = false,
                              bool                                                    constantRHS       = false,
                              real_t                                                  constantRHSScalar = real_c( 0 ) )
-   : minLevel_( minLevel )
+   : storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   , preSmoothSteps_( preSmoothSteps )
+   , postSmoothSteps_( postSmoothSteps )   
+   , smoothIncrement_( smoothIncrementOnCoarserGrids )   
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )   
+   , cycleType_( cycleType )   
+   , smoother_( smoother )
+   , coarseSolver_( coarseSolver )
+   , restrictionOperator_( restrictionOperator )
+   , prolongationOperator_( prolongationOperator )
+   , timingTree_( storage->getTimingTree() )
+   , constantRHS_( constantRHS )
+   , constantRHSScalar_( constantRHSScalar )
+   , lowMemoryMode_( lowMemoryMode )
+   {
+      if ( !lowMemoryMode_ )
+      {
+         tmp_ = tmpFunction;
+      }
+   }
+
+
+   //  private:
+   // std::shared_ptr< hyteg::PrimitiveStorage > storage_;
+   // uint_t                                     minLevel_;
+   // uint_t                                     maxLevel_;
+   // uint_t                                     preSmoothSteps_;
+   // uint_t                                     postSmoothSteps_;
+   // uint_t                                     smoothIncrement_;
+   // uint_t                                     invokedLevel_;
+
+   // hyteg::DoFType flag_;
+   // CycleType      cycleType_;
+
+   // std::shared_ptr< hyteg::Solver< OperatorType > >               smoother_;
+   // std::shared_ptr< hyteg::Solver< OperatorType > >               coarseSolver_;
+   // std::shared_ptr< hyteg::RestrictionOperator< FunctionType > >  restrictionOperator_;
+   // std::shared_ptr< hyteg::ProlongationOperator< FunctionType > > prolongationOperator_;
+
+   // std::shared_ptr< FunctionType > tmp_;
+
+   // std::shared_ptr< walberla::WcTimingTree > timingTree_;
+
+   // bool   constantRHS_;
+   // real_t constantRHSScalar_;
+
+   // bool lowMemoryMode_;
+
+   GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
+                             std::shared_ptr< Solver< OperatorType > >               smoother,
+                             std::shared_ptr< Solver< OperatorType > >               coarseSolver,
+                             std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
+                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
+                             uint_t                                                  minLevel,
+                             uint_t                                                  maxLevel,
+                             uint_t                                                  preSmoothSteps                = 3,
+                             uint_t                                                  postSmoothSteps               = 3,
+                             uint_t                                                  smoothIncrementOnCoarserGrids = 0,
+                             CycleType                                               cycleType         = CycleType::VCYCLE,
+                             bool                                                    lowMemoryMode     = false,
+                             bool                                                    constantRHS       = false,
+                             real_t                                                  constantRHSScalar = real_c( 0 ) )
+   : storage_( storage )
+   , minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
    , smoothIncrement_( smoothIncrementOnCoarserGrids )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , cycleType_( cycleType )
    , smoother_( smoother )
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )
    , prolongationOperator_( prolongationOperator )
-   , tmp_( tmpFunction )
    , timingTree_( storage->getTimingTree() )
    , constantRHS_( constantRHS )
    , constantRHSScalar_( constantRHSScalar )
-   {}
+   , lowMemoryMode_( lowMemoryMode )
+   {
+      if ( !lowMemoryMode_ )
+      {
+         tmp_ = std::make_shared< FunctionType >( "gmg_tmp", storage, minLevel, maxLevel );
+      }
+   }
 
    ~GeometricMultigridSolver() = default;
 
@@ -136,14 +179,36 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    ///
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      std::shared_ptr< FunctionType > tmpSolve;
+
+      if ( !lowMemoryMode_ )
+      {
+         tmpSolve = tmp_;
+      }
+      else
+      {
+         tmpSolve = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+
+         // // Since the temporary function only serves as an apply target or RHS
+         // // it is unnecessary to zero the tmpSolve first.
+         // for ( uint_t l = minLevel_; l <= maxLevel_; l++ )
+         // {
+         //    tmpSolve->setToZero( l );
+         // }
+      }
+
       timingTree_->start( "Geometric Multigrid Solver" );
-      copyBCs( x, tmp_ );
+      copyBCs( x, *tmpSolve );
       invokedLevel_ = level;
-      solveRecursively( A, x, b, level );
+      solveRecursively( A, x, b, level, tmpSolve );
       timingTree_->stop( "Geometric Multigrid Solver" );
    }
 
-   void solveRecursively( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) const
+   void solveRecursively( const OperatorType&                    A,
+                          const FunctionType&                    x,
+                          const FunctionType&                    b,
+                          const uint_t                           level,
+                          const std::shared_ptr< FunctionType >& tmpSolve ) const
    {
       if ( level == minLevel_ )
       {
@@ -159,7 +224,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
          if ( constantRHS_ && level == invokedLevel_ )
          {
-            tmp_.interpolate( constantRHSScalar_, level, flag_ );
+            tmpSolve->interpolate( constantRHSScalar_, level, flag_ );
          }
 
          // pre-smooth
@@ -169,7 +234,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             timingTree_->start( "Smoother" );
             if ( constantRHS_ && level == invokedLevel_ )
             {
-               smoother_->solve( A, x, tmp_, level );
+               smoother_->solve( A, x, *tmpSolve, level );
             }
             else
             {
@@ -181,34 +246,34 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
          if ( constantRHS_ && level == invokedLevel_ )
          {
-            A.apply( x, tmp_, level, flag_ );
-            tmp_.assign( { walberla::numeric_cast< ValueType >( -1.0 ) }, { tmp_ }, level, flag_ );
-            tmp_.add( constantRHSScalar_, level, flag_ );
+            A.apply( x, *tmpSolve, level, flag_ );
+            tmpSolve->assign( { walberla::numeric_cast< ValueType >( -1.0 ) }, { *tmpSolve }, level, flag_ );
+            tmpSolve->add( constantRHSScalar_, level, flag_ );
          }
          else
          {
-            A.apply( x, tmp_, level, flag_ );
-            tmp_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) },
-                         { b, tmp_ },
-                         level,
-                         flag_ );
+            A.apply( x, *tmpSolve, level, flag_ );
+            tmpSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) },
+                              { b, *tmpSolve },
+                              level,
+                              flag_ );
          }
 
          // restrict
          timingTree_->start( "Restriction" );
-         restrictionOperator_->restrict( tmp_, level, flag_ );
+         restrictionOperator_->restrict( *tmpSolve, level, flag_ );
          timingTree_->stop( "Restriction" );
 
-         b.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { tmp_ }, level - 1, flag_ );
+         b.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { *tmpSolve }, level - 1, flag_ );
 
          x.interpolate( 0, level - 1 );
 
          timingTree_->stop( "Level " + std::to_string( level ) );
-         solveRecursively( A, x, b, level - 1 );
+         solveRecursively( A, x, b, level - 1, tmpSolve );
 
          if ( cycleType_ == CycleType::WCYCLE )
          {
-            solveRecursively( A, x, b, level - 1 );
+            solveRecursively( A, x, b, level - 1, tmpSolve );
          }
          timingTree_->start( "Level " + std::to_string( level ) );
 
@@ -219,7 +284,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
          if ( constantRHS_ && level == invokedLevel_ )
          {
-            tmp_.interpolate( constantRHSScalar_, level, flag_ );
+            tmpSolve->interpolate( constantRHSScalar_, level, flag_ );
          }
 
          // post-smooth
@@ -229,7 +294,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             timingTree_->start( "Smoother" );
             if ( constantRHS_ && level == invokedLevel_ )
             {
-               smoother_->solve( A, x, tmp_, level );
+               smoother_->solve( A, x, *tmpSolve, level );
             }
             else
             {
@@ -243,12 +308,13 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    }
 
  private:
-   uint_t minLevel_;
-   uint_t maxLevel_;
-   uint_t preSmoothSteps_;
-   uint_t postSmoothSteps_;
-   uint_t smoothIncrement_;
-   uint_t invokedLevel_;
+   std::shared_ptr< hyteg::PrimitiveStorage > storage_;
+   uint_t                                     minLevel_;
+   uint_t                                     maxLevel_;
+   uint_t                                     preSmoothSteps_;
+   uint_t                                     postSmoothSteps_;
+   uint_t                                     smoothIncrement_;
+   uint_t                                     invokedLevel_;
 
    hyteg::DoFType flag_;
    CycleType      cycleType_;
@@ -258,12 +324,14 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    std::shared_ptr< hyteg::RestrictionOperator< FunctionType > >  restrictionOperator_;
    std::shared_ptr< hyteg::ProlongationOperator< FunctionType > > prolongationOperator_;
 
-   FunctionType tmp_;
+   std::shared_ptr< FunctionType > tmp_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
    bool   constantRHS_;
    real_t constantRHSScalar_;
+
+   bool lowMemoryMode_;
 };
 
 } // namespace hyteg

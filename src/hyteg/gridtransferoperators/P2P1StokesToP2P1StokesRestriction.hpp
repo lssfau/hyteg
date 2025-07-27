@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,15 +22,18 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
+#include "hyteg/operators/NoOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >
 {
  public:
    typedef P2toP2QuadraticRestriction VelocityRestriction_T;
-   typedef P1toP1LinearRestriction<>    PressureRestriction_T;
+   typedef P1toP1LinearRestriction<>  PressureRestriction_T;
 
    P2P1StokesToP2P1StokesRestriction()
    : projectMeanAfterRestriction_( false )
@@ -62,6 +65,44 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    bool projectMeanAfterRestriction_;
 };
 
+template < typename ProjectionOperatorType            = hyteg::NoOperator,
+           bool preProjectVelocity                    = false,
+           bool postProjectVelocity                   = true,
+           bool allowPreProjectionToChangeVelocitySrc = true,
+           bool preProjectPressure                    = false,
+           bool postProjectPressure                   = true,
+           bool allowPreProjectionToChangePressureSrc = true >
+class P2P1StokesToP2P1StokesRestrictionWithProjection : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   P2P1StokesToP2P1StokesRestrictionWithProjection( const std::shared_ptr< hyteg::PrimitiveStorage >& storage,
+                                                    uint_t                                            minLevel,
+                                                    uint_t                                            maxLevel,
+                                                    std::shared_ptr< ProjectionOperatorType >         projection = nullptr,
+                                                    DoFType projectionFlag = FreeslipBoundary,
+                                                    bool    lowMemoryMode  = false )
+   : quadraticRestrictionOperator_( storage, minLevel, maxLevel, projection, projectionFlag, lowMemoryMode )
+   , linearRestrictionOperator_( storage, minLevel, maxLevel, lowMemoryMode )
+   {}
+
+   void restrict( const P2P1TaylorHoodFunction< real_t >& function,
+                  const uint_t&                           sourceLevel,
+                  const DoFType&                          flag ) const override
+   {
+      quadraticRestrictionOperator_.restrict( function.uvw(), sourceLevel, flag );
+      linearRestrictionOperator_.restrict( function.p(), sourceLevel, flag );
+   }
+
+ private:
+   P2toP2QuadraticVectorRestrictionWithProjection< ProjectionOperatorType,
+                                                   preProjectVelocity,
+                                                   postProjectVelocity,
+                                                   allowPreProjectionToChangeVelocitySrc >
+       quadraticRestrictionOperator_;
+   P1toP1LinearRestrictionWithProjection< real_t, preProjectPressure, postProjectPressure, allowPreProjectionToChangePressureSrc >
+       linearRestrictionOperator_;
+};
+
 /***************************************************************************
 NOTE: This restricts the FE function and calls the project function on it 
       so that the normal components are set to zero on the FreeslipBoundary
@@ -70,7 +111,7 @@ class P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection : public P2P1Stoke
 {
  public:
    P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection( std::shared_ptr< P2ProjectNormalOperator > projection )
-   : P2P1StokesToP2P1StokesRestriction(false)
+   : P2P1StokesToP2P1StokesRestriction( false )
    , projection_( projection )
    {}
 
@@ -78,9 +119,9 @@ class P2P1StokesToP2P1StokesRestrictionWithFreeSlipProjection : public P2P1Stoke
                   const uint_t&                           sourceLevel,
                   const DoFType&                          flag ) const override
    {
-      P2P1StokesToP2P1StokesRestriction::restrict(function, sourceLevel, flag);
-      projection_->project( function, sourceLevel-1, FreeslipBoundary );
-      vertexdof::projectMean( function.p(), sourceLevel-1 );
+      P2P1StokesToP2P1StokesRestriction::restrict( function, sourceLevel, flag );
+      projection_->project( function, sourceLevel - 1, FreeslipBoundary );
+      vertexdof::projectMean( function.p(), sourceLevel - 1 );
    }
 
  private:

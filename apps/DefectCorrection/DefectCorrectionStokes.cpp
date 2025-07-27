@@ -177,7 +177,7 @@ static void defectCorrection( int argc, char** argv )
    M_P1.apply( tmp.uvw()[1], f.uvw()[1], maxLevel, All );
 
    // solver
-   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1P1StokesOperator > >( storage, maxLevel, 1e-14 );
+   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1P1StokesOperator > >( storage, maxLevel, std::numeric_limits< PetscInt >::max(), 1e-14 );
    auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1P1StokesOperator > >( storage, minLevel );
    auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1P1StokesOperator::VelocityOperator_T > >();
    auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1P1StokesOperator > >( storage, gaussSeidel );
@@ -190,7 +190,7 @@ static void defectCorrection( int argc, char** argv )
    // auto fmgSolver             = std::make_shared< FullMultigridSolver< P1P1StokesOperator > >( storage, gmgSolver, quadraticProlongation, minLevel, maxLevel );
 
    auto minresPrec   = std::make_shared< StokesPressureBlockPreconditioner< P1P1StokesOperator, P1LumpedInvMassOperator > >( storage, minLevel, maxLevel );
-   auto minresSolver = std::make_shared< MinResSolver< P1P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, minresPrec );
+   auto minresSolver = std::make_shared< MinResSolver< P1P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, real_c( 1e-16 ), minresPrec );
 
 
   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );

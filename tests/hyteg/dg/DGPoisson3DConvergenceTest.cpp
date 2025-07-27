@@ -79,11 +79,12 @@ real_t test( uint_t                                    level,
 
    // Interpolate solution
    tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
+   PETScCGSolver< DGOperator > solverM(
+       storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    solverM.solve( M, sol, tmp, level );
 
    // Solve system.
-   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   PETScCGSolver< DGOperator > solverA( storage, level, 10000, 1e-12, 1e-12, numerator );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );

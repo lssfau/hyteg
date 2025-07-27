@@ -206,7 +206,7 @@ void test( const uint_t                        maxLevel,
 
    N1E1VectorFunction< real_t > u( "u", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   N1E1VectorFunction< real_t > tmp1( "tmp1", storage, minLevel, maxLevel );
+   auto                         tmp1 = std::make_shared< N1E1VectorFunction< real_t > >( "tmp1", storage, minLevel, maxLevel );
    N1E1VectorFunction< real_t > tmp2( "tmp2", storage, minLevel, maxLevel );
 
    if ( writeVTK )
@@ -247,11 +247,11 @@ void test( const uint_t                        maxLevel,
    p1Smoother->setupCoefficients( 2, simData.p1ChebyshevLowerBoundFactor * p1Rho, simData.p1ChebyshevUpperBoundFactor * p1Rho );
 
    real_t n1e1Rho      = simData.n1e1SpectralRadius;
-   auto   n1e1Smoother = std::make_shared< N1E1Smoother >( tmp2, tmp1 );
+   auto   n1e1Smoother = std::make_shared< N1E1Smoother >( tmp2, *tmp1 );
    if ( n1e1Rho <= real_t( 0.0 ) )
    {
       tmp2.interpolate( analyticalSol, spectralRadiusEstLevel );
-      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, simData.spectralRadiusEstIts, storage, tmp2, tmp1 );
+      n1e1Rho = chebyshev::estimateRadius( A, spectralRadiusEstLevel, simData.spectralRadiusEstIts, storage, tmp2, *tmp1 );
       // TODO We must do this, otherwise the convergence breaks down. But why?
       tmp2.interpolate( 0.0, spectralRadiusEstLevel );
       WALBERLA_LOG_DEVEL_VAR_ON_ROOT( n1e1Rho );
@@ -260,15 +260,15 @@ void test( const uint_t                        maxLevel,
        2, simData.n1e1ChebyshevLowerBoundFactor * n1e1Rho, simData.n1e1ChebyshevUpperBoundFactor * n1e1Rho );
 
    auto hybridSmoother = std::make_shared< HybridSmoother< N1E1Operator, P1LaplaceOperator > >(
-       storage, tmp1, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
+       storage, *tmp1, p1LaplaceOperator, n1e1Smoother, p1Smoother, minLevel, maxLevel );
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
    // WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1Operator > >( storage, minLevel, 1e-3, 1e-12, 10000 );
+   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1Operator > >( storage, minLevel, 10000, 1e-3, 1e-12 );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
-   auto coarseGridSolver = std::make_shared< CGSolver< N1E1Operator > >( storage, minLevel, minLevel, 10000, 1e-12 );
+   auto coarseGridSolver = std::make_shared< CGSolver< N1E1Operator > >( storage, minLevel, minLevel, 10000, 1e-3, 1e-12 );
 #endif
    auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();
@@ -296,13 +296,13 @@ void test( const uint_t                        maxLevel,
 
       // Determine initial error
       err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-      M.apply( err, tmp1, maxLevel, DoFType::All );
-      real_t discrL2 = std::sqrt( err.dotGlobal( tmp1, maxLevel ) );
+      M.apply( err, *tmp1, maxLevel, DoFType::All );
+      real_t discrL2 = std::sqrt( err.dotGlobal( *tmp1, maxLevel ) );
 
       // Determine initial residual
-      A.apply( u, tmp1, maxLevel, DoFType::Inner );
-      tmp1.assign( { 1.0, -1.0 }, { f, tmp1 }, maxLevel, DoFType::Inner );
-      const real_t initRes = std::sqrt( tmp1.dotGlobal( tmp1, maxLevel, DoFType::Inner ) );
+      A.apply( u, *tmp1, maxLevel, DoFType::Inner );
+      tmp1->assign( { 1.0, -1.0 }, { f, *tmp1 }, maxLevel, DoFType::Inner );
+      const real_t initRes = std::sqrt( tmp1->dotGlobal( *tmp1, maxLevel, DoFType::Inner ) );
 
       // Solve system.
       real_t residual = initRes;
@@ -325,13 +325,13 @@ void test( const uint_t                        maxLevel,
          timer->start( "Error" );
          // determine error
          err.assign( { 1.0, -1.0 }, { u, sol }, maxLevel );
-         M.apply( err, tmp1, maxLevel, DoFType::All );
-         discrL2 = std::sqrt( err.dotGlobal( tmp1, maxLevel ) );
+         M.apply( err, *tmp1, maxLevel, DoFType::All );
+         discrL2 = std::sqrt( err.dotGlobal( *tmp1, maxLevel ) );
 
          // determine residual
-         A.apply( u, tmp1, maxLevel, DoFType::Inner );
-         tmp1.assign( { 1.0, -1.0 }, { f, tmp1 }, maxLevel, DoFType::Inner );
-         residual = std::sqrt( tmp1.dotGlobal( tmp1, maxLevel, DoFType::Inner ) );
+         A.apply( u, *tmp1, maxLevel, DoFType::Inner );
+         tmp1->assign( { 1.0, -1.0 }, { f, *tmp1 }, maxLevel, DoFType::Inner );
+         residual = std::sqrt( tmp1->dotGlobal( *tmp1, maxLevel, DoFType::Inner ) );
          timer->stop( "Error" );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %14d | %15.5e | %13.5e ", i + 1, discrL2, residual / initRes ) )
@@ -359,8 +359,8 @@ void test( const uint_t                        maxLevel,
          // NOTE f is not needed anymore on currentLevel
          f.interpolate( analyticalSol, currentLevel );
          f.assign( { 1.0, -1.0 }, { u, f }, currentLevel );
-         M.apply( f, tmp1, currentLevel, DoFType::All );
-         real_t discrL2 = std::sqrt( f.dotGlobal( tmp1, currentLevel ) );
+         M.apply( f, *tmp1, currentLevel, DoFType::All );
+         real_t discrL2 = std::sqrt( f.dotGlobal( *tmp1, currentLevel ) );
 
          const uint_t nDoFs        = numberOfGlobalDoFs( u, currentLevel );
          auto         reducedTimer = getReduced( simData.timingPool["solver - level " + std::to_string( currentLevel )],

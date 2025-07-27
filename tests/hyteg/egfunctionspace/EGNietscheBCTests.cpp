@@ -95,7 +95,7 @@ real_t testPoisson2D( uint_t                                    level,
    sol.interpolate( { solFunc, solFunc }, level, All );
 
    // Solve system.
-   PETScCGSolver< eg::EGLaplaceOperatorNitscheBC > solverA( storage, level, 1e-6, 1e-6, 10000 );
+   PETScCGSolver< eg::EGLaplaceOperatorNitscheBC > solverA( storage, level, 10000, 1e-6, 1e-6 );
    solverA.disableApplicationBC( true );
    solverA.solve( A, u, f, level );
 
@@ -403,8 +403,8 @@ real_t testStokes2D( uint_t                                           level,
    sol.uvw().interpolate( { solFuncX, solFuncY }, level, All );
 
    // Solve system.
-   // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
-   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
+   // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, 10000, 1e-6, 1e-6, num );
+   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, 10000, 1e-14, 1e-14, num );
    solverA.disableApplicationBC( true );
    solverA.setFromOptions( true );
    solverA.solve( A, u, f, level );
@@ -512,8 +512,8 @@ real_t testStokes3D( uint_t                                           level,
    sol.p().interpolate( pFunc, level, All );
 
    // Solve system.
-   // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-6, 1e-6, 10000 );
-   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, num, 1e-14, 1e-14, 10000 );
+   // PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, 10000, 1e-6, 1e-6, num );
+   PETScMinResSolver< EGP0StokesOperatorNitscheBC > solverA( storage, level, 10000, 1e-14, 1e-14, num );
    solverA.disableApplicationBC( true );
    solverA.setFromOptions( true );
    solverA.solve( A, u, f, level );

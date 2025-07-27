@@ -224,7 +224,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
   u.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
 
     // define solver
-  auto coarseGridSolver = std::make_shared<hyteg::CGSolver<typename FE::divKgrad>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
+  auto coarseGridSolver = std::make_shared<hyteg::CGSolver<typename FE::divKgrad>>(storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance);
   auto restrictionOperator = std::make_shared<typename FE::Restriction>();
   auto prolongationOperator = std::make_shared<typename FE::Prolongation>();
   auto smoother = std::make_shared<hyteg::GaussSeidelSmoother<typename FE::divKgrad>>();

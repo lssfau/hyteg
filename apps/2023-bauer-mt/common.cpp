@@ -132,7 +132,7 @@ Results solve( const Params& params, const bool useGmg )
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
       auto coarseGridSolver = std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >(
-          storage, params.minLevel, params.minLevel, 10000, 1e-12 );
+          storage, params.minLevel, params.minLevel, 10000, real_c(0), 1e-12 );
 #endif
       auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
       auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();

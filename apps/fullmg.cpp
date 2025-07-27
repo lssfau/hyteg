@@ -126,7 +126,7 @@ int main( int argc, char* argv[] )
    }
 
    auto solver =
-       hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel, coarse_maxiter, coarse_tolerance );
+       hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel, coarse_maxiter, real_c(0), coarse_tolerance );
 
    std::function< void( size_t ) > cscycle;
 

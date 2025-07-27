@@ -41,6 +41,7 @@ target_sources( hyteg
     P2toP2QuadraticProlongation.hpp
     P2toP2QuadraticRestriction.cpp
     P2toP2QuadraticRestriction.hpp
+    P2toP2InjectionRestriction.hpp
     ProlongationOperator.hpp
     RestrictionOperator.hpp
 )

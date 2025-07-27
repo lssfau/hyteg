@@ -28,20 +28,20 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 
-#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::uint_c;
 using walberla::uint_t;
 
 using namespace hyteg;
 
-uint_t   level;
+uint_t   levelGlobal;
 uint_t   numProc;
 MeshInfo meshInfo    = MeshInfo::emptyMeshInfo();
 bool     printTiming = false;
 bool     writeVTK    = false;
-bool printCGInfo = false;
+bool     printCGInfo = false;
 
 template < typename LaplaceOperator, typename MassOperator >
 int runBenchmark( const double tolerance, const uint_t maxIter )
@@ -53,15 +53,15 @@ int runBenchmark( const double tolerance, const uint_t maxIter )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
    //auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-   typename LaplaceOperator::srcType r( "r", storage, level, level );
-   typename LaplaceOperator::srcType f( "f", storage, level, level );
-   typename LaplaceOperator::srcType u( "u", storage, level, level );
-   typename LaplaceOperator::srcType u_exact( "u_exact", storage, level, level );
-   typename LaplaceOperator::srcType err( "err", storage, level, level );
-   typename LaplaceOperator::srcType npoints_helper( "npoints_helper", storage, level, level );
+   typename LaplaceOperator::srcType r( "r", storage, levelGlobal, levelGlobal );
+   typename LaplaceOperator::srcType f( "f", storage, levelGlobal, levelGlobal );
+   typename LaplaceOperator::srcType u( "u", storage, levelGlobal, levelGlobal );
+   typename LaplaceOperator::srcType u_exact( "u_exact", storage, levelGlobal, levelGlobal );
+   typename LaplaceOperator::srcType err( "err", storage, levelGlobal, levelGlobal );
+   typename LaplaceOperator::srcType npoints_helper( "npoints_helper", storage, levelGlobal, levelGlobal );
 
-   MassOperator    M( storage, level, level );
-   LaplaceOperator L( storage, level, level );
+   MassOperator    M( storage, levelGlobal, levelGlobal );
+   LaplaceOperator L( storage, levelGlobal, levelGlobal );
 
    std::function< double( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
@@ -70,12 +70,12 @@ int runBenchmark( const double tolerance, const uint_t maxIter )
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
-   u.interpolate( exact, level, hyteg::DirichletBoundary );
-   u_exact.interpolate( exact, level );
-   npoints_helper.interpolate( rhs, level );
-   M.apply( npoints_helper, f, level, hyteg::All );
+   u.interpolate( exact, levelGlobal, hyteg::DirichletBoundary );
+   u_exact.interpolate( exact, levelGlobal );
+   npoints_helper.interpolate( rhs, levelGlobal );
+   M.apply( npoints_helper, f, levelGlobal, hyteg::All );
 
-   auto solver = hyteg::CGSolver< LaplaceOperator >( storage, level, level, maxIter, tolerance );
+   auto solver = hyteg::CGSolver< LaplaceOperator >( storage, levelGlobal, levelGlobal, maxIter, real_c( 0 ), tolerance );
 
    solver.setPrintInfo( printCGInfo );
 
@@ -84,13 +84,13 @@ int runBenchmark( const double tolerance, const uint_t maxIter )
    printFunctionAllocationInfo();
 
    LIKWID_MARKER_START( "solve" );
-   solver.solve( L, u, f, level );
+   solver.solve( L, u, f, levelGlobal );
    LIKWID_MARKER_STOP( "solve" );
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, level );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, levelGlobal );
 
-   const uint_t totalDoFs    = numberOfGlobalDoFs< typename LaplaceOperator::Operator::srcType::Tag >( *storage, level );
-   const double discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / real_c( totalDoFs ) );
+   const uint_t totalDoFs    = numberOfGlobalDoFs< typename LaplaceOperator::Operator::srcType::Tag >( *storage, levelGlobal );
+   const double discr_l2_err = std::sqrt( err.dotGlobal( err, levelGlobal ) / real_c( totalDoFs ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
@@ -114,7 +114,7 @@ int runBenchmark( const double tolerance, const uint_t maxIter )
       vtkOutput.add( err );
       vtkOutput.add( f );
       vtkOutput.add( r );
-      vtkOutput.write( level );
+      vtkOutput.write( levelGlobal );
    }
 
    return 0;
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    //Main Config
-   level                            = mainConf.getParameter< uint_t >( "level" );
+   levelGlobal                      = mainConf.getParameter< uint_t >( "level" );
    const std::string discretization = mainConf.getParameter< std::string >( "discretization" );
    const std::string dimension      = mainConf.getParameter< std::string >( "dimension" );
    writeVTK                         = mainConf.getParameter< bool >( "writeVTK" );

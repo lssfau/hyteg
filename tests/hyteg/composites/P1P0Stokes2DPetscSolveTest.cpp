@@ -108,7 +108,7 @@ void petscSolveTest( const uint_t& level, const MeshInfo& meshInfo, const real_t
    WALBERLA_LOG_INFO( "DoFs pressure: " << pressuredofs );
    WALBERLA_LOG_INFO( "DoFs: " << dofs );
 
-   PETScMinResSolver< P1P0StokesOperator > solver( storage, level, 1e-8, 1e-8, 5000 );
+   PETScMinResSolver< P1P0StokesOperator > solver( storage, level, 5000, 1e-8, 1e-8 );
 
    walberla::WcTimer timer;
    solver.solve( A, x, b, level );

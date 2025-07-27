@@ -46,11 +46,12 @@ namespace hyteg {
 class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   P1P1UzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >&           storage,
+   P1P1UzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >&             storage,
                                              const std::shared_ptr< Solver< P1P1StokesOperator > >& velocitySmoother,
-                                             uint_t                                               minLevel,
-                                             uint_t                                               maxLevel,
-                                             const uint_t                                         numGSIterationsVelocity = 2 )
+                                             uint_t                                                 minLevel,
+                                             uint_t                                                 maxLevel,
+                                             const uint_t                                           numGSIterationsVelocity = 2,
+                                             BoundaryCondition                                      bc = BoundaryCondition() )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
    , C( storage, minLevel, maxLevel )
@@ -58,8 +59,8 @@ class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    , hasGlobalCells_( storage->hasGlobalCells() )
    , velocitySmoother_( velocitySmoother )
    , numGSIterationsVelocity_( numGSIterationsVelocity )
-   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel )
-   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel )
+   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel, bc )
+   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel, bc )
    , tmp_schur_( "tmp_schur", storage, minLevel, maxLevel )
    {}
 
@@ -86,10 +87,10 @@ class P1P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    }
 
    P1P1StokesOperator A;
-   P1PSPGOperator   C;
+   P1PSPGOperator     C;
 
-   P1LumpedInvMassOperator                       mass_inv_diag_;
-   bool                                          hasGlobalCells_;
+   P1LumpedInvMassOperator                         mass_inv_diag_;
+   bool                                            hasGlobalCells_;
    std::shared_ptr< Solver< P1P1StokesOperator > > velocitySmoother_;
 
    uint_t numGSIterationsVelocity_;

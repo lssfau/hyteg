@@ -51,9 +51,9 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 /// In this benchmark we employ the Boussinesq-approximation and solve the constant-coefficient
 /// Stokes eqn. coupled with velocity driven temperature transport.
@@ -99,7 +99,7 @@ std::shared_ptr< Solver< P2P1ElementwiseBlendingStokesOperator > >
    auto smoother = std::make_shared< UzawaSmoother< P2P1ElementwiseBlendingStokesOperator > >(
        storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaOmega );
    auto coarseGridSolver = std::make_shared< MinResSolver< P2P1ElementwiseBlendingStokesOperator > >(
-       storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
+       storage, minLevel, minLevel, 1000, 1e-12, real_c( 1e-16 ), pressurePreconditioner );
    auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >();
    auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
 

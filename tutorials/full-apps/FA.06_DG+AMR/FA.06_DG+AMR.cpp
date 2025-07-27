@@ -282,14 +282,15 @@ void DGAMR( uint_t localMacroRefinements, uint_t globalMicroRefinements, std::st
    /// [interpolation]
    tmp.evaluateLinearFunctional( solution, globalMicroRefinements );
 
-   PETScCGSolver< DGOperator > solverM( storage, globalMicroRefinements, numerator );
+   PETScCGSolver< DGOperator > solverM(
+       storage, globalMicroRefinements, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
 
    solverM.solve( M, sol, tmp, globalMicroRefinements );
    /// [interpolation]
 
    // Solve system.
    /// [solve]
-   PETScCGSolver< DGOperator > solverA( storage, globalMicroRefinements, numerator, 1e-12, 1e-12, 10000 );
+   PETScCGSolver< DGOperator > solverA( storage, globalMicroRefinements, 10000, 1e-12, 1e-12, numerator );
    solverA.solve( A, u, f, globalMicroRefinements );
    /// [solve]
 

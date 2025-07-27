@@ -202,7 +202,7 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 #ifdef HYTEG_BUILD_WITH_PETSC
 
    solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-       storage, maxLevel, solverTargetResidual, solverMaxIterations, 1, 1 );
+       storage, maxLevel, solverMaxIterations, real_c(1e-30), solverTargetResidual, 1, 1 );
 
 #else
 

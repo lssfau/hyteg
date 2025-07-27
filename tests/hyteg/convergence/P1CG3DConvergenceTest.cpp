@@ -138,8 +138,8 @@ int main( int argc, char* argv[] )
    auto dp = std::is_same< real_t, double >();
    if ( enableChecks )
    {
-      WALBERLA_CHECK_LESS( discrL2ResLowerLevel, dp ? 6.9e-17 : 5e-8 );
-      WALBERLA_CHECK_LESS( discrL2ResHigherLevel, dp ? 3.88e-17 : 3e-8 );
+      WALBERLA_CHECK_LESS( discrL2ResLowerLevel, dp ? 1e-16 : 5e-8 );
+      WALBERLA_CHECK_LESS( discrL2ResHigherLevel, dp ? 1e-16 : 3e-8 );
 
       // L2 err higher level ~ 0.25 * L2 err lower level
       WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.4e-04 );

@@ -146,6 +146,7 @@ struct SolverTrait< SolverRegister::CG, Operator_t, SetupType >
           minLevel,
           maxLevel,
           config.cgIterations,
+          real_c(0),
           //                                           numeric_cast<ValueType>( std::max( residualFactor_ * std::numeric_limits<ValueType>::min(),
           //                                                                                std::numeric_limits<walberla::float64>::epsilon() ) )
           numeric_cast< ValueType >( residualFactor_ * std::numeric_limits< ValueType >::min() ) );

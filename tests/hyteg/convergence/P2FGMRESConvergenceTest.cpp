@@ -70,8 +70,17 @@ int main( int argc, char* argv[] )
    u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
 
-   auto solver =
-       hyteg::FGMRESSolver< hyteg::P2ConstantLaplaceOperator >( storage, minLevel, maxLevel, 1000, 1000, 1e-16, 1e-16, 0 );
+   auto solver = hyteg::FGMRESSolver< hyteg::P2ConstantLaplaceOperator >(
+       storage,
+       minLevel,
+       maxLevel,
+       1000,
+       real_c( 0 ),
+       1e-16,
+       std::make_shared< hyteg::IdentityPreconditioner< hyteg::P2ConstantLaplaceOperator > >(),
+       1000,
+       1e-16,
+       0 );
    //solver.setPrintInfo( true );
 
    solver.solve( L, u, f, maxLevel );
