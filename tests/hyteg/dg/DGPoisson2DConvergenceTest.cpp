@@ -77,11 +77,11 @@ real_t testDG1( uint_t                                    level,
 
    // Interpolate solution
    tmp.evaluateLinearFunctional( solFunc, level );
-   PETScCGSolver< DG1Operator< DG1MassFormAffine > > solverM( storage, level, numerator );
+   PETScCGSolver< DG1Operator< DG1MassFormAffine > > solverM( storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    solverM.solve( M, sol, tmp, level );
 
    // Solve system.
-   //PETScCGSolver< DG1Operator< DG1DiffusionFormAffine > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   //PETScCGSolver< DG1Operator< DG1DiffusionFormAffine > > solverA( storage, level, 10000, 1e-12, 1e-12, numerator );
    CGSolver< DG1Operator< DG1DiffusionFormAffine > > solverA( storage, level, level, 10000 );
    solverA.solve( A, u, f, level );
 

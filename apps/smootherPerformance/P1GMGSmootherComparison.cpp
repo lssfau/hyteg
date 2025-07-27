@@ -65,9 +65,9 @@ class P1JacobiSmoother : public Solver< P1ConstantLaplaceOperator >
    void solve( const P1ConstantLaplaceOperator&                   A,
                const typename P1ConstantLaplaceOperator::srcType& x,
                const typename P1ConstantLaplaceOperator::dstType& b,
-               const walberla::uint_t                                level ) override
+               const walberla::uint_t                             level ) override
    {
-      tmp_.assign( {1.0}, {x}, level, hyteg::All );
+      tmp_.assign( { 1.0 }, { x }, level, hyteg::All );
       A.smooth_jac( x, b, tmp_, weight_, level, flag_ );
    }
 
@@ -93,9 +93,9 @@ class P1RichardsonSmoother : public Solver< P1ConstantLaplaceOperator >
    void solve( const P1ConstantLaplaceOperator&                   A,
                const typename P1ConstantLaplaceOperator::srcType& x,
                const typename P1ConstantLaplaceOperator::dstType& b,
-               const walberla::uint_t                                level ) override
+               const walberla::uint_t                             level ) override
    {
-      tmp_.assign( {1.0}, {x}, level, hyteg::All );
+      tmp_.assign( { 1.0 }, { x }, level, hyteg::All );
 
       // update halos
       x.communicate< Face, Edge >( level );
@@ -106,11 +106,11 @@ class P1RichardsonSmoother : public Solver< P1ConstantLaplaceOperator >
 
       // dst = b - A x
       // (assigning to dst from dst should work here, because the operation is completely local)
-      x.assign( {1., -1.}, {b, x}, level, flag_ );
+      x.assign( { 1., -1. }, { b, x }, level, flag_ );
 
       // x = x + weight (b - A x)
       // (assigning to x from dst should work here, because the operation is completely local)
-      x.assign( {1., weight_}, {tmp_, x}, level, flag_ );
+      x.assign( { 1., weight_ }, { tmp_, x }, level, flag_ );
    }
 
  private:
@@ -120,18 +120,19 @@ class P1RichardsonSmoother : public Solver< P1ConstantLaplaceOperator >
 };
 
 std::shared_ptr< Solver< P1ConstantLaplaceOperator > > setupSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                         const uint_t&                              minLevel,
-                                                                         const uint_t&                              maxLevel,
-                                                                         const std::string&                         smootherType,
-                                                                         const uint_t&                              order,
-                                                                         P1ConstantLaplaceOperator& laplaceOperator,
-                                                                         P1Function< real_t >          function,
-                                                                         P1Function< real_t >          tmpFunction )
+                                                                      const uint_t&                              minLevel,
+                                                                      const uint_t&                              maxLevel,
+                                                                      const std::string&                         smootherType,
+                                                                      const uint_t&                              order,
+                                                                      P1ConstantLaplaceOperator&                 laplaceOperator,
+                                                                      P1Function< real_t >                       function,
+                                                                      P1Function< real_t >                       tmpFunction )
 {
    if ( smootherType == "richardson" )
    {
-      auto       smoother       = std::make_shared< P1RichardsonSmoother >( storage, minLevel, maxLevel );
-      const auto spectralRadius = estimateSpectralRadiusWithPowerIteration( laplaceOperator, function, tmpFunction, 40, storage, minLevel );
+      auto       smoother = std::make_shared< P1RichardsonSmoother >( storage, minLevel, maxLevel );
+      const auto spectralRadius =
+          estimateSpectralRadiusWithPowerIteration( laplaceOperator, function, tmpFunction, 40, storage, minLevel );
       smoother->setWeight( 1 / spectralRadius );
       return smoother;
    }
@@ -191,7 +192,7 @@ int main( int argc, char** argv )
 
    const std::string smootherType = parameters.getParameter< std::string >( "smootherType" );
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 4, 4 );
+   MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 4, 4 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -205,7 +206,7 @@ int main( int argc, char** argv )
 
    const auto calculateResiduum = [&]() -> real_t {
       laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, Inner );
-      residual.assign( {1.0, -1.0}, {rightHandSide, laplaceTimesFunction}, maxLevel, Inner );
+      residual.assign( { 1.0, -1.0 }, { rightHandSide, laplaceTimesFunction }, maxLevel, Inner );
       return std::sqrt( residual.dotGlobal( residual, maxLevel, Inner ) );
    };
 
@@ -234,19 +235,19 @@ int main( int argc, char** argv )
    auto smoother = setupSmoother( storage, minLevel, maxLevel, smootherType, order, laplaceOperator, eigenvector, tmp );
 
    auto coarseGridSolver = std::make_shared< CGSolver< P1ConstantLaplaceOperator > >(
-       storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+       storage, minLevel, minLevel, max_coarse_iter, real_c( 0 ), coarse_tolerance );
    auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction<> >();
    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation<> >();
 
    auto multiGridSolver = GeometricMultigridSolver< P1ConstantLaplaceOperator >( storage,
-                                                                                    smoother,
-                                                                                    coarseGridSolver,
-                                                                                    restrictionOperator,
-                                                                                    prolongationOperator,
-                                                                                    minLevel,
-                                                                                    maxLevel,
-                                                                                    smoothingSteps,
-                                                                                    smoothingSteps );
+                                                                                 smoother,
+                                                                                 coarseGridSolver,
+                                                                                 restrictionOperator,
+                                                                                 prolongationOperator,
+                                                                                 minLevel,
+                                                                                 maxLevel,
+                                                                                 smoothingSteps,
+                                                                                 smoothingSteps );
 
    std::vector< real_t > resNormList;
 

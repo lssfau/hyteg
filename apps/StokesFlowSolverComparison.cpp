@@ -289,12 +289,12 @@ void run( const MeshInfo&                                       meshInfo,
    auto preconditioner = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, numMGCycles, velocityGMGSolver );
    typedef hyteg::MinResSolver< StokesOperator_T > PreconditionedMinResSolver_T;
    auto                                            preconditionedMinResSolver =
-       PreconditionedMinResSolver_T( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditioner );
+       PreconditionedMinResSolver_T( storage, minLevel, maxLevel, maxIterations, targetResidual, real_c( 1e-16 ), preconditioner );
 
    // MinRes (only pressure preconditioner)
    auto preconditionerOnlyPressure = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 0 );
    auto minResSolver               = std::make_shared< PreconditionedMinResSolver_T >(
-       storage, minLevel, maxLevel, maxIterations, targetResidual, preconditionerOnlyPressure );
+       storage, minLevel, maxLevel, maxIterations, targetResidual, real_c( 1e-16 ), preconditionerOnlyPressure );
 
    // PETSc
    typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;

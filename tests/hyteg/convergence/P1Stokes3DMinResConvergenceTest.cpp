@@ -179,7 +179,7 @@ int main( int argc, char* argv[] )
    //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
    auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2, gmgSolver );
 
-   auto solver = hyteg::MinResSolver< hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
+   auto solver = hyteg::MinResSolver< hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, real_c( 1e-16 ), prec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
 

@@ -117,7 +117,7 @@ void runPlume( walberla::Environment& env )
    auto solver = solvertemplates::stokesMinResSolver< P2P1TaylorHoodStokesOperator >( storage, maxLevel, 1e-6, 10000, false );
    //auto solver = solvertemplates::stokesGMGUzawaSolver< P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
    //   auto solver =
-   //       std::make_shared< PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, maxLevel, 1e-6, 1e-16, 10000 );
+   //       std::make_shared< PETScMinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, maxLevel, 10000, 1e-6, 1e-16 );
 
    MMOCTransport< P2Function< real_t > > transportOperator( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 

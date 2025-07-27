@@ -115,11 +115,11 @@ real_t test( const uint_t maxLevel, const n1e1::System& system, const bool write
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
    WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel );
+   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, 10000, real_c(0), 1e-12 );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
    auto coarseGridSolver =
-       std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, minLevel, 10000, 1e-12 );
+       std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, minLevel, 10000, real_c(0), 1e-12 );
 #endif
    auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();

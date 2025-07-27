@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,6 +23,7 @@
 #include "core/timing/TimingTree.h"
 
 #include "hyteg/functions/FunctionTools.hpp"
+#include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -44,24 +45,49 @@ class CGSolver : public Solver< OperatorType >
        const std::shared_ptr< PrimitiveStorage >& storage,
        uint_t                                     minLevel,
        uint_t                                     maxLevel,
-       uint_t                                     maxIter        = std::numeric_limits< uint_t >::max(),
-       typename FunctionType::valueType           tolerance      = 1e-16,
-       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
-   : p_( "p", storage, minLevel, maxLevel )
-   , z_( "z", storage, minLevel, maxLevel )
-   , ap_( "ap", storage, minLevel, maxLevel )
-   , r_( "r", storage, minLevel, maxLevel )
+       uint_t                                     maxIter           = std::numeric_limits< uint_t >::max(),
+       typename FunctionType::valueType           relativeTolerance = 1e-16,
+       typename FunctionType::valueType           absuluteTolerance = 1e-16,
+       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >(),
+       bool                                       lowMemoryMode  = false,
+       std::function<
+           bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t ) > iterationHook =
+           []( uint_t it, const OperatorType& A, const FunctionType& x, const FunctionType& b, uint_t level, real_t initRes ) {
+              WALBERLA_UNUSED( it );
+              WALBERLA_UNUSED( A );
+              WALBERLA_UNUSED( x );
+              WALBERLA_UNUSED( b );
+              WALBERLA_UNUSED( level );
+              WALBERLA_UNUSED( initRes );
+              return false;
+           } )
+   : storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
    , preconditioner_( preconditioner )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo_( false )
-   , tolerance_( tolerance )
+   , absuluteTolerance_( absuluteTolerance )
+   , relativeTolerance_( relativeTolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
    , maxIter_( maxIter )
+   , iterations_( maxIter_ )
+   , name_( "CG" )
    , timingTree_( storage->getTimingTree() )
+   , iterationHook_( iterationHook )
+   , lowMemoryMode_( lowMemoryMode )
    {
       if ( !std::is_same< FunctionType, typename OperatorType::dstType >::value )
       {
          WALBERLA_ABORT( "CGSolver does not work for Operator with different src and dst FunctionTypes" );
+      }
+
+      if ( !lowMemoryMode_ )
+      {
+         p_  = std::make_shared< FunctionType >( "p", storage, minLevel, maxLevel );
+         z_  = std::make_shared< FunctionType >( "z", storage, minLevel, maxLevel );
+         ap_ = std::make_shared< FunctionType >( "ap", storage, minLevel, maxLevel );
+         r_  = std::make_shared< FunctionType >( "r", storage, minLevel, maxLevel );
       }
    }
 
@@ -71,65 +97,105 @@ class CGSolver : public Solver< OperatorType >
          return;
 
       timingTree_->start( "CG Solver" );
-      copyBCs( x, p_ );
-      copyBCs( x, z_ );
-      copyBCs( x, ap_ );
-      copyBCs( x, r_ );
+
+      std::shared_ptr< FunctionType > pSolve;
+      std::shared_ptr< FunctionType > zSolve;
+      std::shared_ptr< FunctionType > apSolve;
+      std::shared_ptr< FunctionType > rSolve;
+
+      if ( !lowMemoryMode_ )
+      {
+         pSolve  = p_;
+         zSolve  = z_;
+         apSolve = ap_;
+         rSolve  = r_;
+      }
+      else
+      {
+         pSolve  = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         zSolve  = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         apSolve = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         rSolve  = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+      }
+
+      copyBCs( x, *pSolve );
+      copyBCs( x, *zSolve );
+      copyBCs( x, *apSolve );
+      copyBCs( x, *rSolve );
+
+      pSolve->setToZero( level );
+      zSolve->setToZero( level );
+      apSolve->setToZero( level );
+      rSolve->setToZero( level );
 
       typename FunctionType::valueType prsold = 0;
-      init( A, x, b, level, prsold );
-      typename FunctionType::valueType res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );
+      init( A, x, b, level, prsold, pSolve, zSolve, rSolve );
+      typename FunctionType::valueType res_start = std::sqrt( rSolve->dotGlobal( *rSolve, level, flag_ ) );
 
-      if ( res_start < tolerance_ )
+      if ( res_start < absuluteTolerance_ )
       {
          if ( printInfo_ )
          {
-            WALBERLA_LOG_INFO_ON_ROOT( "[CG] converged" );
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] converged" );
          }
          timingTree_->stop( "CG Solver" );
          return;
       }
-      typename FunctionType::valueType pAp, alpha, rsnew, sqrsnew, prsnew, beta;
+      typename FunctionType::valueType pAp, alpha, rsnew, sqrsnew, prsnew, beta, relRes;
 
       for ( size_t i = 0; i < maxIter_; ++i )
       {
-         A.apply( p_, ap_, level, flag_, Replace );
-         pAp = p_.dotGlobal( ap_, level, flag_ );
+         A.apply( *pSolve, *apSolve, level, flag_, Replace );
+         pAp = pSolve->dotGlobal( *apSolve, level, flag_ );
 
          alpha = prsold / pAp;
-         x.add( { alpha }, { p_ }, level, flag_ );
-         r_.add( { -alpha }, { ap_ }, level, flag_ );
-         rsnew   = r_.dotGlobal( r_, level, flag_ );
+         x.add( { alpha }, { *pSolve }, level, flag_ );
+         rSolve->add( { -alpha }, { *apSolve }, level, flag_ );
+         rsnew   = rSolve->dotGlobal( *rSolve, level, flag_ );
          sqrsnew = std::sqrt( rsnew );
+         relRes  = sqrsnew / res_start;
 
-         if ( printInfo_ )
-         {
-            WALBERLA_LOG_INFO_ON_ROOT( "[CG] iter: " << i << ", residual: " << sqrsnew );
-         }
-
-         if ( sqrsnew < tolerance_ )
+         if ( iterationHook_( i, A, x, b, level, res_start ) )
          {
             if ( printInfo_ )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( "[CG] converged after " << i << " iterations" );
+               WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] iteration hook stopped the solver after " << std::defaultfloat << i
+                                              << " iterations" );
+            }
+            iterations_ = i;
+            break;
+         }
+
+         if ( printInfo_ )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] iter: " << i << ", residual: " << sqrsnew
+                                           << " ; relative residual: " << relRes );
+         }
+
+         if ( relRes < relativeTolerance_ || sqrsnew < absuluteTolerance_ )
+         {
+            iterations_ = i;
+            if ( printInfo_ )
+            {
+               WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] converged after " << i << " iterations" );
             }
             break;
          }
 
-         z_.interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
-         preconditioner_->solve( A, z_, r_, level );
-         prsnew = r_.dotGlobal( z_, level, flag_ );
+         zSolve->interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
+         preconditioner_->solve( A, *zSolve, *rSolve, level );
+         prsnew = rSolve->dotGlobal( *zSolve, level, flag_ );
          beta   = prsnew / prsold;
 
-         p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { z_, p_ }, level, flag_ );
+         pSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { *zSolve, *pSolve }, level, flag_ );
          prsold = prsnew;
 
          if ( i > 0 && i % restartFrequency_ == 0 )
          {
-            init( A, x, b, level, prsold );
+            init( A, x, b, level, prsold, pSolve, zSolve, rSolve );
             if ( printInfo_ )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( "[CG] restarted" );
+               WALBERLA_LOG_INFO_ON_ROOT( "[" << name_ << "] restarted" );
             }
          }
       }
@@ -179,6 +245,27 @@ class CGSolver : public Solver< OperatorType >
                                    std::vector< typename FunctionType::valueType >& mainDiag,
                                    std::vector< typename FunctionType::valueType >& subDiag )
    {
+      std::shared_ptr< FunctionType > pSolve;
+      std::shared_ptr< FunctionType > apSolve;
+      std::shared_ptr< FunctionType > rSolve;
+
+      if ( !lowMemoryMode_ )
+      {
+         pSolve  = p_;
+         apSolve = ap_;
+         rSolve  = r_;
+      }
+      else
+      {
+         pSolve  = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         apSolve = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         rSolve  = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+
+         pSolve->setToZero( level );
+         apSolve->setToZero( level );
+         rSolve->setToZero( level );
+      }
+
       typename FunctionType::valueType prsold, pAp, prsnew, alpha, alpha_old, beta;
 
       // ----------------
@@ -192,11 +279,13 @@ class CGSolver : public Solver< OperatorType >
       subDiag.reserve( numSteps - 1 );
 
       // init CG
-      A.apply( x, p_, level, flag_, Replace );
-      r_.assign(
-          { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) }, { b, p_ }, level, flag_ );
-      p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { r_ }, level, flag_ );
-      prsold = r_.dotGlobal( r_, level, flag_ );
+      A.apply( x, *pSolve, level, flag_, Replace );
+      rSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) },
+                      { b, *pSolve },
+                      level,
+                      flag_ );
+      pSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { *rSolve }, level, flag_ );
+      prsold = rSolve->dotGlobal( *rSolve, level, flag_ );
 
       // required for diagonal entries, set values
       // such that (1,1) entry is computed corretly
@@ -208,65 +297,90 @@ class CGSolver : public Solver< OperatorType >
       // ---------------
       for ( uint_t i = 1; i < numSteps; ++i )
       {
-         A.apply( p_, ap_, level, flag_, Replace );
-         pAp = p_.dotGlobal( ap_, level, flag_ );
+         A.apply( *pSolve, *apSolve, level, flag_, Replace );
+         pAp = pSolve->dotGlobal( *apSolve, level, flag_ );
 
          alpha = prsold / pAp;
          mainDiag.push_back( 1.0 / alpha + beta / alpha_old );
 
-         x.add( { alpha }, { p_ }, level, flag_ );
-         r_.add( { -alpha }, { ap_ }, level, flag_ );
+         x.add( { alpha }, { *pSolve }, level, flag_ );
+         rSolve->add( { -alpha }, { *apSolve }, level, flag_ );
 
-         prsnew = r_.dotGlobal( r_, level, flag_ );
+         prsnew = rSolve->dotGlobal( *rSolve, level, flag_ );
          beta   = prsnew / prsold;
          subDiag.push_back( std::sqrt( beta ) / alpha );
 
-         p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { r_, p_ }, level, flag_ );
+         pSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ), beta }, { *rSolve, *pSolve }, level, flag_ );
          prsold = prsnew;
 
          alpha_old = alpha;
       }
 
       // final diagonal matrix entry
-      A.apply( p_, ap_, level, flag_, Replace );
-      pAp = p_.dotGlobal( ap_, level, flag_ );
+      A.apply( *pSolve, *apSolve, level, flag_, Replace );
+      pAp = pSolve->dotGlobal( *apSolve, level, flag_ );
 
       alpha = prsold / pAp;
       mainDiag.push_back( real_c( 1.0 ) / alpha + beta / alpha_old );
    }
 
+   uint_t getIterations() { return iterations_; }
+
    void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
+   void setName( std::string newName ) { name_ = newName; }
    void setDoFType( hyteg::DoFType flag ) { flag_ = flag; }
+   void setIterationHook(
+       std::function< bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t ) >
+           iterationHook )
+   {
+      iterationHook_ = iterationHook;
+   };
 
  private:
-   void init( const OperatorType&               A,
-              const FunctionType&               x,
-              const FunctionType&               b,
-              const uint_t                      level,
-              typename FunctionType::valueType& prsold ) const
+   void init( const OperatorType&                    A,
+              const FunctionType&                    x,
+              const FunctionType&                    b,
+              const uint_t                           level,
+              typename FunctionType::valueType&      prsold,
+              const std::shared_ptr< FunctionType >& pSolve,
+              const std::shared_ptr< FunctionType >& zSolve,
+              const std::shared_ptr< FunctionType >& rSolve ) const
    {
-      A.apply( x, p_, level, flag_, Replace );
-      r_.assign(
-          { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) }, { b, p_ }, level, flag_ );
-      z_.interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
-      preconditioner_->solve( A, z_, r_, level );
-      p_.assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { z_ }, level, flag_ );
-      prsold = r_.dotGlobal( z_, level, flag_ );
+      A.apply( x, *pSolve, level, flag_, Replace );
+      rSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ), walberla::numeric_cast< ValueType >( -1.0 ) },
+                      { b, *pSolve },
+                      level,
+                      flag_ );
+      zSolve->interpolate( walberla::numeric_cast< ValueType >( 0 ), level, All );
+      preconditioner_->solve( A, *zSolve, *rSolve, level );
+      pSolve->assign( { walberla::numeric_cast< ValueType >( 1.0 ) }, { *zSolve }, level, flag_ );
+      prsold = rSolve->dotGlobal( *zSolve, level, flag_ );
    }
+   std::shared_ptr< hyteg::PrimitiveStorage > storage_;
+   uint_t                                     minLevel_;
+   uint_t                                     maxLevel_;
 
-   FunctionType                              p_;
-   FunctionType                              z_;
-   FunctionType                              ap_;
-   FunctionType                              r_;
+   std::shared_ptr< FunctionType >           p_;
+   std::shared_ptr< FunctionType >           z_;
+   std::shared_ptr< FunctionType >           ap_;
+   std::shared_ptr< FunctionType >           r_;
    std::shared_ptr< Solver< OperatorType > > preconditioner_;
 
    hyteg::DoFType                   flag_;
    bool                             printInfo_;
-   typename FunctionType::valueType tolerance_;
+   typename FunctionType::valueType absuluteTolerance_;
+   typename FunctionType::valueType relativeTolerance_;
    uint_t                           restartFrequency_;
    uint_t                           maxIter_;
+   uint_t                           iterations_;
+
+   std::string name_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
+
+   std::function< bool( uint_t, const OperatorType&, const FunctionType&, const FunctionType&, uint_t, real_t ) > iterationHook_;
+
+   bool lowMemoryMode_;
 };
 
 } // namespace hyteg

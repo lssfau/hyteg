@@ -160,7 +160,7 @@ int main( int argc, char* argv[] )
    auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >(
        storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.37 );
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >(
-       storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
+       storage, minLevel, minLevel, 1000, 1e-12, real_c( 1e-16 ), pressurePreconditioner );
    auto restrictionOperator  = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >();
    auto prolongationOperator = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
 

@@ -132,7 +132,10 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       WALBERLA_LOG_INFO_ON_ROOT(
           "   + OpenMP threads per MPI process:               " << hyteg::OpenMPManager::instance()->numThreads() );
    }
-   WALBERLA_NON_OPENMP_SECTION() { WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP disabled" ); }
+   WALBERLA_NON_OPENMP_SECTION()
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP disabled" );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
@@ -186,7 +189,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                    StokesFunction< real_t >( "f", storage, minLevel, maxLevel );
    StokesFunction< real_t > r =
        RHSisZero ? StokesFunction< real_t >( "r", storage, 0, 0 ) : StokesFunction< real_t >( "r", storage, minLevel, maxLevel );
-   StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   auto tmp = std::make_shared< StokesFunction< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Allocating and assembling operators ..." )
 
@@ -211,11 +214,11 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       }
       else
       {
-         tmp.uvw().interpolate( { rhsU,rhsV, rhsW }, level, All );
+         tmp->uvw().interpolate( { rhsU, rhsV, rhsW }, level, All );
 
-         velocityMassOperator.apply( tmp.uvw()[0], f.uvw()[0], level, All );
-         velocityMassOperator.apply( tmp.uvw()[1], f.uvw()[1], level, All );
-         velocityMassOperator.apply( tmp.uvw()[2], f.uvw()[2], level, All );
+         velocityMassOperator.apply( tmp->uvw()[0], f.uvw()[0], level, All );
+         velocityMassOperator.apply( tmp->uvw()[1], f.uvw()[1], level, All );
+         velocityMassOperator.apply( tmp->uvw()[2], f.uvw()[2], level, All );
 
          f.p().interpolate( 0, level, All );
       }
@@ -225,7 +228,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
    vtkOutput.add( u );
-   vtkOutput.add( tmp );
+   vtkOutput.add( *tmp );
    if ( !RHSisZero )
    {
       vtkOutput.add( f );
@@ -263,7 +266,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    std::vector< uint_t > rhsZeroLevels = { maxLevel };
    auto                  smoother      = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
-                                                                        tmp,
+                                                                        *tmp,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         smootherSettings.omega,
@@ -313,7 +316,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    else if ( coarseGridSettings.solverType == 1 )
    {
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
+          storage, minLevel, coarseGridSettings.maxIterations, real_c( 1e-30 ), coarseGridSettings.absoluteResidualTolerance, 1 );
       petscSolverInternalTmp->setVerbose( true );
       coarseGridSolverInternal = petscSolverInternalTmp;
    }
@@ -332,6 +335,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                                                                                           multigridSettings.postSmooth,
                                                                                           multigridSettings.incSmooth,
                                                                                           CycleType::VCYCLE,
+                                                                                          false,
                                                                                           RHSisZero,
                                                                                           0 );
 
@@ -349,7 +353,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                         u,
                         f,
                         r,
-                        tmp,
+                        *tmp,
                         solutionU,
                         solutionV,
                         solutionW,
@@ -375,7 +379,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                      u,
                      f,
                      r,
-                     tmp,
+                     *tmp,
                      solutionU,
                      solutionV,
                      solutionW,
@@ -466,7 +470,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                         u,
                         f,
                         r,
-                        tmp,
+                        *tmp,
                         solutionU,
                         solutionV,
                         solutionW,
@@ -500,7 +504,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                         u,
                         f,
                         r,
-                        tmp,
+                        *tmp,
                         solutionU,
                         solutionV,
                         solutionW,

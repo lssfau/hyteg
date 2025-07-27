@@ -177,7 +177,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
       PETScManager petscManager;
       real_t       AblockPETScRelativeTolerance = ABlockCGCoarseTol;
       ABlockCoarseGridSolver                    = std::make_shared< PETScMinResSolver< SubstAType > >(
-          storage, minLevel, AblockPETScRelativeTolerance, ABlockCGCoarseTol, ABlockCGCoarseIter );
+          storage, minLevel, ABlockCGCoarseIter, AblockPETScRelativeTolerance, ABlockCGCoarseTol );
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "PETSc module not found or enabled. Switching to HyTeG MinRes." );
       // Fall back to HyTeG MinRes solver
@@ -195,8 +195,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
       ABlockCoarseGridSolver = ABlockCoarseGridMinResSolver;
    }
 
-   auto ABlockSmoother = std::make_shared< ChebyshevSmootherWithFreeSlipProjection< SubstAType > >(
-       storage, minLevel, maxLevel, projectionOperator );
+   auto ABlockSmoother = std::make_shared< ChebyshevSmoother< SubstAType, P2ProjectNormalOperator > >(
+       storage, minLevel, maxLevel, false, projectionOperator, FreeslipBoundary );
 
    std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
       return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
@@ -206,7 +206,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    // avoid that the startpoint of our poweriteration is in the kernel of the operator
    temp2->uvw().interpolate( randFuncA, maxLevel, All );
 
-   auto spectralRadiusA = chebyshev::estimateRadius(
+   real_t spectralRadiusA = chebyshev::estimateRadius(
        APrecOperator.viscousOperator, maxLevel, numPowerIteration, storage, temp2->uvw(), temp3->uvw() );
    temp2->uvw().interpolate( 0, maxLevel, All );
    temp3->interpolate( 0, maxLevel, All );
@@ -228,7 +228,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                                                                                             CycleType::VCYCLE );
 
    auto ABlockSolver = std::make_shared< hyteg::CGSolver< SubstAType > >(
-       storage, minLevel, maxLevel, ABlockCGOuterIter, ABlockCGOuterTol, ABlockMultigridSolver );
+       storage, minLevel, maxLevel, ABlockCGOuterIter, real_c( 0 ), ABlockCGOuterTol, ABlockMultigridSolver );
    ABlockSolver->setPrintInfo( verbose );
    // ABlockSolver->setSolverName("ABlockSolverOuter");
 
@@ -259,8 +259,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    auto SchurProlongationOperator = std::make_shared< P1toP1LinearProlongation< real_t > >();
    auto SchurRestrictionOperator  = std::make_shared< P1toP1LinearRestriction< real_t > >();
 
-   auto SchurCoarseGridSolver =
-       std::make_shared< hyteg::CGSolver< SubstSType > >( storage, minLevel, maxLevel, SchurCGCoarseIter, SchurCGCoarseTol );
+   auto SchurCoarseGridSolver = std::make_shared< hyteg::CGSolver< SubstSType > >(
+       storage, minLevel, maxLevel, SchurCGCoarseIter, real_c( 0 ), SchurCGCoarseTol );
    SchurCoarseGridSolver->setPrintInfo( verbose );
    // SchurCoarseGridSolver->setSolverName("SchurCoarseGridSolver");
 
@@ -272,7 +272,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
 
    // avoid that the startpoint of our poweriteration is in the kernel of the operator
    temp2->p().interpolate( randFuncS, maxLevel, All );
-   auto spectralRadiusSchur = chebyshev::estimateRadius(
+   real_t spectralRadiusSchur = chebyshev::estimateRadius(
        stokesOperatorFSSelf->getSchur(), maxLevel, numPowerIteration, storage, temp2->p(), temp3->p() );
    temp2->p().interpolate( 0, maxLevel, All );
    temp3->interpolate( 0, maxLevel, All );
@@ -294,7 +294,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
                                                                                             CycleType::VCYCLE );
 
    auto SchurSolver =
-       std::make_shared< CGSolver< SubstSType > >( storage, minLevel, maxLevel, SchurCGOuterIter, SchurCGOuterTol );
+       std::make_shared< CGSolver< SubstSType > >( storage, minLevel, maxLevel, SchurCGOuterIter, real_c( 0 ), SchurCGOuterTol );
    SchurSolver->setPrintInfo( verbose );
    // SchurSolver->setSolverName("SchurSolver");
 
@@ -348,7 +348,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        projectionOperator );
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorFS > >(
-       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, blockPreconditioner );
+       storage, minLevel, maxLevel, fGMRESOuterIter, real_c( 0 ), fGMRESTol, blockPreconditioner, 50, fGMRESTol, 0 );
    finalStokesSolver->setPrintInfo( true );
 
    return { finalStokesSolver, ABlockSmoother };

@@ -584,6 +584,7 @@ void ConvectionSimulation::setupSolversAndOperators()
        TN.domainParameters.minLevel,
        TN.domainParameters.maxLevel,
        TN.solverParameters.diffusionMaxNumIterations,
+       real_c( 0 ),
        TN.solverParameters.diffusionAbsoluteResidualUTolerance );
 
    transportSolverTALA->setPrintInfo( true );

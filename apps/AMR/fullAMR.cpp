@@ -215,7 +215,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
    // auto   smoother = std::make_shared< WeightedJacobiSmoother< Laplace > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 50 ), 2 * n_dof_coarse );
-   auto cgs    = std::make_shared< CGSolver< Laplace > >( storage, l_min, l_min, cgIter, cg_tol );
+   auto cgs    = std::make_shared< CGSolver< Laplace > >( storage, l_min, l_min, cgIter, real_c(0), cg_tol );
 
    // error indicator
    t_error_indicator = 0.0;

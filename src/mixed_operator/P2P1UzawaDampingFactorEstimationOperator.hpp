@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl.
+ * Copyright (c) 2017-2025 Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -50,15 +50,16 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
                                              const std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >& velocitySmoother,
                                              uint_t                                                           minLevel,
                                              uint_t                                                           maxLevel,
-                                             const uint_t numGSIterationsVelocity = 2 )
+                                             const uint_t      numGSIterationsVelocity = 2,
+                                             BoundaryCondition bc                      = BoundaryCondition() )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
    , mass_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , velocitySmoother_( velocitySmoother )
    , numGSIterationsVelocity_( numGSIterationsVelocity )
-   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel )
-   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel )
+   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel, bc )
+   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel, bc )
    , tmp_schur_( "tmp_schur", storage, minLevel, maxLevel )
    {}
 
@@ -68,7 +69,7 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
                const DoFType               flag,
                UpdateType                  updateType = Replace ) const override
    {
-      tmp_solution_.uvw().interpolate( {real_c( 0 ), real_c( 0 ), real_c( 0 )}, level, All );
+      tmp_solution_.uvw().interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, All );
 
       A.divT.apply( src, tmp_rhs_.uvw(), level, flag, Replace );
 
@@ -87,6 +88,74 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    P1LumpedInvMassOperator                                   mass_inv_diag_;
    bool                                                      hasGlobalCells_;
    std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > > velocitySmoother_;
+
+   uint_t numGSIterationsVelocity_;
+
+   P2P1TaylorHoodFunction< real_t > tmp_rhs_;
+   P2P1TaylorHoodFunction< real_t > tmp_solution_;
+
+   P1Function< real_t > tmp_schur_;
+};
+
+template < class compStokesOperator >
+class P2P1CompUzawaDampingFactorEstimationOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+{
+ public:
+   P2P1CompUzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >&             storage,
+                                                 const std::shared_ptr< Solver< compStokesOperator > >& velocitySmoother,
+                                                 const std::shared_ptr< compStokesOperator >&           StokesOp,
+                                                 uint_t                                                 minLevel,
+                                                 uint_t                                                 maxLevel,
+                                                 const uint_t      numGSIterationsVelocity = 2,
+                                                 BoundaryCondition bcX                     = BoundaryCondition(),
+                                                 BoundaryCondition bcY                     = BoundaryCondition(),
+                                                 BoundaryCondition bcZ                     = BoundaryCondition() )
+   : Operator( storage, minLevel, maxLevel )
+   , StokesOp_( StokesOp )
+   , mass_inv_diag_( storage, minLevel, maxLevel )
+   , hasGlobalCells_( storage->hasGlobalCells() )
+   , velocitySmoother_( velocitySmoother )
+   , numGSIterationsVelocity_( numGSIterationsVelocity )
+   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel )
+   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel )
+   , tmp_schur_( "tmp_schur", storage, minLevel, maxLevel )
+   {
+      tmp_rhs_.uvw()[0].setBoundaryCondition( bcX );
+      tmp_rhs_.uvw()[1].setBoundaryCondition( bcY );
+      if ( storage->hasGlobalCells() )
+      {
+         tmp_rhs_.uvw()[2].setBoundaryCondition( bcZ );
+      }
+
+      tmp_solution_.uvw()[0].setBoundaryCondition( bcX );
+      tmp_solution_.uvw()[1].setBoundaryCondition( bcY );
+      if ( storage->hasGlobalCells() )
+      {
+         tmp_solution_.uvw()[2].setBoundaryCondition( bcZ );
+      }
+   }
+
+   void apply( const P1Function< real_t >& src, const P1Function< real_t >& dst, const uint_t level, const DoFType flag ) const
+   {
+      tmp_solution_.uvw().interpolate( { real_c( 0 ), real_c( 0 ), real_c( 0 ) }, level, All );
+
+      StokesOp_->divT.apply( src, tmp_rhs_.uvw(), level, flag, Replace );
+
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( *StokesOp_, tmp_solution_, tmp_rhs_, level );
+      }
+
+      StokesOp_->div.apply( tmp_solution_.uvw(), tmp_schur_, level, flag, Replace );
+
+      mass_inv_diag_.apply( tmp_schur_, dst, level, flag, Replace );
+   }
+
+   std::shared_ptr< compStokesOperator > StokesOp_;
+
+   P1LumpedInvMassOperator                         mass_inv_diag_;
+   bool                                            hasGlobalCells_;
+   std::shared_ptr< Solver< compStokesOperator > > velocitySmoother_;
 
    uint_t numGSIterationsVelocity_;
 

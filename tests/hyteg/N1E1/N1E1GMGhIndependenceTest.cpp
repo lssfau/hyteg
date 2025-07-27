@@ -93,10 +93,10 @@ uint_t test( const uint_t maxLevel, const uint_t numMaxVCycles, const n1e1::Syst
 
    // GMG solver
 #ifdef HYTEG_BUILD_WITH_PETSC
-   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel );
+   auto coarseGridSolver = std::make_shared< PETScCGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, 10000, real_c(0), 1e-12 );
 #else
    auto coarseGridSolver =
-       std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, minLevel, 10000, 1e-12 );
+       std::make_shared< CGSolver< N1E1ElementwiseLinearCombinationOperator > >( storage, minLevel, minLevel, 10000, real_c(0), 1e-12 );
 #endif
    auto restrictionOperator  = std::make_shared< N1E1toN1E1Restriction >();
    auto prolongationOperator = std::make_shared< N1E1toN1E1Prolongation >();

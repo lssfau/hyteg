@@ -136,7 +136,7 @@ void test( const MeshInfo&              meshInfo,
    error.interpolate( []( const Point3D& ) { return walberla::math::realRandom(); }, maxLevel );
    smoother->setupCoefficients( 3, chebyshev::estimateRadius( A, maxLevel, 20, storage, error, exact ) );
 
-   auto coarseGridSolver = std::make_shared< CGSolver< Operator_T > >( storage, minLevel, minLevel, 1000, 1e-10 );
+   auto coarseGridSolver = std::make_shared< CGSolver< Operator_T > >( storage, minLevel, minLevel, 1000, real_c(0), 1e-10 );
    coarseGridSolver->setPrintInfo( false );
 
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< Operator_T > >(

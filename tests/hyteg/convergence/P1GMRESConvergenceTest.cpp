@@ -71,7 +71,7 @@ int main( int argc, char* argv[] )
        std::make_shared< hyteg::JacobiPreconditioner< hyteg::P1ConstantLaplaceOperator > >( storage, minLevel, maxLevel, 10 );
 
    auto solver = hyteg::GMRESSolver< hyteg::P1ConstantLaplaceOperator >(
-       storage, minLevel, maxLevel, maxiter, maxiter, 1e-16, 1e-8, 0, prec );
+       storage, minLevel, maxLevel, maxiter, real_c( 0 ), 1e-8, prec, maxiter, 1e-16, 0 );
    solver.solve( L, u, f, maxLevel );
 
    err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );

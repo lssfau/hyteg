@@ -342,10 +342,10 @@ void MultigridSolve( const std::shared_ptr< PrimitiveStorage >& storage,
    }
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto coarseGridSolver = std::make_shared< PETScCGSolver< ElementWiseOperator > >(
-       storage, minLevel, coarseGridResidualTolerance, 1e-16, coarseGridMaxIterations );
+       storage, minLevel, coarseGridMaxIterations, coarseGridResidualTolerance, 1e-16 );
 #else
    auto coarseGridSolver = std::make_shared< CGSolver< ElementWiseOperator > >(
-       storage, minLevel, minLevel, coarseGridMaxIterations, coarseGridResidualTolerance );
+       storage, minLevel, minLevel, coarseGridMaxIterations, coarseGridResidualTolerance, 1e-16 );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();

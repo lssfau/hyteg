@@ -177,7 +177,7 @@ void stokesMinResConvergenceTest()
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
    auto solver =
-       hyteg::MinResSolver< P2P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
+       hyteg::MinResSolver< P2P1P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, real_c( 1e-16 ), pressurePrec );
 
    solver.solve( L, u, f, maxLevel );
 

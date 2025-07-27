@@ -100,7 +100,8 @@ real_t cmpMacroMicroRefinementTest( uint_t microRefinementLevel, uint_t macroRef
    WALBERLA_LOG_INFO_ON_ROOT( " - evaluating functional ..." );
    tmp.evaluateLinearFunctional( solFunc, level );
    WALBERLA_LOG_INFO_ON_ROOT( " - setting up solver ..." );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
+   PETScCGSolver< DGOperator > solverM(
+       storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    WALBERLA_LOG_INFO_ON_ROOT( " - solving ..." );
    solverM.solve( M, sol, tmp, level );
    WALBERLA_LOG_INFO_ON_ROOT( " - done." );
@@ -108,7 +109,7 @@ real_t cmpMacroMicroRefinementTest( uint_t microRefinementLevel, uint_t macroRef
    // Solve system.
    WALBERLA_LOG_INFO_ON_ROOT( "Solving linear system ..." );
    WALBERLA_LOG_INFO_ON_ROOT( " - setting up solver ..." );
-   PETScCGSolver< DGOperator > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   PETScCGSolver< DGOperator > solverA( storage, level, 10000, 1e-12, 1e-12, numerator );
    WALBERLA_LOG_INFO_ON_ROOT( " - solving ..." );
    solverA.solve( A, u, f, level );
    WALBERLA_LOG_INFO_ON_ROOT( " - done." );

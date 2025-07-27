@@ -363,7 +363,7 @@ void linear_solve( OperatorType                        lap,
    {
       tag = "CG";
       WALBERLA_LOG_INFO_ON_ROOT( " *** CG: initial residual = " << res0 );
-      auto cgSolver = CGSolver< OperatorType >( storage, minLevel, maxLevel, maxCycles, mgTol );
+      auto cgSolver = CGSolver< OperatorType >( storage, minLevel, maxLevel, maxCycles, real_c(0), mgTol );
       cgSolver.solve( lap, u, rhs, maxLevel );
    }
 

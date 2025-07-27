@@ -700,9 +700,9 @@ adaptiveRefinement::ErrorVector solve( adaptiveRefinement::Mesh&                
    // coarse grid solver
    auto cgIter = std::max( uint_t( 50 ), 2 * n_dof_coarse );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   auto cgs = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, 1e-30, cg_tol, cgIter );
+   auto cgs = std::make_shared< PETScCGSolver< A_t > >( storage, l_min, cgIter, 1e-30, cg_tol );
 #else
-   auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, cg_tol );
+   auto cgs = std::make_shared< CGSolver< A_t > >( storage, l_min, l_min, cgIter, 1e-30, cg_tol );
 #endif
 
    // error indicator

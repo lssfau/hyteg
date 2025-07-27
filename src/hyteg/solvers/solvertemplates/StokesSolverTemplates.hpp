@@ -47,13 +47,13 @@ namespace solvertemplates {
 ///                            structure of the A-block
 /// \param storage the PrimitiveStorage that defines the domain
 /// \param level the refinement level of the grid
-/// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
+/// \param relativeTargetResidual relative (as opposed to absolute) residual as a stopping criterion for the iteration
 /// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
 ///
 template < typename StokesOperatorType >
 std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                     const uint_t&                              level,
-                                                                    const real_t& absoluteTargetResidual,
+                                                                    const real_t& relativeTargetResidual,
                                                                     const uint_t& maxIterations,
                                                                     bool          printInfo = false )
 {
@@ -61,7 +61,7 @@ std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::s
        std::make_shared< StokesPressureBlockPreconditioner< StokesOperatorType, P1LumpedInvMassOperator > >(
            storage, level, level );
    auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< StokesOperatorType > >(
-       storage, level, level, maxIterations, absoluteTargetResidual, pressurePreconditioner );
+       storage, level, level, maxIterations, relativeTargetResidual, real_c( 0 ), pressurePreconditioner );
 
    pressurePreconditionedMinResSolver->setPrintInfo( printInfo );
 
@@ -112,7 +112,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
            storage, maxLevel, maxLevel, nPrecCycles, pPrecOp, LU );
 
    auto solver = std::make_shared< MinResSolver< StokesOperatorType > >(
-       storage, maxLevel, maxLevel, maxIterations, relativeResidual, prec );
+       storage, maxLevel, maxLevel, maxIterations, relativeResidual, 1e-16, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -156,7 +156,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
        storage, maxLevel, maxLevel, 1, pPrecOp, LU );
 
    auto solver = std::make_shared< MinResSolver< StokesOperatorType > >(
-       storage, maxLevel, maxLevel, maxIterations, relativeTolerance, prec );
+       storage, maxLevel, maxLevel, maxIterations, relativeTolerance, 1e-16, prec );
    solver->setPrintInfo( printInfo );
    return solver;
 }
@@ -188,7 +188,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
                                    bool printInfo )
 {
    // Velocity block solver
-   //auto CG = std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, relativeVelBlockResidual, 1e-12);
+   //auto CG = std::make_shared<PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel, std::numeric_limits< PetscInt >::max(), relativeVelBlockResidual, 1e-12);
    auto LU               = std::make_shared< PETScLUSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
    auto coarseGridSolver = std::make_shared< PETScLUSolver< hyteg::P2ElementwiseAffineEpsilonOperator > >( storage, minLevel );
    auto smoother         = std::make_shared< WeightedJacobiSmoother< hyteg::P2ElementwiseAffineEpsilonOperator > >(
@@ -198,7 +198,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
    auto gmgSolver            = std::make_shared< GeometricMultigridSolver< hyteg::P2ElementwiseAffineEpsilonOperator > >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3, 3 );
    auto CG = std::make_shared< CGSolver< P2ElementwiseAffineEpsilonOperator > >(
-       storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), relativeVelBlockResidual, gmgSolver );
+       storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), relativeVelBlockResidual, 1e-12, gmgSolver );
    CG->setPrintInfo( printInfo );
    auto PETScCG = std::make_shared< PETScCGSolver< P2ElementwiseAffineEpsilonOperator > >( storage, maxLevel );
 
@@ -216,7 +216,7 @@ std::shared_ptr< Solver< StokesOperatorType > >
 
    // final solver setup
    auto solver = std::make_shared< MinResSolver< P2P1ElementwiseAffineEpsilonStokesOperator > >(
-       storage, minLevel, maxLevel, maxIterations, absoluteTargetResidual, prec );
+       storage, minLevel, maxLevel, maxIterations, real_c(0), absoluteTargetResidual, prec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
    // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1P1StokesOperator >( storage, minLevel, maxLevel );
    solver->setPrintInfo( printInfo );
@@ -277,8 +277,8 @@ std::shared_ptr< Solver< P1P1StokesOperator > >
    auto pressurePreconditioner =
        std::make_shared< StokesPressureBlockPreconditioner< P1P1StokesOperator, P1LumpedInvMassOperator > >(
            storage, minLevel, minLevel );
-   auto pressurePreconditionedMinResSolver =
-       std::make_shared< MinResSolver< P1P1StokesOperator > >( storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
+   auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< P1P1StokesOperator > >(
+       storage, minLevel, minLevel, 1000, 1e-12, real_c( 1e-16 ), pressurePreconditioner );
 
    auto stokesRestriction  = std::make_shared< P1P1StokesToP1P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
@@ -314,7 +314,7 @@ std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >
        std::make_shared< StokesPressureBlockPreconditioner< P2P1TaylorHoodStokesOperator, P1LumpedInvMassOperator > >(
            storage, minLevel, minLevel );
    auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< P2P1TaylorHoodStokesOperator > >(
-       storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
+       storage, minLevel, minLevel, 1000, 1e-12, real_c( 1e-16 ), pressurePreconditioner );
 
    auto stokesRestriction  = std::make_shared< P2P1StokesToP2P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< P2P1StokesToP2P1StokesProlongation >();

@@ -57,7 +57,7 @@ void MultiSinker( const std::string& name,
    real_t visc_max                   = std::pow( DR, 0.5 );
 
    // storage and domain
-   auto meshInfo = MeshInfo::meshCuboid(Point3D({0, 0, 0}), Point3D({1, 1, 1}), nxy, nxy, nxy);
+   auto meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), nxy, nxy, nxy );
    //auto meshInfo = hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -66,7 +66,8 @@ void MultiSinker( const std::string& name,
 
    // some general info about the testcase
    StokesFunctionNumeratorType numerator( "numerator", storage, level, level + 1 );
-   numerator.enumerate( level ); numerator.enumerate( level + 1);
+   numerator.enumerate( level );
+   numerator.enumerate( level + 1 );
    uint_t globalDoFs      = numberOfGlobalDoFs( numerator, level );
    uint_t globalDoFsFiner = numberOfGlobalDoFs( numerator, level + 1 );
    WALBERLA_LOG_INFO_ON_ROOT( "### Computing " << name << " on level " << level << " ###" );
@@ -85,14 +86,15 @@ void MultiSinker( const std::string& name,
 
    P2Function< real_t > viscFunc( "viscFunc", storage, level, level + 1 );
    using hyteg::dg::eg::copyBdry;
-    if constexpr (hyteg::dg::eg::isEGP0Discr<StokesOperatorType>()) {
-        copyBdry(x);
-        copyBdry(xFiner);
-        copyBdry(btmp);
-        copyBdry(b);
-        copyBdry(residuum);
-        copyBdry(errEq);
-    }
+   if constexpr ( hyteg::dg::eg::isEGP0Discr< StokesOperatorType >() )
+   {
+      copyBdry( x );
+      copyBdry( xFiner );
+      copyBdry( btmp );
+      copyBdry( b );
+      copyBdry( residuum );
+      copyBdry( errEq );
+   }
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return real_c( 0 ); };
    x.uvw().interpolate( zero, level );
@@ -169,18 +171,18 @@ void MultiSinker( const std::string& name,
    if ( true )
    {
       {
-         x.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+         x.interpolate( [&unif, &re]( const hyteg::Point3D& ) { return unif( re ); }, level, hyteg::Inner );
          PETScBlockPreconditionedStokesSolver< StokesOperatorType > solver(
-             storage, level, 1e-3, std::numeric_limits< PetscInt >::max(), 6, 1 );
+             storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), 1e-3, 6, 1 );
          solver.disableApplicationBC( std::is_same< StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC >::value );
          solver.solve( Op, x, b, level );
       }
       WALBERLA_LOG_INFO_ON_ROOT( "First solve done." );
 
       {
-         xFiner.interpolate([&unif, &re](const hyteg::Point3D &) { return unif(re); }, level, hyteg::Inner);
+         xFiner.interpolate( [&unif, &re]( const hyteg::Point3D& ) { return unif( re ); }, level, hyteg::Inner );
          PETScBlockPreconditionedStokesSolver< StokesOperatorType > solverFiner(
-             storage, level + 1, 1e-5, std::numeric_limits< PetscInt >::max(), 6, 1 );
+             storage, level + 1, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), 1e-5, 6, 1 );
          solverFiner.disableApplicationBC(
              std::is_same< StokesOperatorType, dg::eg::EGP0EpsilonOperatorStokesNitscheBC >::value );
          solverFiner.solve( OpFiner, xFiner, b, level + 1 );

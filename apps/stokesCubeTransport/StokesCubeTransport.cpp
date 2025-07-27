@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, minLevel );
    typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator > PressurePreconditionedMinRes_T;
    auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >(
-       storage, minLevel, minLevel, uzawaMaxIter, uzawaTolerance, pressurePrec );
+       storage, minLevel, minLevel, uzawaMaxIter, uzawaTolerance, real_c( 1e-16 ), pressurePrec );
 
    ///// UZAWA solver /////
    typedef GeometricMultigridSolver< hyteg::P1P1StokesOperator > UzawaSolver_T;

@@ -31,7 +31,7 @@ namespace hyteg {
 /// Example usage:
 /// auto laplace = std::make_shared< P1LaplaceOperatorType >( storage, minLevel, maxLevel );
 /// ConcatenatedOperator < P1LaplaceOperatorType, P1LaplaceOperatorType > doubleLaplaceOperator(laplace, laplace);
-/// auto solver = std::make_shared< CGSolver< decltype(doubleLaplaceOperator) > >( storage, minLevel, minLevel, max_coarse_iter,
+/// auto solver = std::make_shared< CGSolver< decltype(doubleLaplaceOperator) > >( storage, minLevel, minLevel, max_coarse_iter, real_c(0),
 ///                                                                                coarse_tolerance );
 ///
 /// \tparam OpType1     Type of the operator applied first.

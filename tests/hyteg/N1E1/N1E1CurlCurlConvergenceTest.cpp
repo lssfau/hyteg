@@ -69,10 +69,10 @@ real_t test( const uint_t level, const n1e1::System& system, const bool writeVTK
    // Solve system.
 #ifdef HYTEG_BUILD_WITH_PETSC
    WALBERLA_LOG_INFO_ON_ROOT( "Using PETSc solver" )
-   auto solverA = PETScCGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level );
+   auto solverA = PETScCGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level, 10000, real_c(0), 1e-12 );
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "Using HyTeG solver" )
-   auto solverA = CGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, 1e-12 );
+   auto solverA = CGSolver< N1E1ElementwiseLinearCombinationOperator >( storage, level, level, 10000, real_c(0), 1e-12 );
 #endif
    solverA.solve( A, u, f, level );
 

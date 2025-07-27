@@ -76,7 +76,8 @@ void test( int                                       dim,
 
    // Interpolate solution into u
    tmp.evaluateLinearFunctional( f, level );
-   PETScCGSolver< DGOperator > solverM( storage, level, numerator );
+   PETScCGSolver< DGOperator > solverM(
+       storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    solverM.solve( M, u, tmp, level );
 
    // Interpolate solution for P1

@@ -116,9 +116,9 @@ void petscSolveTest( const uint_t&   level,
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
    GKBSolver_P2P1TH GKB_HOUSE_solver(
-       storage, level, CGSolver< ALOP_P2P1TH >( storage, level, level, 1000, 1e-11 ), nu, 100, 1e-10 );
+       storage, level, CGSolver< ALOP_P2P1TH >( storage, level, level, 1000, real_c(0), 1e-11 ), nu, 100, 1e-10 );
 
-   PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > GKB_PETSC_solver( storage, level, 1e-10, 1000, 5, 0, 2 );
+   PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > GKB_PETSC_solver( storage, level, 1000, real_c(1e-30), 1e-10, 5, 0, 2 );
 
    ///////////////////////////////////////////////////////////////////////////// solve ///////////////////////////////////////////////
    real_t discr_l2_err_1_u = std::sqrt( err.uvw()[0].dotGlobal( err.uvw()[0], level ) / (real_t) globalDoFs1 );

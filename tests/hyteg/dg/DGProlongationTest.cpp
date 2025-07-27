@@ -69,12 +69,14 @@ void testDG1Prolongation( const std::string& meshFile )
    tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 0.5 * p[0] + p[1] - 0.25 * p[2]; }, maxLevel );
    // interpolate test_function on lower level
    {
-      PETScCGSolver< DGOperator > solverM( storage, minLevel, numerator );
+      PETScCGSolver< DGOperator > solverM(
+          storage, minLevel, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
       solverM.solve( M, test_function, tmp, minLevel );
    }
    // interpolate solution function on upper level
    {
-      PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
+      PETScCGSolver< DGOperator > solverM(
+          storage, maxLevel, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
       solverM.solve( M, solution_function, tmp, maxLevel );
    }
 
@@ -160,12 +162,14 @@ void compareProlongationWithRestrictionDG1( const std::string& meshFile )
    tmp.evaluateLinearFunctional( []( const Point3D& p ) { return 1.2 * p[0] - p[1]; }, maxLevel );
    // interpolate test_function on lower level
    {
-      PETScCGSolver< DGOperator > solverM( storage, minLevel, numerator );
+      PETScCGSolver< DGOperator > solverM(
+          storage, minLevel, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
       solverM.solve( M, coarse_function, tmp, minLevel );
    }
    // interpolate solution function on upper level
    {
-      PETScCGSolver< DGOperator > solverM( storage, maxLevel, numerator );
+      PETScCGSolver< DGOperator > solverM(
+          storage, maxLevel, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
       solverM.solve( M, fine_function, tmp, maxLevel );
    }
 

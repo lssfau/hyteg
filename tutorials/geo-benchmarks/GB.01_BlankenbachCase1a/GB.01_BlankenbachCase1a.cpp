@@ -440,7 +440,7 @@ int main( int argc, char* argv[] )
 
    MinResSolver< StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true > > minresSolver(
        storage, minLevel, maxLevel, stokesIter, stokesRelTol );
-   CGSolver< P2TransportTimesteppingOperator > transportSolver( storage, minLevel, maxLevel, transportIter, transportRelTol );
+   CGSolver< P2TransportTimesteppingOperator > transportSolver( storage, minLevel, maxLevel, transportIter, real_c(0), transportRelTol );
 
    minresSolver.setPrintInfo( verbose );
 

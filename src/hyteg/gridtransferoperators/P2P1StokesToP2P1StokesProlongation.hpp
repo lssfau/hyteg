@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,10 +21,14 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/functions/PressureMeanProjection.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
+#include "hyteg/operators/NoOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
@@ -32,6 +36,13 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
  public:
    typedef P2toP2QuadraticProlongation VelocityProlongation_T;
    typedef P1toP1LinearProlongation<>  PressureProlongation_T;
+
+   P2P1StokesToP2P1StokesProlongation()
+   : projectMeanAfterProlongation_( false )
+   {}
+   P2P1StokesToP2P1StokesProlongation( bool projectMeanAfterProlongation )
+   : projectMeanAfterProlongation_( projectMeanAfterProlongation )
+   {}
 
    void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
                     const uint_t&                           sourceLevel,
@@ -42,6 +53,11 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
          quadraticProlongationOperator_.prolongate( function.uvw()[k], sourceLevel, flag );
       }
       linearProlongationOperator_.prolongate( function.p(), sourceLevel, flag );
+
+      if ( projectMeanAfterProlongation_ )
+      {
+         vertexdof::projectMean( function.p(), sourceLevel + 1 );
+      }
    }
 
    void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
@@ -53,11 +69,73 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
          quadraticProlongationOperator_.prolongateAndAdd( function.uvw()[k], sourceLevel, flag );
       }
       linearProlongationOperator_.prolongateAndAdd( function.p(), sourceLevel, flag );
+
+      if ( projectMeanAfterProlongation_ )
+      {
+         vertexdof::projectMean( function.p(), sourceLevel + 1 );
+      }
    }
 
  private:
    P2toP2QuadraticProlongation quadraticProlongationOperator_;
    P1toP1LinearProlongation<>  linearProlongationOperator_;
+
+   bool projectMeanAfterProlongation_;
+};
+
+template < typename ProjectionOperatorType             = hyteg::NoOperator,
+           bool preProjectVelocity                     = false,
+           bool postProjectVelocity                    = true,
+           bool allowPreProjectionToChangeVelocitySrc  = true,
+           bool allowPostProjectionToChangeVelocityDst = true,
+           bool preProjectPressure                     = false,
+           bool postProjectPressure                    = true,
+           bool allowPreProjectionToChangePressureSrc  = true,
+           bool allowPostProjectionToChangePressureDst = true >
+class P2P1StokesToP2P1StokesProlongationWithProjection : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
+{
+ public:
+   P2P1StokesToP2P1StokesProlongationWithProjection( const std::shared_ptr< hyteg::PrimitiveStorage >& storage,
+                                                     uint_t                                            minLevel,
+                                                     uint_t                                            maxLevel,
+                                                     std::shared_ptr< ProjectionOperatorType >         projection = nullptr,
+                                                     DoFType projectionFlag = FreeslipBoundary,
+                                                     bool    lowMemoryMode  = false )
+   : quadraticProlongationOperator_( storage, minLevel, maxLevel, projection, projectionFlag, lowMemoryMode )
+   , linearProlongationOperator_( storage, minLevel, maxLevel, lowMemoryMode )
+   {}
+
+   void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
+                    const uint_t&                           sourceLevel,
+                    const DoFType&                          flag ) const override
+   {
+      quadraticProlongationOperator_.prolongate( function.uvw(), sourceLevel, flag );
+      linearProlongationOperator_.prolongate( function.p(), sourceLevel, flag );
+   }
+
+   // prolongateAndAdd has a different implementation than prolongate and seemingly needs internal projections
+   // as a quick fix we are using prolongate on a temporary function and add it manually
+   void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
+                          const uint_t&                           sourceLevel,
+                          const DoFType&                          flag ) const override
+   {
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw(), sourceLevel, flag );
+      linearProlongationOperator_.prolongateAndAdd( function.p(), sourceLevel, flag );
+   }
+
+ private:
+   P2toP2QuadraticVectorProlongationWithProjection< ProjectionOperatorType,
+                                                    preProjectVelocity,
+                                                    postProjectVelocity,
+                                                    allowPreProjectionToChangeVelocitySrc,
+                                                    allowPostProjectionToChangeVelocityDst >
+       quadraticProlongationOperator_;
+   P1toP1LinearProlongationWithProjection< real_t,
+                                           preProjectPressure,
+                                           postProjectPressure,
+                                           allowPreProjectionToChangePressureSrc,
+                                           allowPostProjectionToChangePressureDst >
+       linearProlongationOperator_;
 };
 
 /***************************************************************************
@@ -68,7 +146,7 @@ class P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection : public P2P1Stok
 {
  public:
    P2P1StokesToP2P1StokesProlongationWithFreeSlipProjection( std::shared_ptr< P2P1TaylorHoodFunction< real_t > > temp,
-                                                     std::shared_ptr< P2ProjectNormalOperator >          projection )
+                                                             std::shared_ptr< P2ProjectNormalOperator >          projection )
    : P2P1StokesToP2P1StokesProlongation()
    , temp_( temp )
    , projection_( projection )

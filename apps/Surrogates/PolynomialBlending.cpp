@@ -244,10 +244,10 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
 
    // define solver
    auto coarseGridSolver =
-       std::make_shared< hyteg::CGSolver< typename FE::Laplace > >( storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
-   // auto coarseGridSolver = std::make_shared<hyteg::CGSolver<P1AffineDivkGradOperator_new>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
+       std::make_shared< hyteg::CGSolver< typename FE::Laplace > >( storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
+   // auto coarseGridSolver = std::make_shared<hyteg::CGSolver<P1AffineDivkGradOperator_new>>(storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance);
    auto coarseGridSolver_elwise = std::make_shared< hyteg::CGSolver< P1ElementwiseBlendingLaplaceOperator > >(
-       storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+       storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
    auto restrictionOperator  = std::make_shared< typename FE::Restriction >();
    auto prolongationOperator = std::make_shared< typename FE::Prolongation >();
    auto smoother             = std::make_shared< hyteg::GaussSeidelSmoother< typename FE::Laplace > >();

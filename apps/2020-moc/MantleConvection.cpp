@@ -66,10 +66,10 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
-#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 namespace hyteg {
@@ -211,7 +211,7 @@ void calculateStokesResiduals( const StokesOperator&       A,
    tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
-   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
+   r.assign( { 1.0, -1.0 }, { b, tmp }, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual = normL2Squared( r.uvw()[0], tmp.uvw()[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual += normL2Squared( r.uvw()[1], tmp.uvw()[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    if ( x.getStorage()->hasGlobalCells() )
@@ -515,7 +515,7 @@ void runBenchmark( real_t     cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      outwardNormal.uvw().interpolate( {normalX, normalY, normalZ}, l );
+      outwardNormal.uvw().interpolate( { normalX, normalY, normalZ }, l );
    }
 
    if ( verbose )
@@ -568,8 +568,9 @@ void runBenchmark( real_t     cflMax,
       auto stokesSolverTmp =
           std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage,
                                                                                       level,
-                                                                                      solverInfo.stokesAbsoluteResidualUTolerance,
                                                                                       solverInfo.stokesMaxNumIterations,
+                                                                                      real_c(1e-30),
+                                                                                      solverInfo.stokesAbsoluteResidualUTolerance,
                                                                                       velocityPreconditionerType,
                                                                                       1 );
       stokesSolverTmp->reassembleMatrix( false );
@@ -602,7 +603,7 @@ void runBenchmark( real_t     cflMax,
       auto preconditioner = std::make_shared< Preconditioner_T >( storage, minLevel, level, 3, gmgSolver );
 
       auto stokesSolverTmp = std::make_shared< MinResSolver< StokesOperator > >(
-          storage, minLevel, level, solverInfo.stokesMaxNumIterations, 1e-30, preconditioner );
+          storage, minLevel, level, solverInfo.stokesMaxNumIterations, 1e-30, real_c(1e-16), preconditioner );
       stokesSolverTmp->setPrintInfo( verbose );
       stokesSolverTmp->setAbsoluteTolerance( solverInfo.stokesAbsoluteResidualUTolerance );
       if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_MINRES_GMG )
@@ -639,7 +640,7 @@ void runBenchmark( real_t     cflMax,
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, 1000, 1 );
+          storage, minLevel, 1000, real_c(1e-30), solverInfo.stokesAbsoluteResidualUTolerance, 1 );
       petscSolverInternalTmp->setVerbose( verbose );
       auto coarseGridSolver = petscSolverInternalTmp;
 
@@ -726,14 +727,14 @@ void runBenchmark( real_t     cflMax,
    if ( solverInfo.diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
    {
       auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >(
-          storage, level, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
+          storage, level, solverInfo.diffusionMaxNumIterations, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance );
       internalDiffusionSolver->reassembleMatrix( true );
       diffusionLinearSolver = internalDiffusionSolver;
    }
    else if ( solverInfo.diffusionSolverType == DiffusionSolverType::HYTEG_CG )
    {
       auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >(
-          storage, minLevel, level, solverInfo.diffusionMaxNumIterations, solverInfo.diffusionAbsoluteResidualUTolerance );
+          storage, minLevel, level, solverInfo.diffusionMaxNumIterations, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance );
       internalDiffusionSolver->setPrintInfo( verbose );
       diffusionLinearSolver = internalDiffusionSolver;
    }
@@ -863,8 +864,8 @@ void runBenchmark( real_t     cflMax,
          MVelocity.apply( c, f.uvw()[2], l, All );
       }
 
-      f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
-      f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
+      f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
+      f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
    }
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -988,16 +989,16 @@ void runBenchmark( real_t     cflMax,
       // advection
 
       // start value for predictor
-      cPr.assign( {1.0}, {c}, level, All );
+      cPr.assign( { 1.0 }, { c }, level, All );
 
       // let's just use the current velocity for the prediction
-      uLast.assign( {1.0}, {u}, level, All );
+      uLast.assign( { 1.0 }, { u }, level, All );
 
       // diffusion
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( {1.0}, {cPr}, level, All );
+      cOld.assign( { 1.0 }, { cPr }, level, All );
 
       diffusionOperator.setDt( 0.5 * dt );
 
@@ -1023,7 +1024,7 @@ void runBenchmark( real_t     cflMax,
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( {1.0}, {cPr}, level, All );
+      cOld.assign( { 1.0 }, { cPr }, level, All );
 
       calculateDiffusionResidual(
           diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1044,8 +1045,8 @@ void runBenchmark( real_t     cflMax,
             MVelocity.apply( cPr, f.uvw()[2], l, All );
          }
 
-         f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
-         f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
+         f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
+         f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
       }
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1075,7 +1076,7 @@ void runBenchmark( real_t     cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( {1.0}, {c}, level, All );
+         cOld.assign( { 1.0 }, { c }, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1097,7 +1098,7 @@ void runBenchmark( real_t     cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( {1.0}, {c}, level, All );
+         cOld.assign( { 1.0 }, { c }, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1119,8 +1120,8 @@ void runBenchmark( real_t     cflMax,
                MVelocity.apply( c, f.uvw()[2], l, All );
             }
 
-            f.uvw().multElementwise( {f.uvw(), outwardNormal.uvw()}, l );
-            f.uvw().assign( {rayleighNumber}, {f.uvw()}, l, All );
+            f.uvw().multElementwise( { f.uvw(), outwardNormal.uvw() }, l );
+            f.uvw().assign( { rayleighNumber }, { f.uvw() }, l, All );
          }
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1145,7 +1146,7 @@ void runBenchmark( real_t     cflMax,
       else
       {
          // use predicted value
-         c.assign( {1.0}, {cPr}, level, All );
+         c.assign( { 1.0 }, { cPr }, level, All );
 
          db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
          db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );

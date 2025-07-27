@@ -541,6 +541,13 @@ class P1CahnHilliardFunction : public BlockFunction< value_t >
           std::make_shared< FunctionWrapper< P1Function< value_t > > >( name + "_phi", storage, minLevel, maxLevel ) );
    };
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const
+   {
+      this->subFunc_[0]->template unwrap< P1Function< value_t > >().setToZero( level );
+      this->subFunc_[1]->template unwrap< P1Function< value_t > >().setToZero( level );
+   }
+
    [[nodiscard]] const P1Function< value_t >& getMu() const
    {
       return this->getSubFunction( 0 ).template unwrap< P1Function< value_t > >();
@@ -599,7 +606,7 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
    const real_t tolerance = real_c( 1e-8 );
 
    auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >(
-       storage, minLevel, maxLevel, maxIter, tolerance, preconditioner );
+       storage, minLevel, maxLevel, maxIter, tolerance, real_c( 1e-16 ), preconditioner );
 
    return solver;
 }
@@ -761,7 +768,7 @@ std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator >
 
    auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLinearCombinationOperator > >(
-       storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+       storage, minLevel, minLevel, max_coarse_iter, real_c( 0 ), coarse_tolerance );
    auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
    auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
@@ -851,8 +858,8 @@ std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 
    if ( use3D )
    {
-      const hyteg::Point3D lowerRight(  -1, -1, -1  );
-      const hyteg::Point3D upperLeft(  +1, +1, +1  );
+      const hyteg::Point3D lowerRight( -1, -1, -1 );
+      const hyteg::Point3D upperLeft( +1, +1, +1 );
 
       auto meshInfo = hyteg::MeshInfo::meshCuboid( lowerRight, upperLeft, 2, 2, 2 );
       setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
@@ -860,8 +867,8 @@ std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
    else
    {
       /// [create_storage rectangle]
-      hyteg::Point2D lowerRight(  -1, -1  );
-      hyteg::Point2D upperLeft(  +1, +1  );
+      hyteg::Point2D lowerRight( -1, -1 );
+      hyteg::Point2D upperLeft( +1, +1 );
 
       auto meshInfo = hyteg::MeshInfo::meshRectangle( lowerRight, upperLeft, hyteg::MeshInfo::CROSS, 2, 2 );
       setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
@@ -924,7 +931,8 @@ int main( int argc, char** argv )
    /// [main evolution-operator]
 
    /// [main initial-values]
-   walberla::math::seedRandomGenerator( static_cast< std::mt19937::result_type >( walberla::mpi::MPIManager::instance()->rank() ) );
+   walberla::math::seedRandomGenerator(
+       static_cast< std::mt19937::result_type >( walberla::mpi::MPIManager::instance()->rank() ) );
 
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );
@@ -948,7 +956,7 @@ int main( int argc, char** argv )
       if ( t_now > t_end )
          break;
 
-      WALBERLA_LOG_INFO_ON_ROOT( "iter = " << k << " t = " << std::fixed << std::setprecision(3) << t_now );
+      WALBERLA_LOG_INFO_ON_ROOT( "iter = " << k << " t = " << std::fixed << std::setprecision( 3 ) << t_now );
       chOperator.apply( u_prev, u_now, maxLevel );
 
       u_prev.assign( { 1. }, { u_now }, maxLevel, All );

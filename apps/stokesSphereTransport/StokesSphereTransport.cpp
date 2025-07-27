@@ -225,7 +225,7 @@ void simulate( int argc, char* argv[] )
    normalZ.interpolate( nZ, maxLevel );
 
    auto coarseGridSolver = std::make_shared< PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > >(
-       storage, minLevel, 1e-12, 2000, 1 );
+       storage, minLevel, 2000, real_c(1e-30), 1e-12, 1 );
    auto stokesRestriction  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
    auto stokesProlongation = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
    auto gaussSeidel        = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
@@ -246,7 +246,7 @@ void simulate( int argc, char* argv[] )
    P2ConstantUnsteadyDiffusionOperator diffusionOperator(
        storage, minLevel, maxLevel, dt, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto diffusionCoarseGridSolver =
-       std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, 1e-12 );
+       std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, real_c(0), 1e-12 );
    auto diffusionRestriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto diffusionProlongation = std::make_shared< P2toP2QuadraticProlongation >();
    auto gsSmoother            = std::make_shared< GaussSeidelSmoother< P2ConstantUnsteadyDiffusionOperator > >();

@@ -103,7 +103,7 @@ void P2P1SchurCGConvergenceTest( const uint_t& level, const MeshInfo& meshInfo )
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
    auto coarseGrid = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >(
-       storage, minLevel, minLevel, std::numeric_limits< uint_t >::max(), real_c( 1e-9 ) );
+       storage, minLevel, minLevel, std::numeric_limits< uint_t >::max(), real_c(0), real_c( 1e-9 ) );
    auto smoother       = std::make_shared< GaussSeidelSmoother< P2ConstantLaplaceOperator > >();
    auto prolongation   = std::make_shared< P2toP2QuadraticProlongation >();
    auto restriction    = std::make_shared< P2toP2QuadraticRestriction >();

@@ -125,7 +125,7 @@ int main( int argc, char* argv[] )
    helper->interpolate( rhs, level, hyteg::All );
    M.apply( *helper, *f, level, hyteg::All );
 
-   auto solver = hyteg::CGSolver< SolveOperator >( storage, level, level, maxiter, 1e-10 );
+   auto solver = hyteg::CGSolver< SolveOperator >( storage, level, level, maxiter, real_c(0), 1e-10 );
    solver.solve( L, *u, *f, level );
 
    err->assign( {1.0, -1.0}, {*u, *u_exact}, level, hyteg::All );

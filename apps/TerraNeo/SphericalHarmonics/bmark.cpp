@@ -246,7 +246,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
 #ifdef HYTEG_BUILD_WITH_PETSC
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Solving iteratively with PETScBPSS ... " );
          PETScManager                                         petscManager;
-         PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 5000, 1, 1 );
+         PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 5000, real_c(1e-30), 1e-08, 1, 1 );
          stokesSolver.setVerbose( true );
          stokesSolver.solve( *stokesOp, feSol, rhs, maxLevel );
 #else
@@ -267,8 +267,8 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    }
    case BC_MIXED:
    {
-      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-30, 1e-08, 200 );
-      // PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-08, 5000, 4, 1 );
+      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 200, 1e-30, 1e-08 );
+      // PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 5000, real_c(1e-30), 1e-08, 4, 1 );
       auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, maxLevel, 1e-08, 200, true );
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative solution with MINRES ... " );
       stokesSolver->solve( stokesOpFS, feSol, rhs, maxLevel );

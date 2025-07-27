@@ -82,10 +82,11 @@ real_t testHomDirichlet( uint_t level, uint_t degree )
    tmp[0].evaluateLinearFunctional( solFunc0, level );
    tmp[1].evaluateLinearFunctional( solFunc1, level );
 
-   PETScCGSolver< DGVectorMassOperator< real_t > > solverM( storage, level, numerator );
+   PETScCGSolver< DGVectorMassOperator< real_t > > solverM(
+       storage, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), real_c( 1e-12 ), numerator );
    solverM.solve( M, sol, tmp, level );
 
-   PETScCGSolver< DGVectorLaplaceOperator< real_t > > solverA( storage, level, numerator, 1e-12, 1e-12, 10000 );
+   PETScCGSolver< DGVectorLaplaceOperator< real_t > > solverA( storage, level, 10000, 1e-12, 1e-12, numerator );
    solverA.solve( A, u, f, level );
 
    err.assign( { 1.0, -1.0 }, { u, sol }, level );

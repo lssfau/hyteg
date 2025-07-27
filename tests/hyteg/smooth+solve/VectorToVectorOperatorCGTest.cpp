@@ -88,7 +88,7 @@ void runCheck( std::string opName, bool verbose = false )
 
    uint_t maxIter  = 150;
    real_t tol      = real_c( std::is_same< real_t, double >() ? 1e-10 : 2e-7 );
-   auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, tol );
+   auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, real_c(0), tol );
    cgSolver.setPrintInfo( verbose );
 
    cgSolver.solve( *oper, u, f, level );

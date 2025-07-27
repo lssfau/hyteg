@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Andreas Burkhart, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,6 +31,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -1342,16 +1343,15 @@ class MMOCTransport
    MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
-                  const TimeSteppingScheme&                  timeSteppingSchemeConvection )
+                  const TimeSteppingScheme&                  timeSteppingSchemeConvection,
+                  bool                                       lowMemoryMode = false )
    : storage_( storage )
-   , cOld_( "cOld", storage, minLevel, maxLevel )
-   , cTmp_( "cTmp", storage, minLevel, maxLevel )
-   , cPlus_( "cPlus", storage, minLevel, maxLevel )
-   , cMinus_( "cMinus", storage, minLevel, maxLevel )
-   , cAdjusted_( "cAdjusted", storage, minLevel, maxLevel )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
+   , lowMemoryMode_( lowMemoryMode )
    {
       WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(),
                                     1,
@@ -1454,15 +1454,28 @@ class MMOCTransport
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
 
-      cOld_.copyBoundaryConditionFromFunction( c );
-      cTmp_.copyBoundaryConditionFromFunction( c );
-      cPlus_.copyBoundaryConditionFromFunction( c );
-      cMinus_.copyBoundaryConditionFromFunction( c );
-      cAdjusted_.copyBoundaryConditionFromFunction( c );
+      std::shared_ptr< FunctionType > cOldStep;
+
+      if ( !lowMemoryMode_ )
+      {
+         if ( cOld_ == nullptr )
+         {
+            cOld_ = std::make_shared< FunctionType >( "cOld", storage_, minLevel_, maxLevel_ );
+         }
+         cOldStep = cOld_;
+      }
+      else
+      {
+         cOldStep = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+
+         cOldStep->setToZero( level );
+      }
+
+      cOldStep->copyBoundaryConditionFromFunction( c );
 
       if ( resetParticles )
       {
-         cOld_.assign( { 1.0 }, { c }, level, All );
+         cOldStep->assign( { 1.0 }, { c }, level, All );
          storage_->getTimingTree()->start( "Particle initialization" );
          numberOfCreatedParticles_ =
              initializeParticles( particleStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
@@ -1494,7 +1507,7 @@ class MMOCTransport
       evaluateTemperature( particleStorage_,
                            *storage_,
                            c,
-                           cOld_,
+                           *cOldStep,
                            level,
                            Inner,
                            numberOfCreatedParticles_,
@@ -1526,18 +1539,59 @@ class MMOCTransport
               const bool&         globalMaxLimiter                = true,
               const bool&         setParticlesOutsideDomainToZero = false )
    {
-      cOld_.copyBoundaryConditionFromFunction( c );
-      cTmp_.copyBoundaryConditionFromFunction( c );
-      cPlus_.copyBoundaryConditionFromFunction( c );
-      cMinus_.copyBoundaryConditionFromFunction( c );
-      cAdjusted_.copyBoundaryConditionFromFunction( c );
+      std::shared_ptr< FunctionType > cTmpStep;
+      std::shared_ptr< FunctionType > cPlusStep;
+      std::shared_ptr< FunctionType > cMinusStep;
+      std::shared_ptr< FunctionType > cAdjustedStep;
 
-      cPlus_.assign( { 1.0 }, { c }, level, All );
-      cMinus_.assign( { 1.0 }, { c }, level, All );
+      if ( !lowMemoryMode_ )
+      {
+         if ( cTmp_ == nullptr )
+         {
+            cTmp_ = std::make_shared< FunctionType >( "cTmp", storage_, minLevel_, maxLevel_ );
+         }
+         if ( cPlus_ == nullptr )
+         {
+            cPlus_ = std::make_shared< FunctionType >( "cPlus", storage_, minLevel_, maxLevel_ );
+         }
+         if ( cMinus_ == nullptr )
+         {
+            cMinus_ = std::make_shared< FunctionType >( "cMinus", storage_, minLevel_, maxLevel_ );
+         }
+         if ( cAdjusted_ == nullptr )
+         {
+            cAdjusted_ = std::make_shared< FunctionType >( "cAdjusted", storage_, minLevel_, maxLevel_ );
+         }
+
+         cTmpStep      = cTmp_;
+         cPlusStep     = cPlus_;
+         cMinusStep    = cMinus_;
+         cAdjustedStep = cAdjusted_;
+      }
+      else
+      {
+         cTmpStep      = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         cPlusStep     = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         cMinusStep    = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+         cAdjustedStep = getTemporaryFunction< FunctionType >( storage_, minLevel_, maxLevel_ );
+
+         cTmpStep->setToZero( level );
+         cPlusStep->setToZero( level );
+         cMinusStep->setToZero( level );
+         cAdjustedStep->setToZero( level );
+      }
+
+      cTmpStep->copyBoundaryConditionFromFunction( c );
+      cPlusStep->copyBoundaryConditionFromFunction( c );
+      cMinusStep->copyBoundaryConditionFromFunction( c );
+      cAdjustedStep->copyBoundaryConditionFromFunction( c );
+
+      cPlusStep->assign( { 1.0 }, { c }, level, All );
+      cMinusStep->assign( { 1.0 }, { c }, level, All );
 
       // calculate old mass
-      massOperator.apply( c, cTmp_, level, flag );
-      auto massBefore = cTmp_.sumGlobal( level, flag );
+      massOperator.apply( c, *cTmpStep, level, flag );
+      auto massBefore = cTmpStep->sumGlobal( level, flag );
 
       step( c,
             ux,
@@ -1555,8 +1609,8 @@ class MMOCTransport
             setParticlesOutsideDomainToZero );
 
       // calculate new mass
-      massOperator.apply( c, cTmp_, level, flag );
-      auto massAfter = cTmp_.sumGlobal( level, flag );
+      massOperator.apply( c, *cTmpStep, level, flag );
+      auto massAfter = cTmpStep->sumGlobal( level, flag );
 
       auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
 
@@ -1565,7 +1619,7 @@ class MMOCTransport
 
       // perform adjusted advection
       storage_->getTimingTree()->start( "MMOC with adjusted advection" );
-      step( cPlus_,
+      step( *cPlusStep,
             ux,
             uy,
             uz,
@@ -1579,7 +1633,7 @@ class MMOCTransport
             true,
             globalMaxLimiter,
             setParticlesOutsideDomainToZero );
-      step( cMinus_,
+      step( *cMinusStep,
             ux,
             uy,
             uz,
@@ -1604,28 +1658,31 @@ class MMOCTransport
 
       if ( massAfter <= massBefore )
       {
-         cAdjusted_.interpolate( maxAssignment, { cPlus_, cMinus_ }, level );
+         cAdjustedStep->interpolate( maxAssignment, { *cPlusStep, *cMinusStep }, level );
       }
       else
       {
-         cAdjusted_.interpolate( minAssignment, { cPlus_, cMinus_ }, level );
+         cAdjustedStep->interpolate( minAssignment, { *cPlusStep, *cMinusStep }, level );
       }
 
       // calculate adjustment mass
-      massOperator.apply( cAdjusted_, cTmp_, level, flag );
-      auto massAdjusted = cTmp_.sumGlobal( level, flag );
+      massOperator.apply( *cAdjustedStep, *cTmpStep, level, flag );
+      auto massAdjusted = cTmpStep->sumGlobal( level, flag );
 
       auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
 
-      c.assign( { theta, 1 - theta }, { c, cAdjusted_ }, level, flag );
+      c.assign( { theta, 1 - theta }, { c, *cAdjustedStep }, level, flag );
    }
 
-   const std::shared_ptr< PrimitiveStorage >             storage_;
-   FunctionType                                          cOld_;
-   FunctionType                                          cTmp_;
-   FunctionType                                          cPlus_;
-   FunctionType                                          cMinus_;
-   FunctionType                                          cAdjusted_;
+   const std::shared_ptr< PrimitiveStorage > storage_;
+   uint_t                                    minLevel_;
+   uint_t                                    maxLevel_;
+
+   std::shared_ptr< FunctionType >                       cOld_;
+   std::shared_ptr< FunctionType >                       cTmp_;
+   std::shared_ptr< FunctionType >                       cPlus_;
+   std::shared_ptr< FunctionType >                       cMinus_;
+   std::shared_ptr< FunctionType >                       cAdjusted_;
    TimeSteppingScheme                                    timeSteppingSchemeConvection_;
    uint_t                                                numberOfCreatedParticles_;
    walberla::convection_particles::data::ParticleStorage particleStorage_;
@@ -1637,6 +1694,8 @@ class MMOCTransport
    HandleOutsideDomainMethod handleOutsideDomainMethod_ = HandleOutsideDomainMethod::DO_NOTHING;
 
    std::function< void( const Point3D&, Point3D& ) > projectPointsBackOutsideDomain_;
+
+   bool lowMemoryMode_;
 };
 
 } // namespace hyteg

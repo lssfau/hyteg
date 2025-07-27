@@ -146,8 +146,8 @@ void testFullViscousStokes( uint_t dim, uint_t maxLevel, uint_t fgmresIterations
 
    auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
    auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
-   auto ABlockCoarseGridSolver     = std::make_shared< CGSolver< SubstAType > >( storage, minLevel, maxLevel, 10, 1e-8 );
-   auto ABlockSmoother             = std::make_shared< ChebyshevSmoother< SubstAType > >( storage, minLevel, maxLevel );
+   auto ABlockCoarseGridSolver = std::make_shared< CGSolver< SubstAType > >( storage, minLevel, maxLevel, 10, real_c( 0 ), 1e-8 );
+   auto ABlockSmoother         = std::make_shared< ChebyshevSmoother< SubstAType > >( storage, minLevel, maxLevel );
 
    // Avoiding startpoint of the power iteration to be within the operator kernel
    tmp.uvw().interpolate( rand, maxLevel, All );
@@ -172,11 +172,11 @@ void testFullViscousStokes( uint_t dim, uint_t maxLevel, uint_t fgmresIterations
            ABlockMultigridSolver, APrecOperator );
 
    auto ABlockSolver = std::make_shared< CGSolver< typename StokesFullOperator::ViscousOperator_T > >(
-       storage, minLevel, maxLevel, 3, 1e-2, SubstABlockSolver );
+       storage, minLevel, maxLevel, 3, real_c( 0 ), 1e-2, SubstABlockSolver );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Setup approx. Schur complement solver" );
 
-   auto SchurSolver = std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, 50, 1e-8 );
+   auto SchurSolver = std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, 50, real_c( 0 ), 1e-8 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Setup Stokes preconditioner" );
 
@@ -206,7 +206,7 @@ void testFullViscousStokes( uint_t dim, uint_t maxLevel, uint_t fgmresIterations
    WALBERLA_LOG_INFO_ON_ROOT( "Setup Stokes solver" );
 
    auto solver = std::make_shared< FGMRESSolver< StokesFullOperator > >(
-       storage, minLevel, maxLevel, fgmresIterations, 50, 1e-8, 1e-8, 0, multigridSolver );
+       storage, minLevel, maxLevel, fgmresIterations, real_c( 0 ), 1e-8, multigridSolver, 50, 1e-8, 0 );
    solver->setPrintInfo( true );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting FGMRES" )

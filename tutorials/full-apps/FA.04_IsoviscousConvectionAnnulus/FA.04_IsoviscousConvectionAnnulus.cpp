@@ -521,7 +521,7 @@ void runBenchmark( real_t      cflMax,
 
    // The diffusive term is solved using a standard CG solver.
    auto diffusionLinearSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >(
-       storage, minLevel, maxLevel, solverInfo.diffusionMaxNumIterations, solverInfo.diffusionAbsoluteResidualUTolerance );
+       storage, minLevel, maxLevel, solverInfo.diffusionMaxNumIterations, real_c(0), solverInfo.diffusionAbsoluteResidualUTolerance );
 
    // To simplify the time-stepping procedure, a wrapper is available.
    // We split the construction into two parts to be able easily to exchange the linear solver.

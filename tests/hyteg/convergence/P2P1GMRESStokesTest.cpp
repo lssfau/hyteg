@@ -199,7 +199,16 @@ int main( int argc, char** argv )
    tmp_.interpolate( 0, maxLevel_, All );
 
    // solver
-   auto solver = hyteg::GMRESSolver< CustomStokes >( storage_, minLevel_, maxLevel_, 1000, 1000, 1e-16, 1e-16, 0 );
+   auto solver = hyteg::GMRESSolver< CustomStokes >( storage_,
+                                                     minLevel_,
+                                                     maxLevel_,
+                                                     1000,
+                                                     real_c( 0 ),
+                                                     1e-16,
+                                                     std::make_shared< IdentityPreconditioner< CustomStokes > >(),
+                                                     1000,
+                                                     1e-16,
+                                                     0 );
    //solver.setPrintInfo( true );
 
    // solve

@@ -176,8 +176,16 @@ int main( int argc, char* argv[] )
    if ( solverType == "plainGMRES" )
    {
       typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator > GMRESsolv;
-      auto                                                    KleinerFeinerGMRES =
-          GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL );
+      auto                                                    KleinerFeinerGMRES = GMRESsolv( storage,
+                                           minLevel,
+                                           maxLevel,
+                                           maxKrylowDim,
+                                           real_c( 0 ),
+                                           approxTOL,
+                                           std::make_shared< IdentityPreconditioner< hyteg::P1P1StokesOperator > >(),
+                                           restartLength,
+                                           arnoldiTOL,
+                                           doubleOrthoTOL );
       KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -193,8 +201,8 @@ int main( int argc, char* argv[] )
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
 
       typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator > GMRESsolv;
-      auto                                                    KleinerFeinerGMRES =
-          GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, prec );
+      auto                                                    KleinerFeinerGMRES = GMRESsolv(
+          storage, minLevel, maxLevel, maxKrylowDim, real_c( 0 ), approxTOL, prec, restartLength, arnoldiTOL, doubleOrthoTOL );
       KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -221,7 +229,7 @@ int main( int argc, char* argv[] )
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
 
       typedef hyteg::MinResSolver< hyteg::P1P1StokesOperator > MinResSolv;
-      auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL, prec );
+      auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL, real_c( 1e-16 ), prec );
       KleinerFeinerMinRes.solve( L, u, f, maxLevel );
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -236,9 +244,16 @@ int main( int argc, char* argv[] )
       auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, minLevel );
 
       typedef hyteg::GMRESSolver< hyteg::P1P1StokesOperator > PressurePreconditionedGMRES_T;
-      auto pressurePreconditionedGMRESSolver = std::make_shared< PressurePreconditionedGMRES_T >(
-          storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, pressurePrec );
-
+      auto pressurePreconditionedGMRESSolver = std::make_shared< PressurePreconditionedGMRES_T >( storage,
+                                                                                                  minLevel,
+                                                                                                  maxLevel,
+                                                                                                  maxKrylowDim,
+                                                                                                  real_c( 0 ),
+                                                                                                  approxTOL,
+                                                                                                  pressurePrec,
+                                                                                                  restartLength,
+                                                                                                  arnoldiTOL,
+                                                                                                  doubleOrthoTOL );
       typedef GeometricMultigridSolver< hyteg::P1P1StokesOperator > GMRESMultigrid_T;
 
       auto stokesRestriction  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();

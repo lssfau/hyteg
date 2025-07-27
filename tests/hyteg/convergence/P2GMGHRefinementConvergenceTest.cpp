@@ -106,7 +106,7 @@ int main( int argc, char* argv[] )
 
    auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2ConstantLaplaceOperator>  >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator > >(
-       storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+       storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
    auto restrictionOperator = std::make_shared< hyteg::P2toP2QuadraticRestriction>();
    auto prolongationOperator = std::make_shared< hyteg::P2toP2QuadraticProlongation >();
 

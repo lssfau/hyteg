@@ -40,23 +40,23 @@ class PETScMinResSolver : public Solver< OperatorType >
 
    PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                       const uint_t&                              level,
+                      const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max(),
                       const real_t                               relativeTolerance = 1e-30,
-                      const real_t                               absoluteTolerance = 1e-12,
-                      const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
+                      const real_t                               absoluteTolerance = 1e-12 )
    : PETScMinResSolver( storage,
                         level,
-                        typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ),
+                        maxIterations,
                         relativeTolerance,
                         absoluteTolerance,
-                        maxIterations )
+                        typename OperatorType::srcType::template FunctionType< idx_t >( "numerator", storage, level, level ) )
    {}
 
    PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >&                            storage,
                       const uint_t&                                                         level,
-                      const typename OperatorType::srcType::template FunctionType< idx_t >& numerator,
-                      const real_t                                                          relativeTolerance = 1e-30,
-                      const real_t                                                          absoluteTolerance = 1e-12,
-                      const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
+                      const PetscInt                                                        maxIterations,
+                      const real_t                                                          relativeTolerance,
+                      const real_t                                                          absoluteTolerance,
+                      const typename OperatorType::srcType::template FunctionType< idx_t >& numerator )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( numerator )
