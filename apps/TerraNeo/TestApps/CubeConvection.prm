@@ -5,7 +5,7 @@ Parameters
     nz 3;
 
     minLevel 0;
-    maxLevel 2;
+    maxLevel 6;
 
     AiniPerturb 0.1;
     RayleighNumber 1e5;
@@ -14,10 +14,10 @@ Parameters
     
     dt 2e-6;
 
-    cflMax 1.2;
+    cflMax 1.0;
     nCouplingIter 1;
 
-    cautionedEvaluate true;
+    cautionedEvaluate false;
 
     stokesDirectSolver false;
 
@@ -33,12 +33,12 @@ Parameters
     allowedRelativeMassDifference 1.0;
 
     simulationTime 10.0;
-    maxTimeSteps 25000;
+    maxTimeSteps 1000;
 
-    outputFilename TestCube;
-    outputPath ./output/;
+    outputFilename Cube_P1;
+    outputPath /SCRATCH/grobl/TerraNeo/simulations/cube/P1_level6_Ra1e5;
 
-    profilePath ./output/profiles/;
+    profilePath /SCRATCH/grobl/TerraNeo/simulations/cube/P1_level6_Ra1e5/Profiles/;
 
-    vtkWriteFrequency 1;
+    vtkWriteFrequency 100;
 }

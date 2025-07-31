@@ -155,6 +155,9 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
 
 const real_t boundaryMarkerThreshold = 1e-6;
 
+const real_t hLmaxCuboid__ = 1.0;
+const real_t vLmaxCuboid__ = 1.0;
+
 std::function< bool( const Point3D& ) > bottomMarker = []( const Point3D& x ) {
    if ( std::abs( x[2] ) < boundaryMarkerThreshold )
    {
@@ -167,7 +170,7 @@ std::function< bool( const Point3D& ) > bottomMarker = []( const Point3D& x ) {
 };
 
 std::function< bool( const Point3D& ) > rightMarker = []( const Point3D& x ) {
-   if ( std::abs( x[0] - 1.0 ) < boundaryMarkerThreshold )
+   if ( std::abs( x[0] - hLmaxCuboid__ ) < boundaryMarkerThreshold )
    {
       return true;
    }
@@ -200,7 +203,7 @@ std::function< bool( const Point3D& ) > frontMarker = []( const Point3D& x ) {
 };
 
 std::function< bool( const Point3D& ) > backMarker = []( const Point3D& x ) {
-   if ( std::abs( x[1] - 1.0 ) < boundaryMarkerThreshold )
+   if ( std::abs( x[1] - hLmaxCuboid__ ) < boundaryMarkerThreshold )
    {
       return true;
    }
@@ -211,7 +214,7 @@ std::function< bool( const Point3D& ) > backMarker = []( const Point3D& x ) {
 };
 
 std::function< bool( const Point3D& ) > topMarker = []( const Point3D& x ) {
-   if ( std::abs( x[2] - 1.0 ) < boundaryMarkerThreshold )
+   if ( std::abs( x[2] - vLmaxCuboid__ ) < boundaryMarkerThreshold )
    {
       return true;
    }
@@ -864,11 +867,13 @@ void TALASimulation::solveT()
 void TALASimulation::step()
 {
    real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
+   real_t vRMS = std::sqrt( u->uvw().dotGlobal ( u->uvw(), maxLevel ) / u->uvw().getNumberOfGlobalDoFs( maxLevel ) ); 
    real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
 
-   real_t Pe = hMax * vMax / ( 4 * params.k_ );
+   real_t Pe = vLmaxCuboid__ * vRMS / ( params.k_ );
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number = %f", Pe ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Peclet number (RMS velocity) = %f", Pe ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Maximum velocity = %f", vMax ) );
 
    uint_t nCouplingIter = mainConf.getParameter< uint_t >( "nCouplingIter" );
 
@@ -895,7 +900,9 @@ void TALASimulation::solve()
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 
+   writeZProfile();
    writeVTK( iTimeStep );
+
 
    while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
    {
@@ -909,12 +916,12 @@ void TALASimulation::solve()
 
       iTimeStep++;
 
-      writeZProfile();
 
       simulationTime += transportTALAOp->timestep;
 
       if ( iTimeStep % params.vtkWriteFrequency == 0 )
       {
+         writeZProfile();
          writeVTK( iTimeStep );
       }
    }
@@ -927,7 +934,7 @@ void TALASimulation::writeZProfile()
    std::string profilePath = mainConf.getParameter< std::string >( "profilePath" );
    std::string fileName    = walberla::format( "%s/Temperature_%d.txt", profilePath.c_str(), iTimeStep );
 
-   auto TProfile = terraneo::computeRadialProfile( *T, 0.0, 1.0, nz, maxLevel, []( const Point3D& x ) { return x[2]; } );
+   auto TProfile = terraneo::computeRadialProfile( *T, 0.0, vLmaxCuboid__, nz+1, maxLevel, []( const Point3D& x ) { return x[2]; } );
 
    TProfile.logToFile( fileName, "T" );
 }
@@ -967,7 +974,8 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
-   auto meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), nx, ny, nz );
+
+   auto meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( hLmaxCuboid__, hLmaxCuboid__, vLmaxCuboid__ ), nx, ny, nz );
 
    auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
