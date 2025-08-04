@@ -30,6 +30,7 @@
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -40,12 +41,13 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 
 using namespace hyteg;
 
 template < typename FunctionType, typename BlendingMapType, typename MassOperatorType >
-void testMeshTransfer( MeshInfo meshInfoSrc, MeshInfo meshInfoDst, uint_t levelSrc, uint_t levelDst )
+void testMeshTransfer( MeshInfo meshInfoSrc, MeshInfo meshInfoDst, uint_t levelSrc, uint_t levelDst, real_t errorAllowed )
 {
    SetupPrimitiveStorage setupStorage( meshInfoSrc, walberla::MPIManager::instance()->numProcesses() );
    BlendingMapType::setMap( setupStorage );
@@ -65,11 +67,6 @@ void testMeshTransfer( MeshInfo meshInfoSrc, MeshInfo meshInfoDst, uint_t levelS
    T.interpolate( TInterp, levelSrc, All );
    communication::syncFunctionBetweenPrimitives( T, levelSrc );
 
-   AdiosWriter adiosWriter( "./output", "test", storage );
-
-   adiosWriter.add( T );
-   adiosWriter.write( levelSrc );
-
    SetupPrimitiveStorage setupStorageNew( meshInfoDst, walberla::MPIManager::instance()->numProcesses() );
    BlendingMapType::setMap( setupStorageNew );
    auto storageNew = std::make_shared< PrimitiveStorage >( setupStorageNew, 1u );
@@ -88,10 +85,13 @@ void testMeshTransfer( MeshInfo meshInfoSrc, MeshInfo meshInfoDst, uint_t levelS
 
    real_t testSum    = test.sumGlobal( levelSrc, All );
    real_t testNewSum = testNew.sumGlobal( levelDst, All );
+   real_t difference = std::abs( testSum - testNewSum );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "testSum = " << testSum );
-   WALBERLA_LOG_INFO_ON_ROOT( "testNewSum = " << testNewSum );
-   WALBERLA_LOG_INFO_ON_ROOT( "difference = " << std::abs( testSum - testNewSum ) );
+   // WALBERLA_LOG_INFO_ON_ROOT( "testSum = " << testSum );
+   // WALBERLA_LOG_INFO_ON_ROOT( "testNewSum = " << testNewSum );
+   // WALBERLA_LOG_INFO_ON_ROOT( "difference = " << std::abs( testSum - testNewSum ) );
+
+   WALBERLA_CHECK_LESS( difference, errorAllowed );
 }
 
 int main( int argc, char* argv[] )
@@ -99,26 +99,33 @@ int main( int argc, char* argv[] )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   //    MeshInfo meshInfoSquareSrc = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1u, 1u );
-   //    MeshInfo meshInfoSquareDst = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 2u, 2u );
-
-   //    testMeshTransfer< P1Function< real_t >, IdentityMap, operatorgeneration::P1ElementwiseMass >(
-   //        meshInfoSquareSrc, meshInfoSquareDst, 2u, 1u );
-
-   MeshInfo meshInfoCuboidSrc = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 4u, 4u, 4u );
-   MeshInfo meshInfoCuboidDst = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 8u, 8u, 8u );
+   MeshInfo meshInfoSquareSrc = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 4u, 4u );
+   MeshInfo meshInfoSquareDst = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 8u, 8u );
 
    testMeshTransfer< P1Function< real_t >, IdentityMap, operatorgeneration::P1ElementwiseMass >(
-       meshInfoCuboidSrc, meshInfoCuboidDst, 2u, 1u );
+       meshInfoSquareSrc, meshInfoSquareDst, 2u, 1u, 1e-5 );
+   testMeshTransfer< P2Function< real_t >, IdentityMap, operatorgeneration::P2ElementwiseMass >(
+       meshInfoSquareSrc, meshInfoSquareDst, 2u, 1u, 1e-5 );
 
-   MeshInfo meshInfoSphSrc = MeshInfo::meshSphericalShell( 5u, 3u, 1.22, 2.22 );
-   MeshInfo meshInfoSphDst = MeshInfo::meshSphericalShell( 9u, 5u, 1.22, 2.22 );
+   MeshInfo meshInfoAnnulusSrc = MeshInfo::meshAnnulus( 1.22, 2.22, MeshInfo::CRISS, 4u, 2u );
+   MeshInfo meshInfoAnnulusDst = MeshInfo::meshAnnulus( 1.22, 2.22, MeshInfo::CRISS, 8u, 4u );
+
+   testMeshTransfer< P2Function< real_t >, AnnulusMap, operatorgeneration::P2ElementwiseMassAnnulusMap >(
+       meshInfoAnnulusSrc, meshInfoAnnulusDst, 3u, 2u, 1e-2 );
+
+   MeshInfo meshInfoCuboidSrc = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 1u, 1u, 1u );
+   MeshInfo meshInfoCuboidDst = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 2u, 2u, 2u );
+
+   testMeshTransfer< P1Function< real_t >, IdentityMap, operatorgeneration::P1ElementwiseMass >(
+       meshInfoCuboidSrc, meshInfoCuboidDst, 2u, 1u, 1e-2 );
+   testMeshTransfer< P2Function< real_t >, IdentityMap, operatorgeneration::P2ElementwiseMass >(
+       meshInfoCuboidSrc, meshInfoCuboidDst, 2u, 1u, 1e-2 );
+
+   MeshInfo meshInfoSphSrc = MeshInfo::meshSphericalShell( 3u, 2u, 1.22, 2.22 );
+   MeshInfo meshInfoSphDst = MeshInfo::meshSphericalShell( 3u, 3u, 1.22, 2.22 );
 
    testMeshTransfer< P2Function< real_t >, IcosahedralShellMap, operatorgeneration::P2ElementwiseMassIcosahedralShellMap >(
-       meshInfoSphSrc, meshInfoSphDst, 2u, 1u );
-
-   //    testMeshTransferCuboid< P2Function< real_t >, operatorgeneration::P2ElementwiseMass >(2u);
-   //    testMeshTransferSphShell< P2Function< real_t >, operatorgeneration::P2ElementwiseMassIcosahedralShellMap >( 1u );
+       meshInfoSphSrc, meshInfoSphDst, 2u, 1u, 1e-2 );
 
    return EXIT_SUCCESS;
 }

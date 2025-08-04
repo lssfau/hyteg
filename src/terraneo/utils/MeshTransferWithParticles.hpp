@@ -144,11 +144,14 @@ class MeshTransferWithParticles
 
       const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
+      std::vector< PrimitiveID > neighborPIDs;
+      storageSrc->getNeighboringPrimitiveIDs( neighborPIDs );
+
       if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
       {
          for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( dst.getVertexDoFFunction(), levelDst ) )
          {
-            const PrimitiveID somePid = storageSrc->getPrimitiveIDs()[0];
+            const PrimitiveID somePid = neighborPIDs[0];
 
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
@@ -173,7 +176,7 @@ class MeshTransferWithParticles
 
          for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( dst.getEdgeDoFFunction(), levelDst ) )
          {
-            const PrimitiveID somePid = storageSrc->getPrimitiveIDs()[0];
+            const PrimitiveID somePid = neighborPIDs[0];
 
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
@@ -200,7 +203,7 @@ class MeshTransferWithParticles
       {
          for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( dst, levelDst ) )
          {
-            const PrimitiveID somePid = storageSrc->getPrimitiveIDs()[0];
+            const PrimitiveID somePid = neighborPIDs[0];
 
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
@@ -596,10 +599,6 @@ class MeshTransferWithParticles
                   const auto neighborFace = storage.getFace( neighborFaceID );
                   Point3D    computationalLocationNeighbor;
                   neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
-
-                  WALBERLA_LOG_INFO("neighborFace->getCoordinates().at( 0 ) = " << neighborFace->getCoordinates().at( 0 ));
-                  WALBERLA_LOG_INFO("neighborFace->getCoordinates().at( 1 ) = " << neighborFace->getCoordinates().at( 1 ));
-                  WALBERLA_LOG_INFO("neighborFace->getCoordinates().at( 2 ) = " << neighborFace->getCoordinates().at( 2 ));
 
                   bool sphereTriangleNeighbourIntersectionCheck =
                       sphereTriangleIntersection( computationalLocationNeighbor,
