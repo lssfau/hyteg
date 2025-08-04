@@ -94,6 +94,8 @@ struct SolverParameters
    real_t SchurCoarseGridTolerance   = 1e-6;
    real_t stokesKillTolerance        = real_c( 1000 );
 
+   bool useRotationWrapper = false;
+
    // Uzawa type multigrid solver
    real_t initialResidualU                 = real_c( 0 );
    real_t vCycleResidualUPrev              = real_c( 0 );

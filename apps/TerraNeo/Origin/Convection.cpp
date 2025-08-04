@@ -19,34 +19,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Simulation.hpp"
 #include "hyteg/Git.hpp"
 
-int main( int argc, char** argv )
+#include "Simulation.hpp"
+
+template < typename ConvectionSimulation_T >
+void startSimulation( ConvectionSimulation_T simulation )
 {
-   walberla::Environment env( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
    walberla::WcTimer timeStepTimer;
    hyteg::buildinfo::printGitInfo();
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   hyteg::PETScManager manager( &argc, &argv );
-#endif
-
-   auto cfg = std::make_shared< walberla::config::Config >();
-   if ( env.config() == nullptr )
-   {
-      auto defaultFile = "./parameters.prm";
-      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
-      cfg->readParameterFile( defaultFile );
-   }
-   else
-   {
-      cfg = env.config();
-   }
-
-   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-   terraneo::ConvectionSimulation      simulation( mainConf );
    simulation.init();
 
    // Starting simulation
@@ -64,7 +46,7 @@ int main( int argc, char** argv )
       {
          //triggered following the early return from convSim.step(), due to current timestep (ageMa) passing the user-defined final time
          WALBERLA_LOG_INFO_ON_ROOT( "Circulation model finished at " << simulation.getSimulationParams().agePrev << " Ma." )
-         return EXIT_SUCCESS;
+         return;
       }
       // Check if the simulation has reached the desired age for a convection model and finish the simulation
       if ( simulation.getSimulationParams().simulationType == "ConvectionModel" &&
@@ -73,7 +55,7 @@ int main( int argc, char** argv )
          WALBERLA_LOG_INFO_ON_ROOT( "Convection model finished at " << simulation.getSimulationParams().modelRunTimeMa
                                                                     << " Ma. After: " << simulation.getSimulationParams().timeStep
                                                                     << " timesteps." )
-         return EXIT_SUCCESS;
+         return;
       }
    }
 
@@ -89,5 +71,71 @@ int main( int argc, char** argv )
    {
       simulation.outputTimingTree();
    }
+}
+
+int main( int argc, char** argv )
+{
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   hyteg::PETScManager manager( &argc, &argv );
+#endif
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      auto defaultFile = "./parameters.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfg->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+
+   const walberla::Config::BlockHandle feSpacesConf = cfg->getBlock( "FunctionSpaces" );
+   const walberla::Config::BlockHandle mainConf     = cfg->getBlock( "Parameters" );
+
+   std::string temperatureSpace = feSpacesConf.getParameter< std::string >( "TemperatureSpace" );
+   std::string viscositySpace   = feSpacesConf.getParameter< std::string >( "ViscositySpace" );
+
+   if ( temperatureSpace == "P2" && viscositySpace == "P0" )
+   {
+      using TemperatureFunction_T = P2Function< real_t >;
+      using ViscosityFunction_T   = P0Function< real_t >;
+
+      terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > simulation( mainConf );
+      startSimulation< terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > >( simulation );
+   }
+   else if ( temperatureSpace == "P2" && viscositySpace == "P1" )
+   {
+      using TemperatureFunction_T = P2Function< real_t >;
+      using ViscosityFunction_T   = P1Function< real_t >;
+
+      terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > simulation( mainConf );
+      startSimulation< terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > >( simulation );
+   }
+   else if ( temperatureSpace == "P1" && viscositySpace == "P0" )
+   {
+      using TemperatureFunction_T = P1Function< real_t >;
+      using ViscosityFunction_T   = P0Function< real_t >;
+
+      terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > simulation( mainConf );
+      startSimulation< terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > >( simulation );
+   }
+   else if ( temperatureSpace == "P1" && viscositySpace == "P1" )
+   {
+      using TemperatureFunction_T = P1Function< real_t >;
+      using ViscosityFunction_T   = P1Function< real_t >;
+
+      terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > simulation( mainConf );
+      startSimulation< terraneo::ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T > >( simulation );
+   }
+   else
+   {
+      WALBERLA_ABORT( "This combination of function spaces is not available" );
+   }
+
    return EXIT_SUCCESS;
 }

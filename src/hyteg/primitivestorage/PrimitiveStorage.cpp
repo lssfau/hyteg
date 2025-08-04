@@ -59,7 +59,8 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const 
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                                     const std::shared_ptr< walberla::WcTimingTree >& timingTree,
-                                    const uint_t&                                    additionalHaloDepth )
+                                    const uint_t&                                    additionalHaloDepth,
+                                    const bool&                                      keepAllPrimitivesEverywhere )
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( timingTree )
@@ -117,18 +118,67 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       std::vector< PrimitiveID > cells{ getCellIDs() };
       addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
 
-      // additionally requested neighbors
-      for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
+      if ( keepAllPrimitivesEverywhere )
       {
-         std::vector< PrimitiveID > additionalVertices;
-         getNeighboringVertexIDs( additionalVertices );
-         std::vector< PrimitiveID > additionalEdges;
-         getNeighboringEdgeIDs( additionalEdges );
-         std::vector< PrimitiveID > additionalFaces;
-         getNeighboringFaceIDs( additionalFaces );
-         std::vector< PrimitiveID > additionalCells;
-         getNeighboringCellIDs( additionalCells );
-         addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
+         for ( const auto& vertex : setupStorage.getVertices() )
+         {
+            const auto    neighborVertexID = vertex.first;
+            const Vertex* neighborVertex   = setupStorage.getVertex( neighborVertexID );
+            if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+            {
+               neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
+               neighborRanks_[0][neighborVertexID]    = setupStorage.getTargetRank( neighborVertexID );
+            }
+         }
+
+         for ( const auto& edge : setupStorage.getEdges() )
+         {
+            const auto  neighborEdgeID = edge.first;
+            const Edge* neighborEdge   = setupStorage.getEdge( neighborEdgeID );
+            if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+            {
+               neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
+               neighborRanks_[0][neighborEdgeID] = setupStorage.getTargetRank( neighborEdgeID );
+            }
+         }
+
+         for ( const auto& face : setupStorage.getFaces() )
+         {
+            const auto  neighborFaceID = face.first;
+            const Face* neighborFace   = setupStorage.getFace( neighborFaceID );
+            if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+            {
+               neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
+               neighborRanks_[0][neighborFaceID] = setupStorage.getTargetRank( neighborFaceID );
+            }
+         }
+
+         for ( const auto& cell : setupStorage.getCells() )
+         {
+            const auto  neighborCellID = cell.first;
+            const Cell* neighborCell   = setupStorage.getCell( neighborCellID );
+            if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+            {
+               neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
+               neighborRanks_[0][neighborCellID] = setupStorage.getTargetRank( neighborCellID );
+            }
+         }
+      }
+      else
+      {
+         // additionally requested neighbors
+         for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
+         {
+            std::vector< PrimitiveID > additionalVertices;
+            getNeighboringVertexIDs( additionalVertices );
+            std::vector< PrimitiveID > additionalEdges;
+            getNeighboringEdgeIDs( additionalEdges );
+            std::vector< PrimitiveID > additionalFaces;
+            getNeighboringFaceIDs( additionalFaces );
+            std::vector< PrimitiveID > additionalCells;
+            getNeighboringCellIDs( additionalCells );
+            addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
+         }
       }
    }
    else
@@ -151,6 +201,63 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
    checkConsistency();
 #endif
 }
+
+// PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const bool& keepAllPrimitivesEverywhere )
+// : PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), 0u )
+// {
+//    if ( keepAllPrimitivesEverywhere )
+//    {
+//       for ( const auto& vertex : setupStorage.getVertices() )
+//       {
+//          const auto    neighborVertexID = vertex.first;
+//          const Vertex* neighborVertex   = setupStorage.getVertex( neighborVertexID );
+//          if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+//          {
+//             neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
+//             neighborRanks_[0][neighborVertexID]    = setupStorage.getTargetRank( neighborVertexID );
+//          }
+//       }
+
+//       for ( const auto& edge : setupStorage.getEdges() )
+//       {
+//          const auto  neighborEdgeID = edge.first;
+//          const Edge* neighborEdge   = setupStorage.getEdge( neighborEdgeID );
+//          if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+//          {
+//             neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
+//             neighborRanks_[0][neighborEdgeID] = setupStorage.getTargetRank( neighborEdgeID );
+//          }
+//       }
+
+//       for ( const auto& face : setupStorage.getFaces() )
+//       {
+//          const auto  neighborFaceID = face.first;
+//          const Face* neighborFace   = setupStorage.getFace( neighborFaceID );
+//          if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+//          {
+//             neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
+//             neighborRanks_[0][neighborFaceID] = setupStorage.getTargetRank( neighborFaceID );
+//          }
+//       }
+
+//       for ( const auto& cell : setupStorage.getCells() )
+//       {
+//          const auto  neighborCellID = cell.first;
+//          const Cell* neighborCell   = setupStorage.getCell( neighborCellID );
+//          if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+//          {
+//             neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
+//             neighborRanks_[0][neighborCellID] = setupStorage.getTargetRank( neighborCellID );
+//          }
+//       }
+//    }
+
+//    splitCommunicatorByPrimitiveDistribution();
+
+// #ifndef NDEBUG
+//    checkConsistency();
+// #endif
+// }
 
 void PrimitiveStorage::getDirectNeighbourPrimitiveIDs( const std::vector< PrimitiveID >& vertices,
                                                        const std::vector< PrimitiveID >& edges,
@@ -522,8 +629,10 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
    }
 }
 
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth )
-: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage,
+                                    const uint_t&                additionalHaloDepth,
+                                    const bool&                  keepAllPrimitivesEverywhere )
+: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth, keepAllPrimitivesEverywhere )
 {}
 
 PrimitiveStorage::PrimitiveStorage( const VertexMap&      vtxs,
@@ -566,7 +675,7 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHa
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( std::make_shared< walberla::WcTimingTree >() )
-, hasGlobalCells_( false )                    // will be updated later in the constructor
+, hasGlobalCells_( false ) // will be updated later in the constructor
 , additionalHaloDepth_( additionalHaloDepth )
 {
    // We need to construct at least the maps on the coarsest level.

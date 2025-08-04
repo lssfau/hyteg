@@ -22,6 +22,7 @@
 
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesRotationP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
@@ -102,5 +103,9 @@ using P2ABlockOperatorWithProjection =
 using P2ABlockP1ViscousOperatorWithProjection =
     P2ABlockViscousProjectionFSTemplate< P1Function< real_t >,
                                          operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap >;
+
+using P2ABlockP0ViscousOperatorWithProjection =
+    P2ABlockViscousProjectionFSTemplate< P0Function< real_t >,
+                                         operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap >;
 
 } // namespace hyteg

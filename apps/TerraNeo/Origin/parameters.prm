@@ -1,3 +1,9 @@
+FunctionSpaces
+{
+   TemperatureSpace P2;
+   ViscositySpace P1;
+}
+
 Parameters
 {
    version 0.2;
@@ -148,7 +154,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 2;
+   boundaryCond 3;
 
    rotFactor 0.25;
 

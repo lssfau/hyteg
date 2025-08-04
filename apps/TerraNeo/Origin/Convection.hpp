@@ -82,7 +82,6 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/mass/P1ToP2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
@@ -113,6 +112,7 @@ namespace terraneo {
 
 inline TerraNeoParameters TN;
 
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 class ConvectionSimulation
 {
  public:
@@ -161,39 +161,26 @@ class ConvectionSimulation
 
    typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
 
-   static constexpr terraneo::FEFunctionTypes viscType        = terraneo::FEFunctionTypes::P1;
-   static constexpr terraneo::FEFunctionTypes temperatureType = terraneo::FEFunctionTypes::P2;
-   static constexpr terraneo::FEFunctionTypes energyCoeffType = terraneo::FEFunctionTypes::P2;
-
-   using TransportOperator_T = std::conditional_t<
-       temperatureType == terraneo::FEFunctionTypes::P2 && energyCoeffType == terraneo::FEFunctionTypes::P2,
-       terraneo::P2TransportIcosahedralShellMapOperator,
-       std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P2 && energyCoeffType == terraneo::FEFunctionTypes::P1,
-                           terraneo::P2TransportP1CoefficientsIcosahedralShellMapOperator,
-                           std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P1 &&
-                                                   energyCoeffType == terraneo::FEFunctionTypes::P1,
+   using TransportOperator_T =
+       std::conditional_t< std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > >,
+                           terraneo::P2TransportIcosahedralShellMapOperator,
+                           std::conditional_t< std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > >,
                                                terraneo::P1TransportIcosahedralShellMapOperator,
-                                               std::nullptr_t > > >;
+                                               std::nullptr_t > >;
 
-   using TemperatureFunction_T = std::conditional_t<
-       temperatureType == terraneo::FEFunctionTypes::P1,
-       P1Function< real_t >,
-       std::conditional_t< temperatureType == terraneo::FEFunctionTypes::P2, P2Function< real_t >, std::nullptr_t > >;
+   using StokesOperator_T =
+       std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P0Function< real_t > >,
+                           P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorFS,
+                           std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P1Function< real_t > >,
+                                               P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS,
+                                               P2P1StokesFullIcosahedralShellMapOperatorFS > >;
 
-   using ViscosityFunction_T = std::conditional_t<
-       viscType == terraneo::FEFunctionTypes::P0,
-       P0Function< real_t >,
-       std::conditional_t< viscType == terraneo::FEFunctionTypes::P1, P1Function< real_t >, P2Function< real_t > > >;
-   using StokesOperator_T = std::conditional_t< viscType == terraneo::FEFunctionTypes::P0,
-                                                std::nullptr_t,
-                                                std::conditional_t< viscType == terraneo::FEFunctionTypes::P1,
-                                                                    P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS,
-                                                                    P2P1StokesFullIcosahedralShellMapOperatorFS > >;
-
-   using StokesOperatorRotationOpgen_T = std::conditional_t<
-       viscType == terraneo::FEFunctionTypes::P0,
-       P2P1StokesP0ViscousOpgenRotationWrapper,
-       std::conditional_t< viscType == terraneo::FEFunctionTypes::P1, P2P1StokesOpgenRotationWrapper, std::nullptr_t > >;
+   using StokesOperatorRotationOpgen_T =
+       std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P0Function< real_t > >,
+                           P2P1StokesP0ViscousOpgenRotationWrapper,
+                           std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P1Function< real_t > >,
+                                               P2P1StokesOpgenRotationWrapper,
+                                               std::nullptr_t > >;
 
    using ProjectionOperator_T = P2ProjectNormalOperator;
    using RotationOperator_T   = P2RotationOperator;
@@ -279,6 +266,7 @@ class ConvectionSimulation
        { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmp3", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
+       { "StokesResidual", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
        { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
    std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
 
@@ -350,28 +338,20 @@ class ConvectionSimulation
    std::shared_ptr< StokesOperator_T >              stokesOperator_;
    std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorRotationOpgen_;
 
-   std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorOpgen;
-
-   std::shared_ptr< StokesOperatorFS > stokesOperatorFS;
+   std::shared_ptr< MMOCTransport< P1Function< real_t > > > temperatureMMOCOperatorP1_;
 
    std::shared_ptr< MMOCTransport< TemperatureFunction_T > > temperatureMMOCOperator_;
    std::shared_ptr< TransportOperator_T >                    temperatureTransportOperator_;
 
-   std::shared_ptr< MMOCTransport< ScalarFunction > >        transportOperator;
-   std::shared_ptr< P2TransportIcosahedralShellMapOperator > transportOperatorTALA;
-
-   std::shared_ptr< MMOCTransport< ScalarFunctionP1 > >      transportOperatorMMOCP1;
-   std::shared_ptr< P1TransportIcosahedralShellMapOperator > transportOperatorP1;
+   //    std::shared_ptr< terraneo::P1TransportIcosahedralShellMapOperator > temperatureTransportOperatorP1_;
 
    std::shared_ptr< P2ScalarMassOperator_T > p2ScalarMassOperator_;
 
    std::shared_ptr< ProjectionOperator_T > projectionOperator_;
    std::shared_ptr< RotationOperator_T >   rotationOperator_;
 
-   std::shared_ptr< P2ElementwiseBlendingMassOperator > P2MassOperator;
-   std::shared_ptr< P2ProjectNormalOperator >           projectionOperator;
-
-   std::shared_ptr< P2RotationOperator > rotationOperator;
+   std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
+   std::shared_ptr< P2RotationOperator >      rotationOperator;
 
    std::shared_ptr< P2toP2QuadraticProlongation > p2ProlongationOperator_;
    std::shared_ptr< P2toP2QuadraticInjection >    p2InjectionOperator_;

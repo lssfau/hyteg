@@ -3,7 +3,6 @@ waLBerla_add_executable( NAME TerraNeo
     DEPENDS hyteg terraneo core sqlite convection_particles 
     constant_stencil_operator mixed_operator opgen-mass opgen-k_mass 
     opgen-composites-stokes opgen-div_k_grad opgen-terraneo
-    opgen-rigid_body_mode_angular
 )
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config)

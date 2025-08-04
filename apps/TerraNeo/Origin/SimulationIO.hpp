@@ -23,7 +23,8 @@
 #include "Convection.hpp"
 
 namespace terraneo {
-void ConvectionSimulation::setupOutput()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupOutput()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "----------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup Output -------" );
@@ -139,6 +140,11 @@ void ConvectionSimulation::setupOutput()
          {
             vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
          }
+
+         vtkOutput->add( p2p1StokesFunctionContainer["VelocityFE"]->p() );
+
+         vtkOutput->add( p2p1StokesFunctionContainer["StokesResidual"]->uvw() );
+         vtkOutput->add( p2p1StokesFunctionContainer["StokesResidual"]->p() );
       }
       else
       {
@@ -157,42 +163,44 @@ void ConvectionSimulation::setupOutput()
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       if ( TN.outputParameters.OutputTemperature )
       {
-         // _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
-         // _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
-         _output->add( *( p1ScalarFunctionContainer["TemperatureFEP1"] ) );
+         _output->add( *( p2ScalarFunctionContainer["Temperature[K]"] ) );
+         _output->add( *( p2ScalarFunctionContainer["TemperatureDev"] ) );
       }
 
       if ( TN.outputParameters.OutputVelocity )
       {
-         _output->add( *( p1VectorFunctionContainer["VelocityFEP1"] ) );
-         
-         // if ( TN.outputParameters.outputVertexDoFs )
-         // {
-         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
-         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
-         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
-         // }
-         // else
-         // {
-         //    _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
-         // }
-         // _output->add( ( p2p1StokesFunctionContainer["StokesRHS"] )->p() );
+         if ( TN.outputParameters.outputVertexDoFs )
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[0].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[1].getVertexDoFFunction() );
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw()[2].getVertexDoFFunction() );
+         }
+         else
+         {
+            _output->add( p2p1StokesFunctionContainer["VelocityFE"]->uvw() );
+         }
+
+         _output->add( p2p1StokesFunctionContainer["VelocityFE"]->p() );
+
+         _output->add( p2p1StokesFunctionContainer["StokesResidual"]->uvw() );
+         _output->add( p2p1StokesFunctionContainer["StokesResidual"]->p() );
       }
       else
       {
-         // _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
+         _output->add( *( p2ScalarFunctionContainer["VelocityMagnitudeSquared"] ) );
       }
 
-      // _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
-      // if ( TN.outputParameters.outputVertexDoFs )
-      // {
-      //    _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
-      // }
-      // else
+      _output->add( p2ScalarFunctionContainer["DensityFE"]->getVertexDoFFunction() );
 
-      // {
-      //    _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
-      // }
+      if ( TN.outputParameters.outputVertexDoFs )
+      {
+         _output->add( p2ScalarFunctionContainer["Viscosity[Pas]"]->getVertexDoFFunction() );
+      }
+      else
+
+      {
+         _output->add( *( p2ScalarFunctionContainer["Viscosity[Pas]"] ) );
+      }
       // Add attributes to adios2 output
       // There must be a nicer way to collect these attributes
 
@@ -207,7 +215,8 @@ void ConvectionSimulation::setupOutput()
 // Private functions //
 ///////////////////////
 
-void ConvectionSimulation::dataOutput()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOutput()
 {
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "**************************" );
@@ -380,7 +389,8 @@ void ConvectionSimulation::dataOutput()
    TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );
 }
 
-void ConvectionSimulation::outputCheckpoint()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::outputCheckpoint()
 {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U &&
