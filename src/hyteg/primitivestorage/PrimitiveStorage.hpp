@@ -148,6 +148,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
 
+   void keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage& setupStorage );
+
    /// \brief Attaches a MicroMesh to the PrimitiveStorage.
    ///
    /// There are two general ways to approximate curved/complex geometries with HyTeG's block-structured triangular/tetrahedral

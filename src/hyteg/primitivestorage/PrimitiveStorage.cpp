@@ -3719,4 +3719,51 @@ void PrimitiveStorage::updateLeafPrimitiveMaps()
    }
 }
 
+void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage& setupStorage )
+{
+   for ( const auto& vertex : setupStorage.getVertices() )
+   {
+      const auto    neighborVertexID = vertex.first;
+      const Vertex* neighborVertex   = setupStorage.getVertex( neighborVertexID );
+      if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+      {
+         neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
+         neighborRanks_[0][neighborVertexID]    = setupStorage.getTargetRank( neighborVertexID );
+      }
+   }
+
+   for ( const auto& edge : setupStorage.getEdges() )
+   {
+      const auto  neighborEdgeID = edge.first;
+      const Edge* neighborEdge   = setupStorage.getEdge( neighborEdgeID );
+      if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+      {
+         neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
+         neighborRanks_[0][neighborEdgeID] = setupStorage.getTargetRank( neighborEdgeID );
+      }
+   }
+
+   for ( const auto& face : setupStorage.getFaces() )
+   {
+      const auto  neighborFaceID = face.first;
+      const Face* neighborFace   = setupStorage.getFace( neighborFaceID );
+      if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+      {
+         neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
+         neighborRanks_[0][neighborFaceID] = setupStorage.getTargetRank( neighborFaceID );
+      }
+   }
+
+   for ( const auto& cell : setupStorage.getCells() )
+   {
+      const auto  neighborCellID = cell.first;
+      const Cell* neighborCell   = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+         neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
+         neighborRanks_[0][neighborCellID] = setupStorage.getTargetRank( neighborCellID );
+      }
+   }
+}
+
 } // namespace hyteg

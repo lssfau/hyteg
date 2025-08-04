@@ -16,4 +16,6 @@ waLBerla_execute_test(NAME TerraNeoParameterTest_v0_2)
 waLBerla_compile_test(FILES radialoutput/RadialOutputTest.cpp DEPENDS terraneo hyteg core)
 waLBerla_execute_test(NAME RadialOutputTest)
 
+waLBerla_compile_test(FILES utils/MeshTransferWithParticlesTest.cpp DEPENDS terraneo hyteg core convection_particles opgen-mass)
+
 add_subdirectory( solvers )
