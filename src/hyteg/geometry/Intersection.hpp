@@ -187,7 +187,7 @@ inline bool circleTriangleIntersection( const PointType& centre,
 
          if ( k < len )
          {
-            if ( std::sqrt( c1x * c1x + c1y * c1y - k * k ) <= radius )
+            if ( c1x * c1x + c1y * c1y - k * k <= radius * radius )
                return true;
          }
       }
@@ -207,7 +207,7 @@ inline bool circleTriangleIntersection( const PointType& centre,
 
          if ( k < len )
          {
-            if ( std::sqrt( c2x * c2x + c2y * c2y - k * k ) <= radius )
+            if ( c2x * c2x + c2y * c2y - k * k <= radius * radius )
                return true;
          }
       }
@@ -227,7 +227,7 @@ inline bool circleTriangleIntersection( const PointType& centre,
 
          if ( k < len )
          {
-            if ( std::sqrt( c3x * c3x + c3y * c3y - k * k ) <= radius )
+            if ( c3x * c3x + c3y * c3y - k * k <= radius * radius )
                return true;
          }
       }
