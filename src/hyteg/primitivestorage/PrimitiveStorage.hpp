@@ -148,6 +148,11 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
 
+   /// This is a function implemented specifically for the use case of transferring functions between primitive storages
+   /// Should be called from every process. This will keep all the primitives from `setupStorage` in every processes
+   /// Another CAUTION when using this. Can easily blow up the memory for larger macro meshes.
+   void keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage& setupStorage );
+
    /// \brief Attaches a MicroMesh to the PrimitiveStorage.
    ///
    /// There are two general ways to approximate curved/complex geometries with HyTeG's block-structured triangular/tetrahedral
