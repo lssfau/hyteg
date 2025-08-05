@@ -34,6 +34,9 @@
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 namespace hyteg {
+
+/// This is the utility class which can be used to transfer an FE Function between two primitive storages
+/// It uses the functionality from MMOCTransport heavily to perform this transfer
 template < typename FunctionType >
 class MeshTransferWithParticles
 {
@@ -42,6 +45,15 @@ class MeshTransferWithParticles
    : particleStorage_( 10000 )
    {}
 
+   /// \brief This function performs the transfer from `src` to `dst`
+   /// Note that the storage of the `src` function must contain all primitives as neighbours
+   /// through which the geometry and connectivity (rank) information is accessed from every process.
+   /// Although there is no requirement on the `dst` storage.
+   ///
+   /// \param src source function which should be transferred
+   /// \param dst destination function which receives the result of the transfer
+   /// \param levelSrc level of the source function used
+   /// \param levelDst level of the destination function to be populated
    void transfer( const FunctionType& src, const FunctionType& dst, const uint_t levelSrc, const uint_t levelDst )
    {
       const std::shared_ptr< PrimitiveStorage >& storageSrc = src.getStorage();
@@ -51,18 +63,23 @@ class MeshTransferWithParticles
 
       const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
+      /// Initialize particles on the DoFs of the dst micro mesh
       initialiseParticles( dst, levelDst, storageSrc );
 
       const uint_t numberOfCreatedParticles = particleStorage_.size();
 
       walberla::convection_particles::mpi::SyncNextNeighborsByPrimitiveID SNN;
 
+      /// Find where the particles belong on the src macro mesh
       findSrcMacroWithParticle( *storageSrc, particleStorage_, 0.1 * MeshQuality::getMinimalEdgeLength( storageSrc, levelSrc ) );
 
+      /// Move the particles to the process where they belong so they can be evaluated
       SNN( particleStorage_, *storageSrc );
 
+      /// Evaluate the particles
       evaluateParticles( src, levelSrc );
 
+      /// Communicate the particles back to where they came from so that the dst DoFs can be filled
       communicateParticles( dst, levelDst, numberOfCreatedParticles );
    }
 
