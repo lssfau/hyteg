@@ -628,7 +628,7 @@ class TALASimulation
 
          transportTALAOp->mmocTransport_->setCautionedEvaluate( mainConf.getParameter< bool >( "cautionedEvaluate" ) );
 
-         transportCGSolver = std::make_shared< CGSolver< terraneo::P2TransportOperator > >( storage_, minLevel_, maxLevel_ );
+         transportCGSolver = std::make_shared< CGSolver< terraneo::P2TransportOperator > >( storage_, minLevel_, maxLevel_, 30, 1e-9 );
          transportCGSolver->setPrintInfo( params.verbose );
       }
 
@@ -653,7 +653,7 @@ class TALASimulation
          transportTALAOpP1->initializeOperators();
 
          transportCGSolverP1 =
-             std::make_shared< CGSolver< terraneo::P1TransportOperator > >( storage_, minLevel_, maxLevel_ + 1 );
+             std::make_shared< CGSolver< terraneo::P1TransportOperator > >( storage_, minLevel_, maxLevel_ + 1, 30, 1e-9 );
          transportCGSolverP1->setPrintInfo( params.verbose );
       }
 
