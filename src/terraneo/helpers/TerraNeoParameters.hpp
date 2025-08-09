@@ -121,7 +121,7 @@ struct SolverParameters
 struct OutputParameters
 {
    std::string outputDirectory = std::string( "output" );
-   std::string modelBaseName  = std::string( "conv_sim" );
+   std::string modelBaseName   = std::string( "conv_sim" );
 
    std::string ADIOS2OutputConfig = std::string( "ADIOS2config.xml" );
    std::string ADIOS2ParamKey     = std::string( "NumAggregators" );
@@ -143,14 +143,19 @@ struct OutputParameters
 
    uint_t ADIOS2StoreCheckpointFrequency = 100U;
 
-   bool   dataOutput             = true;
-   bool   vtk                    = true;
-   bool   OutputVelocity         = true;
-   bool   OutputViscosity        = true;
-   bool   OutputTemperature      = true;
+   bool dataOutput = true;
+   bool vtk        = true;
+
    uint_t OutputInterval         = 1;
    uint_t OutputProfilesInterval = 1;
    uint_t checkpointCount        = 1;
+
+   bool OutputVelocity    = true;
+   bool OutputViscosity   = true;
+   bool OutputDensity     = true;
+   bool OutputTemperature = true;
+   bool OutputVerbose     = false;
+   bool OutputDimensional = false;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -257,6 +262,14 @@ struct SimulationParameters
    bool checkTemperatureConsistency = false;     // Check if radially averaged temperatures goes
                                                  // out of the expected range [surfaceTemp, cmbTemp]
    real_t temperatureConsistencyThreshold = 1.0; // Kelvin
+
+   real_t initialTimestepSize                    = 1.0; // Ma
+   uint_t initialNStepsForTimestepLinearIncrease = 20u;
+
+   // MMOC Parameters
+   real_t particleLocationRadius    = real_c( 1e-2 );
+   bool   projectPointsBackToDomain = false;
+   bool   cautionedEvaluate         = false;
 };
 
 enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t

@@ -116,7 +116,14 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
    auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
    auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
 
-   auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< StokesABlockType > >( storage, minLevel );
+   std::shared_ptr< Solver< StokesABlockType > > ABlockCoarseGridSolver;
+
+#if defined( HYTEG_BUILD_WITH_PETSC )
+   ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< StokesABlockType > >( storage, minLevel );
+#else
+   ABlockCoarseGridSolver = std::make_shared< MinResSolver< StokesABlockType > >( storage, minLevel, minLevel, 100u );
+#endif
+
    auto ABlockMultigridSolver  = std::make_shared< GeometricMultigridSolver< StokesABlockType > >( storage,
                                                                                                   ABlockSmoother,
                                                                                                   ABlockCoarseGridSolver,
@@ -669,10 +676,9 @@ class TALASimulation
       stokesSolverMG = solvertemplates::fgmresMGSolver< StokesOperator_T, StokesOperator_T::ViscousOperator_T, SchurOperator_T >(
           storage_, minLevel_, maxLevel_, stokesOperator->getA(), *schurOperator );
 
+#if defined( HYTEG_BUILD_WITH_PETSC )
       stokesDirectSolverPetsc = std::make_shared< PETScLUSolver< StokesOperator_T > >( storage_, maxLevel_ );
-
-      // stokesSolverPetsc = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator_T > >(storage_, maxLevel, 1e-6, 1000, 1, 1, 1);
-      // stokesSolverPetsc->reassembleMatrix( false );
+#endif
 
       std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
       std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
@@ -735,9 +741,7 @@ class TALASimulation
 
    // Solvers
    std::shared_ptr< Solver< StokesOperator_T > >        stokesSolverMG;
-   std::shared_ptr< PETScLUSolver< StokesOperator_T > > stokesDirectSolverPetsc;
-
-   // std::shared_ptr< PETScBlockPreconditionedStokesSolver< StokesOperator_T > > stokesSolverPetsc;
+   std::shared_ptr< Solver< StokesOperator_T > > stokesDirectSolverPetsc;
 
    std::shared_ptr< CGSolver< terraneo::P2TransportOperator > > transportCGSolver;
    std::shared_ptr< CGSolver< terraneo::P1TransportOperator > > transportCGSolverP1;
@@ -778,7 +782,11 @@ void TALASimulation::solveU()
 
    if ( mainConf.getParameter< bool >( "stokesDirectSolver" ) )
    {
+#if defined( HYTEG_BUILD_WITH_PETSC )
       stokesDirectSolverPetsc->solve( *stokesOperator, *u, *uRhs, maxLevel );
+#else
+      WALBERLA_ABORT("PETSc not build but direct solver requested");
+#endif
    }
    else
    {

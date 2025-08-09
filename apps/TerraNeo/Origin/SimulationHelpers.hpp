@@ -146,7 +146,7 @@ real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::surfa
 }
 
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
-void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updatePlateVelocities( StokesFunction& U )
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updatePlateVelocities( P2P1StokesFunction_T& U )
 {
    uint_t                                           coordIdx = 0;
    terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
@@ -180,6 +180,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateP
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateViscosity()
 {
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2  = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2    = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityInvP2 = p2ScalarFunctionContainer.at( "ViscosityFEInv" );
+
+   std::shared_ptr< P0ScalarFunction_T >& viscosityP0 = p0ScalarFunctionContainer.at( "ViscosityFEP0" );
+
    if ( p2InjectionOperator_ == nullptr )
    {
       p2InjectionOperator_ =
@@ -188,7 +194,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateV
 
    for ( uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level-- )
    {
-      p2InjectionOperator_->restrict( *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All );
+      p2InjectionOperator_->restrict( *temperatureP2, level, All );
    }
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
@@ -203,30 +209,24 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateV
    // Before interpolation: Ensure the new reference viscosity is set to the min current viscosity if a viscosity profile
    // or a temperature dependent viscosity is utilized.
    // This is will ensure that that the minimum non-dimensionalised value for the viscosity = 1.
-   p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
-       viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, TN.domainParameters.maxLevel, All );
+   viscosityP2->interpolate( viscosityInit, { *temperatureP2 }, TN.domainParameters.maxLevel, All );
 
-   communication::syncFunctionBetweenPrimitives( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
-                                                 TN.domainParameters.maxLevel );
+   communication::syncFunctionBetweenPrimitives( viscosityP2->getVertexDoFFunction(), TN.domainParameters.maxLevel );
 
-   P1toP0Conversion( p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
-                     *( p0ScalarFunctionContainer["ViscosityFEP0"] ),
-                     TN.domainParameters.maxLevel,
-                     AveragingType::ARITHMETIC_QP );
+   P1toP0Conversion(
+       viscosityP2->getVertexDoFFunction(), *viscosityP0, TN.domainParameters.maxLevel, AveragingType::ARITHMETIC_QP );
 
    P0toP0AveragedInjection p0toP0AveragedInjection( AveragingType::ARITHMETIC, false );
 
-   p0toP0AveragedInjection.restrictToAllLowerLevels( *( p0ScalarFunctionContainer["ViscosityFEP0"] ),
-                                                     TN.domainParameters.maxLevel );
+   p0toP0AveragedInjection.restrictToAllLowerLevels( *viscosityP0, TN.domainParameters.maxLevel );
 
-   real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxDoFValue( TN.domainParameters.maxLevel ) *
-                         TN.physicalParameters.referenceViscosity;
+   real_t maxViscosity = viscosityP2->getMaxDoFValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity [Pa s]: " << maxViscosity );
 
-   real_t minRefViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMinDoFValue( TN.domainParameters.maxLevel ) *
-                            TN.physicalParameters.referenceViscosity;
+   real_t minRefViscosity =
+       viscosityP2->getMinDoFValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
    WALBERLA_LOG_INFO_ON_ROOT( "New update reference viscosity [Pa s]: " << minRefViscosity );
 
    if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.haveViscosityProfile )
@@ -242,10 +242,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateV
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
-          viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
-      p2ScalarFunctionContainer["ViscosityFEInv"]->interpolate(
-          viscosityInitInv, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
+      viscosityP2->interpolate( viscosityInit, { *temperatureP2 }, l, All );
+      viscosityInvP2->interpolate( viscosityInitInv, { *temperatureP2 }, l, All );
    }
 }
 
@@ -403,6 +401,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
    const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
    const uint_t                 numLayers = radius.size();
 
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2 = p2ScalarFunctionContainer.at( "TemperatureFE" );
+
    // Calculate heat flows
    const real_t heatFlowFactor = thermalConductivity * mantleThickness * 1e-12;
 
@@ -412,15 +412,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
    real_t hGradient   = 1e-2;
    real_t epsBoundary = 1e-7;
 
-   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                                           TN.domainParameters.maxLevel,
-                                                                           hGradient,
-                                                                           TN.domainParameters.rMax,
-                                                                           epsBoundary,
-                                                                           nuSamples );
+   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D(
+       *temperatureP2, TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMax, epsBoundary, nuSamples );
 
    real_t dTdrIntegralInner =
-       nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+       nusseltcalc::calculateNusseltNumberSphere3D( *temperatureP2,
                                                     TN.domainParameters.maxLevel,
                                                     hGradient,
                                                     TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary,
@@ -433,6 +429,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+
    if ( TN.outputParameters.createTimingDB )
    {
       db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );

@@ -147,6 +147,8 @@ Parameters
 
    boundaryCond 1;
 
+   rotFactor 0.25;
+
    // Model simulation type: ConvectionModel / CirculationModel
 
    simulationType ConvectionModel;
@@ -173,6 +175,10 @@ Parameters
    maxTimeStepSize 0.5;
    cflMax 0.75;
    dtConstant 1e-4;
+
+   particleLocationRadius 0.01;
+   projectPointsBackToDomain false;
+   cautionedEvaluate false;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
@@ -211,6 +217,8 @@ Parameters
    // 1 - PETSc solver
    PETScFlag 0;
 
+   useRotationWrapper false;
+
    // Uzawa solver parameters
 
    stokesMaxNumIterations 5;
@@ -224,6 +232,7 @@ Parameters
    // FGMRES solver parameters 
 
    FGMRESOuterIterations 5;
+   FGMRESRestartLength 7;
    FGMRESTolerance 1e-6;
    uzawaIterations 3;
    uzawaOmega 0.5;
@@ -245,6 +254,9 @@ Parameters
 
    stokesKillTolerance 10;
 
+   checkTemperatureConsistency false;
+   temperatureConsistencyThreshold 1.0;
+
    // Diffusion parameters 
 
    diffusionMaxNumIterations 1000;
@@ -259,6 +271,7 @@ Parameters
    OutputVelocity true;
    OutputTemperature true;
    OutputInterval 1;
+   OutputProfilesInterval 10;
    OutputVertexDoFs false;
 
    //If desired: output per Myr:
@@ -286,7 +299,7 @@ Parameters
    ADIOS2Value 4;
 
    outputDirectory ../../output;
-   outputBaseName TerraNeo;
+   modelBaseName TerraNeo;
 
    // Output of a. json file containing timing tree information
 

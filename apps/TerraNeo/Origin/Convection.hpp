@@ -145,14 +145,6 @@ class ConvectionSimulation
    const SimulationParameters& getSimulationParams();
 
  private:
-   typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunction;
-   typedef P2Function< real_t >                                                        ScalarFunction;
-   typedef P2P1TaylorHoodFunction< real_t >                                            StokesFunctionP2P1;
-   typedef P2Function< real_t >                                                        ScalarFunctionP2;
-   typedef P0Function< real_t >                                                        ScalarFunctionP0;
-   typedef P2VectorFunction< real_t >                                                  VectorFunctionP2;
-   typedef P1VectorFunction< real_t >                                                  VectorFunctionP1;
-   typedef P1Function< real_t >                                                        ScalarFunctionP1;
    typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
    typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
    typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator BlockLaplaceOperator;
@@ -201,7 +193,7 @@ class ConvectionSimulation
    void setupStokesRHS();
    void setupEnergyRHS();
    void updateViscosity();
-   void updatePlateVelocities( StokesFunction& );
+   void updatePlateVelocities( P2P1StokesFunction_T& );
    void solveStokes();
    void solveEnergy();
    void calculateHeatflow( const std::shared_ptr< RadialProfile >& );
@@ -237,11 +229,19 @@ class ConvectionSimulation
 
    // function and solver initialization
 
-   enum class BoundaryConditionType
+   enum class BCs_T
    {
-      VELOCITY_BOUNDARY_CONDITION,
-      TEMPERATURE_BOUNDARY_CONDITION,
-      NO_BOUNDARY_CONDITION
+      VELOCITY_BC,
+      VELOCITYROTATION_BC,
+      TEMPERATURE_BC,
+      NO_BC
+   };
+
+   enum class Level_T
+   {
+      MINLEVEL,
+      MAXLEVEL,
+      MAXLEVELPLUSONE
    };
 
    /** Initialise functions
@@ -251,90 +251,75 @@ class ConvectionSimulation
      * std::string           = (Name of the function),
      * uint_t                = (Minimum level),
      * uint_t                = (Maximum level),
-     * BoundaryConditionType = (Velocity or Temperature or No Boundary condition)
+     * BCs_T = (Velocity or Temperature or No Boundary condition)
      * >
      */
    //
    // TODO: Implement a seperate FE Function container for TerraNeo when the crashes get annoying
    //
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2p1StokesFunctionDict = {
-       { "VelocityFE", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "VelocityFEPrev", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesRHS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "VelocityFERotated", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesRHSRotated", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmp1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmp2", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmp3", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesResidual", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "StokesTmpProlongation", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< StokesFunctionP2P1 > > p2p1StokesFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p2p1StokesFunctionDict = {
+       { "VelocityFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "VelocityFEPrev", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "StokesRHS", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "VelocityFERotated", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITYROTATION_BC },
+       { "StokesRHSRotated", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITYROTATION_BC },
+       { "StokesTmp1", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "StokesTmp2", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "StokesTmp3", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "StokesResidual", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC },
+       { "StokesTmpProlongation", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC } };
+   std::map< std::string, std::shared_ptr< P2P1StokesFunction_T > > p2p1StokesFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2ScalarFunctionDict = {
-       { "TemperatureFE", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "TemperaturePrev", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "TemperatureDev", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "Temperature[K]", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "ReferenceTemperature[K]", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "ViscosityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ViscosityFEInv", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "Viscosity[Pas]", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "EnergyRHSWeak", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "DensityFE", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ShearHeatingTermCoeff", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ShearHeatingTermCoeffDebug", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "VelocityMagnitudeSquared", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "TemperatureVolumetric", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "Volume", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "Ones", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "TemperatureAvrgVolumetric", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< ScalarFunctionP2 > > p2ScalarFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p2ScalarFunctionDict = {
+       { "TemperatureFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "TemperaturePrev", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "TemperatureDev", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "Temperature[K]", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "ReferenceTemperature", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "ViscosityFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "ViscosityFEInv", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "Viscosity[Pas]", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "EnergyRHSWeak", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "DensityFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "ShearHeatingTermCoeff", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "ShearHeatingTermCoeffDebug", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "VelocityMagnitudeSquared", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC } };
+   std::map< std::string, std::shared_ptr< P2ScalarFunction_T > > p2ScalarFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p2VectorFunctionDict = {
-       { "NormalsFS", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< VectorFunctionP2 > > p2VectorFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p2VectorFunctionDict = {
+       { "NormalsFS", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::VELOCITY_BC } };
+   std::map< std::string, std::shared_ptr< P2VectorFunction_T > > p2VectorFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p1ScalarFunctionDict = {
-       { "ViscosityFEP1", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "ShearHeatingTermCoeffP1", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION },
-       { "TemperatureFEP1", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION },
-       { "EnergyRHSP1", 0u, 0u, BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< ScalarFunctionP1 > > p1ScalarFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p1ScalarFunctionDict = {
+       { "ViscosityFEP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::NO_BC },
+       { "ShearHeatingTermCoeffP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::NO_BC },
+       { "TemperatureFEP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
+       { "TemperatureFEPrevP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
+       { "EnergyRHSP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC } };
+   std::map< std::string, std::shared_ptr< P1ScalarFunction_T > > p1ScalarFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p1VectorFunctionDict = {
-       { "VelocityFEP1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION },
-       { "VelocityFEPrevP1", 0u, 0u, BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< VectorFunctionP1 > > p1VectorFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p1VectorFunctionDict = {
+       { "VelocityFEP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::VELOCITY_BC },
+       { "VelocityFEPrevP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::VELOCITY_BC } };
+   std::map< std::string, std::shared_ptr< P1VectorFunction_T > > p1VectorFunctionContainer;
 
-   std::vector< std::tuple< std::string, uint_t, uint_t, BoundaryConditionType > > p0ScalarFunctionDict = {
-       { "ViscosityFEP0", 0u, 0u, BoundaryConditionType::NO_BOUNDARY_CONDITION } };
-   std::map< std::string, std::shared_ptr< ScalarFunctionP0 > > p0ScalarFunctionContainer;
+   std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p0ScalarFunctionDict = {
+       { "ViscosityFEP0", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::NO_BC } };
+   std::map< std::string, std::shared_ptr< P0ScalarFunction_T > > p0ScalarFunctionContainer;
 
    // Storage for primitives (includes functionality for distributed computing)
    std::shared_ptr< PrimitiveStorage > storage;
 
    // Solvers
-   std::shared_ptr< FGMRESSolver< StokesOperator > >                  stokesSolver;
-   std::shared_ptr< Solver< StokesOperatorFS::ViscousOperatorFS_T > > stokesABlockSmoother;
-
-   std::shared_ptr< MCSolverBase< StokesOperatorFS > > stokesSolverClass;
-   std::shared_ptr< Solver< StokesOperatorFS > >       stokesSolverFS;
-
    std::shared_ptr< MCSolverBase< StokesOperator_T > > stokesMCSolver_;
    std::shared_ptr< Solver< StokesOperator_T > >       stokesSolver_;
 
    std::shared_ptr< MCSolverBase< StokesOperatorRotationOpgen_T > > stokesRotationOpgenMCSolver_;
    std::shared_ptr< Solver< StokesOperatorRotationOpgen_T > >       stokesRotationOpgenSolver_;
 
-   std::shared_ptr< CGSolver< TransportOperator_T > >                    temperatureTransportSolver_;
-   std::shared_ptr< CGSolver< P2TransportIcosahedralShellMapOperator > > transportSolverTALA;
-   std::shared_ptr< CGSolver< P1TransportIcosahedralShellMapOperator > > transportSolverP1;
-
-   std::shared_ptr< MCSolverBase< StokesOperatorRotationOpgen_T > > stokesSolverOpgenClass;
-   std::shared_ptr< Solver< StokesOperatorRotationOpgen_T > >       stokesSolverOpgen;
+   std::shared_ptr< CGSolver< TransportOperator_T > > temperatureTransportSolver_;
 
    // Operators
-
    std::shared_ptr< StokesOperator_T >              stokesOperator_;
    std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorRotationOpgen_;
 
@@ -343,15 +328,10 @@ class ConvectionSimulation
    std::shared_ptr< MMOCTransport< TemperatureFunction_T > > temperatureMMOCOperator_;
    std::shared_ptr< TransportOperator_T >                    temperatureTransportOperator_;
 
-   //    std::shared_ptr< terraneo::P1TransportIcosahedralShellMapOperator > temperatureTransportOperatorP1_;
-
    std::shared_ptr< P2ScalarMassOperator_T > p2ScalarMassOperator_;
 
    std::shared_ptr< ProjectionOperator_T > projectionOperator_;
    std::shared_ptr< RotationOperator_T >   rotationOperator_;
-
-   std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
-   std::shared_ptr< P2RotationOperator >      rotationOperator;
 
    std::shared_ptr< P2toP2QuadraticProlongation > p2ProlongationOperator_;
    std::shared_ptr< P2toP2QuadraticInjection >    p2InjectionOperator_;
@@ -364,11 +344,11 @@ class ConvectionSimulation
    std::string modelCheckpointPath;
    std::string modelRadialProfilesPath;
 
-   std::shared_ptr< hyteg::VTKOutput > vtkOutput;
+   std::shared_ptr< hyteg::VTKOutput > vtkOutput_;
 
    // ADIOS2 data output
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-   std::shared_ptr< AdiosWriter > _output;
+   std::shared_ptr< AdiosWriter > adiosOutput_;
 
    std::shared_ptr< AdiosCheckpointExporter > checkpointExporter;
    std::shared_ptr< AdiosCheckpointImporter > checkpointImporter;
@@ -393,11 +373,13 @@ class ConvectionSimulation
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return -x[1] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalZ = []( const Point3D& x ) { return -x[2] / x.norm(); };
 
-   std::shared_ptr< RadialProfile >                             viscosityProfiles;
-   std::shared_ptr< RadialProfile >                             temperatureProfiles;
-   std::shared_ptr< RadialProfile >                             velocityProfiles;
-   std::shared_ptr< TemperatureInitializationParameters >       temperatureInitParams;
-   std::shared_ptr< std::function< real_t( const Point3D& ) > > temperatureReferenceFct;
+   std::shared_ptr< RadialProfile >                       viscosityProfiles;
+   std::shared_ptr< RadialProfile >                       temperatureProfiles;
+   std::shared_ptr< RadialProfile >                       velocityProfiles;
+   std::shared_ptr< TemperatureInitializationParameters > temperatureInitParams;
+
+   std::function< real_t( const Point3D& ) > randFunc;
+   std::function< real_t( const Point3D& ) > temperatureInitialCondition;
 };
 
 } // namespace terraneo

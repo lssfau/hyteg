@@ -315,6 +315,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.checkTemperatureConsistency     = mainConf.getParameter< bool >( "checkTemperatureConsistency" );
    simulationParam.temperatureConsistencyThreshold = mainConf.getParameter< real_t >( "temperatureConsistencyThreshold" );
 
+   simulationParam.particleLocationRadius    = mainConf.getParameter< real_t >( "particleLocationRadius" );
+   simulationParam.projectPointsBackToDomain = mainConf.getParameter< bool >( "projectPointsBackToDomain" );
+   simulationParam.cautionedEvaluate         = mainConf.getParameter< bool >( "cautionedEvaluate" );
+
    if ( simulationParam.tempDependentViscosity || simulationParam.haveViscosityProfile )
    {
       simulationParam.tempDependentViscosityType = mainConf.getParameter< uint_t >( "tempDependentViscosityType" );
@@ -473,7 +477,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.SchurCoarseGridIterations = mainConf.getParameter< uint_t >( "SchurCoarseGridIterations" );
    solverParam.SchurCoarseGridTolerance  = mainConf.getParameter< real_t >( "SchurCoarseGridTolerance" );
 
-   solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
+   solverParam.stokesKillTolerance = mainConf.getParameter< real_t >( "stokesKillTolerance" );
+   solverParam.useRotationWrapper  = mainConf.getParameter< bool >( "useRotationWrapper" );
 
    solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
    solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
@@ -487,7 +492,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesSmoothIncrementCoarseGrid = mainConf.getParameter< uint_t >( "stokesSmoothIncrementCoarseGrid" );
 
    outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
-   outputParam.modelBaseName  = mainConf.getParameter< std::string >( "modelBaseName" );
+   outputParam.modelBaseName   = mainConf.getParameter< std::string >( "modelBaseName" );
    outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
    outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
 
@@ -548,7 +553,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
  * to the root process and to the log file.
  */
 
-inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::string paramsPath )
+inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::string paramsPath = "" )
 {
    const auto outputParam         = terraNeoParameters.outputParameters;
    const auto domainParam         = terraNeoParameters.domainParameters;
@@ -557,10 +562,13 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    const auto initialisationParam = terraNeoParameters.initialisationParameters;
    const auto solverParam         = terraNeoParameters.solverParameters;
 
-   //logging for model info
-   WALBERLA_ROOT_SECTION()
+   if ( paramsPath != "" )
    {
-      walberla::logging::Logging::instance()->includeLoggingToFile( paramsPath );
+      //logging for model info
+      WALBERLA_ROOT_SECTION()
+      {
+         walberla::logging::Logging::instance()->includeLoggingToFile( paramsPath );
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
