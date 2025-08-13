@@ -39,7 +39,6 @@
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
 #include "terraneo/operators/P2StokesABlockWithProjection.hpp"
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using namespace hyteg;

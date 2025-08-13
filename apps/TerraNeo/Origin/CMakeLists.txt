@@ -1,3 +1,5 @@
+add_compile_options( "-std=c++20" )
+
 waLBerla_add_executable( NAME TerraNeo
     FILES Convection.cpp
     DEPENDS hyteg terraneo core sqlite convection_particles 

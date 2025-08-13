@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.20)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -70,8 +70,6 @@ list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}
 target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
 target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
-add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
-add_flag ( CMAKE_CXX_FLAGS "-Wno-range-loop-construct -Wno-deprecated -Wno-restrict" )
 if ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
    add_flag( CMAKE_CXX_FLAGS "-Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-float-conversion -Wno-unused-function -Wno-unused-variable" )
    add_flag( CMAKE_CXX_FLAGS "-Wno-implicit-float-conversion -Wno-unused-local-typedef -Wno-delete-non-abstract-non-virtual-dtor" )

@@ -99,7 +99,7 @@
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
 #include "terraneo/operators/P2P1StokesOperatorRotationOpgen.hpp"
 #include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
-#include "terraneo/operators/P2TransportRHSOperator.hpp"
+#include "terraneo/operators/P2P1StokesOperatorWithRotation.hpp"
 #include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/solvers/MCSolverBase.hpp"
 #include "terraneo/solvers/StokesMCFGMRESSolver.hpp"
