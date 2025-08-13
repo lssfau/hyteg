@@ -36,9 +36,9 @@ Parameters
     maxTimeSteps 1000;
 
     outputFilename Cube_P1;
-    outputPath /SCRATCH/grobl/TerraNeo/simulations/cube/P1_level6_Ra1e5;
+    outputPath output;
 
-    profilePath /SCRATCH/grobl/TerraNeo/simulations/cube/P1_level6_Ra1e5/Profiles/;
+    profilePath Profiles;
 
-    vtkWriteFrequency 100;
+    vtkWriteFrequency 5;
 }

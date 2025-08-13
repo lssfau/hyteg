@@ -65,6 +65,10 @@
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
+// #include "hyteg/operatorgeneration/generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.hpp"
+// #include "hyteg/operatorgeneration/generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.hpp"
+
+
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/helpers/RadialProfiles.hpp"
@@ -159,6 +163,35 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
 }
 
 } // namespace solvertemplates
+
+// namespace operatorgeneration {
+
+// using P2P1StokesViscoplastic =
+//     detail::P2P1StokesNonlinViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesViscoplastic,
+//                                                   operatorgeneration::P1ToP2GradientOperator,
+//                                                   operatorgeneration::P2ToP1DivergenceOperator >;
+// } // namespace operatorgeneration
+
+
+struct ParameterContainer
+{
+   bool verbose = true;
+
+   real_t rMin = 1.22, rMax = 2.22;
+
+   uint_t maxTimeSteps = 1000, vtkWriteFrequency = 1U;
+
+   bool MMOC = true, SUPG = false, compressible = true, adiabaticHeating = true, shearHeating = true;
+
+   real_t Ra = 1e5, Di = 0.5, T0 = 0.091, diffusivity = 1.0, cflMax = 0.75, AiniPerturb = 0.1;
+
+   real_t rho0 = 1.0, alpha = 1.0, cpr = 1.0, cvr = 1.0, grueneisen = 1.0, alphabar = 1.0, cpbar = 1.0, chibar = 1.0, k_ = 1.0;
+
+   real_t minresRelTol = 1e-4, minresAbsTol = 1e-8, gmresTol = 1e-5;
+   uint_t minresIter = 1000U, gmresIter = 1000U;
+
+   uint_t nsCalcFreq = 10U;
+};
 
 const real_t boundaryMarkerThreshold = 1e-6;
 
@@ -370,7 +403,8 @@ std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
         ( bottomMarker( x ) && leftMarker( x ) && frontMarker( x ) ) ||
         ( topMarker( x ) && rightMarker( x ) && backMarker( x ) ) ||
         ( bottomMarker( x ) && rightMarker( x ) && backMarker( x ) ) ||
-        ( topMarker( x ) && leftMarker( x ) && backMarker( x ) ) || ( bottomMarker( x ) && leftMarker( x ) && backMarker( x ) ) )
+        ( topMarker( x ) && leftMarker( x ) && backMarker( x ) ) || 
+        ( bottomMarker( x ) && leftMarker( x ) && backMarker( x ) ) )
    {
       return true;
    }
@@ -380,8 +414,15 @@ std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
    }
 };
 
-using StokesOperator_T = operatorgeneration::P2P1StokesConstantOperator;
-using SchurOperator_T  = operatorgeneration::P1ElementwiseMass;
+// typedef operatorgeneration::P2P1StokesFullP0ViscosityOperator StokesOperator;
+// // typedef operatorgeneration::P2P1StokesFullP1ViscosityOperator StokesOperator;
+// typedef P2P1ElementwiseBlendingStokesOperator      StokesOperatorLinear;
+// typedef operatorgeneration::P2P1StokesViscoplastic StokesOperatorNonlinear;
+
+// typedef StrongFreeSlipWrapper< StokesOperator, P2ProjectNormalOperator, true > StokesOperatorFS;
+
+using StokesOperator_T = operatorgeneration::P2P1StokesEpsilonOperator;
+using SchurOperator_T  = operatorgeneration::P1ElementwiseKMass;
 
 enum BoundaryMarkers
 {
@@ -406,26 +447,122 @@ enum BoundaryMarkers
    PointCorners,
 };
 
-struct ParameterContainer
+real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Temperature )
 {
-   bool verbose = true;
+   auto   radius =   x[2] ;
+   real_t retVal = 1e21;
+   real_t rMax = 2.22;
 
-   real_t rMin = 1.22, rMax = 2.22;
+   //set background viscosity as radial profile or constant value, and non-dimensionalise
+   // if ( haveViscosityProfile )
+   // {
+   //    retVal = linearInterpolateBetween( viscosityProfile, radius );
+   // }
+   // else
+   // {
+   //    retVal = parameters.referenceViscosity;
+   // }
 
-   uint_t maxTimeSteps = 1000, vtkWriteFrequency = 1U;
+   //scale background viscosity by temperature- and depth-dependent factors
+   //depth-dependent factor counteracts the decrease in viscosity due to increasing temperature with depth
+   // if ( tempDependentViscosity )
+   // {
+      // switch ( tempDependentViscosityType )
+      // {
+      // //Frank–Kamenetskii type 1
+      // case 0: {
+      //    retVal *= std::exp( -activationEnergy * ( Temperature[0] ) +
+      //                        depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
+      //    break;
+      // }
+      // //Frank–Kamenetskii type 2
+      // case 1: {
+      //    retVal *= std::exp( activationEnergy * ( real_c( 0.5 ) - Temperature[0] ) +
+      //                        depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
+      //    break;
+      // }
+      // //Arrhenius type
+      // case 2: {
 
-   bool MMOC = true, SUPG = false, compressible = true, adiabaticHeating = true, shearHeating = true;
+   real_t activationEnergy     = real_c( 3 );
+   real_t depthViscosityFactor = real_c( 1.5 );
+   real_t viscosityLowerBound  = real_c( 1e20 );
+   real_t viscosityUpperBound  = real_c( 1e24 );
+   real_t c1 = real_c(0.05);
+   real_t c2 = real_c(2.05);
 
-   real_t Ra = 1e5, Di = 0.5, T0 = 0.091, diffusivity = 1.0, cflMax = 0.75, AiniPerturb = 0.1;
+   // WALBERLA_LOG_INFO_ON_ROOT( "temp-dep viscosity : Arrhenius" );
+   // WALBERLA_LOG_INFO_ON_ROOT( "Temperature : " );
+   // WALBERLA_LOG_INFO_ON_ROOT( Temperature[0] );
 
-   real_t rho0 = 1.0, alpha = 1.0, cpr = 1.0, cvr = 1.0, grueneisen = 1.0, alphabar = 1.0, cpbar = 1.0, chibar = 1.0, k_ = 1.0;
 
-   real_t minresRelTol = 1e-4, minresAbsTol = 1e-8, gmresTol = 1e-5;
-   uint_t minresIter = 1000U, gmresIter = 1000U;
+   retVal *= std::exp( activationEnergy * ( ( real_c( 1 ) / ( Temperature[0] + c1 ) ) - c2 ) +
+                             depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
 
-   uint_t nsCalcFreq = 10U;
+   //       break;
+   //    }
+   //    //Frank–Kamenetskii type 1
+   //    default: {
+   //       retVal *= std::exp( -activationEnergy * ( Temperature[0] ) +
+   //                           depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
+   //       break;
+   //    }
+   //    }
+   //    // WALBERLA_LOG_INFO_ON_ROOT( " viscosity before non - D : " << retVal );
+   //    //  impose min viscosity
+      if ( retVal < 1e19 )
+      {
+         retVal = 1e19;
+      }
+
+   //    //impose max viscosity
+      if ( retVal > 1e24 )
+      {
+         retVal = 1e24;
+      }
+   // // }
+   // if ( weakZone )
+   // {
+   //    // for the sake of testing out, let's define 3 random points as weak zones
+   //    // gotta test with and without plate velocities
+
+   //    real_t X_1 = 0;
+   //    real_t Y_1 = parameters.rMax;
+
+   //    real_t X_2 = parameters.rMax * std::cos( ( walberla::math::pi ) / 6 );
+   //    real_t Y_2 = ( -1 ) * parameters.rMax * std::sin( ( walberla::math::pi ) / 6 );
+
+   //    real_t X_3 = ( -1 ) * parameters.rMax * std::cos( ( walberla::math::pi ) / 4 );
+   //    real_t Y_3 = ( -1 ) * parameters.rMax * std::sin( ( walberla::math::pi ) / 4 );
+
+   //    // now let's make sure they have lower viscosity
+
+   //    const real_t rS = 200000 / ( parameters.rSurface );
+   //    const real_t rL = 100000 / ( parameters.rSurface );
+
+   //    // looking bad
+   //    if ( x[0] > X_1 && x[0] < rS )
+   //    {
+   //       if ( x[1] > ( Y_1 - rL ) )
+   //       {
+   //          retVal *= 0.5;
+   //       }
+   //    }
+   //    const real_t rL_2 = 100000 / ( parameters.rSurface );
+   //    // looking good
+   //    if ( x[0] < X_3 )
+   //    {
+   //       if ( x[1] < ( Y_3 + rL_2 ) )
+   //       {
+   //          retVal *= 0.1;
+   //       }
+   //    }
+   // }
+   //  WALBERLA_LOG_INFO( " viscosity before non - D : " << retVal );
+   retVal /= 1e19;
+   //  WALBERLA_LOG_INFO( " viscosity after non - D : " << retVal );
+   return retVal;
 };
-
 class TALASimulation
 {
  public:
@@ -597,6 +734,14 @@ class TALASimulation
           std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhsStrong", storage_, minLevel_, maxLevel_, bcVelocity );
       uRhs = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhs", storage_, minLevel_, maxLevel_, bcVelocity );
 
+
+      mu    =  std::make_shared< P2Function< real_t > > ( "viscosity", storage_, minLevel_, maxLevel_, bcTemp );
+      muInv =  std::make_shared< P1Function< real_t > > ( "muInv", storage_, minLevel_, maxLevel_, bcTemp );
+
+      // P2Function< real_t > mu( "viscosity", storage_, minLevel_, maxLevel_, bcTemp ); //mu
+      // P1Function< real_t > muInv( "muInv", storage_, minLevel_, maxLevel_, bcTemp );
+
+
       u->uvw().setBoundaryCondition( bcVelocityX, 0u );
       u->uvw().setBoundaryCondition( bcVelocityY, 1u );
       u->uvw().setBoundaryCondition( bcVelocityZ, 2u );
@@ -666,12 +811,18 @@ class TALASimulation
 
       real_t allowedRelativeMassDifference = mainConf.getParameter< real_t >( "allowedRelativeMassDifference" );
 
-      stokesOperator = std::make_shared< StokesOperator_T >( storage_, minLevel_, maxLevel_ );
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         mu->interpolate( viscFunction, { *T }, level, All );
+         muInv->interpolate( viscInv, { *TP1 }, level, All );
+      }
+
+      stokesOperator = std::make_shared< StokesOperator_T >( storage_, minLevel_, maxLevel_, *mu );
       stokesOperator->getA().computeInverseDiagonalOperatorValues();
 
       params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
 
-      schurOperator = std::make_shared< SchurOperator_T >( storage_, minLevel_, maxLevel_ );
+      schurOperator = std::make_shared< SchurOperator_T >( storage_, minLevel_, maxLevel_, *muInv );
 
       stokesSolverMG = solvertemplates::fgmresMGSolver< StokesOperator_T, StokesOperator_T::ViscousOperator_T, SchurOperator_T >(
           storage_, minLevel_, maxLevel_, stokesOperator->getA(), *schurOperator );
@@ -690,6 +841,20 @@ class TALASimulation
       adios2Output->add( *uTmp );
       adios2Output->add( *T );
    }
+
+
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscFunction =
+       [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
+          real_t retVal = viscosityFunction( x, Temperature );
+          return retVal;
+       };
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscInv =
+       [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
+          real_t retVal = 1.0 / viscosityFunction( x, Temperature );
+          return retVal;
+       };
 
    void solveU();
    void solveT();
@@ -717,6 +882,9 @@ class TALASimulation
    std::shared_ptr< P2Function< real_t > > T;
    std::shared_ptr< P2Function< real_t > > TPrev;
    std::shared_ptr< P2Function< real_t > > TRhs;
+
+   std::shared_ptr< P2Function< real_t > > mu;
+   std::shared_ptr< P1Function< real_t > > muInv;
 
    std::shared_ptr< P2Function< real_t > > diffusionTermCoeff;
 
@@ -895,6 +1063,16 @@ void TALASimulation::step()
 
    TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
    uPrev->assign( { 1.0 }, { *u }, maxLevel, All );
+   
+   // WALBERLA_LOG_INFO( "Temperature ?? " );
+   // WALBERLA_LOG_INFO( T );
+
+
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      mu->interpolate( viscFunction, { *T }, level, All );
+      muInv->interpolate( viscInv, { *TP1 }, level, All );
+   }
 }
 
 void TALASimulation::solve()

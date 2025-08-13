@@ -128,7 +128,7 @@ class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunctio
    P2P1StokesVarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
                                       uint_t                                     minLevel,
                                       uint_t                                     maxLevel,
-                                      const P2Function< real_t >&                mu )
+                                      P2Function< real_t >&                mu )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )
