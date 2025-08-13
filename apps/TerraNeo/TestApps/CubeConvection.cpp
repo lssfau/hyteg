@@ -1068,11 +1068,7 @@ void TALASimulation::step()
    // WALBERLA_LOG_INFO( T );
 
 
-   for ( uint_t level = minLevel; level <= maxLevel; level++ )
-   {
-      mu->interpolate( viscFunction, { *T }, level, All );
-      muInv->interpolate( viscInv, { *TP1 }, level, All );
-   }
+
 }
 
 void TALASimulation::solve()
@@ -1086,6 +1082,12 @@ void TALASimulation::solve()
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      mu->interpolate( viscFunction, { *T }, level, All );
+      muInv->interpolate( viscInv, { *TP1 }, level, All );
+   }
+   stokesOperator->getA().computeInverseDiagonalOperatorValues();
    writeZProfile();
    writeVTK( iTimeStep );
 
@@ -1111,6 +1113,7 @@ void TALASimulation::solve()
          writeVTK( iTimeStep );
       }
    }
+
 }
 
 void TALASimulation::writeZProfile()

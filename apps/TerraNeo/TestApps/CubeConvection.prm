@@ -5,7 +5,7 @@ Parameters
     nz 3;
 
     minLevel 0;
-    maxLevel 6;
+    maxLevel 4;
 
     AiniPerturb 0.1;
     RayleighNumber 1e5;
