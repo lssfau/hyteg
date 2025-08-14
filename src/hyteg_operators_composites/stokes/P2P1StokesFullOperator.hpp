@@ -67,14 +67,16 @@ using P2P1StokesFullIcosahedralShellMapOperator =
                                                operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
 
 using P2P1StokesFullP1ViscosityIcosahedralShellMapOperator =
-    detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap,
-                                                 operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                                 operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap,
+                                               operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P1Function< real_t > >;
 
 using P2P1StokesFullP0ViscosityIcosahedralShellMapOperator =
-    detail::P2P1StokesP0VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap,
-                                                 operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                                 operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap,
+                                               operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P0Function< real_t > >;
 
 } // namespace operatorgeneration
 } // namespace hyteg
