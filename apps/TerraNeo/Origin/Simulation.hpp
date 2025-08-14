@@ -502,24 +502,34 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    //######################################################//
    //                  DUMP OUTPUT                         //
    //######################################################//
-
-   if ( TN.outputParameters.outputMyr )
+   if ( TN.outputParameters.dataOutput )
    {
-      if ( ( ( TN.simulationParameters.modelRunTimeMa - TN.outputParameters.prevOutputTime ) >=
-             real_c( TN.outputParameters.outputIntervalMyr ) ) )
+      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0U )
       {
          dataOutput();
       }
+      else if ( TN.outputParameters.outputMyr && ( TN.simulationParameters.modelRunTimeMa >=
+                                                 real_c( TN.outputParameters.dataOutputCount * TN.outputParameters.outputIntervalMyr ) ) )
+      {
+         dataOutput();
+	 TN.outputParameters.dataOutputCount += 1;
+      }
    }
-   else
-   {
-      dataOutput();
-   }
-
+      
    // Individually decide when checkpoint data is dumped
    if ( TN.outputParameters.ADIOS2StoreCheckpoint )
-   {
-      outputCheckpoint();
+   {   
+      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U 
+         && TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
+      {
+         outputCheckpoint();
+      }
+      else if ( TN.outputParameters.outputMyr && ( TN.simulationParameters.modelRunTimeMa >= 
+                                                 real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+      { 
+         outputCheckpoint();
+	 TN.outputParameters.checkpointCount += 1;
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );

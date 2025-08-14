@@ -166,10 +166,10 @@ struct OutputParameters
    bool OutputTemperature = true;
    bool OutputVerbose     = false;
    bool OutputDimensional = false;
+   uint_t dataOutputCount   = 1;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
-   real_t prevOutputTime    = real_c( 0 );
 
    bool outputVertexDoFs = true;
    bool outputProfiles   = false;
