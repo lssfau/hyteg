@@ -27,6 +27,7 @@
 #include "hyteg_operators/operators/epsilon/P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesRotationP0ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientRotationIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergenceCompressibleIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 
 namespace hyteg {
@@ -111,7 +112,7 @@ class P2ViscousIcosahedralShellMapOperatorRotationTemplate
    // ViscousBaseOperator_T viscousBaseOperator;
 };
 
-using P2ViscousIcosahedralShellMapOperatorRotation = P2ViscousIcosahedralShellMapOperatorRotationTemplate<
+using P2P1ViscousIcosahedralShellMapOperatorRotation = P2ViscousIcosahedralShellMapOperatorRotationTemplate<
     P1Function< real_t >,
     operatorgeneration::P2VectorElementwiseEpsilonRotationP1ViscosityIcosahedralShellMap >;
 
@@ -235,8 +236,8 @@ class P2P1StokesOpgenRotationWrapperTemplate
    P2P1TaylorHoodFunction< idx_t > tmpAssembly_;
 };
 
-using P2P1StokesOpgenRotationWrapper =
-    P2P1StokesOpgenRotationWrapperTemplate< P1Function< real_t >, P2ViscousIcosahedralShellMapOperatorRotation >;
+using P2P1StokesP1ViscousOpgenRotationWrapper =
+    P2P1StokesOpgenRotationWrapperTemplate< P1Function< real_t >, P2P1ViscousIcosahedralShellMapOperatorRotation >;
 
 using P2P1StokesP0ViscousOpgenRotationWrapper =
     P2P1StokesOpgenRotationWrapperTemplate< P0Function< real_t >, P2P0ViscousIcosahedralShellMapOperatorRotation >;
