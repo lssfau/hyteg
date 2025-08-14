@@ -449,9 +449,18 @@ enum BoundaryMarkers
 
 real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Temperature )
 {
-   auto   radius =   x[2] ;
-   real_t retVal = 1e21;
-   real_t rMax = 2.22;
+   auto   radius = x[2];
+   real_t retVal = 1;
+   real_t rMax   = 2.22;
+
+   real_t activationEnergy     = real_c( 3 );
+   real_t depthViscosityFactor = real_c( 1.5 );
+   real_t viscosityLowerBound  = real_c( 1e20 );
+   real_t viscosityUpperBound  = real_c( 1e24 );
+   real_t c1 = real_c(0.05);
+   real_t c2 = real_c(2.05);
+
+
 
    //set background viscosity as radial profile or constant value, and non-dimensionalise
    // if ( haveViscosityProfile )
@@ -471,8 +480,8 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
       // {
       // //Frank–Kamenetskii type 1
       // case 0: {
-      //    retVal *= std::exp( -activationEnergy * ( Temperature[0] ) +
-      //                        depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
+   retVal *= std::exp( -activationEnergy * ( Temperature[0] ) +
+                        depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
       //    break;
       // }
       // //Frank–Kamenetskii type 2
@@ -484,20 +493,14 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
       // //Arrhenius type
       // case 2: {
 
-   real_t activationEnergy     = real_c( 3 );
-   real_t depthViscosityFactor = real_c( 1.5 );
-   real_t viscosityLowerBound  = real_c( 1e20 );
-   real_t viscosityUpperBound  = real_c( 1e24 );
-   real_t c1 = real_c(0.05);
-   real_t c2 = real_c(2.05);
 
    // WALBERLA_LOG_INFO_ON_ROOT( "temp-dep viscosity : Arrhenius" );
    // WALBERLA_LOG_INFO_ON_ROOT( "Temperature : " );
    // WALBERLA_LOG_INFO_ON_ROOT( Temperature[0] );
 
 
-   retVal *= std::exp( activationEnergy * ( ( real_c( 1 ) / ( Temperature[0] + c1 ) ) - c2 ) +
-                             depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
+   // retVal *= std::exp( activationEnergy * ( ( real_c( 1 ) / ( Temperature[0] + c1 ) ) - c2 ) +
+   //                           depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
 
    //       break;
    //    }
@@ -510,15 +513,15 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
    //    }
    //    // WALBERLA_LOG_INFO_ON_ROOT( " viscosity before non - D : " << retVal );
    //    //  impose min viscosity
-      if ( retVal < 1e19 )
+      if ( retVal < 1 )
       {
-         retVal = 1e19;
+         retVal = 1;
       }
 
    //    //impose max viscosity
-      if ( retVal > 1e24 )
+      if ( retVal > 100 )
       {
-         retVal = 1e24;
+         retVal = 100;
       }
    // // }
    // if ( weakZone )
@@ -559,7 +562,7 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
    //    }
    // }
    //  WALBERLA_LOG_INFO( " viscosity before non - D : " << retVal );
-   retVal /= 1e19;
+   // retVal /= 1e24;
    //  WALBERLA_LOG_INFO( " viscosity after non - D : " << retVal );
    return retVal;
 };
@@ -840,6 +843,7 @@ class TALASimulation
       adios2Output->add( *uRhs );
       adios2Output->add( *uTmp );
       adios2Output->add( *T );
+      adios2Output->add( *mu );
    }
 
 
@@ -947,6 +951,13 @@ void TALASimulation::solveU()
 
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
    // frozenVelocityOp->apply( u->uvw(), uRhs->p(), maxLevel, All );
+
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      mu->interpolate( viscFunction, { *T }, level, All );
+      muInv->interpolate( viscInv, { *TP1 }, level, All );
+   }
+   stokesOperator->getA().computeInverseDiagonalOperatorValues();
 
    if ( mainConf.getParameter< bool >( "stokesDirectSolver" ) )
    {
@@ -1082,12 +1093,7 @@ void TALASimulation::solve()
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 
-   for ( uint_t level = minLevel; level <= maxLevel; level++ )
-   {
-      mu->interpolate( viscFunction, { *T }, level, All );
-      muInv->interpolate( viscInv, { *TP1 }, level, All );
-   }
-   stokesOperator->getA().computeInverseDiagonalOperatorValues();
+
    writeZProfile();
    writeVTK( iTimeStep );
 

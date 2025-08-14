@@ -35,10 +35,10 @@ Parameters
     simulationTime 10.0;
     maxTimeSteps 1000;
 
-    outputFilename Cube_P1;
-    outputPath output;
+    outputFilename ViscTest_004;
+    outputPath output_5;
 
-    profilePath Profiles;
+    profilePath Profiles_5;
 
     vtkWriteFrequency 5;
 }
