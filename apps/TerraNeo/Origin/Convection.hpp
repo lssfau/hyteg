@@ -97,13 +97,10 @@
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/helpers/Viscosity.hpp"
 #include "terraneo/initialisation/TemperatureInitialisation.hpp"
-#include "terraneo/operators/P2P1StokesOperatorRotationOpgen.hpp"
-#include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
-#include "terraneo/operators/P2P1StokesOperatorWithRotation.hpp"
+#include "terraneo/operators/P2P1StokesOperatorWithWrapper.hpp"
 #include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/solvers/MCSolverBase.hpp"
 #include "terraneo/solvers/StokesMCFGMRESSolver.hpp"
-#include "terraneo/solvers/StokesMCFGMRESSolverWithProjection.hpp"
 #include "terraneo/solvers/StokesMCUzawaSolver.hpp"
 #include "terraneo/types/types.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
@@ -145,14 +142,6 @@ class ConvectionSimulation
    const SimulationParameters& getSimulationParams();
 
  private:
-   typedef hyteg::operatorgeneration::P2P1StokesFullIcosahedralShellMapOperator        StokesOperator;
-   typedef P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS                      StokesOperatorFS;
-   typedef hyteg::operatorgeneration::P2ViscousBlockLaplaceIcosahedralShellMapOperator BlockLaplaceOperator;
-   typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap            SchurOperator;
-   typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap         DiffusionOperator;
-
-   typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap FrozenVelocityFullOperator;
-
    using TransportOperator_T =
        std::conditional_t< std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > >,
                            terraneo::P2TransportIcosahedralShellMapOperator,
@@ -162,17 +151,19 @@ class ConvectionSimulation
 
    using StokesOperator_T =
        std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P0Function< real_t > >,
-                           P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorFS,
+                           P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorWithProjection,
                            std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P1Function< real_t > >,
-                                               P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorFS,
-                                               P2P1StokesFullIcosahedralShellMapOperatorFS > >;
+                                               P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorWithProjection,
+                                               P2P1StokesFullIcosahedralShellMapOperatorWithProjection > >;
 
-   using StokesOperatorRotationOpgen_T =
+   using StokesOperatorRotation_T =
        std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P0Function< real_t > >,
-                           P2P1StokesP0ViscousOpgenRotationWrapper,
+                           P2P1StokesP0ViscosityFullIcosahedralShellMapOperatorWithRotation,
                            std::conditional_t< std::is_same_v< ViscosityFunction_T, hyteg::P1Function< real_t > >,
-                                               P2P1StokesOpgenRotationWrapper,
-                                               std::nullptr_t > >;
+                                               P2P1StokesP1ViscosityFullIcosahedralShellMapOperatorWithRotation,
+                                               P2P1StokesFullIcosahedralShellMapOperatorWithRotation > >;
+
+   using FrozenVelocityFullOperator_T = hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap;
 
    using ProjectionOperator_T = P2ProjectNormalOperator;
    using RotationOperator_T   = P2RotationOperator;
@@ -314,16 +305,14 @@ class ConvectionSimulation
    std::shared_ptr< MCSolverBase< StokesOperator_T > > stokesMCSolver_;
    std::shared_ptr< Solver< StokesOperator_T > >       stokesSolver_;
 
-   std::shared_ptr< MCSolverBase< StokesOperatorRotationOpgen_T > > stokesRotationOpgenMCSolver_;
-   std::shared_ptr< Solver< StokesOperatorRotationOpgen_T > >       stokesRotationOpgenSolver_;
+   std::shared_ptr< MCSolverBase< StokesOperatorRotation_T > > stokesRotationMCSolver_;
+   std::shared_ptr< Solver< StokesOperatorRotation_T > >       stokesRotationSolver_;
 
    std::shared_ptr< CGSolver< TransportOperator_T > > temperatureTransportSolver_;
 
    // Operators
-   std::shared_ptr< StokesOperator_T >              stokesOperator_;
-   std::shared_ptr< StokesOperatorRotationOpgen_T > stokesOperatorRotationOpgen_;
-
-   std::shared_ptr< MMOCTransport< P1Function< real_t > > > temperatureMMOCOperatorP1_;
+   std::shared_ptr< StokesOperator_T >         stokesOperator_;
+   std::shared_ptr< StokesOperatorRotation_T > stokesOperatorRotation_;
 
    std::shared_ptr< MMOCTransport< TemperatureFunction_T > > temperatureMMOCOperator_;
    std::shared_ptr< TransportOperator_T >                    temperatureTransportOperator_;
@@ -335,7 +324,7 @@ class ConvectionSimulation
 
    std::shared_ptr< P2toP2QuadraticProlongation > p2ProlongationOperator_;
    std::shared_ptr< P2toP2QuadraticInjection >    p2InjectionOperator_;
-   std::shared_ptr< FrozenVelocityFullOperator >  frozenVelocityRHS_;
+   std::shared_ptr< FrozenVelocityFullOperator_T >  frozenVelocityRHS_;
 
    bool outputDirectoriesCreated = false;
 

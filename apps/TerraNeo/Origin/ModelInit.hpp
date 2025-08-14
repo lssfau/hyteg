@@ -300,7 +300,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupFu
          }
          break;
          case BCs_T::TEMPERATURE_BC: {
-            WALBERLA_LOG_WARNING_ON_ROOT( "bcTemperature looks odd for P2VectorFunction" );
             functionContainer.emplace( std::make_pair(
                 functionName,
                 std::make_shared< FunctionType >( functionName, storage, functionMinLevel, functionMaxLevel, bcTemperature ) ) );
@@ -400,8 +399,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
    temperaturePrevP1->assign( { real_c( 1 ) }, { *( temperatureP1 ) }, TN.domainParameters.maxLevel, All );
 
-   densityFE->interpolate( densityFunc, TN.domainParameters.maxLevel, All );
-
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       updatePlateVelocities( *( velocityPressureFE ) );
@@ -464,6 +461,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
 
    for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; level++ )
    {
+      densityFE->interpolate( densityFunc, level, All );
       normalsFE->interpolate( { nX, nY, nZ }, level, FreeslipBoundary );
    }
 }
@@ -513,19 +511,20 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
                                                               false,
                                                               nullptr,
                                                               nullptr,
-                                                              TN.solverParameters.rotFactor );
+                                                              nullptr );
 
-      stokesOperatorRotationOpgen_ = std::make_shared< StokesOperatorRotationOpgen_T >( storage,
-                                                                                        TN.domainParameters.minLevel,
-                                                                                        TN.domainParameters.maxLevel,
-                                                                                        viscosityP2->getVertexDoFFunction(),
-                                                                                        viscosityP2Inv->getVertexDoFFunction(),
-                                                                                        normalsFE->component( 0u ),
-                                                                                        normalsFE->component( 1u ),
-                                                                                        normalsFE->component( 2u ),
-                                                                                        0.0,
-                                                                                        *rotationOperator_,
-                                                                                        bcVelocity );
+      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                              TN.domainParameters.minLevel,
+                                                                              TN.domainParameters.maxLevel,
+                                                                              viscosityP2->getVertexDoFFunction(),
+                                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                                              *rotationOperator_,
+                                                                              bcVelocity,
+                                                                              *( densityP2 ),
+                                                                              false,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr );
    }
    else if constexpr ( std::is_same_v< ViscosityFunction_T, P0Function< real_t > > )
    {
@@ -540,19 +539,20 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
                                                               false,
                                                               nullptr,
                                                               nullptr,
-                                                              TN.solverParameters.rotFactor );
+                                                              nullptr );
 
-      stokesOperatorRotationOpgen_ = std::make_shared< StokesOperatorRotationOpgen_T >( storage,
-                                                                                        TN.domainParameters.minLevel,
-                                                                                        TN.domainParameters.maxLevel,
-                                                                                        *( viscosityP0 ),
-                                                                                        viscosityP2Inv->getVertexDoFFunction(),
-                                                                                        normalsFE->component( 0u ),
-                                                                                        normalsFE->component( 1u ),
-                                                                                        normalsFE->component( 2u ),
-                                                                                        0.0,
-                                                                                        *rotationOperator_,
-                                                                                        bcVelocity );
+      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                              TN.domainParameters.minLevel,
+                                                                              TN.domainParameters.maxLevel,
+                                                                              *( viscosityP0 ),
+                                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                                              *rotationOperator_,
+                                                                              bcVelocity,
+                                                                              *( densityP2 ),
+                                                                              false,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr );
    }
    else
    {
@@ -561,27 +561,25 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolverWithProjection< StokesOperator_T, ProjectionOperator_T > >(
+      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
           stokesOperator_,
-          projectionOperator_,
           stokesTmpProlongation,
           stokesTmp1,
           stokesTmp2,
           TN );
 
-      stokesRotationOpgenMCSolver_ =
-          std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotationOpgen_T, ProjectionOperator_T > >(
-              storage,
-              TN.domainParameters.minLevel,
-              TN.domainParameters.maxLevel,
-              stokesOperatorRotationOpgen_,
-              stokesTmpProlongation,
-              stokesTmp1,
-              stokesTmp2,
-              TN );
+      stokesRotationMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >(
+          storage,
+          TN.domainParameters.minLevel,
+          TN.domainParameters.maxLevel,
+          stokesOperatorRotation_,
+          stokesTmpProlongation,
+          stokesTmp1,
+          stokesTmp2,
+          TN );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
@@ -606,11 +604,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
           TN.domainParameters.maxLevel,
           std::make_shared< PETScLUSolver< StokesOperator_T > >( storage, TN.domainParameters.maxLevel ) );
 
-      stokesRotationOpgenMCSolver_ = std::make_shared< MCSolverBase< StokesOperatorRotationOpgen_T > >(
+      stokesRotationMCSolver_ = std::make_shared< MCSolverBase< StokesOperatorRotation_T > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
-          std::make_shared< PETScLUSolver< StokesOperatorRotationOpgen_T > >( storage, TN.domainParameters.maxLevel ) );
+          std::make_shared< PETScLUSolver< StokesOperatorRotation_T > >( storage, TN.domainParameters.maxLevel ) );
 #else
       WALBERLA_ABORT( "PETSc solver requested but not built" );
 #endif
@@ -621,12 +619,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    }
 
    stokesSolver_              = stokesMCSolver_->getSolver();
-   stokesRotationOpgenSolver_ = stokesRotationOpgenMCSolver_->getSolver();
+   stokesRotationSolver_      = stokesRotationMCSolver_->getSolver();
 
    p2ScalarMassOperator_ =
        std::make_shared< P2ScalarMassOperator_T >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   frozenVelocityRHS_ = std::make_shared< FrozenVelocityFullOperator >(
+   frozenVelocityRHS_ = std::make_shared< FrozenVelocityFullOperator_T >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( densityP2 ) );
 
    ////////////////////////

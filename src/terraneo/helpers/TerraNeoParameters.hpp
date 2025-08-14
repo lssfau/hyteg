@@ -72,8 +72,14 @@ struct SolverParameters
 {
    uint_t solverFlag  = 0u;
    uint_t solverPETSc = 0u;
+
    // Stokes solver parameters
-   uint_t numPowerIterations         = 25;
+
+   uint_t numPowerIterations                = 25;
+   uint_t ChebyshevOrder                    = 3u;
+   real_t ChebyshevSpectralRadiusUpperLimit = 1.2;
+   real_t ChebyshevSpectralRadiusLowerLimit = 0.1;
+
    uint_t FGMRESOuterIterations      = 5;
    uint_t FGMRESRestartLength        = 5;
    real_t FGMRESTolerance            = 1e-6;
@@ -94,7 +100,7 @@ struct SolverParameters
    real_t SchurCoarseGridTolerance   = 1e-6;
    real_t stokesKillTolerance        = real_c( 1000 );
 
-   bool useRotationWrapper = false;
+   bool useRotationWrapper = true;
 
    // Uzawa type multigrid solver
    real_t initialResidualU                 = real_c( 0 );

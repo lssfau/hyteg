@@ -154,7 +154,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 1;
+   boundaryCond 3;
 
    rotFactor 0.25;
 
@@ -229,6 +229,10 @@ Parameters
    PETScFlag 1;
 
    useRotationWrapper false;
+
+   ChebyshevOrder 3;
+   ChebyshevSpectralRadiusUpperLimit 1.2;
+   ChebyshevSpectralRadiusLowerLimit 0.1;
 
    // Uzawa solver parameters
 

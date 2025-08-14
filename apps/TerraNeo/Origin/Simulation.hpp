@@ -763,7 +763,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
    {
       updateViscosity();
       stokesOperator_->getA().computeInverseDiagonalOperatorValues();
-      stokesOperatorRotationOpgen_->getA().computeInverseDiagonalOperatorValues();
+      stokesOperatorRotation_->getA().computeInverseDiagonalOperatorValues();
    }
 
    localTimer.start();
@@ -822,8 +822,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
       rotationOperator_->rotate( *stokesRHS, TN.domainParameters.maxLevel, FreeslipBoundary );
       stokesRHSRotated->assign( { 1.0 }, { *stokesRHS }, TN.domainParameters.maxLevel, All );
 
-      stokesRotationOpgenSolver_->solve(
-          *stokesOperatorRotationOpgen_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );
+      stokesRotationSolver_->solve(
+         *stokesOperatorRotation_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );
+
+      // stokesRotationOpgenSolver_->solve(
+      //     *stokesOperatorRotationOpgen_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );
 
       velocityPressureFE->assign( { 1.0 }, { *velocityPressureRotatedFE }, TN.domainParameters.maxLevel, All );
       rotationOperator_->rotate( *( velocityPressureFE ), TN.domainParameters.maxLevel, FreeslipBoundary, true );

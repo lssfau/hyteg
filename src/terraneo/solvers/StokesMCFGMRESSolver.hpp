@@ -32,7 +32,7 @@
 #include "terraneo/solvers/MCSolverBase.hpp"
 
 namespace hyteg {
-template < typename StokesOperator_T, typename ProjectionOperator_T >
+template < typename StokesOperator_T >
 class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
 {
  public:
@@ -72,7 +72,32 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
       chebyshevABlockSmoother_ =
           std::make_shared< ChebyshevSmoother< typename StokesOperator_T::ViscousOperatorFS_T > >( storage, minLevel, maxLevel );
 
-      chebyshevABlockSmoother_->setupCoefficients(3u, 4.0, 1.2, 0.1);
+      real_t spectralRadiusA = 4.0;
+      {
+         std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
+            return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
+         };
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Estimate spectral radius!" );
+
+         // avoid that the startpoint of our poweriteration is in the kernel of the operator
+         temp2->uvw().interpolate( randFuncA, maxLevel, All );
+         temp3->uvw().interpolate( randFuncA, maxLevel, All );
+
+         spectralRadiusA = chebyshev::estimateRadius(
+             stokesOperator_->getA(), maxLevel, TN.solverParameters.numPowerIterations, storage, temp2->uvw(), temp3->uvw() );
+
+         temp2->uvw().interpolate( 0, maxLevel, All );
+         temp3->interpolate( 0, maxLevel, All );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadiusA );
+      }
+
+      chebyshevABlockSmoother_->setupCoefficients( TN.solverParameters.ChebyshevOrder,
+                                                   spectralRadiusA,
+                                                   TN.solverParameters.ChebyshevSpectralRadiusUpperLimit,
+                                                   TN.solverParameters.ChebyshevSpectralRadiusLowerLimit );
+      //   chebyshevABlockSmoother_->setupCoefficients(3u, 4.0, 1.2, 0.1);
 
       minresCoarseGridABlockSolver_ = std::make_shared< MinResSolver< typename StokesOperator_T::ViscousOperatorFS_T > >(
           storage,
@@ -112,7 +137,7 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
                                                                                  maxLevel,
                                                                                  TN.solverParameters.FGMRESOuterIterations,
                                                                                  TN.solverParameters.FGMRESRestartLength,
-                                                                                 TN.solverParameters.FGMRESTolerance);
+                                                                                 TN.solverParameters.FGMRESTolerance );
 
       fgmresFinalSolver_->setPreconditioner( blockPreconditioner_ );
       fgmresFinalSolver_->setPrintInfo( true );
@@ -123,7 +148,7 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
  private:
    terraneo::TerraNeoParameters& TN_;
 
-   const std::shared_ptr< StokesOperator_T >&     stokesOperator_;
+   const std::shared_ptr< StokesOperator_T >& stokesOperator_;
 
    const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp1_;
    const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp2_;

@@ -454,7 +454,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
    solverParam.solverPETSc = mainConf.getParameter< uint_t >( "PETScFlag" );
 
-   solverParam.numPowerIterations    = mainConf.getParameter< uint_t >( "numPowerIterations" );
+   solverParam.numPowerIterations                = mainConf.getParameter< uint_t >( "numPowerIterations" );
+   solverParam.ChebyshevOrder                    = mainConf.getParameter< uint_t >( "ChebyshevOrder" );
+   solverParam.ChebyshevSpectralRadiusUpperLimit = mainConf.getParameter< real_t >( "ChebyshevSpectralRadiusUpperLimit" );
+   solverParam.ChebyshevSpectralRadiusLowerLimit = mainConf.getParameter< real_t >( "ChebyshevSpectralRadiusLowerLimit" );
+
    solverParam.FGMRESOuterIterations = mainConf.getParameter< uint_t >( "FGMRESOuterIterations" );
    solverParam.FGMRESRestartLength   = mainConf.getParameter< uint_t >( "FGMRESRestartLength" );
    solverParam.FGMRESTolerance       = mainConf.getParameter< real_t >( "FGMRESTolerance" );

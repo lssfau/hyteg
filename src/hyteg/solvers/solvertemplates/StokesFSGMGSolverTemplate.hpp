@@ -132,7 +132,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
        { StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, uint_c( 3u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, uint_c( 100u ) },
        { StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE, real_c( 1e-8 ) },
-       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, real_c( 0 ) },
+       { StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, uint_c( 0 ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER, uint_c( 1u ) },
        { StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE, real_c( 1e-6 ) },
        { StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, uint_c( 3u ) },
@@ -248,8 +248,8 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    // avoid that the startpoint of our poweriteration is in the kernel of the operator
    temp2->uvw().interpolate( randFuncA, maxLevel, All );
 
-   real_t spectralRadiusA = chebyshev::estimateRadius(
-       APrecOperator.viscousOperator, maxLevel, numPowerIteration, storage, temp2->uvw(), temp3->uvw() );
+   auto spectralRadiusA =
+       chebyshev::estimateRadius( APrecOperator, maxLevel, numPowerIteration, storage, temp2->uvw(), temp3->uvw() );
    temp2->uvw().interpolate( 0, maxLevel, All );
    temp3->interpolate( 0, maxLevel, All );
 
