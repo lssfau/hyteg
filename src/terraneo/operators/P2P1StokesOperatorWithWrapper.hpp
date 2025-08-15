@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2RotationOperator.hpp"
 #include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergenceCompressibleIcosahedralShellMap.hpp"
@@ -84,7 +85,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
                   const DoFType                     flag,
                   const UpdateType                  updateType = Replace ) const override
       {
-         outerWrapper_.tmp_->uvw().assign( { 1.0 }, { src }, level, All );
+         outerWrapper_.tmp_->uvw().assign( { real_c( 1.0 ) }, { src }, level, All );
          outerWrapper_.freeslipWrapperOperator_.manipulate( outerWrapper_.tmp_->uvw(), level, FreeslipBoundary, true );
 
          {
@@ -93,7 +94,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
          }
 
          outerWrapper_.freeslipWrapperOperator_.manipulate( outerWrapper_.tmpdst_->uvw(), level, FreeslipBoundary );
-         dst.assign( { 1.0 }, { outerWrapper_.tmpdst_->uvw() }, level, flag );
+         dst.assign( { real_c( 1.0 ) }, { outerWrapper_.tmpdst_->uvw() }, level, flag );
       }
 
       void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -141,9 +142,9 @@ class P2P1FullStokesFreeslipWrapperTemplate
          mat->createFromMatrixProduct( matrices );
       }
 
-      void computeInverseDiagonalOperatorValues() { outerWrapper_.stokesOperator_.getA().computeInverseDiagonalOperatorValues(); }
+      void computeInverseDiagonalOperatorValues() override { outerWrapper_.stokesOperator_.getA().computeInverseDiagonalOperatorValues(); }
 
-      std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const
+      std::shared_ptr< P2VectorFunction< real_t > > getInverseDiagonalValues() const override
       {
          return outerWrapper_.stokesOperator_.getA().getInverseDiagonalValues();
       }
@@ -173,7 +174,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
          }
 
          outerWrapper_.freeslipWrapperOperator_.manipulate( outerWrapper_.tmp_->uvw(), level, FreeslipBoundary );
-         dst.assign( { updateType == Add ? 1.0 : 0.0, 1.0 }, { dst, outerWrapper_.tmp_->uvw() }, level, flag );
+         dst.assign( { updateType == Add ? real_c(1.0) : real_c(0.0), real_c(1.0) }, { dst, outerWrapper_.tmp_->uvw() }, level, flag );
       }
 
       P2P1FullStokesFreeslipWrapperTemplate& outerWrapper_;
@@ -196,7 +197,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
                   const DoFType                     flag,
                   const UpdateType                  updateType = Replace ) const override
       {
-         outerWrapper_.tmp_->uvw().assign( { 1.0 }, { src }, level, All );
+         outerWrapper_.tmp_->uvw().assign( { real_c( 1.0 ) }, { src }, level, All );
          outerWrapper_.freeslipWrapperOperator_.manipulate( outerWrapper_.tmp_->uvw(), level, FreeslipBoundary, true );
 
          if ( !( outerWrapper_.frozenVelocity_ ) )
@@ -292,7 +293,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
                const DoFType                           flag,
                const UpdateType                        updateType = Replace ) const override
    {
-      tmp_->assign( { 1.0 }, { src }, level, All );
+      tmp_->assign( { real_c( 1.0 ) }, { src }, level, All );
       freeslipWrapperOperator_.manipulate( tmp_->uvw(), level, FreeslipBoundary, true );
 
       {
@@ -309,7 +310,7 @@ class P2P1FullStokesFreeslipWrapperTemplate
       }
 
       freeslipWrapperOperator_.manipulate( tmpdst_->uvw(), level, FreeslipBoundary );
-      dst.assign( { 1.0 }, { *tmpdst_ }, level, flag );
+      dst.assign( { real_c( 1.0 ) }, { *tmpdst_ }, level, flag );
 
       vertexdof::projectMean( dst.p(), level );
    }

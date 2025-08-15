@@ -365,7 +365,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
 
    if ( TN.outputParameters.OutputTemperature && TN.outputParameters.OutputDimensional )
    {
-      temperatureP2->assign( { 1.0 / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
+      temperatureP2->assign( { real_c( 1.0 ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
                              { *temperatureP2 },
                              TN.domainParameters.maxLevel,
                              All );
@@ -375,7 +375,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
         TN.outputParameters.OutputDimensional )
    {
       viscosityP2->assign(
-          { ( 1.0 / TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
+          { ( real_c( 1.0 ) / TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
 
    TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );

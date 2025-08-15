@@ -1,4 +1,5 @@
 add_compile_options( "-std=c++20" )
+add_flag( CMAKE_CXX_FLAGS "-Wno-ambiguous-reversed-operator" )
 
 waLBerla_add_executable( NAME TerraNeo
     FILES Convection.cpp
