@@ -252,21 +252,21 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
    //For circulation model, output with plate age in filename
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.ageMa ) );
+      outputTime    = uint_c( std::round( TN.simulationParameters.ageMa ) );
       outputTimeStr = std::to_string( outputTime ) + "Ma";
    }
 
    //If outputMyr is set, output with model runtime in Ma
    else if ( TN.outputParameters.outputMyr )
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.modelRunTimeMa ) );
+      outputTime    = uint_c( std::round( TN.simulationParameters.modelRunTimeMa ) );
       outputTimeStr = std::to_string( outputTime ) + "Ma";
    }
-      
+
    //For convection model, output with number of timesteps
    else
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.timeStep ) );
+      outputTime    = uint_c( std::round( TN.simulationParameters.timeStep ) );
       outputTimeStr = std::to_string( outputTime );
    }
 
@@ -300,12 +300,15 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
          temperatureProfiles->mean[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
          temperatureProfiles->max[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
          temperatureProfiles->min[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         temperatureProfiles->depthDim[i] =
+             ( TN.domainParameters.rSurface -
+               velocityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+             1000.0;
       }
 
       temperatureProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                          TN.outputParameters.outputBaseName + "_TempProfile_" + outputTimeStr +
-                                          ".dat",
-                                      "temperature" );
+                                          TN.outputParameters.outputBaseName + "_TempProfile_" + outputTimeStr + ".dat",
+                                      "temp" );
 
       real_t cmPerYear = 3.15e9;
       for ( uint_t i = 0; i < velocityProfiles->rms.size(); i++ )
@@ -314,10 +317,13 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
          velocityProfiles->max[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
          velocityProfiles->min[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
          velocityProfiles->rms[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->depthDim[i] =
+             ( TN.domainParameters.rSurface -
+               velocityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+             1000.0;
       }
       velocityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + outputTimeStr +
-                                       ".dat",
+                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + outputTimeStr + ".dat",
                                    "velocity" );
 
       if ( TN.simulationParameters.tempDependentViscosity )
@@ -328,10 +334,13 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
             viscosityProfiles->mean[i] *= TN.physicalParameters.referenceViscosity;
             viscosityProfiles->max[i] *= TN.physicalParameters.referenceViscosity;
             viscosityProfiles->min[i] *= TN.physicalParameters.referenceViscosity;
+            viscosityProfiles->depthDim[i] =
+                ( TN.domainParameters.rSurface -
+                  viscosityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+                1000.0;
          }
          viscosityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                           TN.outputParameters.outputBaseName + "_ViscProfile_" + outputTimeStr +
-                                           ".dat",
+                                           TN.outputParameters.outputBaseName + "_ViscProfile_" + outputTimeStr + ".dat",
                                        "viscosity" );
       }
    }

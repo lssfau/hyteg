@@ -407,10 +407,12 @@ struct RadialProfile
    std::vector< real_t > min;
    std::vector< real_t > rms;
    std::vector< uint_t > numDoFsPerShell;
+   std::vector< real_t > depthDim;
 
    /// Simple logging of all vectors to file.
    void logToFile( std::string fileName, std::string fieldName )
    {
+      WALBERLA_CHECK_EQUAL( shellRadii.size(), depthDim.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), mean.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), max.size() );
       WALBERLA_CHECK_EQUAL( shellRadii.size(), min.size() );
@@ -426,17 +428,32 @@ struct RadialProfile
             WALBERLA_ABORT( "Failed to open file \"" << fileName << "\" for logging radial profiles. " )
          }
 
-         outFile << std::string( "#Radius  " ) << fieldName << std::string( "_mean " ) << fieldName << std::string( "_max " )
-                 << fieldName << std::string( "_min " ) << fieldName << std::string( "_rms \n" );
-         //for ( uint_t shell = 0; shell < shellRadii.size(); ++shell )
-	 for ( uint_t shell = shellRadii.size(); shell-- > 0;)
+         // only write out rms for velocity
+         if ( fieldName == "velocity" )
          {
-            outFile << walberla::format( "%6.4f  %9.4f  %9.4f  %9.4f \n",
-                                         shellRadii.at( shell ),
-                                         mean.at( shell ),
-                                         max.at( shell ),
-                                         min.at( shell ),
-                                         rms.at( shell ) );
+            outFile << std::string( "#Depth [km] " ) << fieldName << std::string( "_mean " ) << fieldName
+                    << std::string( "_max " ) << fieldName << std::string( "_min " ) << fieldName << std::string( "_rms \n" );
+
+            for ( uint_t shell = shellRadii.size(); shell-- > 0; )
+            {
+               outFile << walberla::format( "%7.2f  %9.4f  %9.4f  %9.4f  %9.4f \n",
+                                            depthDim.at( shell ),
+                                            mean.at( shell ),
+                                            max.at( shell ),
+                                            min.at( shell ),
+                                            rms.at( shell ) );
+            }
+         }
+         else
+         {
+            outFile << std::string( "#Depth [km] " ) << fieldName << std::string( "_mean " ) << fieldName
+                    << std::string( "_max " ) << fieldName << std::string( "_min \n" );
+
+            for ( uint_t shell = shellRadii.size(); shell-- > 0; )
+            {
+               outFile << walberla::format(
+                   "%7.2f  %9.4f  %9.4f  %9.4f \n", depthDim.at( shell ), mean.at( shell ), max.at( shell ), min.at( shell ) );
+            }
          }
          outFile.close();
       }
@@ -503,6 +520,7 @@ RadialProfile computeRadialProfile(
    profile.mean.resize( numShells );
    profile.rms.resize( numShells );
    profile.numDoFsPerShell.resize( numShells );
+   profile.depthDim.resize( numShells );
 
    profile.shellRadii = computeShellRadii( layers, level, polynomialDegreeOfBasisFunctions< FunctionType >() );
 
