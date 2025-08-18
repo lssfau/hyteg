@@ -122,7 +122,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupOu
    referenceTemperature->interpolate( referenceTemperatureFct, TN.domainParameters.maxLevel, All );
    // viscosityPas->assign( { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
 
-   auto addFunctionsForOutput = [&, this]< typename Output_T >( const std::shared_ptr< Output_T >& output ) {
+   auto addFunctionsForOutput = [&]< typename Output_T >( const std::shared_ptr< Output_T >& output ) {
       if ( TN.outputParameters.OutputTemperature )
       {
          if ( TN.outputParameters.outputVertexDoFs )

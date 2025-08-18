@@ -594,7 +594,7 @@ class TALASimulation
                 params.AiniPerturb * std::sin( 2.0 * walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[2] );
       };
 
-      tempDevBC = [this]( const Point3D& x ) {
+      tempDevBC = []( const Point3D& x ) {
          if ( std::abs( x[2] - 1.0 ) < 1e-6 )
          {
             return 0.0;
@@ -609,7 +609,7 @@ class TALASimulation
          }
       };
 
-      rhoFunc = [this]( const Point3D& x ) { return std::exp( 1.0 - x[2] ); };
+      rhoFunc = []( const Point3D& x ) { return std::exp( 1.0 - x[2] ); };
 
       BoundaryCondition bcVelocity, bcPressure, bcVelocityX, bcVelocityY, bcVelocityZ;
 
