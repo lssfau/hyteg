@@ -36,6 +36,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
@@ -67,7 +68,6 @@
 
 // #include "hyteg/operatorgeneration/generated/EvaluateViscosityViscoplastic/P2EvaluateViscosityViscoplastic.hpp"
 // #include "hyteg/operatorgeneration/generated/FullStokesViscoplastic/P2VectorElementwiseFullStokesViscoplastic.hpp"
-
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
@@ -128,7 +128,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
    ABlockCoarseGridSolver = std::make_shared< MinResSolver< StokesABlockType > >( storage, minLevel, minLevel, 100u );
 #endif
 
-   auto ABlockMultigridSolver  = std::make_shared< GeometricMultigridSolver< StokesABlockType > >( storage,
+   auto ABlockMultigridSolver = std::make_shared< GeometricMultigridSolver< StokesABlockType > >( storage,
                                                                                                   ABlockSmoother,
                                                                                                   ABlockCoarseGridSolver,
                                                                                                   ABlockRestrictionOperator,
@@ -156,7 +156,7 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
    real_t fGMRESTol       = 1e-6;
 
    auto finalStokesSolver = std::make_shared< FGMRESSolver< StokesOperatorType > >(
-       storage, minLevel, maxLevel, fGMRESOuterIter, 50, fGMRESTol, fGMRESTol, 0, blockPreconditioner );
+       storage, minLevel, maxLevel, fGMRESOuterIter, fGMRESTol, fGMRESTol, blockPreconditioner, 50u, fGMRESTol );
    finalStokesSolver->setPrintInfo( true );
 
    return finalStokesSolver;
@@ -171,7 +171,6 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
 //                                                   operatorgeneration::P1ToP2GradientOperator,
 //                                                   operatorgeneration::P2ToP1DivergenceOperator >;
 // } // namespace operatorgeneration
-
 
 struct ParameterContainer
 {
@@ -403,8 +402,7 @@ std::function< bool( const Point3D& ) > cornersMarker = []( const Point3D& x ) {
         ( bottomMarker( x ) && leftMarker( x ) && frontMarker( x ) ) ||
         ( topMarker( x ) && rightMarker( x ) && backMarker( x ) ) ||
         ( bottomMarker( x ) && rightMarker( x ) && backMarker( x ) ) ||
-        ( topMarker( x ) && leftMarker( x ) && backMarker( x ) ) || 
-        ( bottomMarker( x ) && leftMarker( x ) && backMarker( x ) ) )
+        ( topMarker( x ) && leftMarker( x ) && backMarker( x ) ) || ( bottomMarker( x ) && leftMarker( x ) && backMarker( x ) ) )
    {
       return true;
    }
@@ -457,10 +455,8 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
    real_t depthViscosityFactor = real_c( 1.5 );
    real_t viscosityLowerBound  = real_c( 1e20 );
    real_t viscosityUpperBound  = real_c( 1e24 );
-   real_t c1 = real_c(0.05);
-   real_t c2 = real_c(2.05);
-
-
+   real_t c1                   = real_c( 0.05 );
+   real_t c2                   = real_c( 2.05 );
 
    //set background viscosity as radial profile or constant value, and non-dimensionalise
    // if ( haveViscosityProfile )
@@ -476,28 +472,25 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
    //depth-dependent factor counteracts the decrease in viscosity due to increasing temperature with depth
    // if ( tempDependentViscosity )
    // {
-      // switch ( tempDependentViscosityType )
-      // {
-      // //Frank–Kamenetskii type 1
-      // case 0: {
-   retVal *= std::exp( -activationEnergy * ( Temperature[0] ) +
-                        depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
-      //    break;
-      // }
-      // //Frank–Kamenetskii type 2
-      // case 1: {
-      //    retVal *= std::exp( activationEnergy * ( real_c( 0.5 ) - Temperature[0] ) +
-      //                        depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
-      //    break;
-      // }
-      // //Arrhenius type
-      // case 2: {
-
+   // switch ( tempDependentViscosityType )
+   // {
+   // //Frank–Kamenetskii type 1
+   // case 0: {
+   retVal *= std::exp( -activationEnergy * ( Temperature[0] ) + depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
+   //    break;
+   // }
+   // //Frank–Kamenetskii type 2
+   // case 1: {
+   //    retVal *= std::exp( activationEnergy * ( real_c( 0.5 ) - Temperature[0] ) +
+   //                        depthViscosityFactor * ( parameters.rMax - radius ) / ( parameters.rMax ) );
+   //    break;
+   // }
+   // //Arrhenius type
+   // case 2: {
 
    // WALBERLA_LOG_INFO_ON_ROOT( "temp-dep viscosity : Arrhenius" );
    // WALBERLA_LOG_INFO_ON_ROOT( "Temperature : " );
    // WALBERLA_LOG_INFO_ON_ROOT( Temperature[0] );
-
 
    // retVal *= std::exp( activationEnergy * ( ( real_c( 1 ) / ( Temperature[0] + c1 ) ) - c2 ) +
    //                           depthViscosityFactor * ( rMax - radius ) / ( rMax ) );
@@ -513,16 +506,16 @@ real_t viscosityFunction( const Point3D& x, const std::vector< real_t >& Tempera
    //    }
    //    // WALBERLA_LOG_INFO_ON_ROOT( " viscosity before non - D : " << retVal );
    //    //  impose min viscosity
-      if ( retVal < 1 )
-      {
-         retVal = 1;
-      }
+   if ( retVal < 1 )
+   {
+      retVal = 1;
+   }
 
    //    //impose max viscosity
-      if ( retVal > 100 )
-      {
-         retVal = 100;
-      }
+   if ( retVal > 100 )
+   {
+      retVal = 100;
+   }
    // // }
    // if ( weakZone )
    // {
@@ -737,13 +730,11 @@ class TALASimulation
           std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhsStrong", storage_, minLevel_, maxLevel_, bcVelocity );
       uRhs = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhs", storage_, minLevel_, maxLevel_, bcVelocity );
 
-
-      mu    =  std::make_shared< P2Function< real_t > > ( "viscosity", storage_, minLevel_, maxLevel_, bcTemp );
-      muInv =  std::make_shared< P1Function< real_t > > ( "muInv", storage_, minLevel_, maxLevel_, bcTemp );
+      mu    = std::make_shared< P2Function< real_t > >( "viscosity", storage_, minLevel_, maxLevel_, bcTemp );
+      muInv = std::make_shared< P1Function< real_t > >( "muInv", storage_, minLevel_, maxLevel_, bcTemp );
 
       // P2Function< real_t > mu( "viscosity", storage_, minLevel_, maxLevel_, bcTemp ); //mu
       // P1Function< real_t > muInv( "muInv", storage_, minLevel_, maxLevel_, bcTemp );
-
 
       u->uvw().setBoundaryCondition( bcVelocityX, 0u );
       u->uvw().setBoundaryCondition( bcVelocityY, 1u );
@@ -783,7 +774,8 @@ class TALASimulation
 
          transportTALAOp->mmocTransport_->setCautionedEvaluate( mainConf.getParameter< bool >( "cautionedEvaluate" ) );
 
-         transportCGSolver = std::make_shared< CGSolver< terraneo::P2TransportOperator > >( storage_, minLevel_, maxLevel_, 30, 1e-9 );
+         transportCGSolver =
+             std::make_shared< CGSolver< terraneo::P2TransportOperator > >( storage_, minLevel_, maxLevel_, 30, 1e-9 );
          transportCGSolver->setPrintInfo( params.verbose );
       }
 
@@ -845,8 +837,6 @@ class TALASimulation
       adios2Output->add( *T );
       adios2Output->add( *mu );
    }
-
-
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscFunction =
        [&]( const Point3D& x, const std::vector< real_t >& Temperature ) {
@@ -912,7 +902,7 @@ class TALASimulation
    std::shared_ptr< P1toP1LinearProlongation< real_t > > p1LinearProlongation;
 
    // Solvers
-   std::shared_ptr< Solver< StokesOperator_T > >        stokesSolverMG;
+   std::shared_ptr< Solver< StokesOperator_T > > stokesSolverMG;
    std::shared_ptr< Solver< StokesOperator_T > > stokesDirectSolverPetsc;
 
    std::shared_ptr< CGSolver< terraneo::P2TransportOperator > > transportCGSolver;
@@ -964,7 +954,7 @@ void TALASimulation::solveU()
 #if defined( HYTEG_BUILD_WITH_PETSC )
       stokesDirectSolverPetsc->solve( *stokesOperator, *u, *uRhs, maxLevel );
 #else
-      WALBERLA_ABORT("PETSc not build but direct solver requested");
+      WALBERLA_ABORT( "PETSc not build but direct solver requested" );
 #endif
    }
    else
@@ -1054,7 +1044,7 @@ void TALASimulation::solveT()
 void TALASimulation::step()
 {
    real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
-   real_t vRMS = std::sqrt( u->uvw().dotGlobal ( u->uvw(), maxLevel ) / u->uvw().getNumberOfGlobalDoFs( maxLevel ) ); 
+   real_t vRMS = std::sqrt( u->uvw().dotGlobal( u->uvw(), maxLevel ) / u->uvw().getNumberOfGlobalDoFs( maxLevel ) );
    real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
 
    real_t Pe = vLmaxCuboid__ * vRMS / ( params.k_ );
@@ -1074,12 +1064,9 @@ void TALASimulation::step()
 
    TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
    uPrev->assign( { 1.0 }, { *u }, maxLevel, All );
-   
+
    // WALBERLA_LOG_INFO( "Temperature ?? " );
    // WALBERLA_LOG_INFO( T );
-
-
-
 }
 
 void TALASimulation::solve()
@@ -1093,10 +1080,8 @@ void TALASimulation::solve()
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 
-
    writeZProfile();
    writeVTK( iTimeStep );
-
 
    while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
    {
@@ -1110,7 +1095,6 @@ void TALASimulation::solve()
 
       iTimeStep++;
 
-
       simulationTime += transportTALAOp->timestep;
 
       if ( iTimeStep % params.vtkWriteFrequency == 0 )
@@ -1119,7 +1103,6 @@ void TALASimulation::solve()
          writeVTK( iTimeStep );
       }
    }
-
 }
 
 void TALASimulation::writeZProfile()
@@ -1129,7 +1112,8 @@ void TALASimulation::writeZProfile()
    std::string profilePath = mainConf.getParameter< std::string >( "profilePath" );
    std::string fileName    = walberla::format( "%s/Temperature_%d.txt", profilePath.c_str(), iTimeStep );
 
-   auto TProfile = terraneo::computeRadialProfile( *T, 0.0, vLmaxCuboid__, nz+1, maxLevel, []( const Point3D& x ) { return x[2]; } );
+   auto TProfile =
+       terraneo::computeRadialProfile( *T, 0.0, vLmaxCuboid__, nz + 1, maxLevel, []( const Point3D& x ) { return x[2]; } );
 
    TProfile.logToFile( fileName, "T" );
 }
@@ -1169,8 +1153,8 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
 
-
-   auto meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( hLmaxCuboid__, hLmaxCuboid__, vLmaxCuboid__ ), nx, ny, nz );
+   auto meshInfo = hyteg::MeshInfo::meshCuboid(
+       Point3D( 0.0, 0.0, 0.0 ), Point3D( hLmaxCuboid__, hLmaxCuboid__, vLmaxCuboid__ ), nx, ny, nz );
 
    auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

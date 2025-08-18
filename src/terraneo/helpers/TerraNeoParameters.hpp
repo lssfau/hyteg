@@ -129,6 +129,8 @@ struct OutputParameters
    std::string outputDirectory = std::string( "output" );
    std::string modelBaseName   = std::string( "conv_sim" );
 
+   bool overrideModelFolder = false;
+
    std::string ADIOS2OutputConfig = std::string( "ADIOS2config.xml" );
    std::string ADIOS2ParamKey     = std::string( "NumAggregators" );
    std::string ADIOS2Value        = std::string( "16" );
@@ -233,12 +235,12 @@ struct SimulationParameters
    std::string fnameReconstructions;
    real_t      plateVelocityScaling        = real_c( 1 );
    real_t      plateSmoothingDistance      = real_c( 110 );
-   bool        compressible                = true; // default: Compressible foŕmulation
+   bool        compressible                = true;  // default: Compressible foŕmulation
    bool        frozenVelocity              = false; // default: Non-frozen
-   bool        shearHeating                = true; //default: include shear heating
-   bool        adiabaticHeating            = true; //default: include adiabatic heating
-   bool        internalHeating             = true; //default: include internal heating
-   uint_t      boundaryCond                = 1;    // default: No-Slip/No-Slip
+   bool        shearHeating                = true;  //default: include shear heating
+   bool        adiabaticHeating            = true;  //default: include adiabatic heating
+   bool        internalHeating             = true;  //default: include internal heating
+   uint_t      boundaryCond                = 1;     // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip        = false;
    bool        verbose                     = false;
    bool        haveTemperatureProfile      = false;

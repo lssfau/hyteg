@@ -305,6 +305,8 @@ Parameters
    outputDirectory ../../output;
    modelBaseName TerraNeo;
 
+   overrideModelFolder false;
+
    // Output of a. json file containing timing tree information
 
    // Output of json file containing timing results of default Timing Tree results

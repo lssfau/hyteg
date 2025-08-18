@@ -495,10 +495,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesUzawaCoarseGridTol        = mainConf.getParameter< real_t >( "stokesUzawaCoarseGridTol" );
    solverParam.stokesSmoothIncrementCoarseGrid = mainConf.getParameter< uint_t >( "stokesSmoothIncrementCoarseGrid" );
 
-   outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
-   outputParam.modelBaseName   = mainConf.getParameter< std::string >( "modelBaseName" );
-   outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
-   outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
+   outputParam.outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputParam.modelBaseName       = mainConf.getParameter< std::string >( "modelBaseName" );
+   outputParam.overrideModelFolder = mainConf.getParameter< bool >( "overrideModelFolder" );
+   outputParam.dataOutput          = mainConf.getParameter< bool >( "dataOutput" );
+   outputParam.vtk                 = mainConf.getParameter< bool >( "vtk" );
 
    outputParam.OutputVelocity         = mainConf.getParameter< bool >( "OutputVelocity" );
    outputParam.OutputTemperature      = mainConf.getParameter< bool >( "OutputTemperature" );

@@ -55,11 +55,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupOu
 
       WALBERLA_ROOT_SECTION()
       {
-         if ( modelPathExists )
+         if ( modelPathExists && !TN.outputParameters.overrideModelFolder )
          {
-            WALBERLA_ABORT( "Path with model name already exists, use override switch to overwrite data" );
+            WALBERLA_ABORT(
+                "Path with model name already exists, use `overrideModelFolder` variable in the parameter file to overwrite data" );
          }
-         else
+         else if ( !modelPathExists )
          {
             std::filesystem::create_directory( modelPath );
          }
@@ -315,7 +316,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
    if ( TN.outputParameters.outputProfiles )
    {
       modelRadialProfilesPath = walberla::format( "%s/radialProfiles", modelPath.c_str() );
-      
+
       // Redimensionalise tempeature to SI unit [K]
       for ( uint_t i = 0; i < temperatureProfiles->mean.size(); i++ )
       {
