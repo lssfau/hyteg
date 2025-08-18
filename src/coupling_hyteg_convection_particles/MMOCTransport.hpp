@@ -1409,10 +1409,8 @@ class MMOCTransport
 
    void setParticleLocalRadiusTolerance( real_t particleLocationRadiusTol )
    {
-      uint_t maxLevel = cOld_.getMaxLevel();
-      
       particleLocationRadiusTol_ = particleLocationRadiusTol;
-      particleLocationRadius_ = particleLocationRadiusTol_ * MeshQuality::getMinimalEdgeLength( storage_, maxLevel );
+      particleLocationRadius_ = particleLocationRadiusTol_ * MeshQuality::getMinimalEdgeLength( storage_, maxLevel_ );
    }
 
    void setProjectPointsBackOutsideDomainFunction(

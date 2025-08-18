@@ -136,10 +136,12 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
                                                                                  minLevel,
                                                                                  maxLevel,
                                                                                  TN.solverParameters.FGMRESOuterIterations,
+                                                                                 TN.solverParameters.FGMRESTolerance,
+                                                                                 TN.solverParameters.FGMRESTolerance,
+                                                                                 blockPreconditioner_,
                                                                                  TN.solverParameters.FGMRESRestartLength,
                                                                                  TN.solverParameters.FGMRESTolerance );
 
-      fgmresFinalSolver_->setPreconditioner( blockPreconditioner_ );
       fgmresFinalSolver_->setPrintInfo( true );
 
       this->solverPtr_ = fgmresFinalSolver_;
