@@ -33,6 +33,16 @@ class MCSolverBase
    , maxLevel_( maxLevel )
    {}
 
+   MCSolverBase( const std::shared_ptr< PrimitiveStorage >&        storage,
+                 const uint_t                                      minLevel,
+                 const uint_t                                      maxLevel,
+                 const std::shared_ptr< Solver< BaseOperator_T > > solverPtr )
+   : storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   , solverPtr_( solverPtr )
+   {}
+
    std::shared_ptr< Solver< BaseOperator_T > > getSolver() { return solverPtr_; }
 
  protected:

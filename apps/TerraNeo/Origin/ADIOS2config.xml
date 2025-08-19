@@ -3,7 +3,7 @@
 
     <io name="BPWriter">
         <engine type="BP5">
-	    <parameter key="NumSubFiles" value="32"/>
+	    <parameter key="NumSubFiles" value="64"/>
         </engine>
     </io>
 

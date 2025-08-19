@@ -576,7 +576,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       const auto cellLocalStencilWeights = calculateStencilInMacroCellForm( indexInMacroCell, *macroCell, level, form );
 
       // 3. translate coordinates / stencil directions back to vertex-local coordinate system
-      for ( const auto it : cellLocalStencilWeights )
+      for ( const auto& it : cellLocalStencilWeights )
       {
          const auto            cellLocalDir        = it.first;
          const auto            stencilWeight       = it.second;
@@ -672,7 +672,7 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
       const auto cellLocalStencilWeights = calculateStencilInMacroCellForm_new( indexInMacroCell, *macroCell, level, form );
 
       // 3. translate coordinates / stencil directions back to vertex-local coordinate system
-      for ( const auto it : cellLocalStencilWeights )
+      for ( const auto& it : cellLocalStencilWeights )
       {
          const auto                            cellLocalDir  = it.first;
          const auto                            stencilWeight = it.second;
@@ -779,7 +779,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       const auto cellLocalStencilWeights = calculateStencilInMacroCellForm( indexInMacroCell, *macroCell, level, form );
 
       // 3. translate coordinates / stencil directions back to edge-local coordinate system
-      for ( const auto it : cellLocalStencilWeights )
+      for ( const auto& it : cellLocalStencilWeights )
       {
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
@@ -928,7 +928,7 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
       const auto cellLocalStencilWeights = calculateStencilInMacroCellForm_new( indexInMacroCell, *macroCell, level, form );
 
       // 3. translate coordinates / stencil directions back to edge-local coordinate system
-      for ( const auto it : cellLocalStencilWeights )
+      for ( const auto& it : cellLocalStencilWeights )
       {
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;
@@ -1070,7 +1070,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
       const auto cellLocalStencilWeights = calculateStencilInMacroCellForm( indexInMacroCell, *macroCell, level, form );
 
       // 3. translate coordinates / stencil directions back to face-local coordinate system
-      for ( const auto it : cellLocalStencilWeights )
+      for ( const auto& it : cellLocalStencilWeights )
       {
          const auto cellLocalDir  = it.first;
          const auto stencilWeight = it.second;

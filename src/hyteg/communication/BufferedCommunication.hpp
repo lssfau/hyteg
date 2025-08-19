@@ -25,6 +25,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/types/BufferSystemForwardDeclare.hpp"
+#include "hyteg/primitives/PrimitiveID.hpp"
 
 namespace walberla {
 namespace timing {
@@ -37,7 +38,7 @@ using WcTimingTree = timing::TimingTree< timing::WcPolicy >;
 
 namespace hyteg {
 class PrimitiveStorage;
-class PrimitiveID;
+// class PrimitiveID;
 
 namespace communication {
 

@@ -123,10 +123,11 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
 
-   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
+   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0, const bool& keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
-                     const uint_t&                                    additionalHaloDepth = 0 );
+                     const uint_t&                                    additionalHaloDepth = 0,
+                     const bool& keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const VertexMap&      vtxs,
                      const EdgeMap&        edges,
                      const FaceMap&        faces,

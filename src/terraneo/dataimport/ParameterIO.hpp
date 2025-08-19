@@ -312,6 +312,13 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
    simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
 
+   simulationParam.checkTemperatureConsistency     = mainConf.getParameter< bool >( "checkTemperatureConsistency" );
+   simulationParam.temperatureConsistencyThreshold = mainConf.getParameter< real_t >( "temperatureConsistencyThreshold" );
+
+   simulationParam.particleLocationRadius    = mainConf.getParameter< real_t >( "particleLocationRadius" );
+   simulationParam.projectPointsBackToDomain = mainConf.getParameter< bool >( "projectPointsBackToDomain" );
+   simulationParam.cautionedEvaluate         = mainConf.getParameter< bool >( "cautionedEvaluate" );
+
    if ( simulationParam.tempDependentViscosity || simulationParam.haveViscosityProfile )
    {
       simulationParam.tempDependentViscosityType = mainConf.getParameter< uint_t >( "tempDependentViscosityType" );
@@ -442,11 +449,18 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    }
 
    /*############ SOLVER PARAMETERS ############*/
+   solverParam.rotFactor = mainConf.getParameter< real_t >( "rotFactor" );
+
    solverParam.solverFlag  = mainConf.getParameter< uint_t >( "solverFlag" );
    solverParam.solverPETSc = mainConf.getParameter< uint_t >( "PETScFlag" );
 
-   solverParam.numPowerIterations    = mainConf.getParameter< uint_t >( "numPowerIterations" );
+   solverParam.numPowerIterations                = mainConf.getParameter< uint_t >( "numPowerIterations" );
+   solverParam.ChebyshevOrder                    = mainConf.getParameter< uint_t >( "ChebyshevOrder" );
+   solverParam.ChebyshevSpectralRadiusUpperLimit = mainConf.getParameter< real_t >( "ChebyshevSpectralRadiusUpperLimit" );
+   solverParam.ChebyshevSpectralRadiusLowerLimit = mainConf.getParameter< real_t >( "ChebyshevSpectralRadiusLowerLimit" );
+
    solverParam.FGMRESOuterIterations = mainConf.getParameter< uint_t >( "FGMRESOuterIterations" );
+   solverParam.FGMRESRestartLength   = mainConf.getParameter< uint_t >( "FGMRESRestartLength" );
    solverParam.FGMRESTolerance       = mainConf.getParameter< real_t >( "FGMRESTolerance" );
 
    solverParam.uzawaIterations    = mainConf.getParameter< uint_t >( "uzawaIterations" );
@@ -467,7 +481,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.SchurCoarseGridIterations = mainConf.getParameter< uint_t >( "SchurCoarseGridIterations" );
    solverParam.SchurCoarseGridTolerance  = mainConf.getParameter< real_t >( "SchurCoarseGridTolerance" );
 
-   solverParam.stokesKillTolerance = mainConf.getParameter< uint_t >( "stokesKillTolerance" );
+   solverParam.stokesKillTolerance = mainConf.getParameter< real_t >( "stokesKillTolerance" );
+   solverParam.useRotationWrapper  = mainConf.getParameter< bool >( "useRotationWrapper" );
 
    solverParam.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
    solverParam.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
@@ -480,15 +495,17 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.stokesUzawaCoarseGridTol        = mainConf.getParameter< real_t >( "stokesUzawaCoarseGridTol" );
    solverParam.stokesSmoothIncrementCoarseGrid = mainConf.getParameter< uint_t >( "stokesSmoothIncrementCoarseGrid" );
 
-   outputParam.outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
-   outputParam.outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
-   outputParam.dataOutput      = mainConf.getParameter< bool >( "dataOutput" );
-   outputParam.vtk             = mainConf.getParameter< bool >( "vtk" );
+   outputParam.outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
+   outputParam.modelBaseName       = mainConf.getParameter< std::string >( "modelBaseName" );
+   outputParam.overrideModelFolder = mainConf.getParameter< bool >( "overrideModelFolder" );
+   outputParam.dataOutput          = mainConf.getParameter< bool >( "dataOutput" );
+   outputParam.vtk                 = mainConf.getParameter< bool >( "vtk" );
 
-   outputParam.OutputVelocity    = mainConf.getParameter< bool >( "OutputVelocity" );
-   outputParam.OutputTemperature = mainConf.getParameter< bool >( "OutputTemperature" );
-   outputParam.OutputInterval    = mainConf.getParameter< uint_t >( "OutputInterval" );
-   outputParam.outputVertexDoFs  = mainConf.getParameter< bool >( "OutputVertexDoFs" );
+   outputParam.OutputVelocity         = mainConf.getParameter< bool >( "OutputVelocity" );
+   outputParam.OutputTemperature      = mainConf.getParameter< bool >( "OutputTemperature" );
+   outputParam.OutputInterval         = mainConf.getParameter< uint_t >( "OutputInterval" );
+   outputParam.OutputProfilesInterval = mainConf.getParameter< uint_t >( "OutputProfilesInterval" );
+   outputParam.outputVertexDoFs       = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
    outputParam.ADIOS2ParamKey     = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
    outputParam.ADIOS2Value        = mainConf.getParameter< std::string >( "ADIOS2Value" );
@@ -541,7 +558,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
  * to the root process and to the log file.
  */
 
-inline void printConfig( const TerraNeoParameters& terraNeoParameters )
+inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::string paramsPath = "" )
 {
    const auto outputParam         = terraNeoParameters.outputParameters;
    const auto domainParam         = terraNeoParameters.domainParameters;
@@ -550,11 +567,13 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    const auto initialisationParam = terraNeoParameters.initialisationParameters;
    const auto solverParam         = terraNeoParameters.solverParameters;
 
-   //logging for model info
-   WALBERLA_ROOT_SECTION()
+   if ( paramsPath != "" )
    {
-      walberla::logging::Logging::instance()->includeLoggingToFile( outputParam.outputDirectory + "/" +
-                                                                    outputParam.outputBaseName + "_params.out" );
+      //logging for model info
+      WALBERLA_ROOT_SECTION()
+      {
+         walberla::logging::Logging::instance()->includeLoggingToFile( paramsPath );
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
@@ -713,7 +732,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Output directory  : " << outputParam.outputDirectory );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Base Name  : " << outputParam.outputBaseName );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output Base Name  : " << outputParam.modelBaseName );
    WALBERLA_LOG_INFO_ON_ROOT( "data Output       : " << ( outputParam.dataOutput ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output Velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
@@ -721,8 +740,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Output Temperature & Viscosity Profiles: " << "true" );
    }
    else
    {
@@ -736,8 +754,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters )
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
-                                 << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

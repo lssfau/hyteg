@@ -1,8 +1,5 @@
-add_compile_options( "-std=c++20" )
-add_flag( CMAKE_CXX_FLAGS "-Wno-ambiguous-reversed-operator" )
-
-waLBerla_add_executable( NAME TerraNeo
-    FILES Convection.cpp
+waLBerla_add_executable( NAME CubeConvection
+    FILES CubeConvection.cpp
     DEPENDS hyteg terraneo core sqlite convection_particles 
     constant_stencil_operator mixed_operator opgen-mass opgen-k_mass 
     opgen-composites-stokes opgen-div_k_grad opgen-terraneo
@@ -18,6 +15,10 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
     waLBerla_link_files_to_builddir( *.xml )
 endif()
 
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output)
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output_5)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output_5")
+endif()
+
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Profiles_5)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Profiles_5")
 endif()

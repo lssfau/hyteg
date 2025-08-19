@@ -33,13 +33,11 @@
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-// #include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
+#include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
 #include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 
 #include "mixed_operator/VectorMassOperator.hpp"
-#include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
-#include "terraneo/operators/P2StokesABlockWithProjection.hpp"
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
+#include "terraneo/operators/P2P1StokesOperatorWithWrapper.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using namespace hyteg;
@@ -60,7 +58,6 @@ int main( int argc, char* argv[] )
 
    BoundaryCondition bcVelocity;
    bcVelocity.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
-   // bcVelocity.createDirichletBC( "DirichletInner", {MeshInfo::hollowFlag::flagInnerBoundary} );
    bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
 
    uint_t minLevel = 2U, maxLevel = 3U;
@@ -102,47 +99,25 @@ int main( int argc, char* argv[] )
 
    auto projectionOperator = std::make_shared< P2ProjectNormalOperator >( storage, minLevel, maxLevel, normalsFS );
 
-   auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorFS >(
+   auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorWithProjection >(
        storage, minLevel, maxLevel, mu, muInv, *projectionOperator, bcVelocity, rho );
 
    P2ElementwiseBlendingVectorMassOperator vecMassOperator( storage, minLevel, maxLevel );
 
    vecMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
-   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp1", storage, minLevel, maxLevel);
-   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp2", storage, minLevel, maxLevel);
-   auto tmp3 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp3", storage, minLevel, maxLevel);
+   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "tmp1", storage, minLevel, maxLevel );
+   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "tmp2", storage, minLevel, maxLevel );
+   auto tmp3 = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "tmp3", storage, minLevel, maxLevel );
 
-   std::map< solvertemplates::StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams = {
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c(50u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, uint_c(10u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, real_c(1e-6) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, real_c(0.3) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, uint_c(2u) } };
+   auto stokesSolverTest =
+       solvertemplates::stokesGMGFSSolver< P2P1StokesFullIcosahedralShellMapOperatorWithProjection, P2ProjectNormalOperator >(
+           storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, tmp3, false, false, {
+            { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, uint_c( 5u ) }
+           } );
 
-   auto stokesSolverTest = solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-       storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, false, extraParams );
-
-   // auto stokesMinresSolver = std::make_shared< MinResSolver< P2P1StokesFullIcosahedralShellMapOperatorFS > >(storage, minLevel, maxLevel, 10U, 1e-6);
-   // stokesMinresSolver->setPrintInfo(true);
-
-   // auto stokesGMGUzawa = solvertemplates::stokesGMGUzawaSolver< P2P1StokesFullIcosahedralShellMapOperatorFS >(storage, minLevel, maxLevel, 3U, 3U, 0.3);
-
-   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >(std::get< 0 >(stokesSolverTest), 3U);
-
-   //  solvertemplates::stokesGMGFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-   //      storage,
-   //      minLevel,
-   //      maxLevel,
-   //      stokesOperatorFS,
-   //      projectionOperator,
-   //      bcVelocity,
-   //      false,
-   //      false,
-   //      { { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER, 10 } } );
+   auto stokesSolver = std::get< 0 >( stokesSolverTest );
+   //    std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorWithProjection > >( std::get< 0 >( stokesSolverTest ), 3U );
 
    projectionOperator->project( f, maxLevel, FreeslipBoundary );
 
@@ -153,7 +128,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Initial residual: " << unscaledInitialResiduum );
 
-   stokesSolverLoop->solve( *stokesOperatorFS, u, f, maxLevel );
+   stokesSolver->solve( *stokesOperatorFS, u, f, maxLevel );
 
    stokesOperatorFS->apply( u, res, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
    res.assign( { 1.0, -1.0 }, { res, f }, maxLevel );

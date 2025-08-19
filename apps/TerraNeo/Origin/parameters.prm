@@ -1,3 +1,9 @@
+FunctionSpaces
+{
+   TemperatureSpace P2;
+   ViscositySpace P1;
+}
+
 Parameters
 {
    version 0.2;
@@ -20,7 +26,7 @@ Parameters
    // Refinement level
 
    maxLevel 4;
-   minLevel 0;
+   minLevel 2;
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
@@ -50,7 +56,7 @@ Parameters
 
    //// Method 1: Single SPH
    // degree, order: Degree and order of the Single SPH
-   degree 8;
+   degree 16;
    order 16;
 
    //// Method 2: Random Superposition SPH
@@ -150,6 +156,8 @@ Parameters
 
    boundaryCond 3;
 
+   rotFactor 0.25;
+
    // Model simulation type: ConvectionModel / CirculationModel
 
    simulationType ConvectionModel;
@@ -158,8 +166,8 @@ Parameters
    frozenVelocity false;
    
    shearHeating false;
-   adiabaticHeating true;
-   internalHeating true;
+   adiabaticHeating false;
+   internalHeating false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -174,8 +182,12 @@ Parameters
    predictorCorrector false;
    // Maximum timestep size in Ma
    maxTimeStepSize 100;
-   cflMax 1;
+   cflMax 0.8;
    dtConstant 100;
+
+   particleLocationRadius 0.01;
+   projectPointsBackToDomain false;
+   cautionedEvaluate false;
 
    // Adaptive reference Temperature 
    // true: update to radial mean Temperature
@@ -209,12 +221,18 @@ Parameters
 
    // 0 - FMGRES
    // 1 - Uzawa
+   // 2 - PETSc direct solver
    SolverFlag 0;
 
    // 0 - HyTeG MinRes solver
    // 1 - PETSc solver
-   PETScFlag 0;
+   PETScFlag 1;
 
+   useRotationWrapper false;
+
+   ChebyshevOrder 3;
+   ChebyshevSpectralRadiusUpperLimit 1.2;
+   ChebyshevSpectralRadiusLowerLimit 0.1;
 
    // Uzawa solver parameters
 
@@ -228,18 +246,19 @@ Parameters
    // Common to both vanilla Uzawa and FGMRES
    uzawaIterations 3;
    uzawaOmega 0.3;
-   ABlockMGPreSmooth 3;
+   ABlockMGPreSmooth 1;
    ABlockMGPostSmooth 3;
 
    // FGMRES solver parameters 
-   FGMRESOuterIterations 5;
+   FGMRESOuterIterations 7;
+   FGMRESRestartLength 7;
    FGMRESTolerance 1e-6;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
    ABlockCoarseGridIterations 10;
    ABlockCoarseGridTolerance 1e-10;
-   SchurMGIterations 100;
+   SchurMGIterations 25;
    SchurMGTolerance 1e-12;
    SchurMGPreSmooth 3;
    SchurMGPostSmooth 3;
@@ -248,7 +267,10 @@ Parameters
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 1000000;
+   stokesKillTolerance 10000000000;
+
+   checkTemperatureConsistency false;
+   temperatureConsistencyThreshold 1.0;
 
    // Diffusion parameters 
 
@@ -268,7 +290,8 @@ Parameters
    OutputVelocity true;
    OutputTemperature true;
    OutputInterval 1;
-   OutputVertexDoFs true;
+   OutputProfilesInterval 10;
+   OutputVertexDoFs false;
 
    //If desired: output per Myr:
 
@@ -296,9 +319,10 @@ Parameters
    ADIOS2ParamKey NumSubFiles;
    ADIOS2Value 32;
 
-   outputDirectory ./output/;
-   outputBaseName TerraNeo;
-
+   outputDirectory ./output;
+   modelBaseName TerraNeo_Debug;
+   overrideModelFolder false;
+   
    // Output of a. json file containing timing tree informationf
 
    timingAnalysis true;

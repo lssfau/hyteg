@@ -72,9 +72,16 @@ struct SolverParameters
 {
    uint_t solverFlag  = 0u;
    uint_t solverPETSc = 0u;
+
    // Stokes solver parameters
-   uint_t numPowerIterations         = 25;
+
+   uint_t numPowerIterations                = 25;
+   uint_t ChebyshevOrder                    = 3u;
+   real_t ChebyshevSpectralRadiusUpperLimit = 1.2;
+   real_t ChebyshevSpectralRadiusLowerLimit = 0.1;
+
    uint_t FGMRESOuterIterations      = 5;
+   uint_t FGMRESRestartLength        = 5;
    real_t FGMRESTolerance            = 1e-6;
    uint_t uzawaIterations            = 5;
    real_t uzawaOmega                 = real_c( 0.3 );
@@ -92,6 +99,8 @@ struct SolverParameters
    uint_t SchurCoarseGridIterations  = 5;
    real_t SchurCoarseGridTolerance   = 1e-6;
    real_t stokesKillTolerance        = real_c( 1000 );
+
+   bool useRotationWrapper = true;
 
    // Uzawa type multigrid solver
    real_t initialResidualU                 = real_c( 0 );
@@ -111,12 +120,16 @@ struct SolverParameters
    real_t diffusionAbsoluteResidualUTolerance = real_c( 10000 );
 
    real_t gmresApproximationToleranceTransport = real_c( 1e-5 );
+
+   real_t rotFactor = 0.0;
 };
 // Output parameters
 struct OutputParameters
 {
    std::string outputDirectory = std::string( "output" );
-   std::string outputBaseName  = std::string( "conv_sim" );
+   std::string modelBaseName   = std::string( "conv_sim" );
+
+   bool overrideModelFolder = false;
 
    std::string ADIOS2OutputConfig = std::string( "ADIOS2config.xml" );
    std::string ADIOS2ParamKey     = std::string( "NumAggregators" );
@@ -138,13 +151,19 @@ struct OutputParameters
 
    uint_t ADIOS2StoreCheckpointFrequency = 100U;
 
-   bool   dataOutput        = true;
-   bool   vtk               = true;
-   bool   OutputVelocity    = true;
-   bool   OutputViscosity   = true;
-   bool   OutputTemperature = true;
-   uint_t OutputInterval    = 1;
-   uint_t checkpointCount   = 1;
+   bool dataOutput = true;
+   bool vtk        = true;
+
+   uint_t OutputInterval         = 1;
+   uint_t OutputProfilesInterval = 1;
+   uint_t checkpointCount        = 1;
+
+   bool OutputVelocity    = true;
+   bool OutputViscosity   = true;
+   bool OutputDensity     = true;
+   bool OutputTemperature = true;
+   bool OutputVerbose     = false;
+   bool OutputDimensional = false;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -216,12 +235,12 @@ struct SimulationParameters
    std::string fnameReconstructions;
    real_t      plateVelocityScaling        = real_c( 1 );
    real_t      plateSmoothingDistance      = real_c( 110 );
-   bool        compressible                = true; // default: Compressible foŕmulation
+   bool        compressible                = true;  // default: Compressible foŕmulation
    bool        frozenVelocity              = false; // default: Non-frozen
-   bool        shearHeating                = true; //default: include shear heating
-   bool        adiabaticHeating            = true; //default: include adiabatic heating
-   bool        internalHeating             = true; //default: include internal heating
-   uint_t      boundaryCond                = 1;    // default: No-Slip/No-Slip
+   bool        shearHeating                = true;  //default: include shear heating
+   bool        adiabaticHeating            = true;  //default: include adiabatic heating
+   bool        internalHeating             = true;  //default: include internal heating
+   uint_t      boundaryCond                = 1;     // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip        = false;
    bool        verbose                     = false;
    bool        haveTemperatureProfile      = false;
@@ -246,6 +265,19 @@ struct SimulationParameters
 
    // Needed for timing analysis of the simulation run
    bool timingAnalysis = true;
+
+   // Failsafe parameters
+   bool checkTemperatureConsistency = false;     // Check if radially averaged temperatures goes
+                                                 // out of the expected range [surfaceTemp, cmbTemp]
+   real_t temperatureConsistencyThreshold = 1.0; // Kelvin
+
+   real_t initialTimestepSize                    = 1.0; // Ma
+   uint_t initialNStepsForTimestepLinearIncrease = 20u;
+
+   // MMOC Parameters
+   real_t particleLocationRadius    = real_c( 1e-2 );
+   bool   projectPointsBackToDomain = false;
+   bool   cautionedEvaluate         = false;
 };
 
 enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t
