@@ -87,7 +87,7 @@ struct ParameterFileVersion
 
 // Helper function to convert vector to string for logging
 template < typename T >
-std::string vectorToString( const std::vector< T >& vec)
+std::string vectorToString( const std::vector< T >& vec )
 {
    std::ostringstream oss;
    for ( size_t i = 0; i < vec.size(); ++i )
@@ -185,31 +185,31 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    domainParam.rMax              = domainParam.rSurface / ( domainParam.rSurface - domainParam.rCMB );
 
    // Read macro layer radii from parameter file
-   if ( mainConf.isDefined( "inputMacroLayers" ) ) 
+   if ( mainConf.isDefined( "inputMacroLayers" ) )
    {
       std::string macroLayersStr;
       std::string layerRadius;
- 
+
       macroLayersStr = mainConf.getParameter< std::string >( "inputMacroLayers" );
-      std::stringstream ss(macroLayersStr);
-      
-      // Parse input string to vector 
+      std::stringstream ss( macroLayersStr );
+
+      // Parse input string to vector
       while ( std::getline( ss, layerRadius, ',' ) )
       {
-	 // Trim leading/trailing spaces
+         // Trim leading/trailing spaces
          layerRadius.erase( 0, layerRadius.find_first_not_of( " \t" ) );
-	 layerRadius.erase( layerRadius.find_last_not_of( " \t" ) +1 );
+         layerRadius.erase( layerRadius.find_last_not_of( " \t" ) + 1 );
          domainParam.macroLayers.push_back( real_c( std::stof( layerRadius ) ) );
       }
       // non-dimensionalize the boundary radii
-      for ( real_t& entry : domainParam.macroLayers ) 
+      for ( real_t& entry : domainParam.macroLayers )
       {
          entry = entry / ( domainParam.rSurface - domainParam.rCMB );
       }
-      
+
       // Sort macroLayers to ensure ordering from bottom to top boundary
       std::sort( domainParam.macroLayers.begin(), domainParam.macroLayers.end() );
-      
+
       // Add outer boundaries
       domainParam.macroLayers.insert( domainParam.macroLayers.begin(), domainParam.rMin );
       domainParam.macroLayers.push_back( domainParam.rMax );
@@ -222,10 +222,11 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    {
       real_t layerRadius;
 
-      for ( uint_t layer = 0; layer < domainParam.nRad; layer ++ )
-      { 
-         layerRadius = domainParam.rMin + real_c( layer ) * (domainParam.rMax - domainParam.rMin ) / real_c( domainParam.nRad - 1);
-	 domainParam.macroLayers.push_back( layerRadius );
+      for ( uint_t layer = 0; layer < domainParam.nRad; layer++ )
+      {
+         layerRadius =
+             domainParam.rMin + real_c( layer ) * ( domainParam.rMax - domainParam.rMin ) / real_c( domainParam.nRad - 1 );
+         domainParam.macroLayers.push_back( layerRadius );
       }
    }
 
@@ -594,6 +595,32 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.fileNameSQLdb  = mainConf.getParameter< std::string >( "SQLdatabaseFileName" );
    outputParam.createTimingDB = mainConf.getParameter< bool >( "createTimingDB" );
 
+   //Start from timesteps and model age != 0 when starting from checkpoint and set output counters accordingly
+   if ( outputParam.ADIOS2StartFromCheckpoint )
+   {
+      simulationParam.timeStep0      = mainConf.getParameter< uint_t >( "checkpointStartTimestep" );
+      simulationParam.modelRunTimeMa = mainConf.getParameter< real_t >( "checkpointStartTimeMa" );
+      simulationParam.modelTime      = ( simulationParam.modelRunTimeMa * physicalParam.characteristicVelocity *
+                                    simulationParam.plateVelocityScaling * simulationParam.secondsPerMyr ) /
+                                  physicalParam.mantleThickness;
+      if ( outputParam.outputMyr )
+      {
+         outputParam.checkpointCount =
+             static_cast< uint_t >( simulationParam.modelRunTimeMa / outputParam.ADIOS2StoreCheckpointFrequency ) + 1;
+         outputParam.dataOutputCount =
+             static_cast< uint_t >( simulationParam.modelRunTimeMa / outputParam.outputIntervalMyr ) + 1;
+      }
+      simulationParam.timeStep = simulationParam.timeStep0;
+      WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint at timestep " << simulationParam.timeStep0 << " and model runtime "
+                                                                         << simulationParam.modelRunTimeMa << " Ma." );
+      if ( outputParam.outputMyr )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT(
+             "Next output at " << outputParam.dataOutputCount * outputParam.outputIntervalMyr << " Ma and next checkpoint at "
+                               << outputParam.checkpointCount * outputParam.ADIOS2StoreCheckpointFrequency << " ." );
+      }
+   }
+
    simulationParam.verbose = mainConf.getParameter< bool >( "verbose" );
    //number of radial layers at max level (x2 for P2 elements)
    simulationParam.numLayers =
@@ -760,7 +787,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "hMin                    : " << simulationParam.hMin );
    WALBERLA_LOG_INFO_ON_ROOT( "hMax                    : " << simulationParam.hMax );
    WALBERLA_LOG_INFO_ON_ROOT( "Fixed timestep          : " << ( simulationParam.fixedTimestep ? "true" : "false" ) );
-   if (simulationParam.fixedTimestep )
+   if ( simulationParam.fixedTimestep )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "dtConstant              : " << simulationParam.dtConstant );
    }

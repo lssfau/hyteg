@@ -209,8 +209,10 @@ struct SimulationParameters
    uint_t numLayers           = 0;
 
    //Parameters given via config file
+   bool        simulationInitialised      = false;
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
+   uint_t      timeStep0                  = 0;
    real_t      maxTimestepSize            = 0;
    real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );

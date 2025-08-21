@@ -318,6 +318,8 @@ Parameters
    ADIOS2StartCheckpointPath ./output/checkpoint;
    ADIOS2StartCheckpointFilename TerraNeo_checkpoint_MT128_NS-NS;
    ADIOS2StartFromCheckpoint false;
+   checkpointStartTimestep 100;
+   checkpointStartTimeMa 50;
 
    // In steps
    ADIOS2StoreCheckpointFrequency 1000;

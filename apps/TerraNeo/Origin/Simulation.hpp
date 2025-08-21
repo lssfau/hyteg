@@ -55,7 +55,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
    std::shared_ptr< P1ScalarFunction_T >& temperatureP1 = p1ScalarFunctionContainer.at( "TemperatureFEP1" );
 
-   if ( TN.simulationParameters.timeStep == 0 )
+   if ( !TN.simulationParameters.simulationInitialised )
    {
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
@@ -93,15 +93,45 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
+         // Compute temperature profiles for logging and adaptive reference
+         temperatureProfiles =
+             std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+                                                                      TN.domainParameters.rMin,
+                                                                      TN.domainParameters.rMax,
+                                                                      TN.domainParameters.macroLayers,
+                                                                      TN.domainParameters.maxLevel ) );
+
+         TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
+
          solveStokes();
+
+         // Now also initialise velocity (and viscosity) profiles
+         velocityProfiles =
+             std::make_shared< RadialProfile >( computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+                                                                      TN.domainParameters.rMin,
+                                                                      TN.domainParameters.rMax,
+                                                                      TN.domainParameters.macroLayers,
+                                                                      TN.domainParameters.maxLevel ) );
+         TN.physicalParameters.velocityProfile = velocityProfiles->rms;
+
+         if ( TN.simulationParameters.tempDependentViscosity )
+         {
+            viscosityProfiles =
+                std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
+                                                                         TN.domainParameters.rMin,
+                                                                         TN.domainParameters.rMax,
+                                                                         TN.domainParameters.macroLayers,
+                                                                         TN.domainParameters.maxLevel ) );
+         }
          dataOutput();
       }
       else
       {
-         dataOutput();
          solveStokes();
+         dataOutput();
       }
 
+      TN.simulationParameters.simulationInitialised = true;
       ++TN.simulationParameters.timeStep;
       velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
@@ -127,7 +157,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    else
    {
       // Within the first 20 timesteps gradually increase the timestep size from 1000 a to 100000 a
-      if ( TN.simulationParameters.timeStep < TN.simulationParameters.initialNStepsForTimestepLinearIncrease )
+      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) < 20 )
       {
          // Initial Step size is 1000 a
          TN.simulationParameters.dt = ( TN.simulationParameters.timeStep * TN.simulationParameters.initialTimestepSize *
@@ -326,7 +356,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
    // calculateHeatflow( temperatureProfiles );
    calculateHeatflowIntegral( temperatureProfiles );
-   
+
    solveStokes();
 
    // Compute rms velocity radially
@@ -478,23 +508,24 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       real_t dimFactor = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
       if ( ( temperatureProfiles->min[i] ) <= 0 )
       {
-	 negativesEncountered = true;
+         negativesEncountered = true;
          WALBERLA_LOG_INFO_ON_ROOT( "Negative Temperature: " << temperatureProfiles->min[i] * dimFactor
                                                              << " detected at shell radii: "
                                                              << temperatureProfiles->shellRadii[i] );
       }
    }
    if ( negativesEncountered )
-   {	
-      // Count the occurrences of negative temperatures in the wole domain  
+   {
+      // Count the occurrences of negative temperatures in the wole domain
       real_t threshold = 0.0;
-      p2ScalarFunctionContainer[ "NegativeCounter" ]->interpolate(
-	 DoFCounter( threshold ), { *(p2ScalarFunctionContainer[ "TemperatureFE" ]) },
-	 TN.domainParameters.maxLevel, All );
-      real_t count = p2ScalarFunctionContainer[ "NegativeCounter" ]->sumGlobal( TN.domainParameters.maxLevel );
-      WALBERLA_LOG_INFO_ON_ROOT( "Total of " << count
-		                             << " negative temperatures detected." );
+      p2ScalarFunctionContainer["NegativeCounter"]->interpolate(
+          DoFCounter( threshold ), { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, TN.domainParameters.maxLevel, All );
+      real_t count = p2ScalarFunctionContainer["NegativeCounter"]->sumGlobal( TN.domainParameters.maxLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "Total of " << count << " negative temperatures detected." );
    }
+
+
+   temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
 
 
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
@@ -508,27 +539,29 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       {
          dataOutput();
       }
-      else if ( TN.outputParameters.outputMyr && ( TN.simulationParameters.modelRunTimeMa >=
-                                                 real_c( TN.outputParameters.dataOutputCount * TN.outputParameters.outputIntervalMyr ) ) )
+      else if ( TN.outputParameters.outputMyr &&
+                ( TN.simulationParameters.modelRunTimeMa >=
+                  real_c( TN.outputParameters.dataOutputCount * TN.outputParameters.outputIntervalMyr ) ) )
       {
          dataOutput();
-	 TN.outputParameters.dataOutputCount += 1;
+         TN.outputParameters.dataOutputCount += 1;
       }
    }
-      
+
    // Individually decide when checkpoint data is dumped
    if ( TN.outputParameters.ADIOS2StoreCheckpoint )
-   {   
-      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U 
-         && TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
+   {
+      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.simulationInitialised &&
+           TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
       {
          outputCheckpoint();
       }
-      else if ( TN.outputParameters.outputMyr && ( TN.simulationParameters.modelRunTimeMa >= 
-                                                 real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
-      { 
+      else if ( TN.outputParameters.outputMyr &&
+                ( TN.simulationParameters.modelRunTimeMa >=
+                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
+      {
          outputCheckpoint();
-	 TN.outputParameters.checkpointCount += 1;
+         TN.outputParameters.checkpointCount += 1;
       }
    }
 
@@ -773,7 +806,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
    localTimer.end();
    real_t setupStokesTimer = localTimer.last();
 
-   if ( TN.simulationParameters.timeStep == 0 )
+   if ( !TN.simulationParameters.simulationInitialised )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "----------------------------------" );
       WALBERLA_LOG_INFO_ON_ROOT( "------ Initial Stokes solve ------" );
@@ -807,7 +840,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
       db->setVariableEntry( "Stokes_residual_initial", stokesResidual );
    }
 
-   if ( stokesResidual > TN.solverParameters.stokesKillTolerance && ( TN.simulationParameters.timeStep != 0 ) )
+   if ( stokesResidual > TN.solverParameters.stokesKillTolerance && TN.simulationParameters.simulationInitialised )
    {
       WALBERLA_ABORT( "Residual " << stokesResidual << " exceeds tolerance of " << TN.solverParameters.stokesKillTolerance
                                   << ". ABORTING SIMULATION. " );
