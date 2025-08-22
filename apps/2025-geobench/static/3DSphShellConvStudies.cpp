@@ -40,11 +40,11 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
+#include "hyteg/operatorgeneration/generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp"
 #include "hyteg/operatorgeneration/generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.hpp"
 #include "hyteg/operatorgeneration/generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.hpp"
-#include "hyteg/operatorgeneration/generated/GradientRotation/P1ToP2VectorGradientRotationIcosahedralShellMapOperator.hpp"
 #include "hyteg/operatorgeneration/generated/EpsilonRotationWithFSPenalty/P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator.hpp"
-#include "hyteg/operatorgeneration/generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp"
+#include "hyteg/operatorgeneration/generated/GradientRotation/P1ToP2VectorGradientRotationIcosahedralShellMapOperator.hpp"
 #include "hyteg/p2functionspace/P2RotationOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -52,16 +52,18 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/python/PythonCallingWrapper.hpp"
+#include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/FGMRESSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
+#include "hyteg/solvers/controlflow/SolverLoop.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-#include "hyteg/solvers/ChebyshevSmoother.hpp"
-#include "hyteg/solvers/controlflow/SolverLoop.hpp"
-#include "hyteg/solvers/FGMRESSolver.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
@@ -80,7 +82,8 @@ using namespace hyteg;
 //                                                       ViscousVelocityBlockOperator >
 //     StokesOperator;
 
-typedef operatorgeneration::P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator StokesViscousOperatorRotationOpgen;
+typedef operatorgeneration::P2VectorElementwiseEpsilonRotationWithFSPenaltyIcosahedralShellMapOperator
+    StokesViscousOperatorRotationOpgen;
 
 // typedef operatorgeneration::P2VectorEpsilonRotationIcosahedralShellMapOperator        StokesViscousOperatorRotationOpgen;
 typedef operatorgeneration::P1ToP2VectorGradientRotationIcosahedralShellMapOperator   StokesGradientOperator;
@@ -156,12 +159,12 @@ class P2P1StokesOpgenRotationWrapper : public Operator< P2P1TaylorHoodFunction< 
       div.toMatrix( mat, numeratorSrc.uvw(), numeratorDst.p(), level, flag );
    }
 
-   const VelocityOperator_T& getA() const { return stokesViscousOperator_; }
-   const StokesGradientOperator& getBT() const { return divT; }
+   const VelocityOperator_T&       getA() const { return stokesViscousOperator_; }
+   const StokesGradientOperator&   getBT() const { return divT; }
    const StokesDivergenceOperator& getB() const { return div; }
 
-   VelocityOperator_T& getA() { return stokesViscousOperator_; }
-   StokesGradientOperator& getBT() { return divT; }
+   VelocityOperator_T&       getA() { return stokesViscousOperator_; }
+   StokesGradientOperator&   getBT() { return divT; }
    StokesDivergenceOperator& getB() { return div; }
 
    StokesViscousOperatorRotationOpgen stokesViscousOperator_;
@@ -261,6 +264,7 @@ PythonCallingWrapper pythonWrapperGlobal( "./",
                                             "getFreeZeroslipPressureSmooth3d",
                                             "getFreeZeroslipVelocityDelta3d",
                                             "getFreeZeroslipPressureDelta3d",
+                                            "getFreeZeroslipRadialStressSmooth3d",
                                             "getSPH" } );
 
 std::function< real_t( const hyteg::Point3D& ) > radius = []( const hyteg::Point3D& x ) {
@@ -359,6 +363,41 @@ real_t pSolution( const hyteg::Point3D& x )
       else if ( boundaryConditionType == MIXED_DIRICHLET_AND_FREESLIP )
       {
          return pythonWrapperGlobal.getParameter( x, "getFreeZeroslipPressureSmooth3d" )[0];
+      }
+      else
+      {
+         return pythonWrapperGlobal.getParameter( x, "getDirichletPressureSmooth3d" )[0];
+      }
+   }
+}
+
+template < bool deltaForcing, BoundaryConditionType boundaryConditionType >
+real_t radialStressSolution( const hyteg::Point3D& x )
+{
+   if ( deltaForcing )
+   {
+      if ( boundaryConditionType == ALL_FREESLIP )
+      {
+         return pythonWrapperGlobal.getParameter( x, "getFreeslipPressureDelta3d" )[0];
+      }
+      else if ( boundaryConditionType == MIXED_DIRICHLET_AND_FREESLIP )
+      {
+         return pythonWrapperGlobal.getParameter( x, "getFreeZeroslipPressureDelta3d" )[0];
+      }
+      else
+      {
+         return pythonWrapperGlobal.getParameter( x, "getDirichletPressureDelta3d" )[0];
+      }
+   }
+   else
+   {
+      if ( boundaryConditionType == ALL_FREESLIP )
+      {
+         return pythonWrapperGlobal.getParameter( x, "getFreeslipPressureSmooth3d" )[0];
+      }
+      else if ( boundaryConditionType == MIXED_DIRICHLET_AND_FREESLIP )
+      {
+         return pythonWrapperGlobal.getParameter( x, "getFreeZeroslipRadialStressSmooth3d" )[0];
       }
       else
       {
@@ -573,6 +612,10 @@ class StokesFlow3D
    std::shared_ptr< StokesFunction >   fStrong;
    std::shared_ptr< StokesFunction >   AuAnalytical;
 
+   std::shared_ptr< P2Function< real_t > > radialStress;
+   std::shared_ptr< P2Function< real_t > > radialStressErr;
+   std::shared_ptr< P2Function< real_t > > radialStressAnalytical;
+
    std::shared_ptr< P2Function< real_t > > fSurfInt;
    std::shared_ptr< P2Function< real_t > > fSurfIntOut;
 
@@ -608,7 +651,7 @@ class StokesFlow3D
 
    hyteg::BoundaryCondition bcVelocity, bcVelocityThetaPhi, bcVelocityR;
    hyteg::BoundaryCondition bcDeltaSurf;
-   hyteg::BoundaryUID bcDeltaSurfUID;
+   hyteg::BoundaryUID       bcDeltaSurfUID;
 
  public:
    StokesFlow3D( std::shared_ptr< walberla::config::Config >&      cfg_,
@@ -666,10 +709,10 @@ class StokesFlow3D
       bcDeltaSurf.createAllInnerBC();
       if ( mainConf->getParameter< bool >( "delta" ) )
       {
-         bcDeltaSurfUID = bcDeltaSurf.createNeumannBC("DeltaMarker", INNER_SPECIAL);
+         bcDeltaSurfUID = bcDeltaSurf.createNeumannBC( "DeltaMarker", INNER_SPECIAL );
       }
 
-      surfaceMassOperator = std::make_shared< BoundaryMassOperator >(storage, minLevel, maxLevel, bcDeltaSurf, bcDeltaSurfUID);
+      surfaceMassOperator = std::make_shared< BoundaryMassOperator >( storage, minLevel, maxLevel, bcDeltaSurf, bcDeltaSurfUID );
 
       std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
 
@@ -705,7 +748,7 @@ class StokesFlow3D
       }
 
       mu = std::make_shared< P2Function< real_t > >( "mu", storage, minLevel_, maxLevel_ + 1 );
-      for(uint_t iLevel = minLevel_; iLevel <= maxLevel_ + 1; iLevel++)
+      for ( uint_t iLevel = minLevel_; iLevel <= maxLevel_ + 1; iLevel++ )
       {
          mu->interpolate( 1.0, iLevel, All );
       }
@@ -724,8 +767,14 @@ class StokesFlow3D
       temp  = std::make_shared< VelocityFunction >( "temp", storage, minLevel_, maxLevel_ + 1, bcVelocity );
       fSurf = std::make_shared< VelocityFunction >( "fSurf", storage, minLevel_, maxLevel_ + 1, bcVelocity );
 
-      fSurfInt = std::make_shared< P2Function< real_t > >("fSurfInt", storage, minLevel_, maxLevel_, bcDeltaSurf);
-      fSurfIntOut = std::make_shared< P2Function< real_t > >("fSurfIntOut", storage, minLevel_, maxLevel_, bcDeltaSurf);
+      fSurfInt    = std::make_shared< P2Function< real_t > >( "fSurfInt", storage, minLevel_, maxLevel_, bcDeltaSurf );
+      fSurfIntOut = std::make_shared< P2Function< real_t > >( "fSurfIntOut", storage, minLevel_, maxLevel_, bcDeltaSurf );
+
+      radialStress = std::make_shared< P2Function< real_t > >( "radialStress", storage, minLevel_, maxLevel_ + 1 );
+      radialStressErr =
+          std::make_shared< P2Function< real_t > >( "radialStressErr", storage, minLevel_, maxLevel_ + 1, bcVelocity );
+      radialStressAnalytical =
+          std::make_shared< P2Function< real_t > >( "radialStressAnalytical", storage, minLevel_, maxLevel_ + 1 );
 
       uRotated        = std::make_shared< StokesFunction >( "uRotated", storage, minLevel_, maxLevel_ + 1, bcVelocity );
       uRotatedRotated = std::make_shared< StokesFunction >( "uRotatedRotated", storage, minLevel_, maxLevel_ + 1, bcVelocity );
@@ -749,6 +798,10 @@ class StokesFlow3D
       vtkOutput->add( *uRotatedRotated );
       vtkOutput->add( *fRotated );
       vtkOutput->add( *f );
+
+      vtkOutput->add( *radialStress );
+      vtkOutput->add( *radialStressErr );
+      vtkOutput->add( *radialStressAnalytical );
    }
 
    void solveU()
@@ -913,14 +966,14 @@ class StokesFlow3D
 
          WALBERLA_LOG_INFO_ON_ROOT(
              "Not using surface integrals for delta function, surface integrals not yet merged to master" );
-         
-         WALBERLA_LOG_INFO_ON_ROOT("Not anymore, let's go, surface integrals");
-         
-         for( uint_t iDim = 0u; iDim < 3u; iDim++ )
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Not anymore, let's go, surface integrals" );
+
+         for ( uint_t iDim = 0u; iDim < 3u; iDim++ )
          {
-            fSurfInt->assign({1.0}, {fStrong->uvw().component(iDim)}, maxLevel, All);
-            surfaceMassOperator->apply(*fSurfInt, *fSurfIntOut, maxLevel, All);
-            f->uvw().component(iDim).assign({0.5}, {*fSurfIntOut}, maxLevel, All);
+            fSurfInt->assign( { 1.0 }, { fStrong->uvw().component( iDim ) }, maxLevel, All );
+            surfaceMassOperator->apply( *fSurfInt, *fSurfIntOut, maxLevel, All );
+            f->uvw().component( iDim ).assign( { 0.5 }, { *fSurfIntOut }, maxLevel, All );
          }
          // vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
       }
@@ -974,23 +1027,23 @@ class StokesFlow3D
 
       P2VectorFunction< real_t > normalsP2( "normalsP2", storage, minLevel, maxLevel, bcVelocity );
 
-      for(uint_t iLevel = minLevel; iLevel <= maxLevel; iLevel++)
+      for ( uint_t iLevel = minLevel; iLevel <= maxLevel; iLevel++ )
       {
          normalsP2.interpolate( { normalsX, normalsY, normalsZ }, iLevel, FreeslipBoundary );
       }
-      
-      real_t cRotPenalty = mainConf->getParameter< real_t >("cRotPenalty");
+
+      real_t cRotPenalty = mainConf->getParameter< real_t >( "cRotPenalty" );
 
       auto stokesOperatorRotationOpgen = std::make_shared< P2P1StokesOpgenRotationWrapper >( storage,
-                                                                                        minLevel,
-                                                                                        maxLevel,
-                                                                                        *mu,
-                                                                                        normalsP2.component( 0u ),
-                                                                                        normalsP2.component( 1u ),
-                                                                                        normalsP2.component( 2u ),
-                                                                                        rotationOperator,
-                                                                                        bcVelocity,
-                                                                                        cRotPenalty );
+                                                                                             minLevel,
+                                                                                             maxLevel,
+                                                                                             *mu,
+                                                                                             normalsP2.component( 0u ),
+                                                                                             normalsP2.component( 1u ),
+                                                                                             normalsP2.component( 2u ),
+                                                                                             rotationOperator,
+                                                                                             bcVelocity,
+                                                                                             cRotPenalty );
 
       auto stokesSolverRotationOpgen = hyteg::solvertemplates::stokesMinResSolver< P2P1StokesOpgenRotationWrapper >(
           storage, maxLevel, minresTol, minresIter, true );
@@ -1034,7 +1087,7 @@ class StokesFlow3D
          fRotated->assign( { 1.0 }, { *f }, maxLevel, All );
 
          // stokesMinresSolverRotation.solve( stokesOperatorRotation, *uRotated, *fRotated, maxLevel );
-         stokesSolverRotationOpgen->solve(*stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel);
+         stokesSolverRotationOpgen->solve( *stokesOperatorRotationOpgen, *uRotated, *fRotated, maxLevel );
 
          u->assign( { 1.0 }, { *uRotated }, maxLevel, All );
          rotationOperator.rotate( *u, maxLevel, FreeslipBoundary, true );
@@ -1046,7 +1099,7 @@ class StokesFlow3D
          WALBERLA_LOG_INFO_ON_ROOT( "Using Multigrid solver with freeslip rotations" );
 
          auto chebyshevSmoother = std::make_shared< ChebyshevSmoother< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
-            storage, minLevel, maxLevel );
+             storage, minLevel, maxLevel );
 
          uint_t powerIter = 50u;
 
@@ -1062,13 +1115,13 @@ class StokesFlow3D
          stokesOperatorRotationOpgen->stokesViscousOperator_.computeInverseDiagonalOperatorValues();
 
          real_t spectralRadius = chebyshev::estimateRadius(
-            stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
+             stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
 
          WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
 
          chebyshevSmoother->setupCoefficients( 3u, spectralRadius );
 
-         real_t uzawaOmega = mainConf->getParameter<real_t>("uzawaOmega");
+         real_t uzawaOmega = mainConf->getParameter< real_t >( "uzawaOmega" );
 
          // real_t uzawaRelaxationParameter = estimateUzawaRelaxationParameter(storage, chebyshevSmoother, maxLevel, powerIter, 3u);
 
@@ -1078,7 +1131,7 @@ class StokesFlow3D
          auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
 
          auto prolongationABlockOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
-         auto restrictionABlockOperator = std::make_shared< P2toP2QuadraticVectorRestriction >();
+         auto restrictionABlockOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
 
          uint_t minresCoarseIter = 100u;
          real_t minresCoarseTol  = 1e-6;
@@ -1086,41 +1139,40 @@ class StokesFlow3D
          auto directSolver = std::make_shared< PETScLUSolver< P2P1StokesOpgenRotationWrapper > >( storage, minLevel );
 
          auto coarseGridSolver = std::make_shared< MinResSolver< P2P1StokesOpgenRotationWrapper > >(
-            storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
+             storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
          coarseGridSolver->setPrintInfo( verbose );
 
          auto coarseGridABlockSolver = std::make_shared< MinResSolver< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
-            storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
+             storage, minLevel, minLevel, minresCoarseIter, minresCoarseTol );
          coarseGridABlockSolver->setPrintInfo( verbose );
 
-         auto multigridABlockSolver = std::make_shared< GeometricMultigridSolver< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
-            storage, chebyshevSmoother, coarseGridABlockSolver, restrictionABlockOperator, prolongationABlockOperator, minLevel, maxLevel, 5u, 5u );
-         
+         auto multigridABlockSolver =
+             std::make_shared< GeometricMultigridSolver< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
+                 storage,
+                 chebyshevSmoother,
+                 coarseGridABlockSolver,
+                 restrictionABlockOperator,
+                 prolongationABlockOperator,
+                 minLevel,
+                 maxLevel,
+                 5u,
+                 5u );
+
          using SubstSType = P1ElementwiseBlendingMassOperator;
 
-         auto schurOperator = std::make_shared< SubstSType >(storage, minLevel, maxLevel);
-         auto schurSolver = std::make_shared< CGSolver< SubstSType > >(storage, minLevel, maxLevel, 1000u, 1e-16);
+         auto schurOperator = std::make_shared< SubstSType >( storage, minLevel, maxLevel );
+         auto schurSolver   = std::make_shared< CGSolver< SubstSType > >( storage, minLevel, maxLevel, 1000u, 1e-16 );
 
-         auto blockPreconditioner = std::make_shared< 
-            BlockFactorisationPreconditioner< 
-               P2P1StokesOpgenRotationWrapper, 
-               P2P1StokesOpgenRotationWrapper::VelocityOperator_T, 
-               SubstSType > >(
-            storage,
-            minLevel,
-            maxLevel,
-            *schurOperator,
-            multigridABlockSolver,
-            schurSolver,
-            1.0,
-            1.0,
-            1u);
-         
-         uint_t fgmresIter = mainConf->getParameter< uint_t >("fgmresIter");
-         auto fgmresSolver = std::make_shared< FGMRESSolver< P2P1StokesOpgenRotationWrapper > >(
-            storage, minLevel, maxLevel, fgmresIter, 25u, 1e-16, 1e-16, 0.0, blockPreconditioner
-         );
-         fgmresSolver->setPrintInfo(true);
+         auto blockPreconditioner =
+             std::make_shared< BlockFactorisationPreconditioner< P2P1StokesOpgenRotationWrapper,
+                                                                 P2P1StokesOpgenRotationWrapper::VelocityOperator_T,
+                                                                 SubstSType > >(
+                 storage, minLevel, maxLevel, *schurOperator, multigridABlockSolver, schurSolver, 1.0, 1.0, 1u );
+
+         uint_t fgmresIter   = mainConf->getParameter< uint_t >( "fgmresIter" );
+         auto   fgmresSolver = std::make_shared< FGMRESSolver< P2P1StokesOpgenRotationWrapper > >(
+             storage, minLevel, maxLevel, fgmresIter, 25u, 1e-16, 1e-16, 0.0, blockPreconditioner );
+         fgmresSolver->setPrintInfo( true );
 
          uint_t nVCycles = mainConf->getParameter< uint_t >( "nVCycles" );
 
@@ -1221,6 +1273,117 @@ class StokesFlow3D
          return { absError, surfError };
       }
       // return 0.0;
+   }
+
+   void calculateRadialStressError( bool prolongation = false, bool relativeError = false )
+   {
+      BoundaryCondition bcTemp;
+      bcTemp.createAllInnerBC();
+
+      P2Function< real_t > uGradientL2Projection( "uGradientL2Projection", storage, minLevel, maxLevel + 1, bcTemp );
+
+      P2VectorFunction< real_t > dUxdX( "dUxdX", storage, minLevel, maxLevel, bcTemp );
+      P2VectorFunction< real_t > dUydX( "dUydX", storage, minLevel, maxLevel, bcTemp );
+      P2VectorFunction< real_t > dUzdX( "dUzdX", storage, minLevel, maxLevel, bcTemp );
+
+      P2Function< real_t >       ones( "ones", storage, minLevel, maxLevel, bcTemp );
+      P2VectorFunction< real_t > uComponent( "uComponent", storage, minLevel, maxLevel, bcTemp );
+
+      ones.interpolate( 1.0, maxLevel, All );
+
+      using MassOperator_T      = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
+      using AdvectionOperator_T = operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap;
+
+      MassOperator_T      massOperator( storage, minLevel, maxLevel );
+      AdvectionOperator_T advectionOperator(
+          storage, minLevel, maxLevel, ones, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ) );
+
+      CGSolver< MassOperator_T > cgSolver( storage, minLevel, maxLevel );
+      cgSolver.setPrintInfo( true );
+
+      {
+         uComponent.interpolate( { 1.0, 0.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 0u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUxdX.component( 0u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 1.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 0u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUxdX.component( 1u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 0.0, 1.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 0u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUxdX.component( 2u ), uGradientL2Projection, maxLevel );
+      }
+
+      {
+         uComponent.interpolate( { 1.0, 0.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 1u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUydX.component( 0u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 1.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 1u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUydX.component( 1u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 0.0, 1.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 1u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUydX.component( 2u ), uGradientL2Projection, maxLevel );
+      }
+
+      {
+         uComponent.interpolate( { 1.0, 0.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 2u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUzdX.component( 0u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 1.0, 0.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 2u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUzdX.component( 1u ), uGradientL2Projection, maxLevel );
+
+         uComponent.interpolate( { 0.0, 0.0, 1.0 }, maxLevel, All );
+         advectionOperator.apply( u->uvw().component( 2u ), uGradientL2Projection, maxLevel, All );
+         cgSolver.solve( massOperator, dUzdX.component( 2u ), uGradientL2Projection, maxLevel );
+      }
+
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > radialStressHelper =
+          []( const Point3D& x, const std::vector< real_t >& vals ) {
+             Point3D n = x / x.norm();
+
+             real_t nTgradUn = n[0] * ( vals[0] * n[0] + vals[1] * n[1] + vals[2] * n[2] ) +
+                               n[1] * ( vals[3] * n[0] + vals[4] * n[1] + vals[5] * n[2] ) +
+                               n[2] * ( vals[6] * n[0] + vals[7] * n[1] + vals[8] * n[2] );
+
+             return 2.0 * nTgradUn;
+          };
+
+      radialStress->interpolate( radialStressHelper,
+                                 { dUxdX.component( 0u ),
+                                   dUxdX.component( 1u ),
+                                   dUxdX.component( 2u ),
+                                   dUydX.component( 0u ),
+                                   dUydX.component( 1u ),
+                                   dUydX.component( 2u ),
+                                   dUzdX.component( 0u ),
+                                   dUzdX.component( 1u ),
+                                   dUzdX.component( 2u ) },
+                                 maxLevel,
+                                 All );
+
+      P2toP2QuadraticProlongation p2ProlongationOperator;
+
+      p2ProlongationOperator.prolongate( *radialStress, maxLevel, All );
+
+      radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel, All );
+      radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel + 1, All );
+
+      radialStressErr->assign( { 1.0, -1.0 }, { *radialStress, *radialStressAnalytical }, maxLevel + 1, All );
+
+      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, All );
+      real_t radialStressErrVolume = radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, All );
+
+      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, FreeslipBoundary );
+      real_t radialStressErrFS = radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, FreeslipBoundary );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrVolume = " << radialStressErrVolume );
+      WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrFS = " << radialStressErrFS );
    }
 
    real_t calculateErrorP( bool prolongation = false, bool relativeError = false )
@@ -1324,6 +1487,8 @@ int main( int argc, char* argv[] )
 
    std::array< real_t, 2U > errorU = problem.calculateErrorU( true );
    real_t                   errorP = problem.calculateErrorP( true );
+
+   problem.calculateRadialStressError( true );
 
    if ( mainConf->getParameter< bool >( "writeVTK" ) )
       problem.writeVTK();

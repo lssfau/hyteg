@@ -17,9 +17,9 @@ Parameters
   // Type of boundary condition
   // ONLY ONE CAN BE SET TRUE
   // Both inner and outer boundary -- freeslip
-  freeslip true;
+  freeslip false;
   // Inner freeslip, Outer no-slip
-  mixed false;
+  mixed true;
 
   fgmresIter 125;
   

@@ -10,5 +10,5 @@ waLBerla_link_files_to_builddir( *sh )
 waLBerla_add_executable( 
     NAME 3DSphShellConvStudies
     FILES  3DSphShellConvStudies.cpp
-    DEPENDS hyteg mixed_operator opgen-composites-stokes
+    DEPENDS hyteg mixed_operator opgen-composites-stokes opgen-mass opgen-advection
 )

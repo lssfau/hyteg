@@ -28,8 +28,8 @@ solutionBelowFreeZeroslipDelta2d = assess.CylindricalStokesSolutionDeltaFreeZero
 
 #################### 3D ###################
 
-l = 2
-m = 2
+l = 8
+m = 4
 k = 2
 
 solutionDirichletSmooth3d = assess.SphericalStokesSolutionSmoothZeroSlip(l, m, k)
@@ -238,6 +238,8 @@ def getFreeslipVelocityDelta3d(x):
 
 # Freeslip and Zeroslip
 
+def getFreeZeroslipRadialStressSmooth3d(x):
+    return [solutionFreeZeroslipSmooth3d.radial_stress_cartesian(x)]
 
 def getFreeZeroslipPressureSmooth3d(x):
     return [solutionFreeZeroslipSmooth3d.pressure_cartesian(x)]
