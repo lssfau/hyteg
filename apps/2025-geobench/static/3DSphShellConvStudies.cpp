@@ -1377,10 +1377,10 @@ class StokesFlow3D
       radialStressErr->assign( { 1.0, -1.0 }, { *radialStress, *radialStressAnalytical }, maxLevel + 1, All );
 
       massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, All );
-      real_t radialStressErrVolume = radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, All );
+      real_t radialStressErrVolume = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, All ) );
 
       massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, FreeslipBoundary );
-      real_t radialStressErrFS = radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, FreeslipBoundary );
+      real_t radialStressErrFS = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, FreeslipBoundary ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrVolume = " << radialStressErrVolume );
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrFS = " << radialStressErrFS );
