@@ -613,6 +613,7 @@ class StokesFlow3D
    std::shared_ptr< StokesFunction >   AuAnalytical;
 
    std::shared_ptr< P2Function< real_t > > radialStress;
+   std::shared_ptr< P2Function< real_t > > radialStressCBF;
    std::shared_ptr< P2Function< real_t > > radialStressErr;
    std::shared_ptr< P2Function< real_t > > radialStressAnalytical;
 
@@ -653,6 +654,9 @@ class StokesFlow3D
    hyteg::BoundaryCondition bcDeltaSurf;
    hyteg::BoundaryUID       bcDeltaSurfUID;
 
+   hyteg::BoundaryCondition bcCBF;
+   hyteg::BoundaryUID       bcCBFUid;
+
  public:
    StokesFlow3D( std::shared_ptr< walberla::config::Config >&      cfg_,
                  const std::shared_ptr< hyteg::PrimitiveStorage >& storage_,
@@ -675,8 +679,13 @@ class StokesFlow3D
       bcVelocityThetaPhi.createAllInnerBC();
       bcVelocityR.createAllInnerBC();
 
+      bcCBF.createAllInnerBC();
+
       if ( mainConf->getParameter< bool >( "freeslip" ) )
       {
+         bcCBFUid = bcCBF.createFreeslipBC(
+             "FreeslipAll", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
          bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
          bcVelocity.createFreeslipBC( "FreeslipOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
 
@@ -687,6 +696,8 @@ class StokesFlow3D
       }
       else if ( mainConf->getParameter< bool >( "mixed" ) )
       {
+         bcCBFUid = bcCBF.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
+
          bcVelocity.createFreeslipBC( "FreeslipInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
          bcVelocity.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
 
@@ -770,7 +781,8 @@ class StokesFlow3D
       fSurfInt    = std::make_shared< P2Function< real_t > >( "fSurfInt", storage, minLevel_, maxLevel_, bcDeltaSurf );
       fSurfIntOut = std::make_shared< P2Function< real_t > >( "fSurfIntOut", storage, minLevel_, maxLevel_, bcDeltaSurf );
 
-      radialStress = std::make_shared< P2Function< real_t > >( "radialStress", storage, minLevel_, maxLevel_ + 1 );
+      radialStress    = std::make_shared< P2Function< real_t > >( "radialStress", storage, minLevel_, maxLevel_ + 1 );
+      radialStressCBF = std::make_shared< P2Function< real_t > >( "radialStressCBF", storage, minLevel_, maxLevel_ + 1, bcCBF );
       radialStressErr =
           std::make_shared< P2Function< real_t > >( "radialStressErr", storage, minLevel_, maxLevel_ + 1, bcVelocity );
       radialStressAnalytical =
@@ -1384,6 +1396,45 @@ class StokesFlow3D
 
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrVolume = " << radialStressErrVolume );
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrFS = " << radialStressErrFS );
+
+      using BoundaryMassOperator_T = operatorgeneration::P2ElementwiseBoundaryMassIcosahedralShellMapOperator;
+
+      P2Function< real_t > fCBF( "fCBF", storage, minLevel, maxLevel, bcCBF );
+
+      StokesFunction fAu( "fAu", storage, minLevel, maxLevel, bcVelocity );
+
+      vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
+
+      stokesOperator->apply( *u, fAu, maxLevel, All );
+
+      fAu.assign( { 1.0, -1.0 }, { *f, fAu }, maxLevel, All );
+
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > cbfDotNHelper =
+          []( const Point3D& x, const std::vector< real_t >& vals ) {
+             Point3D n = x / x.norm();
+
+             return n[0] * vals[0] + n[1] * vals[1] + n[2] * vals[2];
+          };
+
+      fCBF.interpolate(
+          cbfDotNHelper, { fAu.uvw().component( 0u ), fAu.uvw().component( 1u ), fAu.uvw().component( 2u ) }, maxLevel, All );
+
+      BoundaryMassOperator_T boundaryMassOperator( storage, minLevel, maxLevel, bcCBF, bcCBFUid );
+
+      CGSolver< BoundaryMassOperator_T > cgBoundaryMassSolver( storage, minLevel, maxLevel );
+      cgBoundaryMassSolver.setDoFType( FreeslipBoundary );
+      cgBoundaryMassSolver.setPrintInfo( true );
+
+      cgBoundaryMassSolver.solve( boundaryMassOperator, *radialStressCBF, fCBF, maxLevel );
+
+      radialStressErr->interpolate( 0.0, maxLevel, All );
+
+      radialStressErr->assign( { 1.0, -1.0 }, { *radialStressCBF, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
+      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
+      real_t radialStressCBFErrFS =
+          std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "radialStressCBFErrFS = " << radialStressCBFErrFS );
    }
 
    real_t calculateErrorP( bool prolongation = false, bool relativeError = false )
