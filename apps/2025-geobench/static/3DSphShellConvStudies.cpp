@@ -812,6 +812,7 @@ class StokesFlow3D
       vtkOutput->add( *f );
 
       vtkOutput->add( *radialStress );
+      vtkOutput->add( *radialStressCBF );
       vtkOutput->add( *radialStressErr );
       vtkOutput->add( *radialStressAnalytical );
    }
@@ -1429,8 +1430,16 @@ class StokesFlow3D
 
       radialStressErr->interpolate( 0.0, maxLevel, All );
 
+      // radialStressErr->assign( { 1.0, -1.0 }, { *radialStressCBF, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
+      // massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
+
+      radialStressErr->setBoundaryCondition( bcCBF );
+      radialStressAnalytical->setBoundaryCondition( bcCBF );
+      uGradientL2Projection.setBoundaryCondition( bcCBF );
+
       radialStressErr->assign( { 1.0, -1.0 }, { *radialStressCBF, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
-      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
+      boundaryMassOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
+
       real_t radialStressCBFErrFS =
           std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
 
