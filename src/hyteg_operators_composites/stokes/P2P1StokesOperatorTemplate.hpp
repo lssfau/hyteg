@@ -135,6 +135,18 @@ class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunctio
    , C( storage, minLevel, maxLevel )
    {}
 
+   P2P1StokesVarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
+                                      uint_t                                     minLevel,
+                                      uint_t                                     maxLevel,
+                                      const ViscosityFunctionType&               mu,
+                                      DivergenceOperator                         divergenceOp )
+   : Operator( storage, minLevel, maxLevel )
+   , A( storage, minLevel, maxLevel, mu )
+   , BT( storage, minLevel, maxLevel )
+   , B( divergenceOp )
+   , C( storage, minLevel, maxLevel )
+   {}
+
    using ViscousOperator_T       = ViscousOperator;
    using GradientOperator_T      = GradientOperator;
    using DivergenceOperator_T    = DivergenceOperator;
@@ -184,9 +196,9 @@ class P2P1StokesP1VarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
 {
  public:
    P2P1StokesP1VarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
-                                      uint_t                                     minLevel,
-                                      uint_t                                     maxLevel,
-                                      const P1Function< real_t >&                mu )
+                                        uint_t                                     minLevel,
+                                        uint_t                                     maxLevel,
+                                        const P1Function< real_t >&                mu )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )
@@ -243,9 +255,9 @@ class P2P1StokesP0VarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
 {
  public:
    P2P1StokesP0VarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
-                                      uint_t                                     minLevel,
-                                      uint_t                                     maxLevel,
-                                      const P0Function< real_t >&                mu )
+                                        uint_t                                     minLevel,
+                                        uint_t                                     maxLevel,
+                                        const P0Function< real_t >&                mu )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )
@@ -302,13 +314,13 @@ class P2P1StokesNonlinViscOperatorTemplate : public Operator< P2P1TaylorHoodFunc
 {
  public:
    P2P1StokesNonlinViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
-                                      uint_t                                     minLevel,
-                                      uint_t                                     maxLevel,
-                                      const P1Function< real_t >&                muLin,
-                                      const P1Function< real_t >&                ux,
-                                      const P1Function< real_t >&                uy,
-                                      const real_t                               muStar,
-                                      const real_t                               sigmaY )
+                                         uint_t                                     minLevel,
+                                         uint_t                                     maxLevel,
+                                         const P1Function< real_t >&                muLin,
+                                         const P1Function< real_t >&                ux,
+                                         const P1Function< real_t >&                uy,
+                                         const real_t                               muStar,
+                                         const real_t                               sigmaY )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, muLin, ux, uy, muStar, sigmaY )
    , BT( storage, minLevel, maxLevel )

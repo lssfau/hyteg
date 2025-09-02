@@ -70,16 +70,15 @@
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
-#include "terraneo/operators/P2P1StokesOperatorRotation.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/dataimport/FileIO.hpp"
 #include "terraneo/helpers/InterpolateProfile.hpp"
 #include "terraneo/helpers/RadialProfiles.hpp"
+#include "terraneo/operators/P2P1StokesOperatorRotation.hpp"
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
-
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -457,15 +456,16 @@ class TALASimulation
          }
       }
 
-      std::string logFilename = walberla::format( "%s/logFile.txt", modelPath.c_str() );
+      std::string logFilename   = walberla::format( "%s/logFile.txt", modelPath.c_str() );
       std::string paramFilename = walberla::format( "%s/params.txt", modelPath.c_str() );
 
       WALBERLA_ROOT_SECTION()
       {
          walberla::logging::Logging::instance()->includeLoggingToFile( logFilename );
 
-         std::ofstream paramFile(paramFilename);
-         for( auto it = mainConf.begin(); it != mainConf.end(); ++it ) {
+         std::ofstream paramFile( paramFilename );
+         for ( auto it = mainConf.begin(); it != mainConf.end(); ++it )
+         {
             paramFile << " Key = '" << it->first << "' , Value = '" << it->second << "'\n";
          }
       }
@@ -581,7 +581,7 @@ class TALASimulation
       };
 
       normalsFS = [=]( const Point3D& x, Point3D& n ) {
-         real_t r     = x.norm();
+         real_t r = x.norm();
          // real_t rMean = ( params.rMin + params.rMax ) / 2.0;
 
          // if ( r > rMean )
@@ -615,7 +615,7 @@ class TALASimulation
          return ( params.rMax - r ) / ( params.rMax - params.rMin );
       };
 
-      sphTool = std::make_shared< terraneo::SphericalHarmonicsTool >( params.lmax );
+      sphTool  = std::make_shared< terraneo::SphericalHarmonicsTool >( params.lmax );
       sphTool4 = std::make_shared< terraneo::SphericalHarmonicsTool >( 4u );
 
       tempTc = [=]( const Point3D& x ) {
@@ -649,13 +649,14 @@ class TALASimulation
 
          if ( params.cubicSymmetry )
          {
- 	    real_t Y40 = sphTool4->shconvert_eval(4u, 0, x[0], x[1], x[2]);
-	    real_t Y44 = sphTool4->shconvert_eval(4u, 4, x[0], x[1], x[2]);
+            real_t Y40 = sphTool4->shconvert_eval( 4u, 0, x[0], x[1], x[2] );
+            real_t Y44 = sphTool4->shconvert_eval( 4u, 4, x[0], x[1], x[2] );
             // real_t Y40 = ( params.epsC * std::cos( params.mSph * theta ) ) * plm( params.lmax, params.mSph, theta );
             // real_t Y44 = ( params.epsS * std::sin( params.mSphC * phi ) ) * plm( params.lmaxC, params.mSphC, theta );
 
             // Tdev = ( Y40 + ( 5.0 / 7.0 ) * Y44 ) * std::sin( walberla::math::pi * ( r - params.rMin ) );
-	    Tdev = params.epsC * ( Y40 + ( 5.0 / 7.0 ) * Y44 ) * std::sin( walberla::math::pi * ( r - params.rMin ) / (params.rMax - params.rMin) );
+            Tdev = params.epsC * ( Y40 + ( 5.0 / 7.0 ) * Y44 ) *
+                   std::sin( walberla::math::pi * ( r - params.rMin ) / ( params.rMax - params.rMin ) );
          }
 
          //   std::sin( walberla::math::pi * ( r - params.rMin ) / ( params.rMax - params.rMin ) );
@@ -719,9 +720,7 @@ class TALASimulation
          return std::pow( params.rMu, -1.0 * ( T_[0] - params.TRef ) ); // / minVal;
       };
 
-      tempDepInvViscFunc = [=]( const Point3D& x, const std::vector< real_t >& T_ ) {
-         return 1.0 / tempDepViscFunc( x, T_ );
-      };
+      tempDepInvViscFunc = [=]( const Point3D& x, const std::vector< real_t >& T_ ) { return 1.0 / tempDepViscFunc( x, T_ ); };
 
       gradRhoOverRhoFuncX = []( const Point3D& x ) {
          real_t r = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
@@ -788,11 +787,11 @@ class TALASimulation
       viscInvP1 = std::make_shared< P1Function< real_t > >( "viscInvP1", storage_, minLevel_, maxLevel_, bcTemp );
 
       TNu    = std::make_shared< P2Function< real_t > >( "TNu", storage_, minLevel_, maxLevel_, bcNusseltOuter );
-      TNuIn = std::make_shared< P2Function< real_t > >( "TNuIn", storage_, minLevel_, maxLevel_, bcNusseltInner );
+      TNuIn  = std::make_shared< P2Function< real_t > >( "TNuIn", storage_, minLevel_, maxLevel_, bcNusseltInner );
       TNuOut = std::make_shared< P2Function< real_t > >( "TNuOut", storage_, minLevel_, maxLevel_, bcNusseltOuter );
-      ones = std::make_shared< P2Function< real_t > >( "ones", storage_, minLevel_, maxLevel_, bcTemp );
+      ones   = std::make_shared< P2Function< real_t > >( "ones", storage_, minLevel_, maxLevel_, bcTemp );
 
-      ones->interpolate(1.0, maxLevel_, All);
+      ones->interpolate( 1.0, maxLevel_, All );
 
       nusseltOpInner = std::make_shared< operatorgeneration::P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator >(
           storage, minLevel_, maxLevel_, *TNu, bcNusseltInner, bcNusseltUidInner );
@@ -876,10 +875,10 @@ class TALASimulation
 
       diffusivityCoeff_->interpolate( 1.0, maxLevel, All );
       advectionCoeff_->interpolate( 1.0, maxLevel, All );
-      
-      real_t constHeatingFactor = mainConf.getParameter< real_t >("constHeatingFactor");
+
+      real_t constHeatingFactor = mainConf.getParameter< real_t >( "constHeatingFactor" );
       constEnergyCoeff_->interpolate( constHeatingFactor, maxLevel, All );
-      
+
       transportTALAOp->setDiffusivityCoeff( diffusivityCoeff_ );
       // transportTALAOp->setAdvectionCoeff( advectionCoeff_ );
       transportTALAOp->setConstEnergyCoeff( constEnergyCoeff_ );
@@ -890,7 +889,7 @@ class TALASimulation
       transportTALAOp->setTALADict( { { terraneo::TransportOperatorTermKey::DIFFUSION_TERM, true },
                                       { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, false },
                                       { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, false },
-				      { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, true } } );
+                                      { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, true } } );
 
       transportTALAOp->initializeOperators();
 
@@ -948,8 +947,8 @@ class TALASimulation
 
       // Stokes MG
 
-      real_t uzawaOmega          = mainConf.getParameter< real_t >( "uzawaOmega" );
-      real_t relaxSchur          = mainConf.getParameter< real_t >( "relaxSchur" );
+      real_t uzawaOmega = mainConf.getParameter< real_t >( "uzawaOmega" );
+      real_t relaxSchur = mainConf.getParameter< real_t >( "relaxSchur" );
       // uint_t cgSmootherIter      = mainConf.getParameter< uint_t >( "cgSmootherIter" );
       uint_t cgSchurSmootherIter = mainConf.getParameter< uint_t >( "cgSchurSmootherIter" );
       real_t cgSchurSmootherTol  = mainConf.getParameter< real_t >( "cgSchurSmootherTol" );
@@ -998,16 +997,20 @@ class TALASimulation
                                                                                                   0u,
                                                                                                   CycleType::VCYCLE );
 
-      
       // ABlockMultigridSolverPetsc = std::make_shared< PETScTestSolvers< StokesOperatorType::VelocityOperator_T > >( storage, maxLevel, 1e-8, 1e-12, 10 );
 
       blockPreconditioner = std::make_shared< BlockFactorisationPreconditioner< StokesOperatorType,
                                                                                 typename StokesOperatorType::VelocityOperator_T,
-                                                                                SchurOperator > >(
-          storage, minLevel, maxLevel, *schurOperator, 
-	  ABlockMultigridSolver, 
-	  // ABlockMultigridSolverPetsc,
-	  schurSolver, uzawaOmega, relaxSchur, 1u );
+                                                                                SchurOperator > >( storage,
+                                                                                                   minLevel,
+                                                                                                   maxLevel,
+                                                                                                   *schurOperator,
+                                                                                                   ABlockMultigridSolver,
+                                                                                                   // ABlockMultigridSolverPetsc,
+                                                                                                   schurSolver,
+                                                                                                   uzawaOmega,
+                                                                                                   relaxSchur,
+                                                                                                   1u );
 
       prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
       restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >();
@@ -1029,7 +1032,7 @@ class TALASimulation
                                                                                             2u,
                                                                                             CycleType::VCYCLE );
 
-      uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
+      uint_t fgmresIterations        = mainConf.getParameter< uint_t >( "fgmresIterations" );
       uint_t fgmresIterationsInitial = mainConf.getParameter< uint_t >( "fgmresIterationsInitial" );
 
       real_t fgmresTolerance = mainConf.getParameter< real_t >( "fgmresTolerance" );
@@ -1042,8 +1045,8 @@ class TALASimulation
 
       outputPath = walberla::format( "%s/output", modelPath.c_str() );
       cpPath     = walberla::format( "%s/checkpoint", modelPath.c_str() );
-      
-      radialProfilesPath     = walberla::format( "%s/radialProfiles", modelPath.c_str() );
+
+      radialProfilesPath = walberla::format( "%s/radialProfiles", modelPath.c_str() );
 
       WALBERLA_ROOT_SECTION()
       {
@@ -1226,7 +1229,7 @@ class TALASimulation
    std::shared_ptr< P2toP2QuadraticVectorProlongation >                                  ABlockProlongationOperator;
    std::shared_ptr< P2toP2QuadraticVectorRestriction >                                   ABlockRestrictionOperator;
    std::shared_ptr< GeometricMultigridSolver< StokesOperatorType::VelocityOperator_T > > ABlockMultigridSolver;
-   
+
    // std::shared_ptr< PETScTestSolvers< StokesOperatorType::VelocityOperator_T > > ABlockMultigridSolverPetsc;
 
    std::shared_ptr<
@@ -1328,9 +1331,9 @@ void TALASimulation::solveU()
 
    uRotated->interpolate( 0.0, maxLevel, All );
 
-   uint_t nStepsInitial = mainConf.getParameter< uint_t >("nStepsInitial");
-   
-   if( iTimeStep > nStepsInitial )
+   uint_t nStepsInitial = mainConf.getParameter< uint_t >( "nStepsInitial" );
+
+   if ( iTimeStep > nStepsInitial )
    {
       uint_t fgmresIterations = mainConf.getParameter< uint_t >( "fgmresIterations" );
 
@@ -1560,11 +1563,11 @@ void TALASimulation::solve()
 
    while ( simulationTime < endTime && iTimeStep < params.maxTimeSteps )
    {
-      WALBERLA_LOG_INFO_ON_ROOT("");
-      WALBERLA_LOG_INFO_ON_ROOT("");
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Starting step %d at time = %f!", iTimeStep, simulationTime ) );
-      WALBERLA_LOG_INFO_ON_ROOT("");
-      WALBERLA_LOG_INFO_ON_ROOT("");
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
 
       step();
       // stepPrCr();
@@ -1597,47 +1600,62 @@ void TALASimulation::solve()
 
          real_t velocityRMS = nusseltcalc::velocityRMSSphere( *u, *uTmp, massOperator, params.rMin, params.rMax, maxLevel );
 
-         WALBERLA_LOG_INFO_ON_ROOT("");
-         WALBERLA_LOG_INFO_ON_ROOT("");
-         WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( "Velocity RMS = %4.7e",
-                              //  nusseltNumberOuter,
-                              //  nusseltNumberInner,
-                               velocityRMS ) );
-         WALBERLA_LOG_INFO_ON_ROOT("");
-         WALBERLA_LOG_INFO_ON_ROOT("");
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Velocity RMS = %4.7e",
+                                                      //  nusseltNumberOuter,
+                                                      //  nusseltNumberInner,
+                                                      velocityRMS ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-         TNu->assign({1.0}, {*T}, maxLevel, All);
-         nusseltOpOuter->apply(*ones, *TNuOut, maxLevel, FreeslipBoundary);
+         TNu->assign( { 1.0 }, { *T }, maxLevel, All );
+         nusseltOpOuter->apply( *ones, *TNuOut, maxLevel, FreeslipBoundary );
 
-         real_t nuIntNumOuter = TNuOut->sumGlobal(maxLevel, All);
+         real_t nuIntNumOuter = TNuOut->sumGlobal( maxLevel, All );
 
-         TNu->assign({1.0}, {*Tc}, maxLevel, All);
-         nusseltOpOuter->apply(*ones, *TNuOut, maxLevel, FreeslipBoundary);
+         real_t NusseltOuterZhongCalc = -1.0 * ( params.rMax * ( params.rMax - params.rMin ) / params.rMin ) *
+                                        ( nuIntNumOuter / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) );
 
-         real_t nuIntDenOuter = TNuOut->sumGlobal(maxLevel, All);
+         TNu->assign( { 1.0 }, { *Tc }, maxLevel, All );
+         nusseltOpOuter->apply( *ones, *TNuOut, maxLevel, FreeslipBoundary );
+
+         real_t nuIntDenOuter = TNuOut->sumGlobal( maxLevel, All );
 
          real_t nusseltNumberOuterInt = nuIntNumOuter / nuIntDenOuter;
 
-         WALBERLA_LOG_INFO_ON_ROOT("");
-         WALBERLA_LOG_INFO_ON_ROOT("Nusselt number integrated outer = " << nusseltNumberOuterInt);
-         WALBERLA_LOG_INFO_ON_ROOT("");
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated outer = " << nusseltNumberOuterInt );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-         TNu->assign({1.0}, {*T}, maxLevel, All);
-         nusseltOpInner->apply(*ones, *TNuIn, maxLevel, FreeslipBoundary);
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Zhong calc:" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated outer  = " << NusseltOuterZhongCalc );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-         real_t nuIntNumInner = TNuIn->sumGlobal(maxLevel, All);
+         TNu->assign( { 1.0 }, { *T }, maxLevel, All );
+         nusseltOpInner->apply( *ones, *TNuIn, maxLevel, FreeslipBoundary );
 
-         TNu->assign({1.0}, {*Tc}, maxLevel, All);
-         nusseltOpInner->apply(*ones, *TNuIn, maxLevel, FreeslipBoundary);
+         real_t nuIntNumInner = TNuIn->sumGlobal( maxLevel, All );
 
-         real_t nuIntDenInner = TNuIn->sumGlobal(maxLevel, All);
+         TNu->assign( { 1.0 }, { *Tc }, maxLevel, All );
+         nusseltOpInner->apply( *ones, *TNuIn, maxLevel, FreeslipBoundary );
+
+         real_t nuIntDenInner = TNuIn->sumGlobal( maxLevel, All );
 
          real_t nusseltNumberInnerInt = nuIntNumInner / nuIntDenInner;
 
-         WALBERLA_LOG_INFO_ON_ROOT("");
-         WALBERLA_LOG_INFO_ON_ROOT("Nusselt number integrated inner = " << nusseltNumberInnerInt);
-         WALBERLA_LOG_INFO_ON_ROOT("");
+         real_t NusseltInnerZhongCalc = -1.0 * ( params.rMin * ( params.rMax - params.rMin ) / params.rMax ) *
+                                        ( nuIntNumInner / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated inner = " << nusseltNumberInnerInt );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Zhong calc:" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated inner  = " << NusseltInnerZhongCalc );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
       }
 
       terraneo::RadialProfile TRadialProf = terraneo::computeRadialProfile( *T, params.rMin, params.rMax, params.nRad, maxLevel );

@@ -38,6 +38,12 @@ target_sources( hyteg
     generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.hpp
     generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.cpp
 
+    generated/BoundaryMass/P2ElementwiseBoundaryMass.hpp
+    generated/BoundaryMass/P2ElementwiseBoundaryMass.cpp
+
+    generated/GradientBoundaryMass/P2ElementwiseGradientBoundaryMass.hpp
+    generated/GradientBoundaryMass/P2ElementwiseGradientBoundaryMass.cpp
+
     generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp
     generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.cpp
 

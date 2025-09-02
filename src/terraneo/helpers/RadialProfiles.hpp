@@ -427,11 +427,11 @@ struct RadialProfile
          }
 
          outFile << std::string( "Radius  " ) << fieldName << std::string( "_Mean " ) << fieldName << std::string( "_Max " )
-                 << fieldName << std::string( "_Min \n" );
+                 << fieldName << std::string( "_Min " ) << fieldName << std::string( "_RMS \n" );
          for ( uint_t shell = 0; shell < shellRadii.size(); ++shell )
          {
             outFile << walberla::format(
-                "%6.4f  %7.4f  %6.4f  %6.4f \n", shellRadii.at( shell ), mean.at( shell ), max.at( shell ), min.at( shell ) );
+                "%1.7e  %1.7e  %1.7e  %1.7e %1.7e \n", shellRadii.at( shell ), mean.at( shell ), max.at( shell ), min.at( shell ), rms.at( shell ) );
          }
          outFile.close();
       }

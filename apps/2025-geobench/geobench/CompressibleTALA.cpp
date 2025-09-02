@@ -40,6 +40,8 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/operatorgeneration/generated/BoundaryMass/P2ElementwiseBoundaryMass.hpp"
+#include "hyteg/operatorgeneration/generated/GradientBoundaryMass/P2ElementwiseGradientBoundaryMass.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -53,6 +55,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
+#include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityP1Density.hpp"
 
 // #include "hyteg/operatorgeneration/generated/DivDiv/P2VectorElementwiseDivDiv_float64.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
@@ -283,6 +286,68 @@ class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P
    real_t dt = 0.01, k_ = 1.0;
 };
 
+using DivergenceOperator             = operatorgeneration::P2ToP1DivergenceOperator;
+using DivergenceCompressibleOperator = operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityP1Density;
+
+template < typename DensityFunction_T, typename DivergenceOperator_T, typename DivergenceCompressibleOperator_T >
+class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P2VectorFunction< real_t >, P1Function< real_t > >
+{
+ public:
+   P2VectorToP1ElementwiseCompressibleDivergenceTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                          const uint_t                               minLevel,
+                                                          const uint_t                               maxLevel,
+                                                          const DensityFunction_T&                   rhoP1 )
+   : Operator( storage, minLevel, maxLevel )
+   , tmp_( "tmp__P2VectorToP1ElementwiseCompressibleDivergenceTemplate", storage, minLevel, maxLevel )
+   , divergenceOperator_( storage, minLevel, maxLevel )
+   , divergenceCompressibleOperator_( storage, minLevel, maxLevel, rhoP1 )
+   {}
+
+   P2VectorToP1ElementwiseCompressibleDivergenceTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                          const uint_t                               minLevel,
+                                                          const uint_t                               maxLevel,
+                                                          const DivergenceCompressibleOperator_T& divergenceCompressibleOperator )
+   : Operator( storage, minLevel, maxLevel )
+   , tmp_( "tmp__P2VectorToP1ElementwiseCompressibleDivergenceTemplate", storage, minLevel, maxLevel )
+   , divergenceOperator_( storage, minLevel, maxLevel )
+   , divergenceCompressibleOperator_( divergenceCompressibleOperator )
+   {}
+
+   void apply( const P2VectorFunction< walberla::float64 >& src,
+               const P1Function< walberla::float64 >&       dst,
+               uint_t                                       level,
+               DoFType                                      flag,
+               UpdateType                                   updateType = Replace ) const override
+   {
+      divergenceOperator_.apply( src, dst, level, flag, updateType );
+      divergenceCompressibleOperator_.apply( src.component(1u), dst, level, flag, Add );
+   }
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2VectorFunction< idx_t >&            src,
+                  const P1Function< idx_t >&                  dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      divergenceOperator_.toMatrix( mat, src, dst, level, flag );
+      divergenceCompressibleOperator_.toMatrix( mat, src.component(1u), dst, level, flag );
+   }
+
+   P1Function< real_t > tmp_;
+
+   DivergenceOperator_T             divergenceOperator_;
+   DivergenceCompressibleOperator_T divergenceCompressibleOperator_;
+};
+
+using P2VectorToP1ElementwiseCompressibleDivergenceOperator =
+    P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, P2ToP1ElementwiseKMass >;
+
+using P2P1StokesFullCompressibleOperator =
+    operatorgeneration::detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullOperator,
+                                                                   operatorgeneration::P1ToP2GradientOperator,
+                                                                   P2VectorToP1ElementwiseCompressibleDivergenceOperator,
+                                                                   P2Function< real_t > >;
+
 template < typename StokesOperatorType >
 class TALASimulation
 {
@@ -385,11 +450,12 @@ class TALASimulation
 
       TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
 
-      BoundaryCondition bcTemp, bcVelocity, bcPressure, bcVelocityX, bcVelocityY;
-
       bcTemp.createDirichletBC( "DirichletBottomAndTop",
                                 { BoundaryMarkers::Top, BoundaryMarkers::Bottom, BoundaryMarkers::Corners } );
       bcTemp.createNeumannBC( "NeumannLeftAndRight", { BoundaryMarkers::Left, BoundaryMarkers::Right } );
+
+      bcNusselt.createAllInnerBC();
+      bcNusseltUid = bcNusselt.createNeumannBC( "NeumannTopNusselt", { BoundaryMarkers::Top } );
 
       bcVelocity.createAllInnerBC();
       // bcVelocity.createDirichletBC(
@@ -434,6 +500,9 @@ class TALASimulation
 
       Ttemp = std::make_shared< P2Function< real_t > >( "Ttemp", storage_, minLevel_, maxLevel_ );
 
+      TNusselt    = std::make_shared< P2Function< real_t > >( "TNusselt", storage_, minLevel_, maxLevel_, bcNusselt );
+      TNusseltOut = std::make_shared< P2Function< real_t > >( "TNusseltOut", storage_, minLevel_, maxLevel_, bcNusselt );
+
       zero = std::make_shared< P2Function< real_t > >( "zero", storage_, minLevel_, maxLevel_, bcTemp );
 
       gradRhoByRhoP2 = std::make_shared< P2VectorFunction< real_t > >( "gradRhoByRhoP2", storage_, minLevel_, maxLevel_ );
@@ -453,6 +522,9 @@ class TALASimulation
       uRhs->uvw().setBoundaryCondition( bcVelocityX, 0U );
       uRhs->uvw().setBoundaryCondition( bcVelocityY, 1U );
       // uRhs->p().setBoundaryCondition( bcPressure );
+
+      // compressibleDivergenceOperator = std::make_shared< P2VectorToP1ElementwiseCompressibleDivergenceOperator >(
+      //     storage, minLevel, maxLevel, rhoP2->getVertexDoFFunction() );
 
       transportOp = std::make_shared< P2TransportTimesteppingOperator >( storage_, minLevel_, maxLevel_, params.diffusivity );
 
@@ -479,6 +551,9 @@ class TALASimulation
           std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 0U ) );
       gradRhoByRhoY =
           std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1U ) );
+
+      compressibleDivergenceOperator =
+          std::make_shared< P2VectorToP1ElementwiseCompressibleDivergenceOperator >( storage, minLevel, maxLevel, *gradRhoByRhoY );
 
       transportTALAOp->setVelocity( u );
       transportTALAOp->setViscosity( viscP2 );
@@ -540,7 +615,16 @@ class TALASimulation
          viscInvP1->interpolate( 1.0, level, All );
       }
 
-      stokesOperator = std::make_shared< StokesOperatorType >( storage_, minLevel_, maxLevel_, *viscP2 );
+      if constexpr ( std::is_same_v< StokesOperatorType, P2P1StokesFullCompressibleOperator > )
+      {
+         stokesOperator =
+             std::make_shared< StokesOperatorType >( storage_, minLevel_, maxLevel_, *viscP2, *compressibleDivergenceOperator );
+      }
+      else
+      {
+         stokesOperator = std::make_shared< StokesOperatorType >( storage_, minLevel_, maxLevel_, *viscP2 );
+      }
+
       stokesOperator->getA().computeInverseDiagonalOperatorValues();
 
       params.cflMax = mainConf.getParameter< real_t >( "cflMax" );
@@ -572,6 +656,9 @@ class TALASimulation
       transportTALAMinresSolver->setPrintInfo( params.verbose );
 
       // transportTALADirectSolver = std::make_shared< PETScLUSolver< P2TransportTALAOperator > >( storage_, maxLevel_ );
+
+      nusseltOp = std::make_shared< operatorgeneration::P2ElementwiseGradientBoundaryMass >(
+          storage, minLevel, maxLevel, bcNusselt, bcNusseltUid );
 
       std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
       std::string outputPath     = mainConf.getParameter< std::string >( "outputPath" );
@@ -636,12 +723,15 @@ class TALASimulation
 
    uint_t readInMinLevel, readInMaxLevel;
 
+   BoundaryCondition bcTemp, bcNusselt, bcVelocity, bcPressure, bcVelocityX, bcVelocityY;
+   BoundaryUID       bcNusseltUid;
+
    std::shared_ptr< P2Function< real_t > >             cp;
    std::shared_ptr< P2Function< real_t > >             TCp, TCpStore;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > uCp, uCpStore;
 
    std::shared_ptr< P2Function< real_t > > TDev, TDevPrev, TDevInt, TRef, TRefDev, TRhs, TRes, rhoP2, rhoInvP2, zero, viscP2,
-       Ttemp;
+       Ttemp, TNusselt, TNusseltOut;
    std::shared_ptr< P1Function< real_t > >             viscInvP1, viscP1Scaled2by3;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > u, uRes, uPrev, uPrevIter, uRhs, uRhsStrong, uTemp;
    std::shared_ptr< P2VectorFunction< real_t > >       gradRhoByRhoP2;
@@ -658,6 +748,10 @@ class TALASimulation
    P2ElementwiseBlendingVectorMassOperator vecMassOperator;
    P2ElementwiseBlendingMassOperator       massOperator;
    P1ElementwiseBlendingMassOperator       massOperatorP1;
+
+   std::shared_ptr< operatorgeneration::P2ElementwiseGradientBoundaryMass > nusseltOp;
+
+   std::shared_ptr< P2VectorToP1ElementwiseCompressibleDivergenceOperator > compressibleDivergenceOperator;
 
    std::shared_ptr< P2ToP1ElementwiseKMass > gradRhoByRhoX;
    std::shared_ptr< P2ToP1ElementwiseKMass > gradRhoByRhoY;
@@ -724,6 +818,7 @@ void TALASimulation< StokesOperatorType >::solveU()
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
    bool ala = mainConf.getParameter< bool >( "ala" );
+   bool frv = mainConf.getParameter< bool >( "frv" );
    bool frd = mainConf.getParameter< bool >( "frd" );
 
    operatorgeneration::P2VectorElementwiseKDivdiv divdiv( storage, minLevel, maxLevel, *viscP1Scaled2by3 );
@@ -745,8 +840,11 @@ void TALASimulation< StokesOperatorType >::solveU()
       alaOp.apply( u->p(), uRhs->uvw().component( 1U ), maxLevel, All, Add );
    }
 
-   gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
-   uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+   if ( frv )
+   {
+      gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+      uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+   }
 
    // u->uvw().interpolate( { bcVelocityX, bcVelocityY }, maxLevel, DirichletBoundary );
    // projectionOperator->project( *uRhs, maxLevel, FreeslipBoundary );
@@ -882,8 +980,6 @@ void TALASimulation< StokesOperatorType >::solve()
    TDev->interpolate( tempIni, maxLevel, Inner | NeumannBoundary );
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
 
-   TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
-
    if ( startFromCheckpoint )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint" );
@@ -920,6 +1016,8 @@ void TALASimulation< StokesOperatorType >::solve()
       solveU();
    }
 
+   TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
+
    TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
@@ -954,6 +1052,12 @@ void TALASimulation< StokesOperatorType >::solve()
 
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
+         TNusselt->assign( { 1.0 }, { *TDev }, maxLevel, All );
+
+         nusseltOp->apply( *TNusselt, *TNusseltOut, maxLevel, NeumannBoundary );
+
+         real_t nusseltNumberTopIntegrated = -1.0 * ( TNusseltOut->sumGlobal( maxLevel, NeumannBoundary ) );
+
          real_t deltaT           = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
          real_t nusseltNumberTop = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
@@ -963,8 +1067,8 @@ void TALASimulation< StokesOperatorType >::solve()
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             "nusseltNumberTop = %4.7e\nnusseltNumberBot = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
-             nusseltNumberTop,
+             "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
+             nusseltNumberTopIntegrated,
              nusseltNumberTop,
              deltaT,
              velocityRMSValue,
@@ -1047,6 +1151,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nMacroFaces = %d, nMacroPrimitives = %d\n", nMacroFaces, nMacroPrimitives ) );
 
+   bool frv = mainConf.getParameter< bool >( "frv" );
    bool frd = mainConf.getParameter< bool >( "frd" );
 
    if ( frd )
@@ -1054,9 +1159,14 @@ int main( int argc, char* argv[] )
       TALASimulation< operatorgeneration::P2P1StokesEpsilonOperator > simulation( mainConf, storage, minLevel, maxLevel );
       simulation.solve();
    }
-   else
+   else if ( frv )
    {
       TALASimulation< operatorgeneration::P2P1StokesFullOperator > simulation( mainConf, storage, minLevel, maxLevel );
+      simulation.solve();
+   }
+   else
+   {
+      TALASimulation< P2P1StokesFullCompressibleOperator > simulation( mainConf, storage, minLevel, maxLevel );
       simulation.solve();
    }
 

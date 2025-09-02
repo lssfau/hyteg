@@ -106,10 +106,10 @@ inline void rotation3D( uint_t                                                  
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstIdW,
                         bool                                                        transpose )
 {
-   if ( face.getNumNeighborCells() == 2 )
-   {
-      WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
-   }
+   // if ( face.getNumNeighborCells() == 2 )
+   // {
+   //    WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
+   // }
 
    auto dstU = face.getData( dstIdU )->getPointer( level );
    auto dstV = face.getData( dstIdV )->getPointer( level );
@@ -156,10 +156,10 @@ inline void saveRotationOperator3D( uint_t                                      
                                     const std::shared_ptr< SparseMatrixProxy >&              mat,
                                     bool                                                     transpose )
 {
-   if ( face.getNumNeighborCells() == 2 )
-   {
-      WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
-   }
+   // if ( face.getNumNeighborCells() == 2 )
+   // {
+   //    WALBERLA_ABORT( "Cannot project normals if not a boundary face" );
+   // }
 
    auto dstU = face.getData( dstIdU )->getPointer( level );
    auto dstV = face.getData( dstIdV )->getPointer( level );
@@ -206,10 +206,10 @@ inline void rotation2D( uint_t                                                  
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdU,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstIdV )
 {
-   if ( edge.getNumNeighborFaces() == 2 )
-   {
-      WALBERLA_ABORT( "Cannot project normals if not a boundary edge" );
-   }
+   // if ( edge.getNumNeighborFaces() == 2 )
+   // {
+   //    WALBERLA_ABORT( "Cannot project normals if not a boundary edge" );
+   // }
 
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 

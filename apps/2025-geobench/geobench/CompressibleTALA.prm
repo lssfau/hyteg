@@ -5,11 +5,11 @@ Parameters
 	
   rMin 1.0;
   rMax 2.0;
-  # rMin 3.141592653589793;
-  # rMax 6.283185307179586;
+  // rMin 3.141592653589793;
+  // rMax 6.283185307179586;
 
-  RayleighNumber 1e4;
-  DissipationNumber 0.25;
+  RayleighNumber 1e5;
+  DissipationNumber 0.5;
   alpha 1.0;
   thermalConductivity 1.0;
 
@@ -24,8 +24,8 @@ Parameters
 
   nPlumes 8;
 
-  nx 10;
-  ny 4;
+  // nx 10;
+  // ny 4;
 
   minLevel 0;
   maxLevel 4;
@@ -33,10 +33,10 @@ Parameters
   readInMinLevel 0;
   readInMaxLevel 4;
 
-  ala true;
+  ala false;
 
   residualVelocityTolPicard 1e-5;
-  nStokesPicard 2;
+  nStokesPicard 1;
   direct false;
 
   AiniPerturb 0.1;
@@ -54,7 +54,8 @@ Parameters
 
   residualExitTol 1e12;
 
-  frd true;
+  frv false;
+  frd false;
 
   MMOC true;
   SUPG false;
@@ -64,32 +65,32 @@ Parameters
 
   Direct false;
 
-  nCouplingIter 10;
+  nCouplingIter 1;
   
-  maxTimeSteps 2;
+  maxTimeSteps 25000;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
   dtRaster 1e-7;
   cflMax 1.2;
   simulationTime 1e1;
-  nonLinIter 2;
-  iterPicard 2;
+  nonLinIter 1;
+  iterPicard 1;
 
   level 1;
 
   cpPath ./output/gmd_stuff/king/checkpoint;
-  cpFilename KingSquare_ALA_Ra_3e5_Di_0_25_Continuous.bp;
-  cpStartFilename KingSquare_ALA_Ra_2e5_Di_0_25_Continuous.bp;
+  cpFilename KingSquare_TALA_FullComp_Ra_1e5_Di_0_5_Continuous.bp;
+  cpStartFilename KingSquare_TALA_FRV_Ra_1e5_Di_0_5_Continuous.bp;
 
   importStep 999999;
 
   outputPath ./output/;
-  outputFilename KingSquare;
+  outputFilename KingSquareFullComp1e5;
   vtkWriteFrequency 25;
   adiosXmlConfig ADIOS2config.xml;
 
-  storeCheckpointFreq 1000;
+  storeCheckpointFreq 101;
   storeCheckpoint false;
-  startFromCheckpoint false;
+  startFromCheckpoint true;
 }
