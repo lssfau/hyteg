@@ -18,7 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#pragma once
 
 #include "Convection.hpp"
 #include "terraneo/dataimport/ParameterIO.hpp"
@@ -49,6 +48,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    std::shared_ptr< P2ScalarFunction_T >& temperatureP2            = p2ScalarFunctionContainer.at( "TemperatureFE" );
    std::shared_ptr< P2ScalarFunction_T >& temperaturePrevP2        = p2ScalarFunctionContainer.at( "TemperaturePrev" );
    std::shared_ptr< P2ScalarFunction_T >& velocityMagnitudeSquared = p2ScalarFunctionContainer.at( "VelocityMagnitudeSquared" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityFE              = p2ScalarFunctionContainer.at( "ViscosityFE" );
 
    std::shared_ptr< P1VectorFunction_T >& velocityPressureFEP1     = p1VectorFunctionContainer.at( "VelocityFEP1" );
    std::shared_ptr< P1VectorFunction_T >& velocityPressurePrevFEP1 = p1VectorFunctionContainer.at( "VelocityFEPrevP1" );
@@ -94,34 +94,31 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
 #endif
          // Compute temperature profiles for logging and adaptive reference
-         temperatureProfiles =
-             std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                                      TN.domainParameters.rMin,
-                                                                      TN.domainParameters.rMax,
-                                                                      TN.domainParameters.macroLayers,
-                                                                      TN.domainParameters.maxLevel ) );
+         temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( temperatureP2 ),
+                                                                                        TN.domainParameters.rMin,
+                                                                                        TN.domainParameters.rMax,
+                                                                                        TN.domainParameters.macroLayers,
+                                                                                        TN.domainParameters.maxLevel ) );
 
          TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
          solveStokes();
 
          // Now also initialise velocity (and viscosity) profiles
-         velocityProfiles =
-             std::make_shared< RadialProfile >( computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
-                                                                      TN.domainParameters.rMin,
-                                                                      TN.domainParameters.rMax,
-                                                                      TN.domainParameters.macroLayers,
-                                                                      TN.domainParameters.maxLevel ) );
+         velocityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( velocityPressureFE->uvw(),
+                                                                                     TN.domainParameters.rMin,
+                                                                                     TN.domainParameters.rMax,
+                                                                                     TN.domainParameters.macroLayers,
+                                                                                     TN.domainParameters.maxLevel ) );
          TN.physicalParameters.velocityProfile = velocityProfiles->rms;
 
          if ( TN.simulationParameters.tempDependentViscosity )
          {
-            viscosityProfiles =
-                std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
-                                                                         TN.domainParameters.rMin,
-                                                                         TN.domainParameters.rMax,
-                                                                         TN.domainParameters.macroLayers,
-                                                                         TN.domainParameters.maxLevel ) );
+            viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
+                                                                                         TN.domainParameters.rMin,
+                                                                                         TN.domainParameters.rMax,
+                                                                                         TN.domainParameters.macroLayers,
+                                                                                         TN.domainParameters.maxLevel ) );
          }
          dataOutput();
       }
@@ -159,10 +156,13 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       TN.simulationParameters.dt = ( TN.simulationParameters.cflMax / vMax ) * TN.simulationParameters.hMin;
 
       // Within the first 20 timesteps gradually increase the timestep scaling from 1e-3 to 1e-1
-      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) <= 20 )
+      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) <=
+           TN.simulationParameters.initialNStepsForTimestepIncrease )
       {
-         real_t stepSizeFactor = std::pow(
-             10.0, -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) * ( 2.0 / 19.0 ) );
+         real_t stepSizeFactor =
+             std::pow( 10.0,
+                       -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) *
+                                  ( 2.0 / ( TN.simulationParameters.initialNStepsForTimestepIncrease - 1 ) ) );
          TN.simulationParameters.dt *= stepSizeFactor;
       }
 
@@ -360,7 +360,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    // update viscosity Profiles for logging
    if ( TN.simulationParameters.tempDependentViscosity )
    {
-      viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( velocityPressureFE ),
+      viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
                                                                                    TN.domainParameters.rMin,
                                                                                    TN.domainParameters.rMax,
                                                                                    TN.domainParameters.macroLayers,
@@ -467,13 +467,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
       //update ref temp vector based on new temperature field
 
-      temperatureProfiles =
-          std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                                   TN.domainParameters.rMin,
-                                                                   TN.domainParameters.rMax,
-                                                                   TN.domainParameters.macroLayers,
-                                                                   TN.domainParameters.maxLevel ) );
-
+      temperatureProfiles                      = std::make_shared< RadialProfile >( computeRadialProfile( *( temperatureP2 ),
+                                                                                     TN.domainParameters.rMin,
+                                                                                     TN.domainParameters.rMax,
+                                                                                     TN.domainParameters.macroLayers,
+                                                                                     TN.domainParameters.maxLevel ) );
       TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
       solveStokes();
@@ -481,12 +479,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       // update viscosity Profiles for logging
       if ( TN.simulationParameters.tempDependentViscosity )
       {
-         viscosityProfiles =
-             std::make_shared< RadialProfile >( computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
-                                                                      TN.domainParameters.rMin,
-                                                                      TN.domainParameters.rMax,
-                                                                      TN.domainParameters.macroLayers,
-                                                                      TN.domainParameters.maxLevel ) );
+         viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
+                                                                                      TN.domainParameters.rMin,
+                                                                                      TN.domainParameters.rMax,
+                                                                                      TN.domainParameters.macroLayers,
+                                                                                      TN.domainParameters.maxLevel ) );
       }
    }
 
@@ -514,9 +511,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       WALBERLA_LOG_INFO_ON_ROOT( "Total of " << count << " negative temperatures detected." );
    }
 
-
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
-
 
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
 
@@ -627,8 +622,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveEn
 
    std::shared_ptr< P2ScalarFunction_T >& densityFE = p2ScalarFunctionContainer.at( "DensityFE" );
 
-   std::shared_ptr< P2ScalarFunction_T >& shearHeatingCoeffP2 = p2ScalarFunctionContainer["ShearHeatingTermCoeff"];
-   std::shared_ptr< P1ScalarFunction_T >& shearHeatingCoeffP1 = p1ScalarFunctionContainer["ShearHeatingTermCoeffP1"];
+   std::shared_ptr< P2ScalarFunction_T >& shearHeatingCoeffP2 = p2ScalarFunctionContainer.at( "ShearHeatingTermCoeff" );
+   std::shared_ptr< P1ScalarFunction_T >& shearHeatingCoeffP1 = p1ScalarFunctionContainer.at( "ShearHeatingTermCoeffP1" );
 
    temperatureTransportOperator_->setTimestep( TN.simulationParameters.dt );
 
@@ -752,17 +747,17 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSt
    //    Mass    //
    ////////////////
 
-      // Provide the option to run incompressible simulations for test or educational purposes
-      if ( TN.simulationParameters.compressible && TN.simulationParameters.frozenVelocity )
+   // Provide the option to run incompressible simulations for test or educational purposes
+   if ( TN.simulationParameters.compressible && TN.simulationParameters.frozenVelocity )
+   {
+      // Update non-dimensional numbers for mass conservation equation
+      if ( TN.simulationParameters.haveThermalExpProfile || TN.simulationParameters.haveSpecificHeatCapProfile )
       {
-         // Update non-dimensional numbers for mass conservation equation
-         if ( TN.simulationParameters.haveThermalExpProfile || TN.simulationParameters.haveSpecificHeatCapProfile )
-         {
-            // Update gradRho/Rho with new non-Dim paramters Di and alpha.
-            // grad(rho)/rho = - ( Di / gamma ) * r_hat
-            // std::function< real_t( const Point3D& ) > updateDensity = [&]( const Point3D& x ) { return densityFunc( x ); };
-            p2ScalarFunctionContainer["DensityFE"]->interpolate( densityFunc, l, All );
-         }
+         // Update gradRho/Rho with new non-Dim paramters Di and alpha.
+         // grad(rho)/rho = - ( Di / gamma ) * r_hat
+         // std::function< real_t( const Point3D& ) > updateDensity = [&]( const Point3D& x ) { return densityFunc( x ); };
+         p2ScalarFunctionContainer["DensityFE"]->interpolate( densityFunc, l, All );
+      }
 
       frozenVelocityRHS_->apply( velocityPressureFE->uvw(), stokesRHS->p(), l, All );
    }
@@ -848,7 +843,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
       stokesRHSRotated->assign( { 1.0 }, { *stokesRHS }, TN.domainParameters.maxLevel, All );
 
       stokesRotationSolver_->solve(
-         *stokesOperatorRotation_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );
+          *stokesOperatorRotation_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );
 
       // stokesRotationOpgenSolver_->solve(
       //     *stokesOperatorRotationOpgen_, *velocityPressureRotatedFE, *stokesRHSRotated, TN.domainParameters.maxLevel );

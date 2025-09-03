@@ -140,8 +140,7 @@ template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupDomain()
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-   meshInfo          = MeshInfo::meshSphericalShell(
-       TN.domainParameters.nTan, TN.domainParameters.macroLayers );
+   meshInfo          = MeshInfo::meshSphericalShell( TN.domainParameters.nTan, TN.domainParameters.macroLayers );
 
    auto setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -376,13 +375,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
    temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
 
-   // for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   // {
-   // p2ScalarFunctionContainer["TemperatureFE"]->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
-   // p1ScalarFunctionContainer["TemperatureFEP1"]->interpolate(
-   //     temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
-   // }
-
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       // initialise plate velocity oracle
@@ -561,25 +553,24 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >(
-          storage,
-          TN.domainParameters.minLevel,
-          TN.domainParameters.maxLevel,
-          stokesOperator_,
-          stokesTmpProlongation,
-          stokesTmp1,
-          stokesTmp2,
-          TN );
+      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >( storage,
+                                                                                      TN.domainParameters.minLevel,
+                                                                                      TN.domainParameters.maxLevel,
+                                                                                      stokesOperator_,
+                                                                                      stokesTmpProlongation,
+                                                                                      stokesTmp1,
+                                                                                      stokesTmp2,
+                                                                                      TN );
 
-      stokesRotationMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >(
-          storage,
-          TN.domainParameters.minLevel,
-          TN.domainParameters.maxLevel,
-          stokesOperatorRotation_,
-          stokesTmpProlongation,
-          stokesTmp1,
-          stokesTmp2,
-          TN );
+      stokesRotationMCSolver_ =
+          std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >( storage,
+                                                                                TN.domainParameters.minLevel,
+                                                                                TN.domainParameters.maxLevel,
+                                                                                stokesOperatorRotation_,
+                                                                                stokesTmpProlongation,
+                                                                                stokesTmp1,
+                                                                                stokesTmp2,
+                                                                                TN );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
@@ -618,8 +609,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
       WALBERLA_ABORT( "Unknown solver type" );
    }
 
-   stokesSolver_              = stokesMCSolver_->getSolver();
-   stokesRotationSolver_      = stokesRotationMCSolver_->getSolver();
+   stokesSolver_         = stokesMCSolver_->getSolver();
+   stokesRotationSolver_ = stokesRotationMCSolver_->getSolver();
 
    p2ScalarMassOperator_ =
        std::make_shared< P2ScalarMassOperator_T >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );

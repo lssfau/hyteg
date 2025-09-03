@@ -833,7 +833,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Output directory  : " << outputParam.outputDirectory );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output base name  : " << outputParam.outputBaseName );
+   WALBERLA_LOG_INFO_ON_ROOT( "Model base name  : " << outputParam.modelBaseName );
    WALBERLA_LOG_INFO_ON_ROOT( "data Output       : " << ( outputParam.dataOutput ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Output velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
@@ -856,7 +856,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    if ( solverParam.solverPETSc == 1u )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : " << "true" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "
+                                 << "true" );
    }
    if ( solverParam.solverFlag == 0u )
    {

@@ -246,7 +246,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
           { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
 
-   uint_t outputTime = 0u;
+   uint_t      outputTime = 0u;
    std::string outputTimeStr;
 
    //For circulation model, output with plate age in filename
@@ -282,7 +282,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
       storage->getTimingTree()->start( "Adios2 data output" );
-      _output->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
+      adiosOutput_->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
       storage->getTimingTree()->stop( "Adios2 data output" );
 
 #else
@@ -306,9 +306,10 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
              1000.0;
       }
 
-      temperatureProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                          TN.outputParameters.outputBaseName + "_TempProfile_" + outputTimeStr + ".dat",
-                                      "temp" );
+      temperatureProfiles->logToFile(
+          walberla::format(
+              "%s/%s_TempProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+          "temp" );
 
       real_t cmPerYear = 3.15e9;
       for ( uint_t i = 0; i < velocityProfiles->rms.size(); i++ )
@@ -322,9 +323,10 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
                velocityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
              1000.0;
       }
-      velocityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                       TN.outputParameters.outputBaseName + "_VelocityProfile_" + outputTimeStr + ".dat",
-                                   "velocity" );
+      velocityProfiles->logToFile(
+          walberla::format(
+              "%s/%s_VelocityProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+          "velocity" );
 
       if ( TN.simulationParameters.tempDependentViscosity )
       {
@@ -339,9 +341,10 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
                   viscosityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
                 1000.0;
          }
-         viscosityProfiles->logToFile( TN.outputParameters.outputDirectory + "/" + "Profiles" + "/" +
-                                           TN.outputParameters.outputBaseName + "_ViscProfile_" + outputTimeStr + ".dat",
-                                       "viscosity" );
+         viscosityProfiles->logToFile(
+             walberla::format(
+                 "%s/%s_ViscosityProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+             "viscosity" );
       }
    }
 
@@ -359,8 +362,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
       viscosityP2->assign(
           { ( real_c( 1.0 ) / TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
-
-   TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );
 }
 
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >

@@ -159,14 +159,14 @@ struct OutputParameters
    uint_t OutputInterval         = 1;
    uint_t OutputProfilesInterval = 1;
    uint_t checkpointCount        = 1;
+   uint_t dataOutputCount        = 1;
 
-   bool OutputVelocity    = true;
-   bool OutputViscosity   = true;
-   bool OutputDensity     = true;
-   bool OutputTemperature = true;
-   bool OutputVerbose     = false;
-   bool OutputDimensional = false;
-   uint_t dataOutputCount   = 1;
+   bool   OutputVelocity    = true;
+   bool   OutputViscosity   = true;
+   bool   OutputDensity     = true;
+   bool   OutputTemperature = true;
+   bool   OutputVerbose     = false;
+   bool   OutputDimensional = false;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -278,8 +278,7 @@ struct SimulationParameters
                                                  // out of the expected range [surfaceTemp, cmbTemp]
    real_t temperatureConsistencyThreshold = 1.0; // Kelvin
 
-   real_t initialTimestepSize                    = 1.0; // Ma
-   uint_t initialNStepsForTimestepLinearIncrease = 20u;
+   uint_t initialNStepsForTimestepIncrease = 20u;
 
    // MMOC Parameters
    real_t particleLocationRadius    = real_c( 1e-2 );
