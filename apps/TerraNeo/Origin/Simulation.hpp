@@ -156,34 +156,24 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    }
    else
    {
-      // Within the first 20 timesteps gradually increase the timestep size from 1000 a to 100000 a
-      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) < 20 )
+      TN.simulationParameters.dt = ( TN.simulationParameters.cflMax / vMax ) * TN.simulationParameters.hMin;
+
+      // Within the first 20 timesteps gradually increase the timestep scaling from 1e-3 to 1e-1
+      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) <= 20 )
       {
-         // Initial Step size is 1000 a
-         TN.simulationParameters.dt = ( TN.simulationParameters.timeStep * TN.simulationParameters.initialTimestepSize *
-                                        TN.physicalParameters.characteristicVelocity *
-                                        TN.simulationParameters.plateVelocityScaling * TN.simulationParameters.secondsPerMyr ) /
-                                      TN.physicalParameters.mantleThickness;
+         real_t stepSizeFactor = std::pow(
+             10.0, -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) * ( 2.0 / 19.0 ) );
+         TN.simulationParameters.dt *= stepSizeFactor;
       }
-      else
-      {
-         TN.simulationParameters.dt = ( TN.simulationParameters.cflMax / vMax ) * TN.simulationParameters.hMin;
-      }
+
+      // Limit timestep size to a (hardcoded) minimum and (user-defined) maximum
+      TN.simulationParameters.dt =
+          std::clamp( TN.simulationParameters.dt, TN.simulationParameters.dtMin, TN.simulationParameters.dtMax );
    }
 
    real_t stepSize = ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
                      ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
                        TN.simulationParameters.secondsPerMyr );
-
-   // Limit the timestep size to a maximum value (in Ma).
-   if ( stepSize > ( TN.simulationParameters.maxTimestepSize ) )
-   {
-      TN.simulationParameters.dt = ( ( TN.simulationParameters.maxTimestepSize ) *
-                                     ( TN.physicalParameters.characteristicVelocity *
-                                       TN.simulationParameters.plateVelocityScaling * TN.simulationParameters.secondsPerMyr ) ) /
-                                   ( TN.physicalParameters.mantleThickness );
-      stepSize = TN.simulationParameters.maxTimestepSize;
-   }
 
    TN.simulationParameters.modelTime += TN.simulationParameters.dt;
 

@@ -213,11 +213,14 @@ struct SimulationParameters
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
    uint_t      timeStep0                  = 0;
-   real_t      maxTimestepSize            = 0;
+   real_t      maxTimestepSize            = real_c( 1 );
+   real_t      minTimestepSize            = real_c( 0.01 );
    real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
+   real_t      dtMax                      = real_c( 1 );
+   real_t      dtMin                      = real_c( 0 );
    real_t      dtConstant                 = real_c( 0 );
    real_t      cflMax                     = real_c( 1 );
    uint_t      timestep                   = 0;
@@ -263,7 +266,7 @@ struct SimulationParameters
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
 
    // Shear heating scaling for mantle ciruclation model with
-   // predifned Lithosphere thickness in km
+   // predefined Lithosphere thickness in km
    real_t lithosphereShearHeatingScaling = 1e-5;
    real_t lithosphereThickness           = real_c( 100 );
 

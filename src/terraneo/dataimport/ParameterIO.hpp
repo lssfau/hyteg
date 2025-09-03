@@ -411,6 +411,14 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       }
    }
 
+   // compute non-dimensional dtMin and dtMax from dimensional input
+   simulationParam.dtMax = ( simulationParam.maxTimestepSize * physicalParam.characteristicVelocity *
+                             simulationParam.plateVelocityScaling * simulationParam.secondsPerMyr ) /
+                           physicalParam.mantleThickness;
+   simulationParam.dtMin = ( simulationParam.minTimestepSize * physicalParam.characteristicVelocity *
+                             simulationParam.plateVelocityScaling * simulationParam.secondsPerMyr ) /
+                           physicalParam.mantleThickness;
+
    /*############ INITIALISATION PARAMETERS ############*/
 
    // Check parameter file ParameterFileVersion
