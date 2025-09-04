@@ -1,12 +1,12 @@
 Parameters
 {
-  nTan 3;
-  nRad 2;
+  nTan 5;
+  nRad 3;
 	
   rMin 1.22;
   rMax 2.22;
 
-  RayleighNumber 7e3;
+  RayleighNumber 1e5;
   DissipationNumber 0.5;
   alpha 1.0;
   thermalConductivity 1.0;
@@ -19,7 +19,7 @@ Parameters
   lmax 3;
   mSph 2;
 
-  cubicSymmetry false;
+  cubicSymmetry true;
 
   lmaxC 4;
   mSphC 4;
@@ -46,7 +46,7 @@ Parameters
   freeslip true;
   mixed false;
 
-  rMu 100000;
+  rMu 1;
   TRef 0.5;
   
   nPlumes 8;
@@ -78,11 +78,11 @@ Parameters
 
   nCouplingSteps 1;
 
-  rotFactor 0.1;
+  rotFactor 0.0;
 
   supgScaling 1.0;
 
-  handsetEigen false;
+  handsetEigen true;
   handsetEigenValue 5.0;
 
   eigenLevel 4;
@@ -95,7 +95,7 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterationsInitial 25;
+  fgmresIterationsInitial 6;
   nStepsInitial 25;
   fgmresIterations 6;
   fgmresTolerance 1e-4;
@@ -141,7 +141,7 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 4001;
+  maxTimeSteps 2;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
@@ -158,15 +158,15 @@ Parameters
   useAdios2 true;
   adiosXmlConfig ADIOS2config.xml;
 
-  storeCheckpoint true;
+  storeCheckpoint false;
   adios2CheckpointFreq 100;
 
   modelOutputDir ./output/;
-  modelName SphericalShellDebug;
+  modelName rMu30_Part9;
   
-  startCheckpointPath ./output/checkpoint;
-  startCheckpointFilename SphericalShell_MT64_Profile_Arrhenius_P1_21112024_Checkpoint_Continuous.bp;
-  startFromCheckpoint false;
+  startCheckpointPath /import/freenas-m-03-geodynamics/pponkumar-25/sphbench/sph128/cubic/Ra1e5/rMu30_Part8/checkpoint/;
+  startCheckpointFilename rMu30_Part8;
+  startFromCheckpoint true;
 
   importStep 99999;
   vtkWriteFrequency 100;

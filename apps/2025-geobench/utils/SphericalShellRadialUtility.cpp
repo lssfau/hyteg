@@ -54,8 +54,13 @@
 #include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "terraneo/helpers/RadialProfiles.hpp"
+#include "terraneo/utils/NusseltNumberOperator.hpp"
 
 using namespace hyteg;
 
@@ -187,6 +192,7 @@ int main( int argc, char* argv[] )
    };
 
    P2Function< real_t > Ones( "Ones", storage, minLevel, maxLevel, bcTemp );
+   P2Function< real_t > TNMinus1( "TNMinus1", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > TNusselt( "TNusselt", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > TNusseltTc( "TNusseltTc", storage, minLevel, maxLevel, bcTemp );
    P2Function< real_t > TNusseltOut( "TNusseltOut", storage, minLevel, maxLevel, bcTemp );
@@ -209,6 +215,48 @@ int main( int argc, char* argv[] )
        "NusseltNumberOuterZhong = " << ( rMax * ( rMax - rMin ) / rMin ) *
                                            ( NusseltNumberOuterAdvect / ( 4.0 * walberla::math::pi * rMax * rMax ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "NusseltNumberOuter = " << NusseltNumberOuterAdvect / NusseltNumberOuterDiffuse );
+
+   const uint_t nSamples = mainConf.getParameter< uint_t >( "nSamples" );
+
+   const real_t hGradient   = mainConf.getParameter< real_t >( "hGradient" );
+   const real_t epsBoundary = mainConf.getParameter< real_t >( "epsBoundary" );
+
+   MMOCTransport< P2Function< real_t > > mmocTransport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+
+   using MassOperator_T      = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
+   using DiffusionOperator_T = operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap;
+   using AdvectionOperator_T = operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap;
+
+   MassOperator_T      massOperator( storage, minLevel, maxLevel );
+   DiffusionOperator_T diffusionOperator( storage, minLevel, maxLevel );
+   AdvectionOperator_T advectionOperator(
+       storage, minLevel, maxLevel, Ones, u.uvw().component( 0u ), u.uvw().component( 1u ), u.uvw().component( 2u ) );
+
+   TNusselt.assign( { 1.0 }, { T }, maxLevel, All );
+
+   diffusionOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Replace );
+   advectionOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Add );
+
+   //    const real_t stepDt = 1e-6;
+   //    mmocTransport.step( TNusselt, u.uvw(), u.uvw(), maxLevel, Inner | NeumannBoundary, stepDt, 1 );
+   //    TNusselt.assign( { -1.0 / stepDt, 1.0 / stepDt }, { TNusselt, T }, maxLevel, All );
+   //    massOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Add );
+
+   real_t NusseltNumberCBF = TNusseltOut.sumGlobal( maxLevel, FreeslipBoundary );
+
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "CBF NusseltNumberOuterZhong = " << ( rMax * ( rMax - rMin ) / rMin ) *
+                                               ( NusseltNumberCBF / ( 4.0 * walberla::math::pi * rMax * rMax ) ) );
+
+   //    real_t numIntNusseltOuter = nusseltcalc::calculateNusseltNumberSphere3D(T, maxLevel, hGradient, rMax, epsBoundary, nSamples);
+
+   //    WALBERLA_LOG_INFO_ON_ROOT("");
+   //    WALBERLA_LOG_INFO_ON_ROOT("Numerical Integration");
+   //    WALBERLA_LOG_INFO_ON_ROOT("");
+
+   //    WALBERLA_LOG_INFO_ON_ROOT(
+   //        "NumInt NusseltNumberOuterZhong = " << ( rMax * ( rMax - rMin ) / rMin ) *
+   //                                            ( numIntNusseltOuter / ( 4.0 * walberla::math::pi * rMax * rMax ) ) );
 
    return 0;
 }

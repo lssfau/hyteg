@@ -61,6 +61,7 @@
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 // #include "SimpleCompStokesOperator.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvection.hpp"
 #include "hyteg_operators/operators/k_divdiv/P2VectorElementwiseKDivdiv.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
 #include "hyteg_operators/operators/k_mass/P1ToP2ElementwiseKMass.hpp"
@@ -320,7 +321,7 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                UpdateType                                   updateType = Replace ) const override
    {
       divergenceOperator_.apply( src, dst, level, flag, updateType );
-      divergenceCompressibleOperator_.apply( src.component(1u), dst, level, flag, Add );
+      divergenceCompressibleOperator_.apply( src.component( 1u ), dst, level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -330,7 +331,7 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                   DoFType                                     flag ) const override
    {
       divergenceOperator_.toMatrix( mat, src, dst, level, flag );
-      divergenceCompressibleOperator_.toMatrix( mat, src.component(1u), dst, level, flag );
+      divergenceCompressibleOperator_.toMatrix( mat, src.component( 1u ), dst, level, flag );
    }
 
    P1Function< real_t > tmp_;
@@ -503,6 +504,9 @@ class TALASimulation
       TNusselt    = std::make_shared< P2Function< real_t > >( "TNusselt", storage_, minLevel_, maxLevel_, bcNusselt );
       TNusseltOut = std::make_shared< P2Function< real_t > >( "TNusseltOut", storage_, minLevel_, maxLevel_, bcNusselt );
 
+      TNusseltOut1 = std::make_shared< P2Function< real_t > >( "TNusseltOut1", storage_, minLevel_, maxLevel_, bcNusselt );
+      TNusseltOut2 = std::make_shared< P2Function< real_t > >( "TNusseltOut2", storage_, minLevel_, maxLevel_, bcNusselt );
+
       zero = std::make_shared< P2Function< real_t > >( "zero", storage_, minLevel_, maxLevel_, bcTemp );
 
       gradRhoByRhoP2 = std::make_shared< P2VectorFunction< real_t > >( "gradRhoByRhoP2", storage_, minLevel_, maxLevel_ );
@@ -552,8 +556,8 @@ class TALASimulation
       gradRhoByRhoY =
           std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1U ) );
 
-      compressibleDivergenceOperator =
-          std::make_shared< P2VectorToP1ElementwiseCompressibleDivergenceOperator >( storage, minLevel, maxLevel, *gradRhoByRhoY );
+      compressibleDivergenceOperator = std::make_shared< P2VectorToP1ElementwiseCompressibleDivergenceOperator >(
+          storage, minLevel, maxLevel, *gradRhoByRhoY );
 
       transportTALAOp->setVelocity( u );
       transportTALAOp->setViscosity( viscP2 );
@@ -643,6 +647,11 @@ class TALASimulation
 
       stokesDirectSolver = std::make_shared< PETScLUSolver< StokesOperatorType > >( storage_, maxLevel_ );
 
+      if constexpr ( std::is_same_v< StokesOperatorType, P2P1StokesFullCompressibleOperator > )
+      {
+         stokesDirectSolver->assumeSymmetry( false );
+      }
+
       transportGmresSolver = std::make_shared< GMRESSolver< P2TransportTimesteppingOperator > >(
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
       transportGmresSolver->setPrintInfo( params.verbose );
@@ -687,6 +696,8 @@ class TALASimulation
       adios2Output->add( *TRefDev );
       adios2Output->add( *diffusionTermCoeff );
       adios2Output->add( *rhoP2 );
+      adios2Output->add( *TNusseltOut1 );
+      adios2Output->add( *TNusseltOut2 );
 
       storeCheckpoint     = mainConf.getParameter< bool >( "storeCheckpoint" );
       startFromCheckpoint = mainConf.getParameter< bool >( "startFromCheckpoint" );
@@ -731,7 +742,7 @@ class TALASimulation
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > uCp, uCpStore;
 
    std::shared_ptr< P2Function< real_t > > TDev, TDevPrev, TDevInt, TRef, TRefDev, TRhs, TRes, rhoP2, rhoInvP2, zero, viscP2,
-       Ttemp, TNusselt, TNusseltOut;
+       Ttemp, TNusselt, TNusseltOut, TNusseltOut1, TNusseltOut2;
    std::shared_ptr< P1Function< real_t > >             viscInvP1, viscP1Scaled2by3;
    std::shared_ptr< P2P1TaylorHoodFunction< real_t > > u, uRes, uPrev, uPrevIter, uRhs, uRhsStrong, uTemp;
    std::shared_ptr< P2VectorFunction< real_t > >       gradRhoByRhoP2;
@@ -969,7 +980,41 @@ void TALASimulation< StokesOperatorType >::step()
       writeVTK( couplingIter + 1 );
    }
 
-   TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
+   {
+      // TNusselt->assign( { 1.0 }, { *TDevPrev }, maxLevel, All );
+
+      P2Function< real_t > ones( "ones", storage, minLevel, maxLevel );
+      ones.interpolate( 1.0, maxLevel, All );
+
+      operatorgeneration::P2ElementwiseAdvection advectionOperator(
+          storage, minLevel, maxLevel, ones, u->uvw().component( 0u ), u->uvw().component( 1u ) );
+
+      Ttemp->assign({1.0}, {*TDev}, maxLevel, All);
+
+      transportTALAOp->apply( *TDev, *TNusseltOut1, maxLevel, All );
+
+      TDev->assign( { 1.0 }, { *TDevPrev }, maxLevel, All );
+      transportTALAOp->applyRHS( *TNusseltOut2, maxLevel, All );
+
+      TNusseltOut1->assign( { 1.0, -1.0 }, { *TNusseltOut1, *TNusseltOut2 }, maxLevel, All );
+      TNusseltOut1->assign( { 1.0 / transportTALAOp->timestep }, { *TNusseltOut1 }, maxLevel, All );
+
+      TDev->assign({1.0}, {*Ttemp}, maxLevel, All);
+      advectionOperator.apply(*TDev, *TNusseltOut1, maxLevel, All, Add);
+
+      real_t NusseltNumberCBF = -1.0 * ( TNusseltOut1->sumGlobal( maxLevel, NeumannBoundary ) );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "NusseltNumberTopCBF = " << NusseltNumberCBF );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+      TDev->assign({1.0}, {*Ttemp}, maxLevel, All);
+   }
+
+   if ( iTimeStep < params.maxTimeSteps )
+   {
+      TDevPrev->assign( { 1.0 }, { *TDev }, maxLevel, All );
+   }
 
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 }
@@ -1058,18 +1103,29 @@ void TALASimulation< StokesOperatorType >::solve()
 
          real_t nusseltNumberTopIntegrated = -1.0 * ( TNusseltOut->sumGlobal( maxLevel, NeumannBoundary ) );
 
-         real_t deltaT           = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
-         real_t nusseltNumberTop = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
+         real_t deltaT                      = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
+         real_t nusseltNumberTop_101        = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
+         real_t nusseltNumberTop_1001       = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.001, 1e-6, 1001 );
+         real_t nusseltNumberTop_10001_1e_3 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.001, 1e-6, 10001 );
+         real_t nusseltNumberTop_10001_1e_4 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.0001, 1e-6, 10001 );
          // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
 
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_101        = " << nusseltNumberTop_101 );
+         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_1001       = " << nusseltNumberTop_1001 );
+         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_10001_1e_3 = " << nusseltNumberTop_10001_1e_3 );
+         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_10001_1e_4 = " << nusseltNumberTop_10001_1e_4 );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
+             "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop_101 = %4.7e\nnusseltNumberTop_1001 = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
              nusseltNumberTopIntegrated,
-             nusseltNumberTop,
+             nusseltNumberTop_101,
+             nusseltNumberTop_1001,
              deltaT,
              velocityRMSValue,
              nVelocityDoFs,

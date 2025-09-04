@@ -28,15 +28,15 @@ Parameters
   // ny 4;
 
   minLevel 0;
-  maxLevel 4;
+  maxLevel 5;
 
   readInMinLevel 0;
   readInMaxLevel 4;
 
   ala false;
 
-  residualVelocityTolPicard 1e-5;
-  nStokesPicard 1;
+  residualVelocityTolPicard 1e-9;
+  nStokesPicard 4;
   direct false;
 
   AiniPerturb 0.1;
@@ -54,7 +54,7 @@ Parameters
 
   residualExitTol 1e12;
 
-  frv false;
+  frv true;
   frd false;
 
   MMOC true;
@@ -65,7 +65,7 @@ Parameters
 
   Direct false;
 
-  nCouplingIter 1;
+  nCouplingIter 2;
   
   maxTimeSteps 25000;
   dtStart 1e-6;
@@ -80,17 +80,17 @@ Parameters
   level 1;
 
   cpPath ./output/gmd_stuff/king/checkpoint;
-  cpFilename KingSquare_TALA_FullComp_Ra_1e5_Di_0_5_Continuous.bp;
+  cpFilename KingSquare_TALA_FRV_L5_Ra_1e5_Di_0_5_Continuous.bp;
   cpStartFilename KingSquare_TALA_FRV_Ra_1e5_Di_0_5_Continuous.bp;
 
   importStep 999999;
 
   outputPath ./output/;
-  outputFilename KingSquareFullComp1e5;
-  vtkWriteFrequency 25;
+  outputFilename KingSquareFRV1e5_Part1;
+  vtkWriteFrequency 50;
   adiosXmlConfig ADIOS2config.xml;
 
   storeCheckpointFreq 101;
-  storeCheckpoint false;
+  storeCheckpoint true;
   startFromCheckpoint true;
 }

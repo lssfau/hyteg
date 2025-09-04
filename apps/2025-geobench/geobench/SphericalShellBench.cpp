@@ -67,6 +67,8 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
@@ -1518,10 +1520,46 @@ void TALASimulation::step()
    //                       residualStokes,
    //                       residualTransport ) );
 
+   {
+      BoundaryCondition bcTemp;
+      bcTemp.createAllInnerBC();
+
+      BoundaryUID bcTempUid = bcTemp.createFreeslipBC( "OuterFreeslip", { MeshInfo::flagOuterBoundary } );
+
+      P2Function< real_t > Ones( "Ones", storage, minLevel, maxLevel, bcTemp );
+      P2Function< real_t > TNusselt( "TNusselt", storage, minLevel, maxLevel, bcTemp );
+      P2Function< real_t > TNusseltOut( "TNusseltOut", storage, minLevel, maxLevel, bcTemp );
+
+      Ones.interpolate( 1.0, maxLevel, All );
+
+      using MassOperator_T      = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
+      using DiffusionOperator_T = operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap;
+      using AdvectionOperator_T = operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap;
+
+      MassOperator_T      massOperator( storage, minLevel, maxLevel );
+      DiffusionOperator_T diffusionOperator( storage, minLevel, maxLevel );
+      AdvectionOperator_T advectionOperator(
+          storage, minLevel, maxLevel, Ones, u->uvw().component( 0u ), u->uvw().component( 1u ), u->uvw().component( 2u ) );
+
+      TNusselt.assign( { 1.0 }, { *T }, maxLevel, All );
+
+      diffusionOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Replace );
+      advectionOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Add );
+
+      TNusselt.assign( { 1.0 / dt, -1.0 / dt }, { *T, *TPrev }, maxLevel, All );
+
+      massOperator.apply( TNusselt, TNusseltOut, maxLevel, All, Add );
+
+      real_t NusseltNumberCBF = TNusseltOut.sumGlobal( maxLevel, FreeslipBoundary );
+
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "CBF_NusseltNumberOuterZhong = " << ( params.rMax * ( params.rMax - params.rMin ) / params.rMin ) *
+                                                  ( NusseltNumberCBF / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) ) );
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nPicard done!\n" ) );
 
    TPrev->assign( { 1.0 }, { *T }, maxLevel, All );
-
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 }
 
@@ -1609,6 +1647,9 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
 
+         TNu->copyBoundaryConditionFromFunction( *TNuOut );
+         ones->copyBoundaryConditionFromFunction( *TNuOut );
+
          TNu->assign( { 1.0 }, { *T }, maxLevel, All );
          nusseltOpOuter->apply( *ones, *TNuOut, maxLevel, FreeslipBoundary );
 
@@ -1632,6 +1673,9 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( "Zhong calc:" );
          WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated outer  = " << NusseltOuterZhongCalc );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+         TNu->copyBoundaryConditionFromFunction( *TNuIn );
+         ones->copyBoundaryConditionFromFunction( *TNuIn );
 
          TNu->assign( { 1.0 }, { *T }, maxLevel, All );
          nusseltOpInner->apply( *ones, *TNuIn, maxLevel, FreeslipBoundary );

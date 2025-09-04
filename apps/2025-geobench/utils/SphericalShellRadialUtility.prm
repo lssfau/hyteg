@@ -9,9 +9,13 @@ Parameters
   maxLevel 4;
   minLevel 2;
 
+  nSamples 101;
+  hGradient 1e-2;
+  epsBoundary 1e-7;
+
   startCheckpointPath /import/freenas-m-03-geodynamics/pponkumar-25/sphbench/sph128/tetrahedral/Ra7e3/rMu20_Part3/checkpoint/;
   startCheckpointFilename rMu20_Part3;
 
-  outputTemperatureFilename ./output/Temperature_A3_Part7;
-  outputVelocityFilename ./output/Velocity_A3_Part7;
+  outputTemperatureFilename ./output/Temperature_C1_Part7;
+  outputVelocityFilename ./output/Velocity_C1_Part7;
 }
