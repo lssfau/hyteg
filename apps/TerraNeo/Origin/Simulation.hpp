@@ -186,18 +186,32 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
-      //update current and previous age
-      TN.simulationParameters.agePrev = TN.simulationParameters.ageMa;
-      TN.simulationParameters.ageMa -= ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
-                                       ( TN.physicalParameters.characteristicVelocity *
-                                         TN.simulationParameters.plateVelocityScaling * TN.simulationParameters.secondsPerMyr );
-
-      //if the time goes below finalAge Ma we return from current step and finish the circulation model in main
-      if ( TN.simulationParameters.ageMa <= TN.simulationParameters.finalAge )
+      // If finalPlateAge was reached last step we return from current step and finish the simulation
+      if ( TN.simulationParameters.ageMa == TN.simulationParameters.finalPlateAge )
       {
          return;
       }
       WALBERLA_LOG_INFO_ON_ROOT( "Model age: " << TN.simulationParameters.ageMa << " Ma" )
+
+      // If the model age goes beyond finalPlateAge in this step, adjust the stepSize accordingly
+      if ( ( TN.simulationParameters.ageMa - stepSize ) < TN.simulationParameters.finalPlateAge )
+      {
+         stepSize                   = TN.simulationParameters.ageMa - TN.simulationParameters.finalPlateAge;
+         TN.simulationParameters.dt = ( stepSize * TN.physicalParameters.characteristicVelocity *
+                                        TN.simulationParameters.plateVelocityScaling * TN.simulationParameters.secondsPerMyr ) /
+                                      TN.physicalParameters.mantleThickness;
+
+         // limit dt to a minimum of dtMin and recompute stepSize if necessary
+         if ( TN.simulationParameters.dt < TN.simulationParameters.dtMin )
+         {
+            TN.simulationParameters.dt = TN.simulationParameters.dtMin;
+            stepSize                   = ( TN.simulationParameters.dt * TN.physicalParameters.mantleThickness ) /
+                       ( TN.physicalParameters.characteristicVelocity * TN.simulationParameters.plateVelocityScaling *
+                         TN.simulationParameters.secondsPerMyr );
+         }
+      }
+      //update age
+      TN.simulationParameters.ageMa -= stepSize;
    }
 
    TN.simulationParameters.modelRunTimeMa =

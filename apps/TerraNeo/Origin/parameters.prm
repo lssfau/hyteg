@@ -185,6 +185,8 @@ Parameters
    // Time steps 
 
    maxNumTimeSteps 1000;
+   // Maximum model age in Ma
+   maxModelAge 1000;
    fixedTimeStep false;
    predictorCorrector false;
    // Maximum timestep size in Ma
@@ -207,8 +209,8 @@ Parameters
 
    fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
    fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
-   initialAge 100;
-   finalAge 10000000;
+   initialPlateAge 100;
+   finalPlateAge 0;
    plateVelocityScaling 8;
 
    //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)

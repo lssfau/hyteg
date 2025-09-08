@@ -225,17 +225,17 @@ struct SimulationParameters
    uint_t      timestep                   = 0;
    std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
+   real_t      maxModelAge                = real_c( 1000 );
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
    bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
 
    //circulation model parameters
-   real_t      initialAge     = real_c( 100 ); //initial age for circulation models
-   real_t      finalAge       = real_c( 0 );   //final age for circulation models
-   real_t      ageMa          = initialAge;    //currrent age during circulation model
-   real_t      agePrev        = initialAge;    //age of previous timestep during circulation model
-   real_t      plateAge       = initialAge;    //current age of plates being implemented (intervals of 1Myr)
+   real_t      initialPlateAge     = real_c( 100 ); //initial age for circulation models
+   real_t      finalPlateAge       = real_c( 0 );   //final age for circulation models
+   real_t      ageMa          = initialPlateAge;    //currrent age during circulation model
+   real_t      plateAge       = initialPlateAge;    //current age of plates being implemented (intervals of 1Myr)
    real_t      modelRunTimeMa = real_c( 0 );
    std::string fnameTopologies;
    std::string fnameReconstructions;

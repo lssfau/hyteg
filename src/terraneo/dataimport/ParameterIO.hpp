@@ -348,6 +348,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.dtConstant             = mainConf.getParameter< real_t >( "dtConstant" );
    simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
    simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
+   simulationParam.maxModelAge            = mainConf.getParameter< real_t >( "maxModelAge" );
    simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
    simulationParam.volAvrgTemperatureDev  = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
@@ -387,7 +388,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       physicalParam.viscosityUpperBound          = mainConf.getParameter< real_t >( "viscosityUpperBound" );
    }
 
-   simulationParam.finalAge = mainConf.getParameter< real_t >( "finalAge" );
+   simulationParam.finalPlateAge = mainConf.getParameter< real_t >( "finalPlateAge" );
    //simulation parameters for circulation models only:
    if ( simulationParam.simulationType == "CirculationModel" )
    {
@@ -395,10 +396,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       {
          simulationParam.fnameTopologies        = mainConf.getParameter< std::string >( "fnameTopologies" );
          simulationParam.fnameReconstructions   = mainConf.getParameter< std::string >( "fnameReconstructions" );
-         simulationParam.initialAge             = mainConf.getParameter< real_t >( "initialAge" );
-         simulationParam.ageMa                  = simulationParam.initialAge;
-         simulationParam.agePrev                = simulationParam.initialAge;
-         simulationParam.plateAge               = simulationParam.initialAge;
+         simulationParam.initialPlateAge        = mainConf.getParameter< real_t >( "initialPlateAge" );
+         simulationParam.ageMa                  = simulationParam.initialPlateAge;
+         simulationParam.plateAge               = simulationParam.initialPlateAge;
          simulationParam.plateVelocityScaling   = mainConf.getParameter< real_t >( "plateVelocityScaling" );
          simulationParam.plateSmoothingDistance = mainConf.getParameter< real_t >( "plateSmoothingDistance" );
       }
@@ -800,6 +800,10 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
 
    WALBERLA_LOG_INFO_ON_ROOT( "cflMax                  : " << simulationParam.cflMax );
    WALBERLA_LOG_INFO_ON_ROOT( "MaxNumTimesteps         : " << simulationParam.maxNumTimesteps );
+   if ( simulationParam.simulationType == "ConvectionModel" )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "MaxModelAge             : " << simulationParam.maxModelAge );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "Compressible            : " << ( simulationParam.compressible ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
    if ( simulationParam.shearHeating )
@@ -819,8 +823,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Filename topologies     : " << simulationParam.fnameTopologies );
       WALBERLA_LOG_INFO_ON_ROOT( "Filename reconstructions: " << simulationParam.fnameReconstructions );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initital age            : " << simulationParam.initialAge );
-      WALBERLA_LOG_INFO_ON_ROOT( "Final age               : " << simulationParam.finalAge );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initital plage age      : " << simulationParam.initialPlateAge );
+      WALBERLA_LOG_INFO_ON_ROOT( "Final plate age         : " << simulationParam.finalPlateAge );
       WALBERLA_LOG_INFO_ON_ROOT( "Plate velocity scaling  : " << simulationParam.plateVelocityScaling );
       WALBERLA_LOG_INFO_ON_ROOT( "Plate smoothing distance: " << simulationParam.plateSmoothingDistance );
    }

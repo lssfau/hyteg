@@ -42,15 +42,15 @@ void startSimulation( ConvectionSimulation_T simulation )
       WALBERLA_LOG_INFO_ON_ROOT( "Total time for step: " << timeStepTotal )
 
       if ( simulation.getSimulationParams().simulationType == "CirculationModel" &&
-           ( simulation.getSimulationParams().ageMa <= simulation.getSimulationParams().finalAge ) )
+           ( simulation.getSimulationParams().ageMa <= simulation.getSimulationParams().finalPlateAge ) )
       {
-         //triggered following the early return from convSim.step(), due to current timestep (ageMa) passing the user-defined final time
-         WALBERLA_LOG_INFO_ON_ROOT( "Circulation model finished at " << simulation.getSimulationParams().agePrev << " Ma." )
+         //triggered following the early return from convSim.step(), due to current timestep passing the user-defined final time
+         WALBERLA_LOG_INFO_ON_ROOT( "Circulation model finished at " << simulation.getSimulationParams().ageMa << " Ma." )
          return;
       }
       // Check if the simulation has reached the desired age for a convection model and finish the simulation
       if ( simulation.getSimulationParams().simulationType == "ConvectionModel" &&
-           ( simulation.getSimulationParams().modelRunTimeMa >= simulation.getSimulationParams().finalAge ) )
+           ( simulation.getSimulationParams().modelRunTimeMa >= simulation.getSimulationParams().maxModelAge ) )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Convection model finished at " << simulation.getSimulationParams().modelRunTimeMa
                                                                     << " Ma. After: " << simulation.getSimulationParams().timeStep
@@ -64,7 +64,7 @@ void startSimulation( ConvectionSimulation_T simulation )
       //if we reach this point in a circulation model, the max number of steps has been reached before the desired age
       WALBERLA_LOG_INFO_ON_ROOT( "Max timestep reached at age " << simulation.getSimulationParams().ageMa << " Ma." )
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Circulation model ran from " << simulation.getSimulationParams().initialAge << " - "
+      WALBERLA_LOG_INFO_ON_ROOT( "Circulation model ran from " << simulation.getSimulationParams().initialPlateAge << " - "
                                                                << simulation.getSimulationParams().ageMa << " Ma." )
    }
    if ( simulation.getSimulationParams().timingAnalysis )
