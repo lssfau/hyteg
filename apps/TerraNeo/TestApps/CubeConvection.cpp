@@ -180,7 +180,7 @@ struct ParameterContainer
 
    uint_t maxTimeSteps = 1000, vtkWriteFrequency = 1U;
 
-   bool MMOC = true, SUPG = false, compressible = true, adiabaticHeating = true, shearHeating = true;
+   bool MMOC = true, SUPG = false, compressible = true, shearHeating = true;
 
    real_t Ra = 1e5, Di = 0.5, T0 = 0.091, diffusivity = 1.0, cflMax = 0.75, AiniPerturb = 0.1;
 

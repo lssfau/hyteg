@@ -367,7 +367,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
-   simulationParam.adiabaticHeating = mainConf.getParameter< bool >( "adiabaticHeating" );
    simulationParam.internalHeating  = mainConf.getParameter< bool >( "internalHeating" );
    simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
    simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
@@ -809,7 +808,6 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
       WALBERLA_LOG_INFO_ON_ROOT( "Lithosphere thickness [km]   : " << simulationParam.lithosphereThickness );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Adiabatic heating       : " << ( simulationParam.adiabaticHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Internal heating        : " << ( simulationParam.internalHeating ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Frozen velocity         : " << ( simulationParam.frozenVelocity ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "T-dependent viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );

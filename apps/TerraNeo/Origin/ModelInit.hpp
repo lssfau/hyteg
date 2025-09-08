@@ -85,7 +85,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::init()
    attributeList_["plateSmoothingDistance"]         = TN.simulationParameters.plateSmoothingDistance;
    attributeList_["compressible"]                   = TN.simulationParameters.compressible;
    attributeList_["shearHeating"]                   = TN.simulationParameters.shearHeating;
-   attributeList_["adiabaticHeating"]               = TN.simulationParameters.adiabaticHeating;
    attributeList_["internalHeating"]                = TN.simulationParameters.internalHeating;
    attributeList_["boundaryCond"]                   = TN.simulationParameters.boundaryCond;
    attributeList_["boundaryCondFreeSlip"]           = TN.simulationParameters.boundaryCondFreeSlip;
@@ -647,11 +646,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    constEnergyCoeffFunc = [this]( const Point3D& x ) { return constantEnergyCoefficientFunction( x ); };
    surfTempCoeffFunc    = [this]( const Point3D& x ) { return surfaceTempCoefficientFunction( x ); };
 
-   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
-   {
-      TN.simulationParameters.adiabaticHeating = true;
-   }
-
    {
       const uint_t temperatureMaxLevel = [&] {
          if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > > )
@@ -739,7 +733,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
           std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
       temperatureTransportOperator_->setShearHeatingCoeff( shearHeatingCoeff );
       temperatureTransportOperator_->setTALADict(
-          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.compressible },
             { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
             { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 

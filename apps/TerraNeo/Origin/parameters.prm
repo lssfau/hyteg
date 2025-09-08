@@ -172,7 +172,6 @@ Parameters
 
    compressible true;
    shearHeating true;
-   adiabaticHeating true;
    internalHeating true;
 
    frozenVelocity false;

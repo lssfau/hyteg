@@ -157,7 +157,6 @@ Parameters
    frozenVelocity false;
    
    shearHeating true;
-   adiabaticHeating true;
    internalHeating true;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
