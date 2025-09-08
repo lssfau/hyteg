@@ -572,7 +572,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.OutputVelocity         = mainConf.getParameter< bool >( "OutputVelocity" );
    outputParam.OutputTemperature      = mainConf.getParameter< bool >( "OutputTemperature" );
    outputParam.OutputInterval         = mainConf.getParameter< uint_t >( "OutputInterval" );
-   outputParam.OutputProfilesInterval = mainConf.getParameter< uint_t >( "OutputProfilesInterval" );
    outputParam.outputVertexDoFs       = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
    outputParam.ADIOS2ParamKey     = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );

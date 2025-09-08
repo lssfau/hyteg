@@ -122,7 +122,7 @@ Parameters
    // default: 0
    //Note that the same values of activationEnergy aren't necessarily relevant for all cases
 
-   tempDependentViscosityType 3; 
+   tempDependentViscosityType 0; 
 
    activationEnergy 4.605;
    depthViscosityFactor 2.997;
@@ -162,7 +162,7 @@ Parameters
    // 3 = No-Slip / Free-Slip 
    // default: 1
 
-   boundaryCond 3;
+   boundaryCond 2;
 
    rotFactor 0.25;
 
@@ -171,11 +171,11 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   frozenVelocity false;
-   
    shearHeating true;
    adiabaticHeating true;
    internalHeating true;
+
+   frozenVelocity false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor 
    // for scaling the shear heating contribution within the Lithosphere
@@ -189,8 +189,8 @@ Parameters
    fixedTimeStep false;
    predictorCorrector false;
    // Maximum timestep size in Ma
-   maxTimeStepSize 100;
-   cflMax 0.6;
+   maxTimeStepSize 1;
+   cflMax 1;
    dtConstant 100;
 
    particleLocationRadius 0.01;
@@ -297,14 +297,13 @@ Parameters
    
    OutputVelocity true;
    OutputTemperature true;
-   OutputInterval 1;
-   OutputProfilesInterval 10;
+   OutputInterval 10;
    OutputVertexDoFs false;
 
    //If desired: output per Myr:
 
    outputMyr false;
-   outputIntervalMyr 1;
+   outputIntervalMyr 10;
 
    outputProfiles true;
 
@@ -312,11 +311,11 @@ Parameters
    ADIOS2OutputConfig ADIOS2config.xml;
 
    ADIOS2StoreCheckpointPath ./output/checkpoint;
-   ADIOS2StoreCheckpointFilename TerraNeo_checkpoint_Test_HAWK-v4;
+   ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StoreCheckpoint false;
 
    ADIOS2StartCheckpointPath ./output/checkpoint;
-   ADIOS2StartCheckpointFilename TerraNeo_checkpoint_MT128_NS-NS;
+   ADIOS2StartCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StartFromCheckpoint false;
    checkpointStartTimestep 100;
    checkpointStartTimeMa 50;
@@ -330,12 +329,12 @@ Parameters
    ADIOS2Value 32;
 
    outputDirectory ./output;
-   modelBaseName TerraNeo_Debug;
+   modelBaseName TerraNeo;
    overrideModelFolder false;
    
-   // Output of a. json file containing timing tree informationf
+   // Output of a. json file containing timing tree information
 
-   timingAnalysis true;
+   timingAnalysis false;
    createTimingDB false;
    SQLdatabaseFileName TerraNeoSQLDatabaseFile.db;
 }

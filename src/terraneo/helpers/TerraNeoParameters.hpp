@@ -157,7 +157,6 @@ struct OutputParameters
    bool vtk        = true;
 
    uint_t OutputInterval         = 1;
-   uint_t OutputProfilesInterval = 1;
    uint_t checkpointCount        = 1;
    uint_t dataOutputCount        = 1;
 
@@ -242,7 +241,7 @@ struct SimulationParameters
    std::string fnameReconstructions;
    real_t      plateVelocityScaling        = real_c( 1 );
    real_t      plateSmoothingDistance      = real_c( 110 );
-   bool        compressible                = true;  // default: Compressible foŕmulation
+   bool        compressible                = true;  // default: Compressible formulation
    bool        frozenVelocity              = false; // default: Non-frozen
    bool        shearHeating                = true;  //default: include shear heating
    bool        adiabaticHeating            = true;  //default: include adiabatic heating
