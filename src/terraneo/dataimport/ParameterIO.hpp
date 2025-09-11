@@ -826,13 +826,23 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "----    Output Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output directory  : " << outputParam.outputDirectory );
-   WALBERLA_LOG_INFO_ON_ROOT( "Model base name  : " << outputParam.modelBaseName );
-   WALBERLA_LOG_INFO_ON_ROOT( "data Output       : " << ( outputParam.dataOutput ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "vtk               : " << ( outputParam.vtk ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output velocity   : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output interval   : " << outputParam.OutputInterval );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs: " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output directory       : " << outputParam.outputDirectory );
+   WALBERLA_LOG_INFO_ON_ROOT( "Model base name        : " << outputParam.modelBaseName );
+   if ( outputParam.ADIOS2StartFromCheckpoint )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Reading from checkpoint: " << outputParam.ADIOS2StartCheckpointPath << "/"
+                                                             << outputParam.ADIOS2StartCheckpointFilename );
+   }
+   if ( outputParam.ADIOS2StoreCheckpoint )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Writing to checkpoint  : " << outputParam.ADIOS2StoreCheckpointPath << "/"
+                                                             << outputParam.ADIOS2StoreCheckpointFilename );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "data Output            : " << ( outputParam.dataOutput ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "vtk                    : " << ( outputParam.vtk ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output velocity        : " << ( outputParam.OutputVelocity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output interval        : " << outputParam.OutputInterval );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output Vertex DoFs     : " << ( outputParam.outputVertexDoFs ? "true" : "false" ) );
    if ( outputParam.outputProfiles && simulationParam.tempDependentViscosity )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Output temperature & viscosity profiles: "
@@ -857,24 +867,17 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    {
       WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver outer iterations         : " << solverParam.FGMRESOuterIterations );
       WALBERLA_LOG_INFO_ON_ROOT( "FGMRES solver tolerance                : " << solverParam.FGMRESTolerance );
-      WALBERLA_LOG_INFO_ON_ROOT( "Uzawa smoother iterations              : " << solverParam.uzawaIterations );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid iterations           : " << solverParam.ABlockMGIterations );
-      WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid solver tolerance     : " << solverParam.ABlockMGTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid iterations         : " << solverParam.ABlockCoarseGridIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid tolerance          : " << solverParam.ABlockCoarseGridTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid pre-smoothing steps  : " << solverParam.ABlockMGPreSmooth );
       WALBERLA_LOG_INFO_ON_ROOT( "A-Block multigrid post-smoothing steps : " << solverParam.ABlockMGPostSmooth );
       WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid iterations             : " << solverParam.SchurMGIterations );
       WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid solver tolerance       : " << solverParam.SchurMGTolerance );
-      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid pre-smoothing steps    : " << solverParam.SchurMGPreSmooth );
-      WALBERLA_LOG_INFO_ON_ROOT( "Schur multigrid post-smoothing steps   : " << solverParam.SchurMGPostSmooth );
+
       WALBERLA_LOG_INFO_ON_ROOT( "Diffusion max num iterations           : " << solverParam.diffusionMaxNumIterations );
       WALBERLA_LOG_INFO_ON_ROOT( "Diffusion absolute residual U tolerance: " << solverParam.diffusionAbsoluteResidualUTolerance );
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes kill-tolerance                  : " << solverParam.stokesKillTolerance );
-      WALBERLA_LOG_INFO_ON_ROOT( " " );
-      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid iterations         : " << solverParam.ABlockCoarseGridIterations );
-      WALBERLA_LOG_INFO_ON_ROOT( "A-Block coarse grid tolerance          : " << solverParam.ABlockCoarseGridTolerance );
-      WALBERLA_LOG_INFO_ON_ROOT( "Schur coarse grid iterations           : " << solverParam.SchurCoarseGridIterations );
-      WALBERLA_LOG_INFO_ON_ROOT( "Schur coarse grid tolerance            : " << solverParam.SchurCoarseGridTolerance );
    }
    else if ( solverParam.solverFlag == 1u )
    {
