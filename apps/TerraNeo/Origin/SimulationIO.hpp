@@ -367,13 +367,14 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::outputCheckpoint()
 {
-   std::shared_ptr< P2ScalarFunction_T >& temperatureP2 = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >&   temperatureP2      = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureFE = p2p1StokesFunctionContainer.at( "VelocityFE" );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
    checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-   checkpointExporter->registerFunction(
-       *( p2ScalarFunctionContainer["TemperatureFE"] ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   checkpointExporter->registerFunction( *( temperatureP2 ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   checkpointExporter->registerFunction( *( velocityPressureFE ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
    checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
                                         TN.outputParameters.ADIOS2StoreCheckpointFilename );
 

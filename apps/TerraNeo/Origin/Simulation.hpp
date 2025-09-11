@@ -60,7 +60,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       if ( TN.outputParameters.ADIOS2StartFromCheckpoint )
       {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-         WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 load Temperature field from Checkpoint" );
+         WALBERLA_LOG_INFO_ON_ROOT( "ADIOS2 load checkpoint" );
          // Get Information about checkpoint data
          std::vector< AdiosCheckpointImporter::FunctionDescription > checkpointDataInfo =
              checkpointImporter->getFunctionDetails();
@@ -70,28 +70,29 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
          if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
          {
             WALBERLA_LOG_INFO_ON_ROOT(
-                "Restore Temperature field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
+                "Restore temperature field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
             checkpointImporter->restoreFunction(
                 *( temperatureP2 ), TN.domainParameters.minLevel, checkpointDataInfo[0].maxLevel, 0, true );
 
-            WALBERLA_LOG_INFO_ON_ROOT( "Prolongate Temperature field checkpoint data from level: "
+            WALBERLA_LOG_INFO_ON_ROOT( "Prolongate temperature field checkpoint data from level: "
                                        << checkpointDataInfo[0].maxLevel
                                        << " to new maxLevel: " << TN.domainParameters.maxLevel );
             for ( uint_t l = checkpointDataInfo[0].maxLevel; l < TN.domainParameters.maxLevel; l++ )
             {
                p2ProlongationOperator_->prolongate( *( temperatureP2 ), l, All );
-               WALBERLA_LOG_INFO_ON_ROOT( "Temperatuer field prolongated from level:  " << l << " to level: " << l + 1 );
+               WALBERLA_LOG_INFO_ON_ROOT( "Temperature field prolongated from level: " << l << " to level: " << l + 1 );
             }
          }
          else
          {
             WALBERLA_LOG_INFO_ON_ROOT(
-                "Restore Temperature field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
+                "Restore temperature field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
             checkpointImporter->restoreFunction(
                 *( temperatureP2 ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 0, true );
          }
 #else
          WALBERLA_ABORT( " No submodule ADIOS2 enabled! Loading Checkpoint not possible - Abort simulation " );
+
 #endif
          // Compute temperature profiles for logging and adaptive reference
          temperatureProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( temperatureP2 ),
@@ -102,7 +103,45 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
          TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
-         solveStokes();
+         // If continueSimulation, also read in velocity from checkpoint. Else solveStokes to get initial velocity solution.
+         if ( TN.simulationParameters.continueSimulation )
+         {
+            if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
+            {
+               WALBERLA_LOG_INFO_ON_ROOT(
+                   "Restore velocity field from checkpoint data maxLevel: " << checkpointDataInfo[0].maxLevel );
+               checkpointImporter->restoreFunction(
+                   velocityPressureFE->uvw(), TN.domainParameters.minLevel, checkpointDataInfo[0].maxLevel, 0, true );
+               checkpointImporter->restoreFunction(
+                   velocityPressureFE->p(), TN.domainParameters.minLevel, checkpointDataInfo[0].maxLevel, 0, true );
+
+               WALBERLA_LOG_INFO_ON_ROOT( "Prologate velocity field checkpoint data from level: "
+                                          << checkpointDataInfo[0].maxLevel
+                                          << " to new maxLevel: " << TN.domainParameters.maxLevel );
+               for ( uint_t l = checkpointDataInfo[0].maxLevel; l < TN.domainParameters.maxLevel; l++ )
+               {
+                  p2p1ProlongationOperator_->prolongate( *( velocityPressureFE ), l, All );
+                  WALBERLA_LOG_INFO_ON_ROOT( "Velocity field prolongated from level: " << l << " to level: " << l + 1 );
+               }
+            }
+            else
+            {
+               WALBERLA_LOG_INFO_ON_ROOT(
+                   "Restore velocity field from checkpoint data at level: " << checkpointDataInfo[0].maxLevel );
+               checkpointImporter->restoreFunction(
+                   velocityPressureFE->uvw(), TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 0, true );
+               checkpointImporter->restoreFunction(
+                   velocityPressureFE->p(), TN.domainParameters.minLevel, TN.domainParameters.maxLevel, 0, true );
+            }
+
+            WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint at timestep "
+                                       << TN.simulationParameters.timeStep0 << " and model runtime "
+                                       << TN.simulationParameters.modelRunTimeMa << " Ma." );
+         }
+         else
+         {
+            solveStokes();
+         }
 
          // Now also initialise velocity (and viscosity) profiles
          velocityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( velocityPressureFE->uvw(),
@@ -131,6 +170,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       TN.simulationParameters.simulationInitialised = true;
       ++TN.simulationParameters.timeStep;
       velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
+      temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
    } //end timestep0 stokes
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -155,15 +195,18 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    {
       TN.simulationParameters.dt = ( TN.simulationParameters.cflMax / vMax ) * TN.simulationParameters.hMin;
 
-      // Within the first 20 timesteps gradually increase the timestep scaling from 1e-3 to 1e-1
-      if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) <=
-           TN.simulationParameters.initialNStepsForTimestepIncrease )
+      if ( !TN.outputParameters.ADIOS2StartFromCheckpoint || !TN.simulationParameters.continueSimulation )
       {
-         real_t stepSizeFactor =
-             std::pow( 10.0,
-                       -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) *
-                                  ( 2.0 / ( TN.simulationParameters.initialNStepsForTimestepIncrease - 1 ) ) );
-         TN.simulationParameters.dt *= stepSizeFactor;
+         // Within the first 20 timesteps gradually increase the timestep scaling from 1e-3 to 1e-1
+         if ( ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 ) <=
+              TN.simulationParameters.initialNStepsForTimestepIncrease )
+         {
+            real_t stepSizeFactor =
+                std::pow( 10.0,
+                          -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) *
+                                     ( 2.0 / ( TN.simulationParameters.initialNStepsForTimestepIncrease - 1 ) ) );
+            TN.simulationParameters.dt *= stepSizeFactor;
+         }
       }
 
       // Limit timestep size to a (hardcoded) minimum and (user-defined) maximum
@@ -221,8 +264,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
 
    WALBERLA_LOG_INFO_ON_ROOT( "Model runtime: " << TN.simulationParameters.modelRunTimeMa << " Ma" )
 
-   temperatureP2->assign( { real_c( 1 ) }, { *( temperaturePrevP2 ) }, TN.domainParameters.maxLevel, All );
-
    //######################################################//
    //                  ENERGY EQUATION                     //
    //######################################################//
@@ -262,6 +303,9 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                                       true,
                                       true,
                                       false );
+
+      // Reset temperature on boundary to initial values
+      temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, DirichletBoundary );
    }
    else if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > > )
    {
@@ -279,19 +323,14 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                                       true,
                                       false,
                                       false );
+
+      // Reset temperature on boundary to initial values
+      temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, DirichletBoundary );
    }
    else
    {
       WALBERLA_ABORT( "Unsupported function type" );
    }
-
-   // Reset temperature on boundary to initial values
-
-   // for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   // {
-   temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, DirichletBoundary );
-   temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, DirichletBoundary );
-   // }
 
    /*############ ENERGY STEP ############*/
 
@@ -330,9 +369,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    //######################################################//
    //                  STOKES EQUATIONS                    //
    //######################################################//
-
-   // update velocity field storing the velocity field of the Prev timestep
-   velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
 
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
@@ -389,15 +425,15 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    // TO ENSURE EVEN TIGHTER COUPLING
    //########################################################################################//
 
-   bool predictorCorrector = TN.simulationParameters.predictorCorrector;
-
-   if ( predictorCorrector )
+   if ( TN.simulationParameters.predictorCorrector )
    {
       //######################################################//
       //                ENERGY EQUATION AGAIN                 //
       //######################################################//
 
       /*############ ADVECTION STEP ############*/
+
+      temperatureP2->assign( { real_c( 1 ) }, { *( temperaturePrevP2 ) }, TN.domainParameters.maxLevel, All );
 
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------" );
@@ -526,8 +562,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    }
 
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
-
-   temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
+   velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
 
    //######################################################//
    //                  DUMP OUTPUT                         //

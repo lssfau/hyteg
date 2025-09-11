@@ -156,16 +156,16 @@ struct OutputParameters
    bool dataOutput = true;
    bool vtk        = true;
 
-   uint_t OutputInterval         = 1;
-   uint_t checkpointCount        = 1;
-   uint_t dataOutputCount        = 1;
+   uint_t OutputInterval  = 1;
+   uint_t checkpointCount = 1;
+   uint_t dataOutputCount = 1;
 
-   bool   OutputVelocity    = true;
-   bool   OutputViscosity   = true;
-   bool   OutputDensity     = true;
-   bool   OutputTemperature = true;
-   bool   OutputVerbose     = false;
-   bool   OutputDimensional = false;
+   bool OutputVelocity    = true;
+   bool OutputViscosity   = true;
+   bool OutputDensity     = true;
+   bool OutputTemperature = true;
+   bool OutputVerbose     = false;
+   bool OutputDimensional = false;
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
@@ -226,17 +226,18 @@ struct SimulationParameters
    std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
    real_t      maxModelAge                = real_c( 1000 );
+   bool        continueSimulation         = false;
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
    bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
 
    //circulation model parameters
-   real_t      initialPlateAge     = real_c( 100 ); //initial age for circulation models
-   real_t      finalPlateAge       = real_c( 0 );   //final age for circulation models
-   real_t      ageMa          = initialPlateAge;    //currrent age during circulation model
-   real_t      plateAge       = initialPlateAge;    //current age of plates being implemented (intervals of 1Myr)
-   real_t      modelRunTimeMa = real_c( 0 );
+   real_t      initialPlateAge = real_c( 100 );   //initial age for circulation models
+   real_t      finalPlateAge   = real_c( 0 );     //final age for circulation models
+   real_t      ageMa           = initialPlateAge; //currrent age during circulation model
+   real_t      plateAge        = initialPlateAge; //current age of plates being implemented (intervals of 1Myr)
+   real_t      modelRunTimeMa  = real_c( 0 );
    std::string fnameTopologies;
    std::string fnameReconstructions;
    real_t      plateVelocityScaling        = real_c( 1 );

@@ -323,9 +323,10 @@ class ConvectionSimulation
    std::shared_ptr< ProjectionOperator_T > projectionOperator_;
    std::shared_ptr< RotationOperator_T >   rotationOperator_;
 
-   std::shared_ptr< P2toP2QuadraticProlongation >  p2ProlongationOperator_;
-   std::shared_ptr< P2toP2QuadraticInjection >     p2InjectionOperator_;
-   std::shared_ptr< FrozenVelocityFullOperator_T > frozenVelocityRHS_;
+   std::shared_ptr< P2toP2QuadraticProlongation >        p2ProlongationOperator_;
+   std::shared_ptr< P2P1StokesToP2P1StokesProlongation > p2p1ProlongationOperator_;
+   std::shared_ptr< P2toP2QuadraticInjection >           p2InjectionOperator_;
+   std::shared_ptr< FrozenVelocityFullOperator_T >       frozenVelocityRHS_;
 
    bool outputDirectoriesCreated = false;
 

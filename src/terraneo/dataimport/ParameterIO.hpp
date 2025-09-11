@@ -349,6 +349,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
    simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
    simulationParam.maxModelAge            = mainConf.getParameter< real_t >( "maxModelAge" );
+   simulationParam.continueSimulation     = mainConf.getParameter< bool >( "continueSimulation" );
    simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
    simulationParam.volAvrgTemperatureDev  = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
    simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
@@ -368,9 +369,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       }
       simulationParam.lithosphereThickness = mainConf.getParameter< real_t >( "lithosphereThickness" );
    }
-   simulationParam.internalHeating  = mainConf.getParameter< bool >( "internalHeating" );
-   simulationParam.boundaryCond     = mainConf.getParameter< uint_t >( "boundaryCond" );
-   simulationParam.timingAnalysis   = mainConf.getParameter< bool >( "timingAnalysis" );
+   simulationParam.internalHeating = mainConf.getParameter< bool >( "internalHeating" );
+   simulationParam.boundaryCond    = mainConf.getParameter< uint_t >( "boundaryCond" );
+   simulationParam.timingAnalysis  = mainConf.getParameter< bool >( "timingAnalysis" );
 
    simulationParam.checkTemperatureConsistency     = mainConf.getParameter< bool >( "checkTemperatureConsistency" );
    simulationParam.temperatureConsistencyThreshold = mainConf.getParameter< real_t >( "temperatureConsistencyThreshold" );
@@ -568,10 +569,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.dataOutput          = mainConf.getParameter< bool >( "dataOutput" );
    outputParam.vtk                 = mainConf.getParameter< bool >( "vtk" );
 
-   outputParam.OutputVelocity         = mainConf.getParameter< bool >( "OutputVelocity" );
-   outputParam.OutputTemperature      = mainConf.getParameter< bool >( "OutputTemperature" );
-   outputParam.OutputInterval         = mainConf.getParameter< uint_t >( "OutputInterval" );
-   outputParam.outputVertexDoFs       = mainConf.getParameter< bool >( "OutputVertexDoFs" );
+   outputParam.OutputVelocity    = mainConf.getParameter< bool >( "OutputVelocity" );
+   outputParam.OutputTemperature = mainConf.getParameter< bool >( "OutputTemperature" );
+   outputParam.OutputInterval    = mainConf.getParameter< uint_t >( "OutputInterval" );
+   outputParam.outputVertexDoFs  = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
    outputParam.ADIOS2ParamKey     = mainConf.getParameter< std::string >( "ADIOS2ParamKey" );
    outputParam.ADIOS2Value        = mainConf.getParameter< std::string >( "ADIOS2Value" );
@@ -602,7 +603,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    outputParam.createTimingDB = mainConf.getParameter< bool >( "createTimingDB" );
 
    //Start from timesteps and model age != 0 when starting from checkpoint and set output counters accordingly
-   if ( outputParam.ADIOS2StartFromCheckpoint )
+   if ( outputParam.ADIOS2StartFromCheckpoint && simulationParam.continueSimulation )
    {
       simulationParam.timeStep0      = mainConf.getParameter< uint_t >( "checkpointStartTimestep" );
       simulationParam.modelRunTimeMa = mainConf.getParameter< real_t >( "checkpointStartTimeMa" );
@@ -617,14 +618,6 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
              static_cast< uint_t >( simulationParam.modelRunTimeMa / outputParam.outputIntervalMyr ) + 1;
       }
       simulationParam.timeStep = simulationParam.timeStep0;
-      WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint at timestep " << simulationParam.timeStep0 << " and model runtime "
-                                                                         << simulationParam.modelRunTimeMa << " Ma." );
-      if ( outputParam.outputMyr )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT(
-             "Next output at " << outputParam.dataOutputCount * outputParam.outputIntervalMyr << " Ma and next checkpoint at "
-                               << outputParam.checkpointCount * outputParam.ADIOS2StoreCheckpointFrequency << " ." );
-      }
    }
 
    simulationParam.verbose = mainConf.getParameter< bool >( "verbose" );

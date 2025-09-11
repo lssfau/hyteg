@@ -487,7 +487,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    rotationOperator_ =
        std::make_shared< P2RotationOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
-   p2ProlongationOperator_ = std::make_shared< P2toP2QuadraticProlongation >();
+   p2ProlongationOperator_   = std::make_shared< P2toP2QuadraticProlongation >();
+   p2p1ProlongationOperator_ = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
 
    if constexpr ( std::is_same_v< ViscosityFunction_T, P1Function< real_t > > )
    {
