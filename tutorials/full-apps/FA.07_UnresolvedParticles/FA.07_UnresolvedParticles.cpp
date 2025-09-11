@@ -117,7 +117,7 @@ void UnresolvedSpheres( Parameters parameters )
    /// [velocity]
    auto fx = []( const hyteg::Point3D& x ) { return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] ); };
    auto fy = []( const hyteg::Point3D& x ) { return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] ); };
-   auto fz = []( const hyteg::Point3D& x ) { return x[2]; };
+   auto fz = []( const hyteg::Point3D& x ) { return 0.0; };
    /// [velocity]
 
    /// [fields]
