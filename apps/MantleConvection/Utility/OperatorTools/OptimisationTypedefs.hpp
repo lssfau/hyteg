@@ -83,6 +83,10 @@
 #include "../CompositeOperators/P2ToP1DivergenceOperator.hpp"
 #include "../CompositeOperators/P2ToP1GradRhoRhoDivergenceOperator.hpp"
 #include "../CompositeOperators/P2toP1GradRhoRhoOperator.hpp"
+#include "../LHS/AdvectionDiffusionOperator.hpp"
+#include "../LHS/SaddlePointOperator.hpp"
+#include "../RHS/AdvectionDiffusionRHS.hpp"
+#include "../RHS/SaddlePointOperatorRHS.hpp"
 
 // Stokes
 

@@ -50,8 +50,8 @@
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #include "Utility/Density/TemperatureDependentDensityModel.hpp"
-#include "Utility/OperatorTools/OperatorTypedefs.hpp"
 #include "Utility/OperatorTools/OperatorUpdater.hpp"
+#include "Utility/OperatorTools/OptimisationTypedefs.hpp"
 #include "Utility/Parameters/NondimensionalisationParameters.hpp"
 #include "Utility/Pressure/PressureModel.hpp"
 #include "Utility/Solver/ABlock/ABlockSolver.hpp"
@@ -1456,7 +1456,8 @@ class MantleConvectionModel
       stateDataVector.push_back( stepCounterStr.str() );
 
       std::stringstream currentTimeStr;
-      currentTimeStr << "currentTime " << std::setprecision( std::numeric_limits< real_t >::max_digits10 + 1 ) << currentTime_ << ";";
+      currentTimeStr << "currentTime " << std::setprecision( std::numeric_limits< real_t >::max_digits10 + 1 ) << currentTime_
+                     << ";";
       stateDataVector.push_back( currentTimeStr.str() );
 
       std::stringstream currentPlateTimeStr;
