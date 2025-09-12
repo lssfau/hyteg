@@ -33,9 +33,9 @@
 #include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGradAnnulusMap.hpp"
 #include "hyteg_operators/operators/div_k_grad/P1ElementwiseDivKGradIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
-#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradAnnulusMap.hpp"
-#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradP1Coefficient.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradP1CoefficientAnnulusMap.hpp"
+#include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
@@ -202,9 +202,9 @@ typedef hyteg::operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap MC_
 // #### Div K Grad ####
 // ####################
 
-typedef hyteg::operatorgeneration::P2ElementwiseDivKGrad                    MC_DivKGrad;
-typedef hyteg::operatorgeneration::P2ElementwiseDivKGradAnnulusMap          MC_DivKGrad_AnnulusMap;
-typedef hyteg::operatorgeneration::P2ElementwiseDivKGradIcosahedralShellMap MC_DivKGrad_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseDivKGradP1Coefficient                    MC_DivKGrad;
+typedef hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientAnnulusMap          MC_DivKGrad_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseDivKGradP1CoefficientIcosahedralShellMap MC_DivKGrad_IcosahedralShellMap;
 
 typedef hyteg::operatorgeneration::P1ElementwiseDivKGrad                    MC_P1DivKGrad;
 typedef hyteg::operatorgeneration::P1ElementwiseDivKGradAnnulusMap          MC_P1DivKGrad_AnnulusMap;
