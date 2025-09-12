@@ -601,7 +601,7 @@ int main( int argc, char** argv )
    auto AdvectionStabOperator = std::make_shared< transportType::AdvectionStabilisationOperatorTypeInternal >(
        storage_, minLevel_, maxLevel_, up_extra_.uvw()[0], up_extra_.uvw()[1], const_k_ );
    auto DiffusionStabOperator = std::make_shared< transportType::DiffusionStabilisationOperatorTypeInternal >(
-       storage_, minLevel_, maxLevel_, *inv_rho_extra_, up_extra_.uvw()[0], up_extra_.uvw()[1], const_k_ );
+       storage_, minLevel_, maxLevel_, rho_extra_, up_extra_.uvw()[0], up_extra_.uvw()[1], const_k_ );
    auto AdiabaticHeatingStabOperator = std::make_shared< transportType::AdiabaticHeatingStabilisationOperatorTypeInternal >(
        storage_, minLevel_, maxLevel_, up_extra_.uvw()[0], up_extra_.uvw()[1], const_k_ );
 
