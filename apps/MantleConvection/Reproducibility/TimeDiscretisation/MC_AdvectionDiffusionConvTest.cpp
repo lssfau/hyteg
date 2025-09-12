@@ -463,7 +463,7 @@ int main( int argc, char** argv )
    auto DiffusionOperator =
        std::make_shared< transportLHSType::DiffusionOperatorTypeInternal >( storage_, minLevel_, maxLevel_, *inv_rho_ );
    auto DiffusionAdditionalOperator = std::make_shared< transportLHSType::DiffusionAdditionalOperatorTypeInternal >(
-       storage_, minLevel_, maxLevel_, *inv_rho_, *rho_ );
+       storage_, minLevel_, maxLevel_, *rho_ );
 
 #ifdef NoBlend
    auto AdvectionOperator = std::make_shared< transportLHSType::AdvectionOperatorTypeInternal >(

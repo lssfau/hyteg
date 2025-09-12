@@ -589,7 +589,7 @@ int main( int argc, char** argv )
    auto DiffusionOperator =
        std::make_shared< transportType::DiffusionOperatorTypeInternal >( storage_, minLevel_, maxLevel_, *inv_rho_extra_ );
    auto DiffusionAdditionalOperator = std::make_shared< transportType::DiffusionAdditionalOperatorTypeInternal >(
-       storage_, minLevel_, maxLevel_, *inv_rho_extra_, rho_extra_ );
+       storage_, minLevel_, maxLevel_, rho_extra_ );
    auto AdiabaticHeatingOperator = std::make_shared< transportType::AdiabaticHeatingOperatorTypeInternal >(
        storage_, minLevel_, maxLevel_, up_extra_.uvw()[0], up_extra_.uvw()[1] );
 

@@ -9,8 +9,11 @@ target_sources( hyteg
     CombinedABlockOperator.hpp
     StabilisationProjectionWrapper.hpp
     SchurOperator.hpp
-    OperatorTypedefs.hpp
     OptimisationTypedefs.hpp
     OperatorUpdater.hpp
     BFBT.hpp
 )
+
+add_library(MC-operators INTERFACE)
+
+target_link_libraries(MC-operators INTERFACE hyteg opgen-adiabatic_heating opgen-supg_adiabatic_heating opgen-advection opgen-supg_advection opgen-diffusion_inv_rho)

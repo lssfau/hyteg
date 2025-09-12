@@ -22,22 +22,20 @@
 
 #include "hyteg/operators/NoOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg_operators/operators/adiabatic_heating/P2ElementwiseAdiabaticHeatingAnnulusMap.hpp"
+#include "hyteg_operators/operators/adiabatic_heating/P2ElementwiseAdiabaticHeatingIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvection.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionAnnulusMap.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRho.hpp"
+#include "hyteg_operators/operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRhoAnnulusMap.hpp"
+#include "hyteg_operators/operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRhoIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
+#include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
+#include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvectionAnnulusMap.hpp"
+#include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvectionIcosahedralShellMap.hpp"
 
-#include "../../Operators/adiabatic_heating/P2ElementwiseAdiabaticHeating.hpp"
-#include "../../Operators/adiabatic_heating/P2ElementwiseAdiabaticHeatingAnnulusMap.hpp"
-#include "../../Operators/adiabatic_heating/P2ElementwiseAdiabaticHeatingIcosahedralShellMap.hpp"
-#include "../../Operators/adiabatic_heating_supg/P2ElementwiseAdiabaticHeatingSupg.hpp"
-#include "../../Operators/adiabatic_heating_supg/P2ElementwiseAdiabaticHeatingSupgAnnulusMap.hpp"
-#include "../../Operators/adiabatic_heating_supg/P2ElementwiseAdiabaticHeatingSupgIcosahedralShellMap.hpp"
-#include "../../Operators/advection/P2ElementwiseAdvection.hpp"
-#include "../../Operators/advection/P2ElementwiseAdvectionAnnulusMap.hpp"
-#include "../../Operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
-#include "../../Operators/advection_supg/P2ElementwiseAdvectionSupg.hpp"
-#include "../../Operators/advection_supg/P2ElementwiseAdvectionSupgAnnulusMap.hpp"
-#include "../../Operators/advection_supg/P2ElementwiseAdvectionSupgIcosahedralShellMap.hpp"
-#include "../../Operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRho.hpp"
-#include "../../Operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRhoAnnulusMap.hpp"
-#include "../../Operators/diffusion_inv_rho/P2ElementwiseDiffusionInvRhoIcosahedralShellMap.hpp"
 #include "../../Operators/diffusion_supg/P2ElementwiseDiffusionSupg.hpp"
 #include "../../Operators/diffusion_supg/P2ElementwiseDiffusionSupgAnnulusMap.hpp"
 #include "../../Operators/diffusion_supg/P2ElementwiseDiffusionSupgIcosahedralShellMap.hpp"
@@ -192,9 +190,9 @@ typedef hyteg::mcoperators::P1ElementwiseMassIcosahedralShellMap MC_P1Mass_Icosa
 // #### Advection ####
 // ###################
 
-typedef hyteg::mcoperators::P2ElementwiseAdvection                    MC_Advection;
-typedef hyteg::mcoperators::P2ElementwiseAdvectionAnnulusMap          MC_Advection_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseAdvectionIcosahedralShellMap MC_Advection_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseAdvection                    MC_Advection;
+typedef hyteg::operatorgeneration::P2ElementwiseAdvectionAnnulusMap          MC_Advection_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap MC_Advection_IcosahedralShellMap;
 
 // ####################
 // #### Div K Grad ####
@@ -212,17 +210,16 @@ typedef hyteg::mcoperators::P1ElementwiseDivKGradIcosahedralShellMap MC_P1DivKGr
 // #### Diffusion Additional ####
 // ##############################
 
-typedef hyteg::mcoperators::P2ElementwiseDiffusionInvRho                    MC_DiffusionAdditional;
-typedef hyteg::mcoperators::P2ElementwiseDiffusionInvRhoAnnulusMap          MC_DiffusionAdditional_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseDiffusionInvRhoIcosahedralShellMap MC_DiffusionAdditional_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseDiffusionInvRho                    MC_DiffusionAdditional;
+typedef hyteg::operatorgeneration::P2ElementwiseDiffusionInvRhoAnnulusMap          MC_DiffusionAdditional_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseDiffusionInvRhoIcosahedralShellMap MC_DiffusionAdditional_IcosahedralShellMap;
 
 // ###########################
 // #### Adiabatic Heating ####
 // ###########################
 
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeating                    MC_AdiabaticHeating;
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeatingAnnulusMap          MC_AdiabaticHeating_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeatingIcosahedralShellMap MC_AdiabaticHeating_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseAdiabaticHeatingAnnulusMap          MC_AdiabaticHeating_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseAdiabaticHeatingIcosahedralShellMap MC_AdiabaticHeating_IcosahedralShellMap;
 
 // #######################
 // #### Shear Heating ####
@@ -252,9 +249,9 @@ typedef hyteg::mcoperators::P2ElementwiseMassSupgIcosahedralShellMap MC_P2MassSU
 // #### Advection SUPG ####
 // ########################
 
-typedef hyteg::mcoperators::P2ElementwiseAdvectionSupg                    MC_AdvectionSUPG;
-typedef hyteg::mcoperators::P2ElementwiseAdvectionSupgAnnulusMap          MC_AdvectionSUPG_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseAdvectionSupgIcosahedralShellMap MC_AdvectionSUPG_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgAdvection                    MC_AdvectionSUPG;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgAdvectionAnnulusMap          MC_AdvectionSUPG_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgAdvectionIcosahedralShellMap MC_AdvectionSUPG_IcosahedralShellMap;
 
 // ########################
 // #### Diffusion SUPG ####
@@ -268,9 +265,9 @@ typedef hyteg::mcoperators::P2ElementwiseDiffusionSupgIcosahedralShellMap MC_Dif
 // #### Adiabatic Heating SUPG ####
 // ################################
 
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeatingSupg                    MC_AdiabaticHeatingSUPG;
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeatingSupgAnnulusMap          MC_AdiabaticHeatingSUPG_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseAdiabaticHeatingSupgIcosahedralShellMap MC_AdiabaticHeatingSUPG_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgAdiabaticHeatingAnnulusMap MC_AdiabaticHeatingSUPG_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap
+    MC_AdiabaticHeatingSUPG_IcosahedralShellMap;
 
 // ############################
 // #### Shear Heating SUPG ####
