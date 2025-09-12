@@ -34,6 +34,8 @@ option ( HYTEG_BUILD_WITH_AVX            "Use AVX/AVX2 intrinsics (in generated 
 option ( HYTEG_USE_GENERATED_KERNELS     "Use generated pystencils kernels if available"                              ON )
 option ( HYTEG_GIT_SUBMODULE_AUTO        "Check submodules during build"                                              ON )
 option ( HYTEG_TERRANEO_MODULE           "Build TerraNeo module"                                                     OFF )
+option ( HYTEG_MANTLECONVECTION_APP      "Build Mantle convection app"                                               OFF )
+option ( HYTEG_DONT_BUILD_DURING_CI      "Can be used to exclude build targets during CI"                             ON )
 option ( HYTEG_DOWNLOAD_BOOST            "Download boost library; required for plates"                               OFF )
 option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for ParaView"                             ON )
 # option ( HYTEG_OPTIMIZE_FOR_LOCALHOST    "Enable compiler optimizations specific to localhost"                        ON )
@@ -162,6 +164,15 @@ if( HYTEG_TERRANEO_MODULE )
 
 endif()
 
+# Add flags and libraries required to build the mantle convection app
+if( HYTEG_MANTLECONVECTION_APP )
+   find_package( Boost 1.48 )
+   if ( NOT Boost_FOUND )
+      message( FATAL_ERROR "Boost is required for geometric calculations on the sphere but was not found.
+      Please define BOOST_ROOT (e.g. cmake -DBOOST_ROOT=/local/boost/)
+      or enable the cmake option HYTEG_DOWNLOAD_BOOST (e.g. cmake -DHYTEG_DOWNLOAD_BOOST=ON)" )
+   endif ()
+endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
     find_package(PETSc REQUIRED)

@@ -48,6 +48,9 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
       claimedMPITags_.push_back( newTag );
       bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem(
           walberla::mpi::MPIManager::instance()->comm(), newTag, serialSends, serialRecvs ) );
+      // This is an important MPI Barrier that ensures that the function is properly setup on all ranks before sending any messages.
+      // Otherwise small differences might occur if you run the same program multiple times, e.g., messages get lost.
+      WALBERLA_MPI_BARRIER();
    }
 
    setupBeforeNextCommunication();

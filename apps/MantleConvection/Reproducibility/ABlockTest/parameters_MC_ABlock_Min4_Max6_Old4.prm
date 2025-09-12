@@ -1,0 +1,369 @@
+Parameters
+{
+   // General Model Parameters
+   minLevel 4;
+   maxLevel 6;
+   lowMemoryMode true;
+   alwaysDestroyTemporaryFunctions false;   
+   vtk false;
+   bp4 false;
+   loadCheckpointOnStart false;
+   loadCheckpointNumber 0;
+   writeCheckpoints false;
+   defaultToUsingAdiosCheckpoints true;
+   fileName MantleConvection3DAsymm;
+   // useMyrsInsteadOfTimeStepsAsOutputFrequency also applies to checkpoint writing
+   useMyrsInsteadOfTimeStepsAsOutputFrequency false;
+   writeFrequencyOutput 1;
+   writeFrequencyCheckpoint 1;
+   boundaryTolerance 1e-10;
+   temperatureExtrapolationOrder 1;
+   velocityExtrapolationOrder 1;
+   BDFOrder 2;
+   densityDerivativeOrder 0;
+   viscosityDerivativeOrder 0;
+   maxSteps 1;
+   minTimestepMyrs 0.0;
+   maxTimestepMyrs 99999999999999.0;
+   CFL 1.0;
+   useGlobalCFL false;
+   randomInitialGuessU true;
+   randomInitialGuessP true;
+   maximumSaddlePointSolverIterations 0;
+   absoluteResidualToleranceOuterSaddlePointSolverLoop 1e-16;
+   relativeResidualToleranceOuterSaddlePointSolverLoop 1e-16;
+
+   // Blockpreconditioner Type 0 = Inexact Uzawa, 1 = Adjoint Inexact Uzawa, 2 = Block Factorisation Approximation, 3 = Symmetric Uzawa
+   blockpreconditionerType 3;
+
+   // Shear heating cutoff in meters (if used, shear heating is set to zero within shearHeatingCutoff meters from the surface)
+   shearHeatingCutoff 2e5;
+
+   // Old A operator (if used), negative value means OldAMaxLevel = min( minLevel + abs(OldAMaxLevel), maxLevel )
+   agglomerateACoarseSolver false;
+   disableOldA false;
+   OldAMaxLevel 4;   
+
+   // Update Chebyshev Spectral Radii every chebyshevUpdateRateMyrs Myrs (if used), value <= 0 disables the feature and always updates the spectral radii after every time step
+   // Note: Since the chebyshev spectral radii are always updated after loading a checkpoint using this option might create slightly numerically different results as if 
+   // the original had continued ( e.g. the orginal model would not have updated the spectral radii after a time step and after reloading they were updated anyway )
+   // If useMyrsInsteadOfTimeStepsAsOutputFrequency is true and writeFrequencyOutput or writeFrequencyCheckpoint are a multiple of chebyshevUpdateRateMyrs, this problem should not occur!
+   chebyshevUpdateRateMyrs -1.0; 
+
+   // Asymmetric Preconditioner mode (if used)
+   // 0 = Asymmetric system is solved with the preconditioner for the symmetric system,
+   // unmodified (divergence) B Block gets used for the block preconditioner and BFBT Schur Complement approx.
+   // 1 = Asymmetric system is solved with the preconditioner for the asymmetric system, 
+   // modified B Block gets used for the block preconditioner and BFBT Schur Complement approx.   
+   // Note: For mode 1 the BFBT suboperator should be solved via a GMRES solver
+   AsymmetricPreconditionerMode 0;      
+
+   // Weighted BFBT (if used) 1 = Approx Schur Op with Poisson Neumann Prec, 2 = Poisson Neumann Only
+   WBFBTType 2;
+   WBFBT_ar 1.0;
+   WBFBT_al 1.0;
+
+   // SUPG (if used)
+   SUPG_scaling 1.0;
+
+   // Viscosity Bound for the BoundedViscosity class (if used)
+   minVisc 0.005;
+   maxVisc 500;
+
+   // Plate data parameters
+   usePlates true;
+   plateVelocityScaling 2.0;
+   loopPlateAge true;
+   fileTopologies ../../../../../data/terraneo/plates/topologies_0-1000Ma.geojson;
+   fileReconstructions ../../../../../data/terraneo/plates/EB_1000_0_rotfile_Merdith_et_al_optimised_modifiedbyYW.rot;
+
+   // Boundary conditions 1 = Dirichlet (Noslip or PlateData), 2 = Neumann, 3 = FreeSlip
+   surfaceBoundaryType 1;
+   CMBBoundaryType 3;
+
+   // 2D Model Parameters
+   nTan2D 96;
+   nRad2D 10;
+
+   // 3D Model Parameters
+   nTan3D 3;
+   nRad3D 2;
+
+   // General Nondimensionalisation Parameters
+   temperatureSurface 300.0;
+   temperatureCMB 4200.0;
+   radiusSurface 6371000;
+   radiusCMB 3480000;
+   etaRef 1e22;
+   rhoRef 4686;
+   C_pRef 1250;
+   alphaRef 0.00002;
+   gRef 9.81;
+   GammaRef 1.2;
+   uRef 5e-9;
+   kRef 3.0;
+
+   // General nondimensional parameters
+   const_H 7.081807e-4;
+   const_alpha 1.0;
+   const_K_T 1.0;
+   const_k 1.0;
+   const_C_p 1.0;
+
+   // Exponential Viscosity
+   rockChemicalCompositionParameter 4.610;
+   depthDependency 2.997;
+   additiveOffSet 0.0;
+
+   // Arrhenius Viscosity (also uses Exponential Viscosity parameters above)
+   ArrheniusC1 0.5;
+   ArrheniusC2 1.06;
+
+   // Spherical Harmonics Temperature
+   initialTemperatureFilter 2;
+   initialTemperatureSteepness 7.5;
+   degreeMinSH 10;
+   degreeMaxSH 25;
+   buoyancyFactor 0.01;
+
+   // Relative Random Temperature
+   relativeTemperatureNoiseFactor 0.03;
+
+   // Exponential Temperature
+   temperatureAdiabaticSurfaceDimensional 1600.0;
+
+   // Exponential Density
+   rhoSurf 3.38076e03;
+
+   // ABlock Chebyshev Smoother
+   ABlockChebyshevDegree 2;
+   ABlockChebyshevPowerIterations 15;
+
+   // ABlock Coarse Corrected Chebyshev Smoother
+   CoarseCorrectedABlockChebyshevDegree 1;
+   CoarseCorrectedABlockChebyshevPowerIterations 15;
+
+   // ABlock Multigrid Solver
+   ABlockMultigridPreSmoothingSteps 3;
+   ABlockMultigridPostSmoothingSteps 3;
+   ABlockMultigridSmoothingStepsIncrement 0;
+   ABlockMultigridCycleType VCycle;
+   ABlockMultigridNumberOfCycles 1;
+
+   // ABlock Full Multigrid Solver
+   ABlockFullMultigridCyclesPerLevel 1;
+
+   // ABlock Coarse Corrected Multigrid Solver
+   CoarseCorrectedABlockMultigridPreSmoothingSteps 1;
+   CoarseCorrectedABlockMultigridPostSmoothingSteps 1;
+   CoarseCorrectedABlockMultigridSmoothingStepsIncrement 0;
+   CoarseCorrectedABlockMultigridCycleType VCycle;
+   CoarseCorrectedABlockMultigridNumberOfCycles 1;   
+
+   // ABlock CG Coarse Grid Solver
+   ABlockCGCoarseGridMaxIterations 99999999;
+   ABlockCGCoarseGridRelativeTolerance 1e-2;
+   ABlockCGCoarseGridAbsoluteTolerance 1e-14;
+   ABlockCGCoarseGridPrintInfo false;
+
+   // ABlock MinRes Coarse Grid Solver
+   ABlockMinResCoarseGridMaxIterations 99999999;
+   ABlockMinResCoarseGridRelativeTolerance 1e-2;
+   ABlockMinResCoarseGridAbsoluteTolerance 1e-14;
+   ABlockMinResCoarseGridPrintInfo false;   
+
+   // ABlock Agglomerated CG Coarse Grid Solver
+   ABlockAgglomeratedCGCoarseGridMaxIterations 99999999;
+   ABlockAgglomeratedCGCoarseGridRelativeTolerance 1e-2;
+   ABlockAgglomeratedCGCoarseGridAbsoluteTolerance 1e-14;
+   ABlockAgglomeratedCGCoarseGridPrintInfo false;   
+   ABlockAgglomeratedCGCoarseGridRanks 240;
+
+   // A Block Weighted Jacobi Solver
+   ABlockWeightedJacobiIterations 3;
+   ABlockWeightedJacobiRelaxParameter 0.66;      
+
+   // ABlock PETSc Coarse Grid Solver
+   ABlockPETScCoarseGridMaxIterations 99999999;
+   ABlockPETScCoarseGridRelativeTolerance 1e-2;
+   ABlockPETScCoarseGridAbsoluteTolerance 1e-15;
+   ABlockPETScCoarseGridPrintInfo false;   
+   ABlockPETScCoarseGridAlwaysReassembleMatrix false;
+   ABlockPETScCoarseGridZeroInitialGuess false;   
+
+   // ABlock CG Outer Loop Solver
+   ABlockCGOuterLoopMaxIterations 99999999;
+   ABlockCGOuterLoopRelativeTolerance 1e-2;
+   ABlockCGOuterLoopAbsoluteTolerance 1e-14;
+   ABlockCGOuterLoopPrintInfo true;
+
+   // ABlock MinRes Outer Loop Solver
+   ABlockMinResOuterLoopMaxIterations 99999999;
+   ABlockMinResOuterLoopRelativeTolerance 1e-2;
+   ABlockMinResOuterLoopAbsoluteTolerance 1e-14;
+   ABlockMinResOuterLoopPrintInfo true;      
+
+   // Inexact ABlock CG Outer Loop Solver
+   InexactABlockCGOuterLoopMaxIterations 99999999;
+   InexactABlockCGOuterLoopRelativeTolerance 1e-1;
+   InexactABlockCGOuterLoopAbsoluteTolerance 1e-14;
+   InexactABlockCGOuterLoopPrintInfo true;
+
+   // Inexact ABlock MinRes Outer Loop Solver
+   InexactABlockMinResOuterLoopMaxIterations 99999999;
+   InexactABlockMinResOuterLoopRelativeTolerance 1e-1;
+   InexactABlockMinResOuterLoopAbsoluteTolerance 1e-14;
+   InexactABlockMinResOuterLoopPrintInfo true;       
+
+   // ABlock CG Vector Mass Solver
+   ABlockCGVectorMassMaxIterations 99999999;
+   ABlockCGVectorMassRelativeTolerance 1e-16;
+   ABlockCGVectorMassAbsoluteTolerance 1e-14;
+   ABlockCGVectorMassPrintInfo false;
+
+   // VectorMass ABlock CG Coarse Grid Solver
+   VectorMassABlockCGCoarseGridMaxIterations 99999999;
+   VectorMassABlockCGCoarseGridRelativeTolerance 1e-4;
+   VectorMassABlockCGCoarseGridAbsoluteTolerance 1e-14;
+   VectorMassABlockCGCoarseGridPrintInfo false;   
+
+   // VectorMass ABlock Chebyshev Smoother
+   VectorMassABlockChebyshevDegree 3;
+   VectorMassABlockChebyshevPowerIterations 15;    
+
+   // VectorMass ABlock Multigrid Solver
+   VectorMassABlockMultigridPreSmoothingSteps 3;
+   VectorMassABlockMultigridPostSmoothingSteps 3;
+   VectorMassABlockMultigridSmoothingStepsIncrement 0;
+   VectorMassABlockMultigridCycleType VCycle;   
+   VectorMassABlockMultigridNumberOfCycles 1;
+
+   // Schur CG Outer Loop Solver
+   SchurCGOuterLoopMaxIterations 99999999;
+   SchurCGOuterLoopRelativeTolerance 1e-1;
+   SchurCGOuterLoopAbsoluteTolerance 1e-16;
+   SchurCGOuterLoopPrintInfo true;
+
+   // Schur CG Coarse Grid Solver
+   SchurCGCoarseGridMaxIterations 99999999;
+   SchurCGCoarseGridRelativeTolerance 1e-8;
+   SchurCGCoarseGridAbsoluteTolerance 1e-14;
+   SchurCGCoarseGridPrintInfo true;   
+
+   // Schur CG Mass Solver
+   SchurCGMassMaxIterations 99999999;
+   SchurCGMassRelativeTolerance 1e-10;
+   SchurCGMassAbsoluteTolerance 1e-14;
+   SchurCGMassPrintInfo false;   
+
+   // Schur BFBT Solver
+   SchurBFBTMaxIterations 50;
+   SchurBFBTRelativeTolerance 1e-1;
+   SchurBFBTAbsoluteTolerance 1e-14;
+   SchurBFBTPrintInfo true;        
+
+   // Schur CG Poisson Neumann Solver
+   SchurCGPoissonNeumannMaxIterations 99999999;
+   SchurCGPoissonNeumannRelativeTolerance 1e-10;
+   SchurCGPoissonNeumannAbsoluteTolerance 1e-10;
+   SchurCGPoissonNeumannPrintInfo false;   
+
+   // Schur CG Poisson Neumann Coarse Grid Solver
+   CoarseSchurCGPoissonNeumannMaxIterations 99999999;
+   CoarseSchurCGPoissonNeumannRelativeTolerance 1e-4;
+   CoarseSchurCGPoissonNeumannAbsoluteTolerance 1e-14;
+   CoarseSchurCGPoissonNeumannPrintInfo false;      
+
+   // Schur Multigrid Solver
+   SchurMultigridPreSmoothingSteps 4;
+   SchurMultigridPostSmoothingSteps 4;
+   SchurMultigridSmoothingStepsIncrement 0;
+   SchurMultigridCycleType VCycle;  
+   SchurMultigridNumberOfCycles 1; 
+
+   // Schur Poisson Neumann Multigrid Solver
+   SchurPoissonNeumannMultigridPreSmoothingSteps 3;
+   SchurPoissonNeumannMultigridPostSmoothingSteps 3;
+   SchurPoissonNeumannMultigridSmoothingStepsIncrement 0;
+   SchurPoissonNeumannMultigridCycleType VCycle;  
+   SchurPoissonNeumannMultigridNumberOfCycles 1;    
+
+   // Schur Chebyshev
+   SchurChebyshevDegree 3;
+   SchurChebyshevPowerIterations 7;
+
+   // Schur Poisson Neumann Chebyshev
+   SchurPoissonNeumannChebyshevDegree 3;
+   SchurPoissonNeumannChebyshevPowerIterations 15;   
+
+   // Saddle Point MinRes Coarse Grid Solver
+   SaddlePointMinResCoarseGridMaxIterations 99999999;
+   SaddlePointMinResCoarseGridRelativeTolerance 1e-6;
+   SaddlePointMinResCoarseGridAbsoluteTolerance 1e-14;
+   SaddlePointMinResCoarseGridPrintInfo true;   
+
+   // Saddle Point FGMRES Solver
+   SaddlePointFGMRESMaxIterations 11;
+   SaddlePointFGMRESRelativeTolerance 1e-16;
+   SaddlePointFGMRESAbsoluteTolerance 1e-16;
+   SaddlePointFGMRESPrintInfo true;   
+   SaddlePointFGMRESRestartLength 15;
+   SaddlePointFGMRESArnoldiTolerance 0.0;
+   SaddlePointFGMRESDoubleOrthoTolerance 0.0;   
+
+   // Saddle Point Multigrid Solver
+   SaddlePointMultigridPreSmoothingSteps 5;
+   SaddlePointMultigridPostSmoothingSteps 5;
+   SaddlePointMultigridSmoothingStepsIncrement 0;
+   SaddlePointMultigridCycleType VCycle;   
+   SaddlePointMultigridNumberOfCycles 1;
+
+   // Saddle Point PETSc Coarse Grid Solver
+   SaddlePointPETScCoarseGridMaxIterations 99999999;
+   SaddlePointPETScCoarseGridRelativeTolerance 1e-16;
+   SaddlePointPETScCoarseGridAbsoluteTolerance 1e-16;
+   SaddlePointPETScCoarseGridPrintInfo false;   
+   SaddlePointPETScCoarseGridAlwaysReassembleMatrix false;
+   SaddlePointPETScCoarseGridZeroInitialGuess false;
+
+   // Saddle Point Inexact Uzawa Smoother
+   SaddlePointInexactUzawaSmootherVelocityIterations 1;
+   SaddlePointInexactUzawaSmootherRelaxParamA 1.0;
+   SaddlePointInexactUzawaSmootherRelaxParamSchur 0.3;
+
+   // Saddle Point Adjoint Inexact Uzawa Smoother
+   SaddlePointAdjointInexactUzawaSmootherVelocityIterations 1;
+   SaddlePointAdjointInexactUzawaSmootherRelaxParamA 1.0;
+   SaddlePointAdjointInexactUzawaSmootherRelaxParamSchur 0.3;
+
+   // Saddle Point Block Approximation Factorisation Smoother
+   SaddlePointBlockApproximationFactorisationSmootherVelocityIterations 1;
+   SaddlePointBlockApproximationFactorisationSmootherRelaxParamA 1.0;
+   SaddlePointBlockApproximationFactorisationSmootherRelaxParamSchur 0.3;
+
+   // Saddle Point Symmetric Uzawa Smoother
+   SaddlePointSymmetricUzawaSmootherVelocityIterations 1;
+   SaddlePointSymmetricUzawaSmootherRelaxParamA 1.0;
+   SaddlePointSymmetricUzawaSmootherRelaxParamSchur 0.3;         
+
+   // Advection Diffusion FGMRES Solver
+   AdvectionDiffusionFGMRESMaxIterations 99999999;
+   AdvectionDiffusionFGMRESRelativeTolerance 1e-16;
+   AdvectionDiffusionFGMRESAbsoluteTolerance 1e-10;
+   AdvectionDiffusionFGMRESPrintInfo true;   
+   AdvectionDiffusionFGMRESRestartLength 5;
+   AdvectionDiffusionFGMRESArnoldiTolerance 0.0;
+   AdvectionDiffusionFGMRESDoubleOrthoTolerance 0.0;     
+
+   // Advection Diffusion CG SPD Preconditioner
+   AdvectionDiffusionCGSPDPreconditionerMaxIterations 99999999;
+   AdvectionDiffusionCGSPDPreconditionerRelativeTolerance 1e-15;
+   AdvectionDiffusionCGSPDPreconditionerAbsoluteTolerance 1e-16;
+   AdvectionDiffusionCGSPDPreconditionerPrintInfo false;
+
+   // Temperature Mass Solver
+   temperatureMassMaxIterations 99999999;
+   temperatureMassRelativeTolerance 1e-15;
+   temperatureMassAbsoluteTolerance 1e-16;
+   temperatureMassPrintInfo false;   
+}

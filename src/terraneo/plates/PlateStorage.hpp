@@ -84,6 +84,14 @@ class PlateStorage
                                  << " - data was obtained from file = '" << srcFile_ << "'" );
    }
 
+   real_t getMinAge() const {
+      return *listOfPlateStages_.begin();
+   }
+
+   real_t getMaxAge() const {
+      return listOfPlateStages_.back();
+   }
+
    plateVec_t& getPlatesForStage( real_t age )
    {
       auto iter = ageToPlatesMap_.find( ageToKeyStr( age ) );

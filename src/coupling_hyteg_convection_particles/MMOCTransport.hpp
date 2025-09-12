@@ -1370,7 +1370,8 @@ class MMOCTransport
               const uint_t&       innerSteps,
               const bool&         resetParticles                  = true,
               const bool&         globalMaxLimiter                = true,
-              const bool&         setParticlesOutsideDomainToZero = false )
+              const bool&         setParticlesOutsideDomainToZero = false,
+              const bool&         alwaysSetCOldToC                = false )
    {
       uint_t aux = u.getDimension() == 3 ? 2 : 0;
       step( c,
@@ -1386,7 +1387,8 @@ class MMOCTransport
             innerSteps,
             resetParticles,
             globalMaxLimiter,
-            setParticlesOutsideDomainToZero );
+            setParticlesOutsideDomainToZero,
+            alwaysSetCOldToC );
    }
 
    template < typename MassOperator >
@@ -1450,7 +1452,8 @@ class MMOCTransport
               const uint_t&       innerSteps,
               const bool&         resetParticles                  = true,
               const bool&         globalMaxLimiter                = true,
-              const bool&         setParticlesOutsideDomainToZero = false )
+              const bool&         setParticlesOutsideDomainToZero = false,
+              const bool&         alwaysSetCOldToC                = false )
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
 
@@ -1473,9 +1476,12 @@ class MMOCTransport
 
       cOldStep->copyBoundaryConditionFromFunction( c );
 
-      if ( resetParticles )
+      if ( alwaysSetCOldToC || resetParticles )
       {
          cOldStep->assign( { 1.0 }, { c }, level, All );
+      }
+      if ( resetParticles )
+      {
          storage_->getTimingTree()->start( "Particle initialization" );
          numberOfCreatedParticles_ =
              initializeParticles( particleStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );

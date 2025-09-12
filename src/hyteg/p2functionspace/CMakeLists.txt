@@ -24,6 +24,7 @@ target_sources( hyteg
     P2VariableOperator.hpp
     P2VectorFunction.hpp
     P2FullViscousTDependentOperator.hpp
+    P2VectorMassOperator.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( polynomial )

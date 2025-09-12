@@ -185,6 +185,9 @@ class PlateVelocityProvider
    /// Plate ID to be used when no associated plate was found for a point
    const uint_t idWhenNoPlateFound{ 0 };
 
+   real_t getMinAge() const {return plateTopologies_.getMinAge();}
+   real_t getMaxAge() const {return plateTopologies_.getMaxAge();}
+
  private:
    PlateStorage          plateTopologies_;
    PlateRotationProvider plateRotations_;

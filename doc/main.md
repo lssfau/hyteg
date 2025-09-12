@@ -98,6 +98,14 @@ can tell it to download them also by setting
 
     -DHYTEG_DOWNLOAD_BOOST=yes
 
+### Mantle Convection app
+
+Large-scale mantle convection app as presented in the preprint ([arXiv:2506.04157]( https://arxiv.org/abs/2506.04157)) (currently in review).
+
+Requires the [Boost](https://www.boost.org/) library, which is a header-only library as the app uses the TerraNeo plate provider headers.
+
+In case the tools from `src/terraneo` at a later time switch to not being header only, you also might need to set HYTEG_TERRANEO_MODULE=ON.
+
 #### PETSc
 
 We implement an interface to [PETSc](https://www.mcs.anl.gov/petsc/),

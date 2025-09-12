@@ -91,4 +91,11 @@ enum class CycleType
    WCYCLE
 };
 
+enum BFBTState : size_t
+{
+   InnerBFBT = 0,
+   RightBFBT = 1,
+   LeftBFBT  = 2
+};
+
 } // namespace hyteg

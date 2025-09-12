@@ -101,6 +101,14 @@ The most relevant options are listed below, with defaults in parentheses:
 
   Builds the shipped TerraNeo module for large-scale Geodynamics simulations. Details below.
 
+* `DHYTEG_MANTLECONVECTION_APP` (`no`)
+
+  Builds the large-scale mantle convection app as presented in the preprint ([arXiv:2506.04157]( https://arxiv.org/abs/2506.04157)) (currently in review).
+  
+  Requires the [Boost](https://www.boost.org/) library, which is a header-only library as the app uses the TerraNeo plate provider headers.
+
+  In case the tools from `src/terraneo` at a later time switch to not being header only, you also might need to set HYTEG_TERRANEO_MODULE=ON.
+
 * `HYTEG_DOWNLOAD_BOOST` (`no`)
 
   Downloads the C++ boost (header-only) library which is required for the TerraNeo module for instance and required if 

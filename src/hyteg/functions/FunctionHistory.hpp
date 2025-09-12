@@ -222,7 +222,7 @@ class FunctionHistory
       for ( uint_t i = 0; i < stepSizes_.size(); i++ )
       {
          std::stringstream stepSize;
-         stepSize << historyName << "_stepSize_" << i << " " << std::setprecision( std::numeric_limits< real_t >::digits10 + 1 )
+         stepSize << historyName << "_stepSize_" << i << " " << std::setprecision( std::numeric_limits< real_t >::max_digits10 + 1 )
                   << *stepSizes_.at( i ) << ";";
          v.push_back( stepSize.str() );
       }
