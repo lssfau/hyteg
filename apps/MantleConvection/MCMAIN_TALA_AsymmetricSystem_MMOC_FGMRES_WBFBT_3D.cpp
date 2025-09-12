@@ -733,7 +733,7 @@ int main( int argc, char** argv )
    std::shared_ptr< stokesType::AOperatorTypeInternal > ABlock;
    if ( disableOldA )
    {
-      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_, divdivScaling );
+      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_ );
 
       ABlock = std::make_shared< stokesType::AOperatorTypeInternal >( storage_, minLevel_, maxLevel_, NewABlock, nullptr );
    }
@@ -743,7 +743,7 @@ int main( int argc, char** argv )
           std::make_shared< OldAType >( storage_, minLevel_, OldAMaxLevel, THistory->getState( 0 ), visc_A, k_, false, nullptr );
       OldABlock->computeAndStoreLocalElementMatrices();
 
-      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_, divdivScaling );
+      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_ );
 
       ABlock = std::make_shared< stokesType::AOperatorTypeInternal >( storage_, minLevel_, maxLevel_, NewABlock, OldABlock );
    }

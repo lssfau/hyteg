@@ -36,7 +36,7 @@
 #include "../../Utility/LHS/AdvectionDiffusionOperator.hpp"
 #include "../../Utility/LHS/SaddlePointOperator.hpp"
 #include "../../Utility/OperatorTools/CombinedABlockOperator.hpp"
-#include "../../Utility/OperatorTools/OperatorTypedefs.hpp"
+#include "../../Utility/OperatorTools/OptimisationTypedefs.hpp"
 #include "../../Utility/Parameters/NondimensionalisationParameters.hpp"
 #include "../../Utility/Pressure/ConstantPressure.hpp"
 #include "../../Utility/Pressure/LinearPressureInterpolation.hpp"
@@ -468,7 +468,7 @@ int main( int argc, char** argv )
    std::shared_ptr< stokesType::AOperatorTypeInternal > ABlock;
    if ( disableOldA )
    {
-      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_, divdivScaling );
+      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_ );
 
       ABlock = std::make_shared< stokesType::AOperatorTypeInternal >( storage_, minLevel_, maxLevel_, NewABlock, nullptr );
    }
@@ -491,7 +491,7 @@ int main( int argc, char** argv )
                                                      depthDependency,
                                                      additiveOffSet );
 
-      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_, divdivScaling );
+      auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_ );
 
       ABlock = std::make_shared< stokesType::AOperatorTypeInternal >( storage_, minLevel_, maxLevel_, NewABlock, OldABlock );
    }

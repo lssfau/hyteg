@@ -37,7 +37,7 @@
 #include "../../Utility/LHS/AdvectionDiffusionOperator.hpp"
 #include "../../Utility/LHS/SaddlePointOperator.hpp"
 #include "../../Utility/OperatorTools/CombinedABlockOperator.hpp"
-#include "../../Utility/OperatorTools/OperatorTypedefs.hpp"
+#include "../../Utility/OperatorTools/OptimisationTypedefs.hpp"
 #include "../../Utility/Parameters/NondimensionalisationParameters.hpp"
 #include "../../Utility/Pressure/ConstantPressure.hpp"
 #include "../../Utility/Pressure/LinearPressureInterpolation.hpp"
