@@ -29,6 +29,7 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseBlendingFullViscousOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
@@ -73,6 +74,9 @@
 using real_t = hyteg::real_t;
 
 using namespace hyteg;
+
+// using OutputWriter_T = VTKOutput;
+using OutputWriter_T = AdiosWriter;
 
 /***************************/
 /** TYPEDEFs on operators **/
@@ -265,6 +269,7 @@ PythonCallingWrapper pythonWrapperGlobal( "./",
                                             "getFreeZeroslipVelocityDelta3d",
                                             "getFreeZeroslipPressureDelta3d",
                                             "getFreeZeroslipRadialStressSmooth3d",
+                                            "getFreeslipRadialStressDelta3d",
                                             "getSPH" } );
 
 std::function< real_t( const hyteg::Point3D& ) > radius = []( const hyteg::Point3D& x ) {
@@ -378,22 +383,22 @@ real_t radialStressSolution( const hyteg::Point3D& x )
    {
       if ( boundaryConditionType == ALL_FREESLIP )
       {
-         return pythonWrapperGlobal.getParameter( x, "getFreeslipPressureDelta3d" )[0];
+         return pythonWrapperGlobal.getParameter( x, "getFreeslipRadialStressDelta3d" )[0];
       }
       else if ( boundaryConditionType == MIXED_DIRICHLET_AND_FREESLIP )
       {
-         return pythonWrapperGlobal.getParameter( x, "getFreeZeroslipPressureDelta3d" )[0];
+         WALBERLA_ABORT( "Not called yet" );
       }
       else
       {
-         return pythonWrapperGlobal.getParameter( x, "getDirichletPressureDelta3d" )[0];
+         WALBERLA_ABORT( "Not called yet" );
       }
    }
    else
    {
       if ( boundaryConditionType == ALL_FREESLIP )
       {
-         return pythonWrapperGlobal.getParameter( x, "getFreeslipPressureSmooth3d" )[0];
+         WALBERLA_ABORT( "Not called yet" );
       }
       else if ( boundaryConditionType == MIXED_DIRICHLET_AND_FREESLIP )
       {
@@ -401,18 +406,20 @@ real_t radialStressSolution( const hyteg::Point3D& x )
       }
       else
       {
-         return pythonWrapperGlobal.getParameter( x, "getDirichletPressureSmooth3d" )[0];
+         WALBERLA_ABORT( "Not called yet" );
       }
    }
 }
 
 real_t diracDelta( const hyteg::Point3D& x, real_t rDash )
 {
-   if ( std::abs( radius( x ) - rDash ) < 1e-4 )
+   if ( std::abs( radius( x ) - rDash ) < 1e-5 )
       return 1.0;
    else
       return 0.0;
 }
+
+real_t RDASH_GLOBAL_DONT_USE_IT_ANYWHERE_ELSE = 1.72;
 
 template < bool deltaForcing, int component >
 real_t forcingFunction( const hyteg::Point3D& x )
@@ -420,7 +427,7 @@ real_t forcingFunction( const hyteg::Point3D& x )
    real_t r      = radius( x );
    real_t R_plus = 2.22;
 
-   real_t rDash = 1.72;
+   real_t rDash = RDASH_GLOBAL_DONT_USE_IT_ANYWHERE_ELSE;
 
    uint_t k = 2U;
 
@@ -628,7 +635,7 @@ class StokesFlow3D
    std::shared_ptr< P2Function< real_t > > mu;
 
    // VTK output
-   std::shared_ptr< hyteg::VTKOutput > vtkOutput;
+   std::shared_ptr< OutputWriter_T > vtkOutput;
 
    // Params for Stokes MG
    // const uint_t uzawaPreSmooth       = 10;
@@ -731,30 +738,30 @@ class StokesFlow3D
       {
          if ( mainConf->getParameter< bool >( "freeslip" ) )
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellDeltaFS", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellDeltaFS", storage );
          }
          else if ( mainConf->getParameter< bool >( "mixed" ) )
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellDeltaMX", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellDeltaMX", storage );
          }
          else
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellDeltaZS", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellDeltaZS", storage );
          }
       }
       else
       {
          if ( mainConf->getParameter< bool >( "freeslip" ) )
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellSmoothFS", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellSmoothFS", storage );
          }
          else if ( mainConf->getParameter< bool >( "mixed" ) )
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellSmoothMX", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellSmoothMX", storage );
          }
          else
          {
-            vtkOutput = std::make_shared< hyteg::VTKOutput >( outputPath, "3DSphericalShellSmoothZS", storage );
+            vtkOutput = std::make_shared< OutputWriter_T >( outputPath, "3DSphericalShellSmoothZS", storage );
          }
       }
 
@@ -838,6 +845,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< true, ALL_FREESLIP >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< true, ALL_FREESLIP >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< true, ALL_FREESLIP >, maxLevel + 1, All );
          }
          else if ( mainConf->getParameter< bool >( "mixed" ) )
          {
@@ -855,6 +865,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< true, MIXED_DIRICHLET_AND_FREESLIP >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< true, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< true, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel + 1, All );
          }
          else
          {
@@ -873,6 +886,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< true, ALL_DIRICHLET >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< true, ALL_DIRICHLET >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< true, ALL_DIRICHLET >, maxLevel + 1, All );
          }
 
          fSurf->interpolate(
@@ -900,6 +916,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< false, ALL_FREESLIP >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< false, ALL_FREESLIP >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< false, ALL_FREESLIP >, maxLevel + 1, All );
          }
          else if ( mainConf->getParameter< bool >( "mixed" ) )
          {
@@ -918,6 +937,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel + 1, All );
          }
          else
          {
@@ -936,6 +958,9 @@ class StokesFlow3D
                                        All );
                uEx->p().interpolate( pSolution< false, ALL_DIRICHLET >, level, All );
             }
+
+            radialStressAnalytical->interpolate( radialStressSolution< false, ALL_DIRICHLET >, maxLevel, All );
+            radialStressAnalytical->interpolate( radialStressSolution< false, ALL_DIRICHLET >, maxLevel + 1, All );
          }
 
          fStrong->uvw().interpolate(
@@ -988,6 +1013,7 @@ class StokesFlow3D
             surfaceMassOperator->apply( *fSurfInt, *fSurfIntOut, maxLevel, All );
             f->uvw().component( iDim ).assign( { 0.5 }, { *fSurfIntOut }, maxLevel, All );
          }
+
          // vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
       }
       else
@@ -1127,8 +1153,9 @@ class StokesFlow3D
 
          stokesOperatorRotationOpgen->stokesViscousOperator_.computeInverseDiagonalOperatorValues();
 
-         real_t spectralRadius = chebyshev::estimateRadius(
-             stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
+         real_t spectralRadius = 5.0;
+         // real_t spectralRadius = chebyshev::estimateRadius(
+         //     stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
 
          WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
 
@@ -1146,7 +1173,7 @@ class StokesFlow3D
          auto prolongationABlockOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
          auto restrictionABlockOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
 
-         uint_t minresCoarseIter = 100u;
+         uint_t minresCoarseIter = 10u;
          real_t minresCoarseTol  = 1e-6;
 
          auto directSolver = std::make_shared< PETScLUSolver< P2P1StokesOpgenRotationWrapper > >( storage, minLevel );
@@ -1309,7 +1336,7 @@ class StokesFlow3D
 
       MassOperator_T      massOperator( storage, minLevel, maxLevel );
       AdvectionOperator_T advectionOperator(
-          storage, minLevel, maxLevel, ones, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ) );
+          storage, minLevel, maxLevel, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ), 1.0 );
 
       CGSolver< MassOperator_T > cgSolver( storage, minLevel, maxLevel );
       cgSolver.setPrintInfo( true );
@@ -1384,16 +1411,15 @@ class StokesFlow3D
 
       p2ProlongationOperator.prolongate( *radialStress, maxLevel, All );
 
-      radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel, All );
-      radialStressAnalytical->interpolate( radialStressSolution< false, MIXED_DIRICHLET_AND_FREESLIP >, maxLevel + 1, All );
+      bool deltaForcing = mainConf->getParameter< bool >( "delta" );
 
-      radialStressErr->assign( { 1.0, -1.0 }, { *radialStress, *radialStressAnalytical }, maxLevel + 1, All );
+      radialStressErr->assign( { 1.0, -1.0 }, { *radialStress, *radialStressAnalytical }, maxLevel, All );
 
-      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, All );
-      real_t radialStressErrVolume = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, All ) );
+      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, All );
+      real_t radialStressErrVolume = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, All ) );
 
-      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel + 1, FreeslipBoundary );
-      real_t radialStressErrFS = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel + 1, FreeslipBoundary ) );
+      massOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
+      real_t radialStressErrFS = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrVolume = " << radialStressErrVolume );
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrFS = " << radialStressErrFS );
@@ -1404,7 +1430,21 @@ class StokesFlow3D
 
       StokesFunction fAu( "fAu", storage, minLevel, maxLevel, bcVelocity );
 
-      vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
+      if ( deltaForcing )
+      {
+         for ( uint_t iDim = 0u; iDim < 3u; iDim++ )
+         {
+            fSurfInt->assign( { 1.0 }, { fStrong->uvw().component( iDim ) }, maxLevel, All );
+            surfaceMassOperator->apply( *fSurfInt, *fSurfIntOut, maxLevel, All );
+            f->uvw().component( iDim ).assign( { 0.5 }, { *fSurfIntOut }, maxLevel, All );
+         }
+
+         // vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
+      }
+      else
+      {
+         vectorMassOperator.apply( fStrong->uvw(), f->uvw(), maxLevel, All );
+      }
 
       stokesOperator->apply( *u, fAu, maxLevel, All );
 
@@ -1413,6 +1453,11 @@ class StokesFlow3D
       std::function< real_t( const Point3D&, const std::vector< real_t >& ) > cbfDotNHelper =
           []( const Point3D& x, const std::vector< real_t >& vals ) {
              Point3D n = x / x.norm();
+
+             if ( x.norm() > 1.72 )
+             {
+                n = -1.0 * n;
+             }
 
              return n[0] * vals[0] + n[1] * vals[1] + n[2] * vals[2];
           };
@@ -1428,6 +1473,57 @@ class StokesFlow3D
 
       cgBoundaryMassSolver.solve( boundaryMassOperator, *radialStressCBF, fCBF, maxLevel );
 
+      {
+         BoundaryCondition bcOuterFSHelper;
+         BoundaryCondition bcInnerFSHelper;
+
+         bcOuterFSHelper.createAllInnerBC();
+         bcInnerFSHelper.createAllInnerBC();
+
+         bcOuterFSHelper.createFreeslipBC( "OuterFSHelper", { MeshInfo::flagOuterBoundary } );
+         bcInnerFSHelper.createFreeslipBC( "InnerFSHelper", { MeshInfo::flagInnerBoundary } );
+
+         P2Function< real_t > sphInterp( "sphInterp", storage, minLevel, maxLevel );
+         P2Function< real_t > tempHelper( "tempHelper", storage, minLevel, maxLevel );
+
+         std::function< real_t( const Point3D& ) > callSph = []( const Point3D& x ) {
+            return pythonWrapperGlobal.getParameter( x, "getSPH" )[0];
+         };
+
+         sphInterp.interpolate( callSph, maxLevel, All );
+
+         sphInterp.setBoundaryCondition( bcOuterFSHelper );
+         tempHelper.setBoundaryCondition( bcOuterFSHelper );
+
+         tempHelper.assign( { 1.0 }, { *radialStressCBF }, maxLevel, All );
+
+         real_t surfaceTopographyCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
+                                               sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
+
+         sphInterp.setBoundaryCondition( bcInnerFSHelper );
+         tempHelper.setBoundaryCondition( bcInnerFSHelper );
+
+         tempHelper.assign( { 1.0 }, { *radialStressCBF }, maxLevel, All );
+         real_t cmbTopographyCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
+                                           sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
+
+         WALBERLA_LOG_INFO_ON_ROOT("surfaceTopographyCoefficient = " << surfaceTopographyCoefficient);
+         WALBERLA_LOG_INFO_ON_ROOT("cmbTopographyCoefficient     = " << cmbTopographyCoefficient);
+
+         std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
+
+         WALBERLA_ROOT_SECTION()
+         {
+            std::ofstream fileSurfaceTopography = std::ofstream( outputPath + "surfaceTopography.txt", std::ofstream::app );
+            std::ofstream fileCmbTopography = std::ofstream( outputPath + "cmbTopography.txt", std::ofstream::app );
+
+            real_t rDash = mainConf->getParameter< real_t >( "rDash" );
+
+            fileSurfaceTopography << walberla::format( "%4.10e, %4.10e", rDash, surfaceTopographyCoefficient ) << std::endl;
+            fileCmbTopography << walberla::format( "%4.10e, %4.10e", rDash, cmbTopographyCoefficient ) << std::endl;
+         }
+      }
+
       radialStressErr->interpolate( 0.0, maxLevel, All );
 
       // radialStressErr->assign( { 1.0, -1.0 }, { *radialStressCBF, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
@@ -1440,8 +1536,7 @@ class StokesFlow3D
       radialStressErr->assign( { 1.0, -1.0 }, { *radialStressCBF, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
       boundaryMassOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
 
-      real_t radialStressCBFErrFS =
-          std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
+      real_t radialStressCBFErrFS = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressCBFErrFS = " << radialStressCBFErrFS );
    }
@@ -1511,18 +1606,38 @@ int main( int argc, char* argv[] )
    uint_t       nTan = mainConf->getParameter< uint_t >( "sphNTan" );
    uint_t       nRad = mainConf->getParameter< uint_t >( "sphNRad" );
 
-   hyteg::MeshInfo meshInfo =
-       hyteg::MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax, hyteg::MeshInfo::SHELLMESH_ON_THE_FLY );
+   const real_t rDash = mainConf->getParameter< real_t >( "rDash" );
+
+   const real_t rMean = (rMin + rMax) / 2.0;
+
+   hyteg::MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+
+   // if( rDash > rMean + 1e-2)
+   // {
+   //    meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rMean, rDash, rMax} );
+   // }
+   // else if( rDash < rMean - 1e-2 )
+   // {
+   //    meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rDash, rMean, rMax} );
+   // }
+   // else
+   // {
+   //    meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rMean, (rMax + rMean) / 2.0, rMax} );
+   // }
+
+   meshInfo =
+      //  hyteg::MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax, hyteg::MeshInfo::SHELLMESH_ON_THE_FLY );
+       hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rDash, rMax} );
 
    auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::IcosahedralShellMap::setMap( *setupStorage );
 
-   real_t rMean = 1.72;
+   RDASH_GLOBAL_DONT_USE_IT_ANYWHERE_ELSE = rDash;
 
-   std::function< bool( const hyteg::Point3D& ) > faceMarker = [rMean]( const hyteg::Point3D& x ) {
-      if ( std::abs( std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] ) - rMean ) < 1e-5 )
+   std::function< bool( const hyteg::Point3D& ) > faceMarker = [rDash]( const hyteg::Point3D& x ) {
+      if ( std::abs( std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] ) - rDash ) < 1e-5 )
       {
          return true;
       }

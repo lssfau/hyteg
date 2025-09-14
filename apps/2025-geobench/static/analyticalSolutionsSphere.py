@@ -4,10 +4,9 @@ from math import pi
 
 mtRes = lambda nTan, maxLevel: 2 * (nTan - 1) * 2 ** (maxLevel)
 
-# rDash = 3 * pi / 2
-rDash = 1.72
-# rDashdp = 1.97
-# rDashdm = 1.47
+rMin = 1.22
+rDash = 2.18875
+rMax = 2.22
 
 solutionDirichletSmooth2d = assess.CylindricalStokesSolutionSmoothZeroSlip(2, 2)
 solutionFreeslipSmooth2d = assess.CylindricalStokesSolutionSmoothFreeSlip(2, 2)
@@ -36,17 +35,17 @@ solutionDirichletSmooth3d = assess.SphericalStokesSolutionSmoothZeroSlip(l, m, k
 solutionFreeZeroslipSmooth3d = assess.SphericalStokesSolutionSmoothFreeZeroSlip(l, m, k)
 solutionFreeslipSmooth3d = assess.SphericalStokesSolutionSmoothFreeSlip(l, m, k)
 
-solutionAboveDirichletDelta3d = assess.SphericalStokesSolutionDeltaZeroSlip(l, m, 1)
-solutionBelowDirichletDelta3d = assess.SphericalStokesSolutionDeltaZeroSlip(l, m, -1)
+solutionAboveDirichletDelta3d = assess.SphericalStokesSolutionDeltaZeroSlip(l, m, 1, rMax, rMin, rDash)
+solutionBelowDirichletDelta3d = assess.SphericalStokesSolutionDeltaZeroSlip(l, m, -1, rMax, rMin, rDash)
 
-solutionAboveFreeslipDelta3d = assess.SphericalStokesSolutionDeltaFreeSlip(l, m, 1)
-solutionBelowFreeslipDelta3d = assess.SphericalStokesSolutionDeltaFreeSlip(l, m, -1)
+solutionAboveFreeslipDelta3d = assess.SphericalStokesSolutionDeltaFreeSlip(l, m, 1, rMax, rMin, rDash)
+solutionBelowFreeslipDelta3d = assess.SphericalStokesSolutionDeltaFreeSlip(l, m, -1, rMax, rMin, rDash)
 
 solutionAboveFreeZeroslipDelta3d = assess.SphericalStokesSolutionDeltaFreeZeroSlip(
-    l, m, 1
+    l, m, 1, rMax, rMin, rDash
 )
 solutionBelowFreeZeroslipDelta3d = assess.SphericalStokesSolutionDeltaFreeZeroSlip(
-    l, m, -1
+    l, m, -1, rMax, rMin, rDash
 )
 
 ###########################################################################
@@ -235,6 +234,14 @@ def getFreeslipVelocityDelta3d(x):
     else:
         return list(solutionBelowFreeslipDelta3d.velocity_cartesian(x))
 
+
+def getFreeslipRadialStressDelta3d(x):
+    r = np.linalg.norm(x)
+    if r > rDash:
+        return [solutionAboveFreeslipDelta3d.radial_stress_cartesian(x)]
+    else:
+        return [solutionBelowFreeslipDelta3d.radial_stress_cartesian(x)]
+    
 
 # Freeslip and Zeroslip
 
