@@ -1320,6 +1320,7 @@ void TALASimulation::solveU()
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
    viscP2->interpolate( tempDepViscFunc, { *T }, maxLevel, All );
+   viscInvP1->interpolate( tempDepInvViscFunc, { T->getVertexDoFFunction() }, maxLevel, All );
 
    communication::syncFunctionBetweenPrimitives( viscP2->getVertexDoFFunction(), maxLevel );
 
@@ -1673,6 +1674,9 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( "Zhong calc:" );
          WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated outer  = " << NusseltOuterZhongCalc );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
+		
+	 TNu->copyBoundaryConditionFromFunction( *TNuIn );
+         ones->copyBoundaryConditionFromFunction( *TNuIn );
 
          TNu->copyBoundaryConditionFromFunction( *TNuIn );
          ones->copyBoundaryConditionFromFunction( *TNuIn );
@@ -1690,7 +1694,7 @@ void TALASimulation::solve()
          real_t nusseltNumberInnerInt = nuIntNumInner / nuIntDenInner;
 
          real_t NusseltInnerZhongCalc = -1.0 * ( params.rMin * ( params.rMax - params.rMin ) / params.rMax ) *
-                                        ( nuIntNumInner / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) );
+                                        ( nuIntNumInner / ( 4.0 * walberla::math::pi * params.rMin * params.rMin ) );
 
          WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated inner = " << nusseltNumberInnerInt );
