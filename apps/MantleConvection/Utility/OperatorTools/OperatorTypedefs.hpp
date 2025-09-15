@@ -53,6 +53,18 @@
 #include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradient.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientAnnulusMap.hpp"
 #include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMass.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassAnnulusMap.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/k_mass/P2ElementwiseKMassP1Coefficient.hpp"
+#include "hyteg_operators/operators/k_mass/P2ElementwiseKMassP1CoefficientAnnulusMap.hpp"
+#include "hyteg_operators/operators/k_mass/P2ElementwiseKMassP1CoefficientIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMassAnnulusMap.hpp"
+#include "hyteg_operators/operators/mass/P1ElementwiseMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
+#include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
@@ -62,18 +74,6 @@
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionIcosahedralShellMap.hpp"
 
-#include "../../Operators/k_mass/P1ElementwiseKMass.hpp"
-#include "../../Operators/k_mass/P1ElementwiseKMassAnnulusMap.hpp"
-#include "../../Operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
-#include "../../Operators/k_p1_coeff_mass/P2ElementwiseKP1CoeffMass.hpp"
-#include "../../Operators/k_p1_coeff_mass/P2ElementwiseKP1CoeffMassAnnulusMap.hpp"
-#include "../../Operators/k_p1_coeff_mass/P2ElementwiseKP1CoeffMassIcosahedralShellMap.hpp"
-#include "../../Operators/mass/P1ElementwiseMass.hpp"
-#include "../../Operators/mass/P1ElementwiseMassAnnulusMap.hpp"
-#include "../../Operators/mass/P1ElementwiseMassIcosahedralShellMap.hpp"
-#include "../../Operators/mass/P2ElementwiseMass.hpp"
-#include "../../Operators/mass/P2ElementwiseMassAnnulusMap.hpp"
-#include "../../Operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "../../Operators/mass_SUPG/P2ElementwiseMassSupg.hpp"
 #include "../../Operators/mass_SUPG/P2ElementwiseMassSupgAnnulusMap.hpp"
 #include "../../Operators/mass_SUPG/P2ElementwiseMassSupgIcosahedralShellMap.hpp"
@@ -179,13 +179,13 @@ typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoIcosahedralS
 // #### Mass ####
 // ##############
 
-typedef hyteg::mcoperators::P2ElementwiseMass                    MC_P2Mass;
-typedef hyteg::mcoperators::P2ElementwiseMassAnnulusMap          MC_P2Mass_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseMassIcosahedralShellMap MC_P2Mass_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseMass                    MC_P2Mass;
+typedef hyteg::operatorgeneration::P2ElementwiseMassAnnulusMap          MC_P2Mass_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseMassIcosahedralShellMap MC_P2Mass_IcosahedralShellMap;
 
-typedef hyteg::mcoperators::P1ElementwiseMass                    MC_P1Mass;
-typedef hyteg::mcoperators::P1ElementwiseMassAnnulusMap          MC_P1Mass_AnnulusMap;
-typedef hyteg::mcoperators::P1ElementwiseMassIcosahedralShellMap MC_P1Mass_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P1ElementwiseMass                    MC_P1Mass;
+typedef hyteg::operatorgeneration::P1ElementwiseMassAnnulusMap          MC_P1Mass_AnnulusMap;
+typedef hyteg::operatorgeneration::P1ElementwiseMassIcosahedralShellMap MC_P1Mass_IcosahedralShellMap;
 
 // ###################
 // #### Advection ####
@@ -291,13 +291,13 @@ typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShe
 // ###### K Mass ######
 // ####################
 
-typedef hyteg::mcoperators::P1ElementwiseKMass                    MC_KMass;
-typedef hyteg::mcoperators::P1ElementwiseKMassAnnulusMap          MC_KMass_AnnulusMap;
-typedef hyteg::mcoperators::P1ElementwiseKMassIcosahedralShellMap MC_KMass_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P1ElementwiseKMass                    MC_KMass;
+typedef hyteg::operatorgeneration::P1ElementwiseKMassAnnulusMap          MC_KMass_AnnulusMap;
+typedef hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap MC_KMass_IcosahedralShellMap;
 
-typedef hyteg::mcoperators::P2ElementwiseKP1CoeffMass                    MC_P2KP1Mass;
-typedef hyteg::mcoperators::P2ElementwiseKP1CoeffMassAnnulusMap          MC_P2KP1Mass_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseKP1CoeffMassIcosahedralShellMap MC_P2KP1Mass_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseKMassP1Coefficient                    MC_P2KP1Mass;
+typedef hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientAnnulusMap          MC_P2KP1Mass_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseKMassP1CoefficientIcosahedralShellMap MC_P2KP1Mass_IcosahedralShellMap;
 
 // ####################################
 // #### GradRhoRhoDivergence Block ####
