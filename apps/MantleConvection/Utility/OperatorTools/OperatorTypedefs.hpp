@@ -50,6 +50,9 @@
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoDivergenceAnnulusMap.hpp"
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoDivergenceIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradient.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientAnnulusMap.hpp"
+#include "hyteg_operators/operators/gradient/P1ToP2VectorElementwiseGradientIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
@@ -86,7 +89,6 @@
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurface.hpp"
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceAnnulusMap.hpp"
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShellMap.hpp"
-#include "../CompositeOperators/P1ToP2GradientOperator.hpp"
 #include "../CompositeOperators/P2RhoGMassOperator.hpp"
 #include "../LHS/AdvectionDiffusionOperator.hpp"
 #include "../LHS/SaddlePointOperator.hpp"
@@ -132,9 +134,9 @@ typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesFrankKamenetskii
 // #### BT Block ####
 // ##################
 
-typedef hyteg::mcoperators::P1ToP2GradientOperator                    MC_BTBlock;
-typedef hyteg::mcoperators::P1ToP2GradientAnnulusMapOperator          MC_BTBlock_AnnulusMap;
-typedef hyteg::mcoperators::P1ToP2GradientIcosahedralShellMapOperator MC_BTBlock_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P1ToP2VectorElementwiseGradient                    MC_BTBlock;
+typedef hyteg::operatorgeneration::P1ToP2VectorElementwiseGradientAnnulusMap          MC_BTBlock_AnnulusMap;
+typedef hyteg::operatorgeneration::P1ToP2VectorElementwiseGradientIcosahedralShellMap MC_BTBlock_IcosahedralShellMap;
 
 // #################
 // #### B Block ####

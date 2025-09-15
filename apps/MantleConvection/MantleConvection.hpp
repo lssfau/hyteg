@@ -51,7 +51,7 @@
 
 #include "Utility/Density/TemperatureDependentDensityModel.hpp"
 #include "Utility/OperatorTools/OperatorUpdater.hpp"
-#include "Utility/OperatorTools/OptimisationTypedefs.hpp"
+#include "Utility/OperatorTools/OperatorTypedefs.hpp"
 #include "Utility/Parameters/NondimensionalisationParameters.hpp"
 #include "Utility/Pressure/PressureModel.hpp"
 #include "Utility/Solver/ABlock/ABlockSolver.hpp"
