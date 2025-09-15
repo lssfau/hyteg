@@ -65,6 +65,8 @@
 #include "hyteg_operators/operators/mass/P2ElementwiseMass.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/rho_g_mass/P2ToP2VectorElementwiseRhoGMassAnnulusMap.hpp"
+#include "hyteg_operators/operators/rho_g_mass/P2ToP2VectorElementwiseRhoGMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
@@ -73,10 +75,10 @@
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusion.hpp"
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMass.hpp"
+#include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMassAnnulusMap.hpp"
+#include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMassIcosahedralShellMap.hpp"
 
-#include "../../Operators/mass_SUPG/P2ElementwiseMassSupg.hpp"
-#include "../../Operators/mass_SUPG/P2ElementwiseMassSupgAnnulusMap.hpp"
-#include "../../Operators/mass_SUPG/P2ElementwiseMassSupgIcosahedralShellMap.hpp"
 #include "../../Operators/shear_heating/P2ElementwiseShearHeating.hpp"
 #include "../../Operators/shear_heating/P2ElementwiseShearHeatingAnnulusMap.hpp"
 #include "../../Operators/shear_heating/P2ElementwiseShearHeatingIcosahedralShellMap.hpp"
@@ -89,7 +91,6 @@
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurface.hpp"
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceAnnulusMap.hpp"
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShellMap.hpp"
-#include "../CompositeOperators/P2RhoGMassOperator.hpp"
 #include "../LHS/AdvectionDiffusionOperator.hpp"
 #include "../LHS/SaddlePointOperator.hpp"
 #include "../RHS/AdvectionDiffusionRHS.hpp"
@@ -156,9 +157,9 @@ typedef hyteg::NoOperator MC_Stabilisation;
 // #### Temperature to Velocity RHS ####
 // #####################################
 
-typedef hyteg::mcoperators::P2RhoGMassOperator                    MC_TemperatureToVelocityRHS;
-typedef hyteg::mcoperators::P2RhoGMassAnnulusMapOperator          MC_TemperatureToVelocityRHS_AnnulusMap;
-typedef hyteg::mcoperators::P2RhoGMassIcosahedralShellMapOperator MC_TemperatureToVelocityRHS_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ToP2VectorElementwiseRhoGMassAnnulusMap MC_TemperatureToVelocityRHS_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ToP2VectorElementwiseRhoGMassIcosahedralShellMap
+    MC_TemperatureToVelocityRHS_IcosahedralShellMap;
 
 // ##################################
 // #### Velocity to Pressure RHS ####
@@ -242,9 +243,9 @@ typedef hyteg::mcoperators::P2ElementwiseShearHeatingNoSurfaceIcosahedralShellMa
 // #### Mass SUPG ####
 // ###################
 
-typedef hyteg::mcoperators::P2ElementwiseMassSupg                    MC_P2MassSUPG;
-typedef hyteg::mcoperators::P2ElementwiseMassSupgAnnulusMap          MC_P2MassSUPG_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseMassSupgIcosahedralShellMap MC_P2MassSUPG_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgMass                    MC_P2MassSUPG;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgMassAnnulusMap          MC_P2MassSUPG_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgMassIcosahedralShellMap MC_P2MassSUPG_IcosahedralShellMap;
 
 // ########################
 // #### Advection SUPG ####
