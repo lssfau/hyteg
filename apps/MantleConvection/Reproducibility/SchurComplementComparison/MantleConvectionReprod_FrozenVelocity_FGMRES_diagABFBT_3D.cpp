@@ -430,7 +430,7 @@ int main( int argc, char** argv )
    auto                                        TALA_RHS =
        std::make_shared< stokesTypeRHS::TemperatureToVelocityRHSOperatorTypeInternal >( storage_, minLevel_, maxLevel_, rho_ );
    auto gradRhoRho = std::make_shared< stokesTypeRHS::VelocityToPressureRHSOperatorTypeInternal >(
-       storage_, minLevel_, maxLevel_, *inv_rho_, rho_ );
+       storage_, minLevel_, maxLevel_, rho_ );
 
    real_t TALAScaling       = ND_.Ra_ / ND_.Pe_ * const_alpha_;
    real_t gradRhoRhoScaling = real_c( 1 );

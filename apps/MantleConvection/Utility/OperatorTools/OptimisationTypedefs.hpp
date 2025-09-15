@@ -44,6 +44,9 @@
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDim.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDimAnnulusMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRho.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoAnnulusMap.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_advection/P2ElementwiseSupgAdvection.hpp"
@@ -83,7 +86,6 @@
 #include "../CompositeOperators/P1ToP2GradientOperator.hpp"
 #include "../CompositeOperators/P2RhoGMassOperator.hpp"
 #include "../CompositeOperators/P2ToP1GradRhoRhoDivergenceOperator.hpp"
-#include "../CompositeOperators/P2toP1GradRhoRhoOperator.hpp"
 #include "../LHS/AdvectionDiffusionOperator.hpp"
 #include "../LHS/SaddlePointOperator.hpp"
 #include "../RHS/AdvectionDiffusionRHS.hpp"
@@ -158,13 +160,14 @@ typedef hyteg::mcoperators::P2RhoGMassIcosahedralShellMapOperator MC_Temperature
 // #### Velocity to Pressure RHS ####
 // ##################################
 
-typedef hyteg::mcoperators::P2toP1GradRhoRhoOperator                    MC_VelocityToPressureRHS;
-typedef hyteg::mcoperators::P2toP1GradRhoRhoAnnulusMapOperator          MC_VelocityToPressureRHS_AnnulusMap;
-typedef hyteg::mcoperators::P2toP1GradRhoRhoIcosahedralShellMapOperator MC_VelocityToPressureRHS_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRho           MC_VelocityToPressureRHS;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoAnnulusMap MC_VelocityToPressureRHS_AnnulusMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoIcosahedralShellMap
+    MC_VelocityToPressureRHS_IcosahedralShellMap;
 
-typedef hyteg::mcoperators::P2toP1GradRhoRhoOperator                    MC_GradRhoRho;
-typedef hyteg::mcoperators::P2toP1GradRhoRhoAnnulusMapOperator          MC_GradRhoRho_AnnulusMap;
-typedef hyteg::mcoperators::P2toP1GradRhoRhoIcosahedralShellMapOperator MC_GradRhoRho_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRho                    MC_GradRhoRho;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoAnnulusMap          MC_GradRhoRho_AnnulusMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoIcosahedralShellMap MC_GradRhoRho_IcosahedralShellMap;
 
 // Transport
 
