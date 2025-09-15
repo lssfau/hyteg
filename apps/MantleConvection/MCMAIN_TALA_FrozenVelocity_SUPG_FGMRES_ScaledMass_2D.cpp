@@ -602,11 +602,11 @@ int main( int argc, char** argv )
                                                                                                         minLevel_,
                                                                                                         maxLevel_,
                                                                                                         eta_extra_,
-                                                                                                        rho_,
+                                                                                                        rho_extra_,
                                                                                                         up_extra_.uvw()[0],
                                                                                                         up_extra_.uvw()[1],
                                                                                                         shearHeatingCutoff,
-                                                                                                        ND_.radiusSurface_ );
+                                                                                                        ND_.radiusSurface_ );   
    auto ShearHeatingStabOperator =
        std::make_shared< transportType_RHS::ShearHeatingStabilisationOperatorTypeInternal >( storage_,
                                                                                              minLevel_,
