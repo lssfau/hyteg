@@ -554,8 +554,8 @@ int main( int argc, char** argv )
    auto MassOperator = std::make_shared< transportType::MassOperatorTypeInternal >( storage_, minLevel_, maxLevel_ );
    auto DiffusionOperator =
        std::make_shared< transportType::DiffusionOperatorTypeInternal >( storage_, minLevel_, maxLevel_, *inv_rho_extra_ );
-   auto DiffusionAdditionalOperator = std::make_shared< transportType::DiffusionAdditionalOperatorTypeInternal >(
-       storage_, minLevel_, maxLevel_, rho_extra_ );
+   auto DiffusionAdditionalOperator =
+       std::make_shared< transportType::DiffusionAdditionalOperatorTypeInternal >( storage_, minLevel_, maxLevel_, rho_extra_ );
    auto AdiabaticHeatingOperator = std::make_shared< transportType::AdiabaticHeatingOperatorTypeInternal >(
        storage_, minLevel_, maxLevel_, up_extra_.uvw()[0], up_extra_.uvw()[1], up_extra_.uvw()[2] );
 
@@ -589,12 +589,12 @@ int main( int argc, char** argv )
                                                                                                         minLevel_,
                                                                                                         maxLevel_,
                                                                                                         eta_extra_,
-                                                                                                        *inv_rho_extra_,
+                                                                                                        rho_,
                                                                                                         up_extra_.uvw()[0],
                                                                                                         up_extra_.uvw()[1],
                                                                                                         up_extra_.uvw()[2],
-                                                                                                        ND_.radiusSurface_,
-                                                                                                        shearHeatingCutoff );
+                                                                                                        shearHeatingCutoff,
+                                                                                                        ND_.radiusSurface_ );
 
    real_t InternalHeatingScaling = const_H_ / const_C_p_;
    real_t ShearHeatingScaling    = ND_.Pe_ * ND_.Di_ / const_C_p_ / ND_.Ra_;
