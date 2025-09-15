@@ -82,13 +82,11 @@
 #include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMass.hpp"
 #include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMassAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_mass/P2ElementwiseSupgMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_shear_heating/P2ElementwiseSupgShearHeatingP1ViscosityScaledAnnulusMap.hpp"
+#include "hyteg_operators/operators/supg_shear_heating/P2ElementwiseSupgShearHeatingP1ViscosityScaledIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/supg_shear_heating/P2ElementwiseSupgShearHeatingP1ViscosityScaledNoSurfaceAnnulusMap.hpp"
+#include "hyteg_operators/operators/supg_shear_heating/P2ElementwiseSupgShearHeatingP1ViscosityScaledNoSurfaceIcosahedralShellMap.hpp"
 
-#include "../../Operators/shear_heating_supg/P2ElementwiseShearHeatingSupg.hpp"
-#include "../../Operators/shear_heating_supg/P2ElementwiseShearHeatingSupgAnnulusMap.hpp"
-#include "../../Operators/shear_heating_supg/P2ElementwiseShearHeatingSupgIcosahedralShellMap.hpp"
-#include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurface.hpp"
-#include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceAnnulusMap.hpp"
-#include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShellMap.hpp"
 #include "../LHS/AdvectionDiffusionOperator.hpp"
 #include "../LHS/SaddlePointOperator.hpp"
 #include "../RHS/AdvectionDiffusionRHS.hpp"
@@ -274,17 +272,17 @@ typedef hyteg::operatorgeneration::P2ElementwiseSupgAdiabaticHeatingIcosahedralS
 // #### Shear Heating SUPG ####
 // ############################
 
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupg                    MC_ShearHeatingSUPG;
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgAnnulusMap          MC_ShearHeatingSUPG_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgIcosahedralShellMap MC_ShearHeatingSUPG_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgShearHeatingP1ViscosityScaledAnnulusMap MC_ShearHeatingSUPG_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgShearHeatingP1ViscosityScaledIcosahedralShellMap
+    MC_ShearHeatingSUPG_IcosahedralShellMap;
 
 // #######################################
 // #### Shear Heating SUPG No Surface ####
 // #######################################
 
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgNoSurface           MC_ShearHeatingSUPG_NoSurface;
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgNoSurfaceAnnulusMap MC_ShearHeatingSUPG_NoSurface_AnnulusMap;
-typedef hyteg::mcoperators::P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShellMap
+typedef hyteg::operatorgeneration::P2ElementwiseSupgShearHeatingP1ViscosityScaledNoSurfaceAnnulusMap
+    MC_ShearHeatingSUPG_NoSurface_AnnulusMap;
+typedef hyteg::operatorgeneration::P2ElementwiseSupgShearHeatingP1ViscosityScaledNoSurfaceIcosahedralShellMap
     MC_ShearHeatingSUPG_NoSurface_IcosahedralShellMap;
 
 // ####################
