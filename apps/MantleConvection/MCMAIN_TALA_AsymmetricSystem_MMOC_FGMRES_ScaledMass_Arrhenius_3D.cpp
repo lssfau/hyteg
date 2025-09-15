@@ -492,7 +492,7 @@ int main( int argc, char** argv )
    // ###### Define B Block ######
    // ############################
 
-   auto BBlock = std::make_shared< stokesType::BOperatorTypeInternal >( storage_, minLevel_, maxLevel_, *inv_rho_, rho_ );
+   auto BBlock = std::make_shared< stokesType::BOperatorTypeInternal >( storage_, minLevel_, maxLevel_, rho_ );
 
    // #############################
    // ###### Define BT Block ######

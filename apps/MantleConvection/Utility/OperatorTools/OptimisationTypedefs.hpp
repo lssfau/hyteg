@@ -46,6 +46,9 @@
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRho.hpp"
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoAnnulusMap.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoDivergence.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoDivergenceAnnulusMap.hpp"
+#include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoDivergenceIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/grad_rho_rho/P2VectorToP1ElementwiseGradRhoRhoIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
@@ -85,7 +88,6 @@
 #include "../../Operators/shear_heating_supg_no_surface/P2ElementwiseShearHeatingSupgNoSurfaceIcosahedralShellMap.hpp"
 #include "../CompositeOperators/P1ToP2GradientOperator.hpp"
 #include "../CompositeOperators/P2RhoGMassOperator.hpp"
-#include "../CompositeOperators/P2ToP1GradRhoRhoDivergenceOperator.hpp"
 #include "../LHS/AdvectionDiffusionOperator.hpp"
 #include "../LHS/SaddlePointOperator.hpp"
 #include "../RHS/AdvectionDiffusionRHS.hpp"
@@ -299,6 +301,7 @@ typedef hyteg::mcoperators::P2ElementwiseKP1CoeffMassIcosahedralShellMap MC_P2KP
 // #### GradRhoRhoDivergence Block ####
 // ####################################
 
-typedef hyteg::mcoperators::P2ToP1GradRhoRhoDivergenceOperator                    MC_GradRhoRhoDivergence;
-typedef hyteg::mcoperators::P2ToP1GradRhoRhoDivergenceAnnulusMapOperator          MC_GradRhoRhoDivergence_AnnulusMap;
-typedef hyteg::mcoperators::P2ToP1GradRhoRhoDivergenceIcosahedralShellMapOperator MC_GradRhoRhoDivergence_IcosahedralShellMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoDivergence           MC_GradRhoRhoDivergence;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoDivergenceAnnulusMap MC_GradRhoRhoDivergence_AnnulusMap;
+typedef hyteg::operatorgeneration::P2VectorToP1ElementwiseGradRhoRhoDivergenceIcosahedralShellMap
+    MC_GradRhoRhoDivergence_IcosahedralShellMap;
