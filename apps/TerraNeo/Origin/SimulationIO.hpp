@@ -253,14 +253,14 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       outputTime    = uint_c( std::round( TN.simulationParameters.ageMa ) );
-      outputTimeStr = walberla::format( "{:04}Ma", std::to_string( outputTime ) );
+      outputTimeStr = walberla::format( "%04iMa", outputTime );
    }
 
    //If outputMyr is set, output with model runtime in Ma
    else if ( TN.outputParameters.outputMyr )
    {
       outputTime    = uint_c( std::round( TN.simulationParameters.modelRunTimeMa ) );
-      outputTimeStr = walberla::format( "{:04}Ma", std::to_string( outputTime ) );
+      outputTimeStr = walberla::format( "%04iMa", outputTime );
    }
 
    //For convection model, output with number of timesteps
