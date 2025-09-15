@@ -470,14 +470,13 @@ int main( int argc, char** argv )
                                                      minLevel_,
                                                      OldAMaxLevel,
                                                      THistory->getState( 0 ),
-                                                     divdivScaling,
-                                                     ND_.radiusSurface_,
-                                                     ND_.radiusCMB_,
-                                                     ND_.etaRef_,
-                                                     ND_.temperatureSurface_,
-                                                     rockChemicalCompositionParameter,
+                                                     additiveOffSet,
                                                      depthDependency,
-                                                     additiveOffSet );
+                                                     ND_.etaRef_,
+                                                     ND_.radiusCMB_,
+                                                     ND_.radiusSurface_,
+                                                     rockChemicalCompositionParameter,
+                                                     ND_.temperatureSurface_ );
 
       auto NewABlock = std::make_shared< NewAType >( storage_, minLevel_, maxLevel_, eta_ );
 

@@ -39,8 +39,10 @@
 #include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergence.hpp"
 #include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergenceAnnulusMap.hpp"
 #include "hyteg_operators/operators/divergence/P2VectorToP1ElementwiseDivergenceIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDim2D.hpp"
-#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDim2DAnnulusMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesFrankKamenetskiiSimpleViscAnnulusMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesFrankKamenetskiiSimpleViscIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDim.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityDimAnnulusMap.hpp"
 #include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_adiabatic_heating/P2ElementwiseSupgAdiabaticHeatingIcosahedralShellMap.hpp"
@@ -51,9 +53,6 @@
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionAnnulusMap.hpp"
 #include "hyteg_operators/operators/supg_diffusion/P2ElementwiseSupgDiffusionIcosahedralShellMap.hpp"
 
-#include "../../Operators/full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base/P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBase.hpp"
-#include "../../Operators/full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base/P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBaseAnnulusMap.hpp"
-#include "../../Operators/full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base/P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBaseIcosahedralShellMap.hpp"
 #include "../../Operators/k_mass/P1ElementwiseKMass.hpp"
 #include "../../Operators/k_mass/P1ElementwiseKMassAnnulusMap.hpp"
 #include "../../Operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
@@ -108,23 +107,21 @@ typedef hyteg::P2ProjectNormalOperator MC_Projection;
 // #### A Block ####
 // #################
 
-typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim2D               MC_ABlock;
-typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim2DAnnulusMap     MC_ABlock_AnnulusMap;
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim                 MC_ABlock;
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDimAnnulusMap       MC_ABlock_AnnulusMap;
 typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap MC_ABlock_IcosahedralShellMap;
 
-typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim2D               MC_ABlock_Vec;
-typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim2DAnnulusMap     MC_ABlock_Vec_AnnulusMap;
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDim                 MC_ABlock_Vec;
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityDimAnnulusMap       MC_ABlock_Vec_AnnulusMap;
 typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap MC_ABlock_Vec_IcosahedralShellMap;
 
 // ################################
 // #### A Block FK Simple Visc ####
 // ################################
 
-typedef hyteg::mcoperators::P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBase
-    MC_ABlock_Vec_FK_SimpleVisc;
-typedef hyteg::mcoperators::P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBaseAnnulusMap
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesFrankKamenetskiiSimpleViscAnnulusMap
     MC_ABlock_Vec_AnnulusMap_FK_SimpleVisc;
-typedef hyteg::mcoperators::P2VectorElementwiseFullStokesScaledDivdivVectorialFrankKamenetskiiSimpleViscBaseIcosahedralShellMap
+typedef hyteg::operatorgeneration::P2VectorElementwiseFullStokesFrankKamenetskiiSimpleViscIcosahedralShellMap
     MC_ABlock_Vec_IcosahedralShellMap_FK_SimpleVisc;
 
 // ##################

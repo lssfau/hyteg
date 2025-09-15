@@ -16,4 +16,4 @@ target_sources( hyteg
 
 add_library(MC-operators INTERFACE)
 
-target_link_libraries(MC-operators INTERFACE hyteg opgen-adiabatic_heating opgen-supg_adiabatic_heating opgen-advection opgen-supg_advection opgen-diffusion_inv_rho opgen-supg_diffusion opgen-div_k_grad opgen-divergence)
+target_link_libraries(MC-operators INTERFACE hyteg opgen-adiabatic_heating opgen-supg_adiabatic_heating opgen-advection opgen-supg_advection opgen-diffusion_inv_rho opgen-supg_diffusion opgen-div_k_grad opgen-divergence opgen-full_stokes)
