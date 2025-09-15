@@ -126,7 +126,7 @@ class ConvectionSimulation
    ConvectionSimulation() = delete;
 
    ConvectionSimulation( const walberla::Config::BlockHandle& mainConf );
-   ~ConvectionSimulation() {};
+   ~ConvectionSimulation(){};
 
    void init();
 
@@ -274,7 +274,8 @@ class ConvectionSimulation
        { "DensityFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
        { "ShearHeatingTermCoeff", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
        { "ShearHeatingTermCoeffDebug", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
-       { "VelocityMagnitudeSquared", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC } };
+       { "VelocityMagnitudeSquared", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "NegativeCounter", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC } };
    std::map< std::string, std::shared_ptr< P2ScalarFunction_T > > p2ScalarFunctionContainer;
 
    std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > > p2VectorFunctionDict = {
@@ -322,9 +323,10 @@ class ConvectionSimulation
    std::shared_ptr< ProjectionOperator_T > projectionOperator_;
    std::shared_ptr< RotationOperator_T >   rotationOperator_;
 
-   std::shared_ptr< P2toP2QuadraticProlongation > p2ProlongationOperator_;
-   std::shared_ptr< P2toP2QuadraticInjection >    p2InjectionOperator_;
-   std::shared_ptr< FrozenVelocityFullOperator_T >  frozenVelocityRHS_;
+   std::shared_ptr< P2toP2QuadraticProlongation >        p2ProlongationOperator_;
+   std::shared_ptr< P2P1StokesToP2P1StokesProlongation > p2p1ProlongationOperator_;
+   std::shared_ptr< P2toP2QuadraticInjection >           p2InjectionOperator_;
+   std::shared_ptr< FrozenVelocityFullOperator_T >       frozenVelocityRHS_;
 
    bool outputDirectoriesCreated = false;
 

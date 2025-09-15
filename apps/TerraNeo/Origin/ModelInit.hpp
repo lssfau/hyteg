@@ -85,7 +85,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::init()
    attributeList_["plateSmoothingDistance"]         = TN.simulationParameters.plateSmoothingDistance;
    attributeList_["compressible"]                   = TN.simulationParameters.compressible;
    attributeList_["shearHeating"]                   = TN.simulationParameters.shearHeating;
-   attributeList_["adiabaticHeating"]               = TN.simulationParameters.adiabaticHeating;
    attributeList_["internalHeating"]                = TN.simulationParameters.internalHeating;
    attributeList_["boundaryCond"]                   = TN.simulationParameters.boundaryCond;
    attributeList_["boundaryCondFreeSlip"]           = TN.simulationParameters.boundaryCondFreeSlip;
@@ -140,8 +139,7 @@ template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupDomain()
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-   meshInfo          = MeshInfo::meshSphericalShell(
-       TN.domainParameters.nTan, TN.domainParameters.nRad, TN.domainParameters.rMin, TN.domainParameters.rMax );
+   meshInfo          = MeshInfo::meshSphericalShell( TN.domainParameters.nTan, TN.domainParameters.macroLayers );
 
    auto setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -376,13 +374,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
    temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
 
-   // for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   // {
-   // p2ScalarFunctionContainer["TemperatureFE"]->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
-   // p1ScalarFunctionContainer["TemperatureFEP1"]->interpolate(
-   //     temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
-   // }
-
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       // initialise plate velocity oracle
@@ -418,7 +409,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    auto temperatureRadialProfile            = computeRadialProfile( *( temperatureP2 ),
                                                          TN.domainParameters.rMin,
                                                          TN.domainParameters.rMax,
-                                                         TN.domainParameters.nRad,
+                                                         TN.domainParameters.macroLayers,
                                                          TN.domainParameters.maxLevel );
    temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
@@ -426,7 +417,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    auto velocityRadialProfile = computeRadialProfile( velocityPressureFE->uvw(),
                                                       TN.domainParameters.rMin,
                                                       TN.domainParameters.rMax,
-                                                      TN.domainParameters.nRad,
+                                                      TN.domainParameters.macroLayers,
                                                       TN.domainParameters.maxLevel );
    velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
 
@@ -436,7 +427,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
       auto viscosityRadialProfile = computeRadialProfile( *( viscosityP2 ),
                                                           TN.domainParameters.rMin,
                                                           TN.domainParameters.rMax,
-                                                          TN.domainParameters.nRad,
+                                                          TN.domainParameters.macroLayers,
                                                           TN.domainParameters.maxLevel );
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
@@ -496,7 +487,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    rotationOperator_ =
        std::make_shared< P2RotationOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
-   p2ProlongationOperator_ = std::make_shared< P2toP2QuadraticProlongation >();
+   p2ProlongationOperator_   = std::make_shared< P2toP2QuadraticProlongation >();
+   p2p1ProlongationOperator_ = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
 
    if constexpr ( std::is_same_v< ViscosityFunction_T, P1Function< real_t > > )
    {
@@ -561,25 +553,24 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >(
-          storage,
-          TN.domainParameters.minLevel,
-          TN.domainParameters.maxLevel,
-          stokesOperator_,
-          stokesTmpProlongation,
-          stokesTmp1,
-          stokesTmp2,
-          TN );
+      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >( storage,
+                                                                                      TN.domainParameters.minLevel,
+                                                                                      TN.domainParameters.maxLevel,
+                                                                                      stokesOperator_,
+                                                                                      stokesTmpProlongation,
+                                                                                      stokesTmp1,
+                                                                                      stokesTmp2,
+                                                                                      TN );
 
-      stokesRotationMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >(
-          storage,
-          TN.domainParameters.minLevel,
-          TN.domainParameters.maxLevel,
-          stokesOperatorRotation_,
-          stokesTmpProlongation,
-          stokesTmp1,
-          stokesTmp2,
-          TN );
+      stokesRotationMCSolver_ =
+          std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >( storage,
+                                                                                TN.domainParameters.minLevel,
+                                                                                TN.domainParameters.maxLevel,
+                                                                                stokesOperatorRotation_,
+                                                                                stokesTmpProlongation,
+                                                                                stokesTmp1,
+                                                                                stokesTmp2,
+                                                                                TN );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
@@ -618,8 +609,8 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
       WALBERLA_ABORT( "Unknown solver type" );
    }
 
-   stokesSolver_              = stokesMCSolver_->getSolver();
-   stokesRotationSolver_      = stokesRotationMCSolver_->getSolver();
+   stokesSolver_         = stokesMCSolver_->getSolver();
+   stokesRotationSolver_ = stokesRotationMCSolver_->getSolver();
 
    p2ScalarMassOperator_ =
        std::make_shared< P2ScalarMassOperator_T >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
@@ -655,11 +646,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    adiabaticCoeffFunc   = [this]( const Point3D& x ) { return adiabaticCoefficientFunction( x ); };
    constEnergyCoeffFunc = [this]( const Point3D& x ) { return constantEnergyCoefficientFunction( x ); };
    surfTempCoeffFunc    = [this]( const Point3D& x ) { return surfaceTempCoefficientFunction( x ); };
-
-   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
-   {
-      TN.simulationParameters.adiabaticHeating = true;
-   }
 
    {
       const uint_t temperatureMaxLevel = [&] {
@@ -748,7 +734,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
           std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
       temperatureTransportOperator_->setShearHeatingCoeff( shearHeatingCoeff );
       temperatureTransportOperator_->setTALADict(
-          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
+          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.compressible },
             { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
             { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
 

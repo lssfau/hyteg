@@ -246,68 +246,45 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
           { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
 
-   uint_t outputTime = 0u;
+   uint_t      outputTime = 0u;
+   std::string outputTimeStr;
 
    //For circulation model, output with plate age in filename
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.ageMa ) );
+      outputTime    = uint_c( std::round( TN.simulationParameters.ageMa ) );
+      outputTimeStr = walberla::format( "%04iMa", outputTime );
+   }
+
+   //If outputMyr is set, output with model runtime in Ma
+   else if ( TN.outputParameters.outputMyr )
+   {
+      outputTime    = uint_c( std::round( TN.simulationParameters.modelRunTimeMa ) );
+      outputTimeStr = walberla::format( "%04iMa", outputTime );
    }
 
    //For convection model, output with number of timesteps
    else
    {
-      outputTime = uint_c( std::round( TN.simulationParameters.timeStep ) );
+      outputTime    = uint_c( std::round( TN.simulationParameters.timeStep ) );
+      outputTimeStr = std::to_string( outputTime );
    }
 
-   if ( TN.outputParameters.dataOutput && TN.outputParameters.vtk )
+   if ( TN.outputParameters.vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "****    Write Output VTK   ****" );
       storage->getTimingTree()->start( "VTK data output" );
       vtkOutput_->write( TN.domainParameters.maxLevel, outputTime );
       storage->getTimingTree()->stop( "VTK data output" );
    }
-   else if ( TN.outputParameters.dataOutput )
+   else
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      if ( TN.simulationParameters.timeStep % TN.outputParameters.OutputInterval == 0u )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
-         storage->getTimingTree()->start( "Adios2 data output" );
-         adiosOutput_->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
-         storage->getTimingTree()->stop( "Adios2 data output" );
-      }
+      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Output ADIOS2 ****" );
+      storage->getTimingTree()->start( "Adios2 data output" );
+      adiosOutput_->write( TN.domainParameters.maxLevel, TN.simulationParameters.timeStep );
+      storage->getTimingTree()->stop( "Adios2 data output" );
 
-      if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U && TN.outputParameters.ADIOS2StoreCheckpoint &&
-           TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
-
-         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-         checkpointExporter->registerFunction( *temperatureP2, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-         checkpointExporter->storeCheckpoint( modelCheckpointPath, modelBaseName, attributeList_ );
-      }
-      else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
-                ( ( TN.simulationParameters.modelRunTimeMa ) >=
-                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
-         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-         checkpointExporter->registerFunction( *temperatureP2, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-         checkpointExporter->storeCheckpoint(
-             TN.outputParameters.ADIOS2StoreCheckpointPath, TN.outputParameters.ADIOS2StoreCheckpointFilename, attributeList_ );
-      }
-      else if ( TN.outputParameters.outputMyr && TN.outputParameters.ADIOS2StoreCheckpoint &&
-                ( ( TN.simulationParameters.modelRunTimeMa ) >=
-                  real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
-         checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-         checkpointExporter->registerFunction( *temperatureP2, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-         checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
-                                              TN.outputParameters.ADIOS2StoreCheckpointFilename );
-         TN.outputParameters.checkpointCount += 1;
-      }
 #else
       WALBERLA_LOG_INFO_ON_ROOT( "No valid output format specified! " );
 #endif
@@ -323,13 +300,16 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
          temperatureProfiles->mean[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
          temperatureProfiles->max[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
          temperatureProfiles->min[i] *= ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
+         temperatureProfiles->depthDim[i] =
+             ( TN.domainParameters.rSurface -
+               velocityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+             1000.0;
       }
 
-      temperatureProfiles->logToFile( walberla::format( "%s/%s_TempProfile_%s.dat",
-                                                        modelRadialProfilesPath.c_str(),
-                                                        modelBaseName.c_str(),
-                                                        std::to_string( outputTime ).c_str() ),
-                                      "temperature" );
+      temperatureProfiles->logToFile(
+          walberla::format(
+              "%s/%s_TempProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+          "temp" );
 
       real_t cmPerYear = 3.15e9;
       for ( uint_t i = 0; i < velocityProfiles->rms.size(); i++ )
@@ -338,13 +318,15 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
          velocityProfiles->max[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
          velocityProfiles->min[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
          velocityProfiles->rms[i] *= ( TN.physicalParameters.characteristicVelocity * cmPerYear );
+         velocityProfiles->depthDim[i] =
+             ( TN.domainParameters.rSurface -
+               velocityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+             1000.0;
       }
-
-      velocityProfiles->logToFile( walberla::format( "%s/%s_VelocityProfile_%s.dat",
-                                                     modelRadialProfilesPath.c_str(),
-                                                     modelBaseName.c_str(),
-                                                     std::to_string( outputTime ).c_str() ),
-                                   "viscosity" );
+      velocityProfiles->logToFile(
+          walberla::format(
+              "%s/%s_VelocityProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+          "velocity" );
 
       if ( TN.simulationParameters.tempDependentViscosity )
       {
@@ -354,13 +336,15 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
             viscosityProfiles->mean[i] *= TN.physicalParameters.referenceViscosity;
             viscosityProfiles->max[i] *= TN.physicalParameters.referenceViscosity;
             viscosityProfiles->min[i] *= TN.physicalParameters.referenceViscosity;
+            viscosityProfiles->depthDim[i] =
+                ( TN.domainParameters.rSurface -
+                  viscosityProfiles->shellRadii[i] * ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ) /
+                1000.0;
          }
-
-         viscosityProfiles->logToFile( walberla::format( "%s/%s_ViscProfile_%s.dat",
-                                                         modelRadialProfilesPath.c_str(),
-                                                         modelBaseName.c_str(),
-                                                         std::to_string( outputTime ).c_str() ),
-                                       "viscosity" );
+         viscosityProfiles->logToFile(
+             walberla::format(
+                 "%s/%s_ViscosityProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
+             "viscosity" );
       }
    }
 
@@ -378,36 +362,22 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
       viscosityP2->assign(
           { ( real_c( 1.0 ) / TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
-
-   TN.outputParameters.prevOutputTime = std::round( TN.simulationParameters.modelRunTimeMa );
 }
 
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::outputCheckpoint()
 {
-   std::shared_ptr< P2ScalarFunction_T >& temperatureP2 = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >&   temperatureP2      = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureFE = p2p1StokesFunctionContainer.at( "VelocityFE" );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-   if ( !TN.outputParameters.outputMyr && TN.simulationParameters.timeStep > 0U &&
-        TN.simulationParameters.timeStep % TN.outputParameters.ADIOS2StoreCheckpointFrequency == 0U )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
-      checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-      checkpointExporter->registerFunction( *temperatureP2, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-      checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
-                                           TN.outputParameters.ADIOS2StoreCheckpointFilename );
-   }
-   else if ( TN.outputParameters.outputMyr &&
-             ( ( TN.simulationParameters.modelRunTimeMa ) >=
-               real_c( TN.outputParameters.checkpointCount * TN.outputParameters.ADIOS2StoreCheckpointFrequency ) ) )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
-      checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
-      checkpointExporter->registerFunction( *temperatureP2, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-      checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
-                                           TN.outputParameters.ADIOS2StoreCheckpointFilename );
-      TN.outputParameters.checkpointCount += 1;
-   }
+   WALBERLA_LOG_INFO_ON_ROOT( "****   Write Checkpoint ADIOS2 ****" );
+   checkpointExporter = std::make_shared< AdiosCheckpointExporter >( TN.outputParameters.ADIOS2OutputConfig );
+   checkpointExporter->registerFunction( *( temperatureP2 ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   checkpointExporter->registerFunction( *( velocityPressureFE ), TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   checkpointExporter->storeCheckpoint( TN.outputParameters.ADIOS2StoreCheckpointPath,
+                                        TN.outputParameters.ADIOS2StoreCheckpointFilename );
+
 #else
    WALBERLA_LOG_INFO_ON_ROOT( "No valid output format for checkpoint data specified! " );
 #endif

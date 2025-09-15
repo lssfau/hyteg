@@ -1,3 +1,9 @@
+FunctionSpaces
+{
+   TemperatureSpace P2;
+   ViscositySpace   P1;
+}
+
 Parameters
 {
    version 0.2;
@@ -8,7 +14,7 @@ Parameters
 
    // Spherical shell radii
 
-   rCMB 3471000;
+   rCMB 3480000;
    rSurface 6371000;
 
    // Coarse grid
@@ -19,35 +25,46 @@ Parameters
 
    // Refinement level
 
-   maxLevel 5;
+   maxLevel 4;
    minLevel 0;
-    
+
+   // Set this to define the INTERIOR layer boundaries between macro elements explicitly,
+   // allowing a non-equal radial subdivision. This will override the definition of nRad.
+   // The number of radial layers will be equivalent to nRad=(# of layer boundaries specified + 2).
+   //
+   //inputMacroLayers 5371000;
+
    //////////////////////////////////
    //  Initialisation parameters   //
    //////////////////////////////////
 
-   // Temperature Initialisation 
+   // Temperature Initialisation
 
-   //temperatureInputProfile TestTemperatureProfile.json;
+   // Reference Temperature
+
+   // If this profile is set, then the same is used as the reference Temperature to calculate
+   // temperature deviations, else a reference adiabat is used
+   //
+   // temperatureInputProfile ../../../data/terraneo/radialProfiles/TemperatureProfile.json;
 
    /************************************************************/
-   ////// Temperature noise (deviation) 
+   ////// Temperature noise (deviation)
    // temperatureDeviationMethod: determine the method of creating noise (deviation) at initialisation
    // 0: White noise
    // 1: Single SPH
    // 2: Random superposition SPH
-   initialTemperatureDeviationMethod 0;
-   
+   initialTemperatureDeviationMethod 1;
+
    // buoyancyFactor: scaling temperature anomalies
-   buoyancyFactor 0.05;
+   buoyancyFactor 0.01;
 
    //// Method 0: White Noise
    // No extra param
 
    //// Method 1: Single SPH
    // degree, order: Degree and order of the Single SPH
-   degree 4;
-   order 8;
+   degree 16;
+   order 16;
 
    //// Method 2: Random Superposition SPH
    // lmin, lmax: min and max of l
@@ -59,9 +76,10 @@ Parameters
    // tempInit: determine a filter for the initial sperical harmonics (default: no filtering)
    // tempInit = 0: keep anomalies near CMB
    // tempInit = 1: keep anomalies near the surface
-   // tempInit = 2: keep anomalies near both boundaries 
+   // tempInit = 2: keep anomalies near both boundaries
    // tempInit = 3: no filtering
-   tempInit 1;
+   tempInit 0;
+
    // Steepness of temperature filtering
    initialTemperatureSteepness 4;
 
@@ -72,15 +90,13 @@ Parameters
    ////////////////////////////
 
    thermalExpansivity 2.238e-5;
-   thermalConductivity 3.0;
+   thermalConductivity 6;
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
-   viscosity       5e22;
+   viscosity 1e22;
 
    // Adiabatic reference state parameters
-
-   // adiabatic reference state parameters
 
    adiabatSurfaceTemp 1600;
    surfaceDensity 3.3745581070e03;
@@ -99,23 +115,20 @@ Parameters
 
    // Temperature-dependent viscosity law
    // 0 =  Frank–Kamenetskii type 1: goes as e^(-Activation * T)
-   // 1 =  Frank–Kamenetskii type 2: goes as e^( Activation * ( 0.5 - T ) ) 
+   // 1 =  Frank–Kamenetskii type 2: goes as e^( Activation * ( 0.5 - T ) )
    // 2 =  Scale with deviation from mean: goes as e^(-Activation * dT )
    // 3 =  Arrhenius type: goes as e^( Activation / T )
    // default: 0
    //Note that the same values of activationEnergy aren't necessarily relevant for all cases
 
-   tempDependentViscosityType 0; 
+   tempDependentViscosityType 0;
 
-   activationEnergy 2;
-   depthViscosityFactor 2.5;
-   viscosityLowerBound 2e19;
-   viscosityUpperBound 1e24;
+   activationEnergy 4.605;
+   depthViscosityFactor 2.997;
+   viscosityLowerBound 1e21;
+   viscosityUpperBound 1e25;
 
    //setup solvers again due to changing spectral bounds of stokes operator
-
-   resetSolver true;
-   resetSolverFrequency 100; 
 
    /////////////////////////
    //  Model parameters   //
@@ -123,17 +136,20 @@ Parameters
 
    // Input profiles
 
-   viscosityProfile ../../data/terraneo/viscosityProfiles/tests/ViscosityProfileTest.json;
-   //thermalExpansivityProfile alpha_radial.json;
-   //specificHeatCapacityProfile cp_radial.json;
-   //densityProfile density_radial.json;
+   // If the following profiles are uncommented they are used as appropriate field,
+   // and if commented, a constant value (non-dim to 1.0) is used
+   //
+   // viscosityProfile ../../../data/terraneo/viscosityProfiles/ViscosityProfile_Lin_et_al_2022.json;
+   // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
+   // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
+   // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
 
-   characteristicVelocity 1e-8;
+   characteristicVelocity 1e-9;
 
    // Input temperature
 
    surfacetemp 300.0;
-   cmbtemp 4200.0;
+   cmbtemp 4000.0;
 
    //////////////////////////////
    //  Simulation parameters   //
@@ -142,10 +158,10 @@ Parameters
    // Boundary Condition (Surface / CMB)
    // 1 = No-Slip / No-Slip
    // 2 = Free-Slip / Free-Slip
-   // 3 = No-Slip / Free-Slip 
+   // 3 = No-Slip / Free-Slip
    // default: 1
 
-   boundaryCond 1;
+   boundaryCond 2;
 
    rotFactor 0.25;
 
@@ -154,33 +170,34 @@ Parameters
    simulationType ConvectionModel;
 
    compressible true;
-   frozenVelocity false;
-   
    shearHeating true;
-   adiabaticHeating true;
    internalHeating true;
 
-   // Define Lithosphere thickness [km] and shear heating scaling factor 
+   frozenVelocity false;
+
+   // Define Lithosphere thickness [km] and shear heating scaling factor
    // for scaling the shear heating contribution within the Lithosphere
 
-   lithosphereShearHeatingScaling 1e-5;
+   lithosphereShearHeatingScaling 1;
    lithosphereThickness 100;
 
-   // Time steps 
+   // Time steps
 
-   maxNumTimeSteps 10;
+   maxNumTimeSteps 1000;
+   // Maximum model age in Ma
+   maxModelAge 1000;
    fixedTimeStep false;
    predictorCorrector false;
    // Maximum timestep size in Ma
-   maxTimeStepSize 100;
-   cflMax 0.75;
-   dtConstant 1e-4;
+   maxTimeStepSize 1;
+   cflMax 1;
+   dtConstant 100;
 
    particleLocationRadius 0.01;
    projectPointsBackToDomain false;
    cautionedEvaluate false;
 
-   // Adaptive reference Temperature 
+   // Adaptive reference Temperature
    // true: update to radial mean Temperature
 
    adaptiveRefTemp false;
@@ -189,16 +206,17 @@ Parameters
 
    // Input files for circulation model
 
-   fnameTopologies       ../../../data/terraneo/plates/topologies0-100Ma.geojson;
-   fnameReconstructions  ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
-   initialAge 100;
-   finalAge 1;
+   fnameTopologies../../../ data / terraneo / plates / topologies0 - 100Ma.geojson;
+   fnameReconstructions../../../ data / terraneo / plates / Global_EarthByte_230 - 0Ma_GK07_AREPS.rot;
+   initialPlateAge 100;
+   finalPlateAge 0;
    plateVelocityScaling 8;
 
    //distance over which to smooth plate velocities to zero at either side of plate boundaries (in km)
-   
+
    plateSmoothingDistance 110;
 
+   // This flag is passed to the Stokes solver, which logs residuals if set to true
    verbose false;
 
    //////////////////////////
@@ -211,81 +229,87 @@ Parameters
 
    // 0 - FMGRES
    // 1 - Uzawa
+   // 2 - PETSc direct solver
    SolverFlag 0;
 
    // 0 - HyTeG MinRes solver
    // 1 - PETSc solver
-   PETScFlag 0;
+   PETScFlag 1;
 
    useRotationWrapper false;
-
-   // Uzawa solver parameters
-
-   stokesMaxNumIterations 5;
-   stokesRelativeResidualUTolerance 1e-6;
-   stokesAbsoluteResidualUTolerance 1e-6;
-
-   stokesUzawaCoarseGridIter 10;
-   stokesUzawaCoarseGridTol 1e-6;
-   stokesSmoothIncrementCoarseGrid 2;
 
    ChebyshevOrder 3;
    ChebyshevSpectralRadiusUpperLimit 1.2;
    ChebyshevSpectralRadiusLowerLimit 0.1;
 
-   // FGMRES solver parameters 
+   // Uzawa solver parameters
 
-   FGMRESOuterIterations 5;
+   stokesMaxNumIterations 2;
+   stokesRelativeResidualUTolerance 1e-6;
+   stokesAbsoluteResidualUTolerance 1e-6;
+   stokesUzawaCoarseGridIter 10;
+   stokesUzawaCoarseGridTol 1e-6;
+   stokesSmoothIncrementCoarseGrid 2;
+
+   // Common to both vanilla Uzawa and FGMRES
+   uzawaIterations 3;
+   uzawaOmega 0.3;
+   ABlockMGPreSmooth 1;
+   ABlockMGPostSmooth 3;
+
+   // FGMRES solver parameters
+   FGMRESOuterIterations 7;
    FGMRESRestartLength 7;
    FGMRESTolerance 1e-6;
-   uzawaIterations 3;
-   uzawaOmega 0.5;
    estimateUzawaOmega false;
    ABlockMGIterations 3;
    ABlockMGTolerance 1e-6;
-   ABlockMGPreSmooth 2;
-   ABlockMGPostSmooth 2;
    ABlockCoarseGridIterations 10;
-   ABlockCoarseGridTolerance 1e-6;
-   SchurMGIterations 3;
-   SchurMGTolerance 1e-6;
-   SchurMGPreSmooth 2;
-   SchurMGPostSmooth 2;
-   SchurCoarseGridIterations 5;
+   ABlockCoarseGridTolerance 1e-10;
+   SchurMGIterations 25;
+   SchurMGTolerance 1e-12;
+   SchurMGPreSmooth 3;
+   SchurMGPostSmooth 3;
+   SchurCoarseGridIterations 100;
    SchurCoarseGridTolerance 1e-6;
 
    // If the calculated Stokes residual exceeds this value, the simulation will be killed
 
-   stokesKillTolerance 10;
+   stokesKillTolerance 10000000000;
 
    checkTemperatureConsistency false;
    temperatureConsistencyThreshold 1.0;
 
-   // Diffusion parameters 
+   // Diffusion parameters
 
-   diffusionMaxNumIterations 1000;
-   diffusionAbsoluteResidualUTolerance 1e-12;
-   
+   diffusionMaxNumIterations 100;
+   diffusionAbsoluteResidualUTolerance 1e-9;
+
    //////////////////////////
    //  Output parameters   //
    //////////////////////////
 
    dataOutput true;
-   vtk true;
+
+   // vtk or adios2
+   // if set to false then dataOutput is through adios2
+   vtk false;
+
    OutputVelocity true;
    OutputTemperature true;
-   OutputInterval 1;
-   OutputProfilesInterval 10;
+   OutputInterval 10;
    OutputVertexDoFs false;
 
    //If desired: output per Myr:
 
    outputMyr false;
-   outputIntervalMyr 1;
+   outputIntervalMyr 10;
 
    outputProfiles true;
+
+   // ABSOLUTE PATH is better for cluster jobs
    ADIOS2OutputConfig ADIOS2config.xml;
-   
+
    ADIOS2StoreCheckpointPath ./output/checkpoint;
    ADIOS2StoreCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StoreCheckpoint false;
@@ -293,26 +317,27 @@ Parameters
    ADIOS2StartCheckpointPath ./output/checkpoint;
    ADIOS2StartCheckpointFilename TerraNeo_checkpoint;
    ADIOS2StartFromCheckpoint false;
+   // Flag to specify whether a restart from checkpoint should be 
+   // treated as a continuation or new simulation
+   continueSimulation false;
+   checkpointStartTimestep 100;
+   checkpointStartTimeMa 50;
 
    // In steps
-   ADIOS2StoreCheckpointFrequency 3;
+   ADIOS2StoreCheckpointFrequency 1000;
 
    // ADIOS2 parameter keys and values for data output
 
-   ADIOS2ParamKey AggregatorRatio;
-   ADIOS2Value 4;
+   ADIOS2ParamKey NumSubFiles;
+   ADIOS2Value 32;
 
-   outputDirectory ../../output;
+   outputDirectory ./output;
    modelBaseName TerraNeo;
-
    overrideModelFolder false;
 
    // Output of a. json file containing timing tree information
 
-   // Output of json file containing timing results of default Timing Tree results
-   // default: false
-
    timingAnalysis false;
    createTimingDB false;
-   SQLdatabaseFileName timingDB.db;
+   SQLdatabaseFileName TerraNeoSQLDatabaseFile.db;
 }

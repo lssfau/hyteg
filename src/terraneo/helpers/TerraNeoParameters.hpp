@@ -59,6 +59,8 @@ struct DomainParameters
    uint_t maxLevel      = 1;
    uint_t numProcessors = 1;
 
+   std::vector< real_t > macroLayers;
+
    real_t domainVolume() const
    {
       return ( real_c( 4.0 ) / real_c( 3.0 ) ) * walberla::math::pi * rMax * rMax * rMax -
@@ -154,9 +156,9 @@ struct OutputParameters
    bool dataOutput = true;
    bool vtk        = true;
 
-   uint_t OutputInterval         = 1;
-   uint_t OutputProfilesInterval = 1;
-   uint_t checkpointCount        = 1;
+   uint_t OutputInterval  = 1;
+   uint_t checkpointCount = 1;
+   uint_t dataOutputCount = 1;
 
    bool OutputVelocity    = true;
    bool OutputViscosity   = true;
@@ -167,7 +169,6 @@ struct OutputParameters
 
    bool   outputMyr         = false;
    uint_t outputIntervalMyr = 1;
-   real_t prevOutputTime    = real_c( 0 );
 
    bool outputVertexDoFs = true;
    bool outputProfiles   = false;
@@ -207,38 +208,43 @@ struct SimulationParameters
    uint_t numLayers           = 0;
 
    //Parameters given via config file
+   bool        simulationInitialised      = false;
    bool        fixedTimestep              = false;
    uint_t      timeStep                   = 0;
-   real_t      maxTimestepSize            = 0;
+   uint_t      timeStep0                  = 0;
+   real_t      maxTimestepSize            = real_c( 1 );
+   real_t      minTimestepSize            = real_c( 0.01 );
    real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
+   real_t      dtMax                      = real_c( 1 );
+   real_t      dtMin                      = real_c( 0 );
    real_t      dtConstant                 = real_c( 0 );
    real_t      cflMax                     = real_c( 1 );
    uint_t      timestep                   = 0;
    std::string simulationType             = std::string( "ConvectionModel" );
    uint_t      maxNumTimesteps            = 100;
+   real_t      maxModelAge                = real_c( 1000 );
+   bool        continueSimulation         = false;
    bool        adaptiveRefTemp            = false;
    bool        tempDependentViscosity     = false;
    bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
 
    //circulation model parameters
-   real_t      initialAge     = real_c( 100 ); //initial age for circulation models
-   real_t      finalAge       = real_c( 0 );   //final age for circulation models
-   real_t      ageMa          = initialAge;    //currrent age during circulation model
-   real_t      agePrev        = initialAge;    //age of previous timestep during circulation model
-   real_t      plateAge       = initialAge;    //current age of plates being implemented (intervals of 1Myr)
-   real_t      modelRunTimeMa = real_c( 0 );
+   real_t      initialPlateAge = real_c( 100 );   //initial age for circulation models
+   real_t      finalPlateAge   = real_c( 0 );     //final age for circulation models
+   real_t      ageMa           = initialPlateAge; //currrent age during circulation model
+   real_t      plateAge        = initialPlateAge; //current age of plates being implemented (intervals of 1Myr)
+   real_t      modelRunTimeMa  = real_c( 0 );
    std::string fnameTopologies;
    std::string fnameReconstructions;
    real_t      plateVelocityScaling        = real_c( 1 );
    real_t      plateSmoothingDistance      = real_c( 110 );
-   bool        compressible                = true;  // default: Compressible foŕmulation
+   bool        compressible                = true;  // default: Compressible formulation + adiabatic heating
    bool        frozenVelocity              = false; // default: Non-frozen
    bool        shearHeating                = true;  //default: include shear heating
-   bool        adiabaticHeating            = true;  //default: include adiabatic heating
    bool        internalHeating             = true;  //default: include internal heating
    uint_t      boundaryCond                = 1;     // default: No-Slip/No-Slip
    bool        boundaryCondFreeSlip        = false;
@@ -259,7 +265,7 @@ struct SimulationParameters
    real_t secondsPerMyr = real_c( 3.154e7 * 1e6 );
 
    // Shear heating scaling for mantle ciruclation model with
-   // predifned Lithosphere thickness in km
+   // predefined Lithosphere thickness in km
    real_t lithosphereShearHeatingScaling = 1e-5;
    real_t lithosphereThickness           = real_c( 100 );
 
@@ -271,8 +277,7 @@ struct SimulationParameters
                                                  // out of the expected range [surfaceTemp, cmbTemp]
    real_t temperatureConsistencyThreshold = 1.0; // Kelvin
 
-   real_t initialTimestepSize                    = 1.0; // Ma
-   uint_t initialNStepsForTimestepLinearIncrease = 20u;
+   uint_t initialNStepsForTimestepIncrease = 20u;
 
    // MMOC Parameters
    real_t particleLocationRadius    = real_c( 1e-2 );

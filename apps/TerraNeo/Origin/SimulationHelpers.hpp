@@ -169,7 +169,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateP
          U.uvw()[coordIdx].interpolate( Velocity, l, idSurface );
 
          //just used for setting up p2p1StokesFunctionContainer["VelocityFEPrev"] in the initialisation
-         if ( TN.simulationParameters.timeStep == 0 )
+         if ( !TN.simulationParameters.simulationInitialised )
          {
             p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
          }
@@ -283,7 +283,7 @@ real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::refer
       return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
-   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.timeStep > 0 )
+   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.simulationInitialised )
    {
       uint_t shell = uint_c(
           std::round( real_c( TN.simulationParameters.numLayers ) *
@@ -293,7 +293,7 @@ real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::refer
       return retVal;
    }
    if ( !TN.simulationParameters.compressible && TN.simulationParameters.volAvrgTemperatureDev &&
-        TN.simulationParameters.timeStep > 0 )
+        TN.simulationParameters.simulationInitialised )
    {
       return TN.simulationParameters.avrgTemperatureVol;
    }
@@ -435,6 +435,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
       db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
       db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
    }
+}
+
+std::function< real_t( const Point3D&, const std::vector< real_t >& ) > DoFCounter( real_t threshold )
+{
+   return [threshold]( const Point3D&, const std::vector< real_t >& values ) { return ( values[0] < threshold ) ? 1.0 : 0.0; };
 }
 
 } // namespace terraneo
