@@ -1,4 +1,3 @@
-add_subdirectory(CompositeOperators)
 add_subdirectory(Data)
 add_subdirectory(Density)
 add_subdirectory(OperatorTools)

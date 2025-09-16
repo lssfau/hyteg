@@ -1,41 +1,41 @@
 waLBerla_add_executable( NAME MC_StrongScaling_3D
     FILES MC_StrongScaling_3D.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass elementwise_dof_value_operator)   
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
 
 waLBerla_add_executable( NAME MC_WeakScaling_3D_ApproxOp
     FILES MC_WeakScaling_3D_ApproxOp.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass)      
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
 
 waLBerla_add_executable( NAME MC_WeakScaling_3D
     FILES MC_WeakScaling_3D.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass elementwise_dof_value_operator)      
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)   
 
 waLBerla_add_executable( NAME MC_StrongScaling_3D_ApproxA
     FILES MC_StrongScaling_3D_ApproxA.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass)      
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
 
 if ( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME MC_StrongScaling_3D_PETSc
     FILES MC_StrongScaling_3D_PETSc.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass elementwise_dof_value_operator)      
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)   
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME MC_StrongScaling_3D_ApproxA_PETSc
     FILES MC_StrongScaling_3D_ApproxA_PETSc.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass)          
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)    
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME MC_WeakScaling_3D_ApproxOp_PETSc
     FILES MC_WeakScaling_3D_ApproxOp_PETSc.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass)          
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)    
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME MC_WeakScaling_3D_PETSc
     FILES MC_WeakScaling_3D_PETSc.cpp
-    DEPENDS hyteg core Boost::headers sqlite convection_particles constant_stencil_operator mixed_operator MC-composites MC-mass MC-advection MC-diffusion_inv_rho MC-adiabatic_heating MC-composites MC-mass_SUPG MC-advection_supg MC-diffusion_supg MC-adiabatic_heating_supg MC-shear_heating MC-shear_heating_supg MC-full_stokes_scaled_divdiv_vectorial MC-full_stokes_scaled_divdiv_vectorial_frank_kamenetskii_simple_visc_base MC-k_mass MC-div_k_grad MC-shear_heating_no_surface MC-shear_heating_supg_no_surface MC-k_p1_coeff_mass elementwise_dof_value_operator)          
+    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)       
 endif()
 
 waLBerla_link_files_to_builddir( *.prm )
