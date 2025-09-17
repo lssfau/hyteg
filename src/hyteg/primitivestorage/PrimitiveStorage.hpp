@@ -123,10 +123,11 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
 
-   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0 );
+   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0, const bool& keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
-                     const uint_t&                                    additionalHaloDepth = 0 );
+                     const uint_t&                                    additionalHaloDepth = 0,
+                     const bool& keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const VertexMap&      vtxs,
                      const EdgeMap&        edges,
                      const FaceMap&        faces,
@@ -147,6 +148,11 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
+
+   /// This is a function implemented specifically for the use case of transferring functions between primitive storages
+   /// Should be called from every process. This will keep all the primitives from `setupStorage` in every processes
+   /// Another CAUTION when using this. Can easily blow up the memory for larger macro meshes.
+   void keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage& setupStorage );
 
    /// \brief Attaches a MicroMesh to the PrimitiveStorage.
    ///

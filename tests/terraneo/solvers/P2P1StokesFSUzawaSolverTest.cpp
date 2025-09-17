@@ -37,9 +37,7 @@
 #include "hyteg/solvers/solvertemplates/StokesFSGMGUzawaSolverTemplate.hpp"
 
 #include "mixed_operator/VectorMassOperator.hpp"
-#include "terraneo/operators/P2P1StokesOperatorWithProjection.hpp"
-#include "terraneo/operators/P2StokesABlockWithProjection.hpp"
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
+#include "terraneo/operators/P2P1StokesOperatorWithWrapper.hpp"
 #include "terraneo/sphericalharmonics/SphericalHarmonicsTool.hpp"
 
 using namespace hyteg;
@@ -101,31 +99,32 @@ int main( int argc, char* argv[] )
 
    auto projectionOperator = std::make_shared< P2ProjectNormalOperator >( storage, minLevel, maxLevel, normalsFS );
 
-   auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorFS >(
+   auto stokesOperatorFS = std::make_shared< P2P1StokesFullIcosahedralShellMapOperatorWithProjection >(
        storage, minLevel, maxLevel, mu, muInv, *projectionOperator, bcVelocity, rho );
 
    P2ElementwiseBlendingVectorMassOperator vecMassOperator( storage, minLevel, maxLevel );
 
    vecMassOperator.apply( fStrong.uvw(), f.uvw(), maxLevel, All );
 
-   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp1", storage, minLevel, maxLevel);
-   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >("tmp2", storage, minLevel, maxLevel);
+   auto tmp1 = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "tmp1", storage, minLevel, maxLevel );
+   auto tmp2 = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "tmp2", storage, minLevel, maxLevel );
 
    std::map< solvertemplates::StokesGMGUzawaFSSolverParamKey, std::variant< real_t, uint_t > > extraParams = {
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c(50u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, uint_c(10u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, real_c(1e-6) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, real_c(0.3) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, uint_c(3u) },
-       { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, uint_c(2u) } };
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM, uint_c( 50u ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::NUM_COARSE_GRID_ITERATIONS, uint_c( 10u ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::COARSE_GRID_TOLERANCE, real_c( 1e-6 ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_OMEGA, real_c( 0.3 ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_PRE_SMOOTH, uint_c( 3u ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::MG_POST_SMOOTH, uint_c( 3u ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::UZAWA_VELOCITY_ITER, uint_c( 3u ) },
+       { solvertemplates::StokesGMGUzawaFSSolverParamKey::SMOOTH_INCREMENT_COARSE_GRID, uint_c( 2u ) } };
 
-   auto stokesSolverTest =
-       solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorFS, P2ProjectNormalOperator >(
-           storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, false, extraParams );
+   auto stokesSolverTest = solvertemplates::stokesGMGUzawaFSSolver< P2P1StokesFullIcosahedralShellMapOperatorWithProjection,
+                                                                    P2ProjectNormalOperator >(
+       storage, minLevel, maxLevel, stokesOperatorFS, projectionOperator, tmp1, tmp2, false, extraParams );
 
-   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorFS > >( std::get< 0 >(stokesSolverTest), 3u );
+   auto stokesSolverLoop = std::make_shared< SolverLoop< P2P1StokesFullIcosahedralShellMapOperatorWithProjection > >(
+       std::get< 0 >( stokesSolverTest ), 3u );
 
    projectionOperator->project( f, maxLevel, FreeslipBoundary );
    stokesSolverLoop->solve( *stokesOperatorFS, u, f, maxLevel );

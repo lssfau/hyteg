@@ -1,0 +1,14 @@
+Parameters
+{
+    nx 4;
+    ny 4;
+    nz 4;
+
+    minLevel 0;
+    maxLevel 4;
+
+    checkpointFilepath /home/pponkumar/portal/tethys-scratch/pponkumar/hyteg-build/apps/TerraNeo/TestApps/output/checkpoint;
+    checkpointFilename TestCubeCheckpoint.bp;
+
+    
+}

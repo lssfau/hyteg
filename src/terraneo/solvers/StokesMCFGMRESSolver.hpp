@@ -18,14 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/solvers/solvertemplates/StokesFSGMGSolverTemplate.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/ChebyshevSmoother.hpp"
+#include "hyteg/solvers/FGMRESSolver.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 
 #include "terraneo/helpers/TerraNeoParameters.hpp"
 #include "terraneo/solvers/MCSolverBase.hpp"
 
 namespace hyteg {
-template < typename StokesOperator_T, typename ProjectionOperator_T >
+template < typename StokesOperator_T >
 class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
 {
  public:
@@ -51,7 +58,6 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
                          const uint_t                                               minLevel,
                          const uint_t                                               maxLevel,
                          const std::shared_ptr< StokesOperator_T >&                 stokesOperator,
-                         const std::shared_ptr< ProjectionOperator_T >&             projectionOperator,
                          const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp1,
                          const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp2,
                          const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp3,
@@ -59,64 +65,112 @@ class StokesMCFGMRESSolver : public MCSolverBase< StokesOperator_T >
    : MCSolverBase< StokesOperator_T >( storage, minLevel, maxLevel )
    , TN_( TN )
    , stokesOperator_( stokesOperator )
-   , projectionOperator_( projectionOperator )
    , temp1_( temp1 )
    , temp2_( temp2 )
    , temp3_( temp3 )
    {
-      auto solverContainer = hyteg::solvertemplates::stokesGMGFSSolver(
+      chebyshevABlockSmoother_ =
+          std::make_shared< ChebyshevSmoother< typename StokesOperator_T::ViscousOperatorFS_T > >( storage, minLevel, maxLevel );
+
+      real_t spectralRadiusA = 4.0;
+      {
+         std::function< real_t( const Point3D& ) > randFuncA = []( const Point3D& ) {
+            return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
+         };
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Estimate spectral radius!" );
+
+         // avoid that the startpoint of our poweriteration is in the kernel of the operator
+         temp2->uvw().interpolate( randFuncA, maxLevel, All );
+         temp3->uvw().interpolate( randFuncA, maxLevel, All );
+
+         spectralRadiusA = chebyshev::estimateRadius(
+             stokesOperator_->getA(), maxLevel, TN.solverParameters.numPowerIterations, storage, temp2->uvw(), temp3->uvw() );
+
+         temp2->uvw().interpolate( 0, maxLevel, All );
+         temp3->interpolate( 0, maxLevel, All );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadiusA );
+      }
+
+      chebyshevABlockSmoother_->setupCoefficients( TN.solverParameters.ChebyshevOrder,
+                                                   spectralRadiusA,
+                                                   TN.solverParameters.ChebyshevSpectralRadiusUpperLimit,
+                                                   TN.solverParameters.ChebyshevSpectralRadiusLowerLimit );
+      //   chebyshevABlockSmoother_->setupCoefficients(3u, 4.0, 1.2, 0.1);
+
+      minresCoarseGridABlockSolver_ = std::make_shared< MinResSolver< typename StokesOperator_T::ViscousOperatorFS_T > >(
           storage,
           minLevel,
           maxLevel,
-          stokesOperator,
-          projectionOperator,
-          temp1,
-          temp2,
-          temp3,
-          TN.solverParameters.estimateUzawaOmega,
-          TN.simulationParameters.verbose,
-          {
-              { solvertemplates::StokesGMGFSSolverParamKey::NUM_POWER_ITERATIONS_SPECTRUM,
-                TN.solverParameters.numPowerIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_ITER,
-                TN.solverParameters.FGMRESOuterIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::FGMRES_UZAWA_PRECONDITIONED_OUTER_TOLERANCE,
-                TN.solverParameters.FGMRESTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_VELOCITY_ITER, TN.solverParameters.uzawaIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::INEXACT_UZAWA_OMEGA, TN.solverParameters.uzawaOmega },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                TN.solverParameters.ABlockMGIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                TN.solverParameters.ABlockMGTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_PRESMOOTH, TN.solverParameters.ABlockMGPreSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_MG_POSTSMOOTH, TN.solverParameters.ABlockMGPostSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_ITER, TN.solverParameters.ABlockCoarseGridIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_TOLERANCE,
-                TN.solverParameters.ABlockCoarseGridTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::ABLOCK_COARSE_GRID_PETSC, TN.solverParameters.solverPETSc },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_ITER,
-                TN.solverParameters.SchurMGIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_CG_SOLVER_MG_PRECONDITIONED_TOLERANCE,
-                TN.solverParameters.SchurMGTolerance },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_PRESMOOTH, TN.solverParameters.SchurMGPreSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_MG_POSTSMOOTH, TN.solverParameters.SchurMGPostSmooth },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_ITER,
-                TN.solverParameters.SchurCoarseGridIterations },
-              { solvertemplates::StokesGMGFSSolverParamKey::SCHUR_COARSE_GRID_CG_TOLERANCE,
-                TN.solverParameters.SchurCoarseGridTolerance },
-          } );
+          TN.solverParameters.ABlockCoarseGridIterations,
+          TN.solverParameters.ABlockCoarseGridTolerance );
 
-      this->solverPtr_ = std::get< 0 >( solverContainer );
+      prolongationOperator_ = std::make_shared< P2toP2QuadraticVectorProlongation >();
+      restrictionOperator_  = std::make_shared< P2toP2QuadraticVectorRestriction >();
+
+      gmgABlockSolver_ = std::make_shared< GeometricMultigridSolver< typename StokesOperator_T::ViscousOperatorFS_T > >(
+          storage,
+          chebyshevABlockSmoother_,
+          minresCoarseGridABlockSolver_,
+          restrictionOperator_,
+          prolongationOperator_,
+          minLevel,
+          maxLevel,
+          TN.solverParameters.ABlockMGPreSmooth,
+          TN.solverParameters.ABlockMGPostSmooth );
+
+      cgSchurSolver_ = std::make_shared< CGSolver< typename StokesOperator_T::SchurOperator_T > >(
+          storage,
+          minLevel,
+          maxLevel,
+          TN.solverParameters.SchurCoarseGridIterations,
+          TN.solverParameters.SchurCoarseGridTolerance );
+
+      blockPreconditioner_ = std::make_shared< BlockFactorisationPreconditioner< StokesOperator_T,
+                                                                                 typename StokesOperator_T::ViscousOperatorFS_T,
+                                                                                 typename StokesOperator_T::SchurOperator_T > >(
+          storage, minLevel, maxLevel, stokesOperator->getSchur(), gmgABlockSolver_, cgSchurSolver_ );
+
+      fgmresFinalSolver_ = std::make_shared< FGMRESSolver< StokesOperator_T > >( storage,
+                                                                                 minLevel,
+                                                                                 maxLevel,
+                                                                                 TN.solverParameters.FGMRESOuterIterations,
+                                                                                 TN.solverParameters.FGMRESTolerance,
+                                                                                 TN.solverParameters.FGMRESTolerance,
+                                                                                 blockPreconditioner_,
+                                                                                 TN.solverParameters.FGMRESRestartLength,
+                                                                                 TN.solverParameters.FGMRESTolerance );
+
+      fgmresFinalSolver_->setPrintInfo( true );
+
+      this->solverPtr_ = fgmresFinalSolver_;
    }
 
  private:
    terraneo::TerraNeoParameters& TN_;
 
-   const std::shared_ptr< StokesOperator_T >&     stokesOperator_;
-   const std::shared_ptr< ProjectionOperator_T >& projectionOperator_;
+   const std::shared_ptr< StokesOperator_T >& stokesOperator_;
 
    const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp1_;
    const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp2_;
    const std::shared_ptr< P2P1TaylorHoodFunction< real_t > >& temp3_;
+
+   std::shared_ptr< ChebyshevSmoother< typename StokesOperator_T::ViscousOperatorFS_T > > chebyshevABlockSmoother_;
+   std::shared_ptr< MinResSolver< typename StokesOperator_T::ViscousOperatorFS_T > >      minresCoarseGridABlockSolver_;
+
+   std::shared_ptr< P2toP2QuadraticVectorProlongation > prolongationOperator_;
+   std::shared_ptr< P2toP2QuadraticVectorRestriction >  restrictionOperator_;
+
+   std::shared_ptr< GeometricMultigridSolver< typename StokesOperator_T::ViscousOperatorFS_T > > gmgABlockSolver_;
+
+   std::shared_ptr< CGSolver< typename StokesOperator_T::SchurOperator_T > > cgSchurSolver_;
+
+   std::shared_ptr< BlockFactorisationPreconditioner< StokesOperator_T,
+                                                      typename StokesOperator_T::ViscousOperatorFS_T,
+                                                      typename StokesOperator_T::SchurOperator_T > >
+       blockPreconditioner_;
+
+   std::shared_ptr< FGMRESSolver< StokesOperator_T > > fgmresFinalSolver_;
 };
 } // namespace hyteg

@@ -21,11 +21,12 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesOperatorTemplate.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
-#include "hyteg_operators/operators/full_stokes/P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap.hpp"
 
 namespace hyteg {
 namespace operatorgeneration {
@@ -66,9 +67,16 @@ using P2P1StokesFullIcosahedralShellMapOperator =
                                                operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
 
 using P2P1StokesFullP1ViscosityIcosahedralShellMapOperator =
-    detail::P2P1StokesP1VarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap,
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP1ViscosityIcosahedralShellMap,
                                                operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
-                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator >;
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P1Function< real_t > >;
+
+using P2P1StokesFullP0ViscosityIcosahedralShellMapOperator =
+    detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2VectorElementwiseFullStokesP0ViscosityIcosahedralShellMap,
+                                               operatorgeneration::P1ToP2GradientIcosahedralShellMapOperator,
+                                               operatorgeneration::P2ToP1DivergenceIcosahedralShellMapOperator,
+                                               P0Function< real_t > >;
 
 } // namespace operatorgeneration
 } // namespace hyteg

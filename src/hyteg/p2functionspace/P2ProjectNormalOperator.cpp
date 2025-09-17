@@ -66,8 +66,13 @@ void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
 void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                                         const P2VectorFunction< idx_t >&            num,
                                         uint_t                                      level,
-                                        DoFType                                     flag ) const
+                                        DoFType                                     flag,
+                                        bool                                        transpose ) const
 {
+   // transpose flag is kept to maintain the function call similar to the rotation-toMatrix for downstream templating
+   // transpose does not matter for projection matrices as they are symmetric
+   WALBERLA_UNUSED( transpose );
+
    // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
    uint_t idx = num.getDimension() == 2 ? 0 : 2;
    toMatrix( mat, num[0], num[1], num[idx], level, flag );

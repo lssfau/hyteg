@@ -28,7 +28,9 @@ namespace terraneo {
 //   Initialisation   //
 ////////////////////////
 
-ConvectionSimulation::ConvectionSimulation( const walberla::Config::BlockHandle& mainConf )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::ConvectionSimulation(
+    const walberla::Config::BlockHandle& mainConf )
 {
    TN = terraneo::parseConfig( mainConf );
 
@@ -36,7 +38,8 @@ ConvectionSimulation::ConvectionSimulation( const walberla::Config::BlockHandle&
    diffFactorFunc = std::bind( &ConvectionSimulation::diffPreFactorFunction, this, std::placeholders::_1 );
 }
 
-void ConvectionSimulation::init()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::init()
 {
    if ( !std::filesystem::exists( TN.outputParameters.outputDirectory ) )
    {
@@ -58,11 +61,10 @@ void ConvectionSimulation::init()
    TN.simulationParameters.unknownsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, TN.domainParameters.maxLevel );
    TN.simulationParameters.unknownsStokes =
        numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMin      = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.simulationParameters.hMax      = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
-   TN.domainParameters.numProcessors = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   TN.simulationParameters.hMin = MeshQuality::getMinimalEdgeLength( storage, TN.domainParameters.maxLevel );
+   TN.simulationParameters.hMax = MeshQuality::getMaximalEdgeLength( storage, TN.domainParameters.maxLevel );
 
-   printConfig( TN );
+   // printConfig( TN );
 
 #ifdef HYTEG_BUILD_WITH_ADIOS2
    attributeList_["rCMB"]     = TN.domainParameters.rCMB;
@@ -83,7 +85,6 @@ void ConvectionSimulation::init()
    attributeList_["plateSmoothingDistance"]         = TN.simulationParameters.plateSmoothingDistance;
    attributeList_["compressible"]                   = TN.simulationParameters.compressible;
    attributeList_["shearHeating"]                   = TN.simulationParameters.shearHeating;
-   attributeList_["adiabaticHeating"]               = TN.simulationParameters.adiabaticHeating;
    attributeList_["internalHeating"]                = TN.simulationParameters.internalHeating;
    attributeList_["boundaryCond"]                   = TN.simulationParameters.boundaryCond;
    attributeList_["boundaryCondFreeSlip"]           = TN.simulationParameters.boundaryCondFreeSlip;
@@ -115,20 +116,30 @@ void ConvectionSimulation::init()
    initialiseFunctions();
    setupSolversAndOperators();
    setupOutput();
+
    if ( TN.outputParameters.createTimingDB )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Create SQL database for runtime analysis" );
       initTimingDB();
    }
+
+   printConfig( TN, walberla::format( "%s/params.txt", modelPath.c_str() ) );
+
+   std::string logFilename = walberla::format( "%s/logFile.txt", modelPath.c_str() );
+
+   WALBERLA_ROOT_SECTION()
+   {
+      walberla::logging::Logging::instance()->includeLoggingToFile( logFilename );
+   }
 }
 
 // Setup the domain
 
-void ConvectionSimulation::setupDomain()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupDomain()
 {
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-   meshInfo          = MeshInfo::meshSphericalShell(
-       TN.domainParameters.nTan, TN.domainParameters.nRad, TN.domainParameters.rMin, TN.domainParameters.rMax );
+   meshInfo          = MeshInfo::meshSphericalShell( TN.domainParameters.nTan, TN.domainParameters.macroLayers );
 
    auto setupStorage =
        std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -147,7 +158,8 @@ void ConvectionSimulation::setupDomain()
 
 // Setup boundary conditions
 
-void ConvectionSimulation::setupBoundaryConditions()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupBoundaryConditions()
 {
    // For Temperature always use Dirichlet BC on Surface and CMB
    idSurfaceT = bcTemperature.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
@@ -159,23 +171,43 @@ void ConvectionSimulation::setupBoundaryConditions()
    switch ( TN.simulationParameters.boundaryCond )
    {
    case 1:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createDirichletBC(
+          "TangentialDirichlet", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createDirichletBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       break;
 
    case 2:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createNeumannBC( "TangentialNeumann",
+                                          { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createFreeslipBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createFreeslipBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       TN.simulationParameters.boundaryCondFreeSlip = true;
       break;
 
    case 3:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createNeumannBC( "NeumannInner", { MeshInfo::hollowFlag::flagInnerBoundary } );
+      bcVelocityThetaPhi.createDirichletBC( "DirichletOuter", { MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createFreeslipBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       TN.simulationParameters.boundaryCondFreeSlip = true;
       break;
 
    default:
+      bcVelocityR.createDirichletBC( "RadialDirichlet",
+                                     { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+      bcVelocityThetaPhi.createDirichletBC(
+          "TangentialDirichlet", { MeshInfo::hollowFlag::flagInnerBoundary, MeshInfo::hollowFlag::flagOuterBoundary } );
+
       idSurface = bcVelocity.createDirichletBC( "surface", { MeshInfo::hollowFlag::flagOuterBoundary } );
       idCMB     = bcVelocity.createDirichletBC( "cmb", { MeshInfo::hollowFlag::flagInnerBoundary } );
       break;
@@ -184,102 +216,111 @@ void ConvectionSimulation::setupBoundaryConditions()
 
 // Setup functions
 
-void ConvectionSimulation::setupFunctions()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupFunctions()
 {
    if ( !storage )
    {
       setupDomain();
    }
 
-   for ( auto& [p2p1Names, p2p1MinLevel, p2p1MaxLevel, p2p1BcType] : p2p1StokesFunctionDict )
-   {
-      p2p1MinLevel = TN.domainParameters.minLevel;
-      p2p1MaxLevel = TN.domainParameters.maxLevel;
-   }
-
-   for ( auto [p2p1Names, p2p1MinLevel, p2p1MaxLevel, p2p1BcType] : p2p1StokesFunctionDict )
-   {
-      switch ( p2p1BcType )
+   auto initialiseFunctionContainers = [this]< typename FunctionType >(
+                                           const std::vector< std::tuple< std::string, Level_T, Level_T, BCs_T > >& functionDict,
+                                           std::map< std::string, std::shared_ptr< FunctionType > >& functionContainer ) {
+      for ( auto [functionName, functionMinLevelType, functionMaxLevelType, functionBcType] : functionDict )
       {
-      case BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION: {
-         p2p1StokesFunctionContainer.emplace( std::make_pair(
-             p2p1Names, std::make_shared< StokesFunctionP2P1 >( p2p1Names, storage, p2p1MinLevel, p2p1MaxLevel, bcVelocity ) ) );
-      }
-      break;
-      case BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION: {
-         WALBERLA_LOG_WARNING_ON_ROOT( "bcTemperature looks odd for P2P1TaylorHoodFunction" );
-         p2p1StokesFunctionContainer.emplace( std::make_pair(
-             p2p1Names,
-             std::make_shared< StokesFunctionP2P1 >( p2p1Names, storage, p2p1MinLevel, p2p1MaxLevel, bcTemperature ) ) );
-      }
-      break;
-      default: {
-         p2p1StokesFunctionContainer.emplace( std::make_pair(
-             p2p1Names, std::make_shared< StokesFunctionP2P1 >( p2p1Names, storage, p2p1MinLevel, p2p1MaxLevel ) ) );
-      }
-      }
-   }
+         uint_t functionMinLevel = 0u;
+         uint_t functionMaxLevel = 0u;
 
-   for ( auto& [p2Names, p2MinLevel, p2MaxLevel, p2BcType] : p2ScalarFunctionDict )
-   {
-      p2MinLevel = TN.domainParameters.minLevel;
-      p2MaxLevel = TN.domainParameters.maxLevel;
-   }
+         if ( functionMinLevelType == Level_T::MINLEVEL )
+         {
+            functionMinLevel = TN.domainParameters.minLevel;
+         }
+         else if ( functionMinLevelType == Level_T::MAXLEVEL )
+         {
+            functionMinLevel = TN.domainParameters.maxLevel;
+         }
+         else if ( functionMinLevelType == Level_T::MAXLEVELPLUSONE )
+         {
+            functionMinLevel = TN.domainParameters.maxLevel + 1;
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown Level_T" );
+         }
 
-   for ( auto [p2Names, p2MinLevel, p2MaxLevel, p2BcType] : p2ScalarFunctionDict )
-   {
-      switch ( p2BcType )
-      {
-      case BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION: {
-         WALBERLA_LOG_WARNING_ON_ROOT( "bcVelocity looks odd for P2Function" );
-         p2ScalarFunctionContainer.emplace( std::make_pair(
-             p2Names, std::make_shared< ScalarFunctionP2 >( p2Names, storage, p2MinLevel, p2MaxLevel, bcVelocity ) ) );
-      }
-      break;
-      case BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION: {
-         p2ScalarFunctionContainer.emplace( std::make_pair(
-             p2Names, std::make_shared< ScalarFunctionP2 >( p2Names, storage, p2MinLevel, p2MaxLevel, bcTemperature ) ) );
-      }
-      break;
-      default: {
-         p2ScalarFunctionContainer.emplace(
-             std::make_pair( p2Names, std::make_shared< ScalarFunctionP2 >( p2Names, storage, p2MinLevel, p2MaxLevel ) ) );
-      }
-      }
-   }
+         if ( functionMaxLevelType == Level_T::MINLEVEL )
+         {
+            functionMaxLevel = TN.domainParameters.minLevel;
+         }
+         else if ( functionMaxLevelType == Level_T::MAXLEVEL )
+         {
+            functionMaxLevel = TN.domainParameters.maxLevel;
+         }
+         else if ( functionMaxLevelType == Level_T::MAXLEVELPLUSONE )
+         {
+            functionMaxLevel = TN.domainParameters.maxLevel + 1;
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown Level_T" );
+         }
 
-   for ( auto& [p2VecNames, p2VecMinLevel, p2VecMaxLevel, p2VecBcType] : p2VectorFunctionDict )
-   {
-      p2VecMinLevel = TN.domainParameters.minLevel;
-      p2VecMaxLevel = TN.domainParameters.maxLevel;
-   }
+         switch ( functionBcType )
+         {
+         case BCs_T::VELOCITY_BC: {
+            functionContainer.emplace( std::make_pair(
+                functionName,
+                std::make_shared< FunctionType >( functionName, storage, functionMinLevel, functionMaxLevel, bcVelocity ) ) );
+         }
+         break;
+         case BCs_T::VELOCITYROTATION_BC: {
+            functionContainer.emplace( std::make_pair(
+                functionName,
+                std::make_shared< FunctionType >( functionName, storage, functionMinLevel, functionMaxLevel, bcVelocity ) ) );
 
-   for ( auto [p2VecNames, p2VecMinLevel, p2VecMaxLevel, p2VecBcType] : p2VectorFunctionDict )
-   {
-      switch ( p2VecBcType )
-      {
-      case BoundaryConditionType::VELOCITY_BOUNDARY_CONDITION: {
-         p2VectorFunctionContainer.emplace( std::make_pair(
-             p2VecNames,
-             std::make_shared< VectorFunctionP2 >( p2VecNames, storage, p2VecMinLevel, p2VecMaxLevel, bcVelocity ) ) );
+            if constexpr ( std::is_same_v< FunctionType, P2P1StokesFunction_T > )
+            {
+               functionContainer.at( functionName )->uvw().component( 0u ).setBoundaryCondition( bcVelocityThetaPhi );
+               functionContainer.at( functionName )->uvw().component( 1u ).setBoundaryCondition( bcVelocityThetaPhi );
+               functionContainer.at( functionName )->uvw().component( 2u ).setBoundaryCondition( bcVelocityR );
+            }
+            else if constexpr ( std::is_same_v< FunctionType, P2VectorFunction_T > )
+            {
+               functionContainer.at( functionName )->component( 0u ).setBoundaryCondition( bcVelocityThetaPhi );
+               functionContainer.at( functionName )->component( 1u ).setBoundaryCondition( bcVelocityThetaPhi );
+               functionContainer.at( functionName )->component( 2u ).setBoundaryCondition( bcVelocityR );
+            }
+            else
+            {
+               WALBERLA_ABORT( "VELOCITYROTATION BC does not apply for this function type" );
+            }
+         }
+         break;
+         case BCs_T::TEMPERATURE_BC: {
+            functionContainer.emplace( std::make_pair(
+                functionName,
+                std::make_shared< FunctionType >( functionName, storage, functionMinLevel, functionMaxLevel, bcTemperature ) ) );
+         }
+         break;
+         default: {
+            functionContainer.emplace( std::make_pair(
+                functionName, std::make_shared< FunctionType >( functionName, storage, functionMinLevel, functionMaxLevel ) ) );
+         }
+         }
       }
-      break;
-      case BoundaryConditionType::TEMPERATURE_BOUNDARY_CONDITION: {
-         WALBERLA_LOG_WARNING_ON_ROOT( "bcTemperature looks odd for P2VectorFunction" );
-         p2VectorFunctionContainer.emplace( std::make_pair(
-             p2VecNames,
-             std::make_shared< VectorFunctionP2 >( p2VecNames, storage, p2VecMinLevel, p2VecMaxLevel, bcTemperature ) ) );
-      }
-      break;
-      default: {
-         p2VectorFunctionContainer.emplace( std::make_pair(
-             p2VecNames, std::make_shared< VectorFunctionP2 >( p2VecNames, storage, p2VecMinLevel, p2VecMaxLevel ) ) );
-      }
-      }
-   }
+   };
+
+   initialiseFunctionContainers( p2p1StokesFunctionDict, p2p1StokesFunctionContainer );
+   initialiseFunctionContainers( p2ScalarFunctionDict, p2ScalarFunctionContainer );
+   initialiseFunctionContainers( p2VectorFunctionDict, p2VectorFunctionContainer );
+   initialiseFunctionContainers( p1ScalarFunctionDict, p1ScalarFunctionContainer );
+   initialiseFunctionContainers( p1VectorFunctionDict, p1VectorFunctionContainer );
+   initialiseFunctionContainers( p0ScalarFunctionDict, p0ScalarFunctionContainer );
 }
 
-void ConvectionSimulation::initialiseFunctions()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initialiseFunctions()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup initial state -------" );
@@ -287,10 +328,7 @@ void ConvectionSimulation::initialiseFunctions()
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    walberla::math::seedRandomGenerator( 42 );
-   std::function< real_t( const Point3D& ) > randFunc = []( const Point3D& ) {
-      return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
-   };
-   std::function< real_t( const Point3D& ) > zeros = []( const Point3D& ) { return real_c( 0 ); };
+   randFunc = []( const Point3D& ) { return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) ); };
 
    temperatureInitParams = std::make_shared< TemperatureInitializationParameters >( TN.physicalParameters.cmbTemp,
                                                                                     TN.physicalParameters.surfaceTemp,
@@ -300,38 +338,41 @@ void ConvectionSimulation::initialiseFunctions()
                                                                                     TN.domainParameters.rMax,
                                                                                     &TN.initialisationParameters );
 
-   if ( TN.simulationParameters.haveTemperatureProfile )
-   {
-      temperatureReferenceFct =
-          std::make_shared< std::function< real_t( const Point3D& ) > >( terraneo::temperatureReferenceProfile(
-              *temperatureInitParams, TN.physicalParameters.radiusT, TN.physicalParameters.temperatureInputProfile ) );
-   }
-   else
-   {
-      temperatureReferenceFct = std::make_shared< std::function< real_t( const Point3D& ) > >(
-          terraneo::temperatureReferenceExponential( *temperatureInitParams ) );
-   }
+   referenceTemperatureFct = [this]( const Point3D& x ) { return referenceTemperatureFunction( x ); };
 
    // Temperature Deivation
-   std::function< real_t( const Point3D& ) > initTemperature;
    switch ( TN.initialisationParameters.initialTemperatureDeviationMethod )
    {
    case INITIAL_TEMPERATURE_DEVIATION_METHOD::SINGLE_SPH:
-      initTemperature = temperatureSingleSPH( *temperatureInitParams, *temperatureReferenceFct );
+      temperatureInitialCondition = temperatureSingleSPH( *temperatureInitParams, referenceTemperatureFct );
       break;
    case INITIAL_TEMPERATURE_DEVIATION_METHOD::RANDOM_SUPERPOSITION_SPH:
-      initTemperature = temperatureRandomSuperpositioneSPH( *temperatureInitParams, *temperatureReferenceFct );
+      temperatureInitialCondition = temperatureRandomSuperpositioneSPH( *temperatureInitParams, referenceTemperatureFct );
       break;
    case INITIAL_TEMPERATURE_DEVIATION_METHOD::WHITE_NOISE:
-      initTemperature = temperatureWhiteNoise( *temperatureInitParams, *temperatureReferenceFct );
+      temperatureInitialCondition = temperatureWhiteNoise( *temperatureInitParams, referenceTemperatureFct );
       break;
    default:
       WALBERLA_ABORT( "Unknown initial temperature deviation method" );
    }
-   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   {
-      p2ScalarFunctionContainer["TemperatureFE"]->interpolate( initTemperature, l, All );
-   }
+
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureRHS    = p2p1StokesFunctionContainer.at( "StokesRHS" );
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureTemp   = p2p1StokesFunctionContainer.at( "StokesTmp1" );
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureFE     = p2p1StokesFunctionContainer.at( "VelocityFE" );
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressurePrevFE = p2p1StokesFunctionContainer.at( "VelocityFEPrev" );
+
+   std::shared_ptr< P2VectorFunction_T >& normalsFE = p2VectorFunctionContainer.at( "NormalsFS" );
+
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2       = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2     = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >& temperaturePrevP2 = p2ScalarFunctionContainer.at( "TemperaturePrev" );
+   std::shared_ptr< P2ScalarFunction_T >& densityFE         = p2ScalarFunctionContainer.at( "DensityFE" );
+
+   std::shared_ptr< P1ScalarFunction_T >& temperatureP1     = p1ScalarFunctionContainer.at( "TemperatureFEP1" );
+   std::shared_ptr< P1ScalarFunction_T >& temperaturePrevP1 = p1ScalarFunctionContainer.at( "TemperatureFEPrevP1" );
+
+   temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
+   temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
 
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
@@ -343,154 +384,243 @@ void ConvectionSimulation::initialiseFunctions()
       std::vector< std::pair< real_t, int > > weightPairs = { { 1.0 / 100.0, 6 } };
       terraneo::avgPointProvider = std::make_shared< terraneo::plates::UniformCirclesPointWeightProvider >( weightPairs, 1e-1 );
    }
-   // Assign temperature field to temperaturePrev
 
-   for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; ++level )
+   // for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; ++level )
+   // {
+   temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
+   temperaturePrevP1->assign( { real_c( 1 ) }, { *( temperatureP1 ) }, TN.domainParameters.maxLevel, All );
+
+   if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
-      p2ScalarFunctionContainer["TemperaturePrev"]->assign(
-          { real_c( 1 ) }, { *( p2ScalarFunctionContainer["TemperatureFE"] ) }, level, All );
-      p2ScalarFunctionContainer["DensityFE"]->interpolate( densityFunc, level, All );
-
-      //set plate velocities for timestep 0 / initialAge
-      if ( TN.simulationParameters.simulationType == "CirculationModel" )
-      {
-         updatePlateVelocities( *( p2p1StokesFunctionContainer["VelocityFE"] ) );
-      }
-      else
-      {
-         //currently initialising CMB and surface to zeros for NoSlipNoSlip case
-         p2p1StokesFunctionContainer["VelocityFE"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
-         p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, idSurface );
-      }
-
-      p2p1StokesFunctionContainer["VelocityFE"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      p2p1StokesFunctionContainer["StokesRHS"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      p2p1StokesFunctionContainer["StokesTmp1"]->uvw().interpolate( { zeros, zeros, zeros }, level, All );
-      // for volumetric average temperature calculation
-      p2ScalarFunctionContainer["TemperatureVolumetric"]->interpolate( real_c( 1 ), level, All );
-      p2ScalarFunctionContainer["Volume"]->interpolate( real_c( 1 ), level, All );
+      updatePlateVelocities( *( velocityPressureFE ) );
+   }
+   else
+   {
+      velocityPressureFE->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, idSurface );
+      velocityPressurePrevFE->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, idSurface );
    }
 
-   auto temperatureRadialProfile            = computeRadialProfile( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+   velocityPressureFE->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
+   velocityPressurePrevFE->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
+   velocityPressureRHS->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
+   velocityPressureTemp->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
+   // }
+
+   auto temperatureRadialProfile            = computeRadialProfile( *( temperatureP2 ),
                                                          TN.domainParameters.rMin,
                                                          TN.domainParameters.rMax,
-                                                         TN.domainParameters.nRad,
+                                                         TN.domainParameters.macroLayers,
                                                          TN.domainParameters.maxLevel );
    temperatureProfiles                      = std::make_shared< RadialProfile >( temperatureRadialProfile );
    TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
-   auto velocityRadialProfile = computeRadialProfile( p2p1StokesFunctionContainer["VelocityFE"]->uvw(),
+   auto velocityRadialProfile = computeRadialProfile( velocityPressureFE->uvw(),
                                                       TN.domainParameters.rMin,
                                                       TN.domainParameters.rMax,
-                                                      TN.domainParameters.nRad,
+                                                      TN.domainParameters.macroLayers,
                                                       TN.domainParameters.maxLevel );
    velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
 
    if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
    {
       updateViscosity();
-      auto viscosityRadialProfile = computeRadialProfile( *( p2ScalarFunctionContainer["ViscosityFE"] ),
+      auto viscosityRadialProfile = computeRadialProfile( *( viscosityP2 ),
                                                           TN.domainParameters.rMin,
                                                           TN.domainParameters.rMax,
-                                                          TN.domainParameters.nRad,
+                                                          TN.domainParameters.macroLayers,
                                                           TN.domainParameters.maxLevel );
       viscosityProfiles           = std::make_shared< RadialProfile >( viscosityRadialProfile );
    }
-   referenceTemperatureFct = [this]( const Point3D& x ) { return referenceTemperatureFunction( x ); };
+
+   std::function< real_t( const Point3D& ) > nX = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[0];
+   };
+
+   std::function< real_t( const Point3D& ) > nY = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[1];
+   };
+
+   std::function< real_t( const Point3D& ) > nZ = [&]( const Point3D& x ) {
+      Point3D n;
+      normalFunc( x, n );
+      return n[2];
+   };
+
+   for ( uint_t level = TN.domainParameters.minLevel; level <= TN.domainParameters.maxLevel; level++ )
+   {
+      densityFE->interpolate( densityFunc, level, All );
+      normalsFE->interpolate( { nX, nY, nZ }, level, FreeslipBoundary );
+   }
 }
 
-void ConvectionSimulation::setupSolversAndOperators()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSolversAndOperators()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup solvers & operators -------" );
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   auto                                      normalFunc_ = [&]( const Point3D& p, Point3D& n ) { normalFunc( p, n ); };
-   std::function< real_t( const Point3D& ) > zeros       = []( const Point3D& ) { return real_c( 0 ); };
+   std::shared_ptr< P2P1StokesFunction_T >& stokesTmpProlongation = p2p1StokesFunctionContainer.at( "StokesTmpProlongation" );
+   std::shared_ptr< P2P1StokesFunction_T >& stokesTmp1            = p2p1StokesFunctionContainer.at( "StokesTmp1" );
+   std::shared_ptr< P2P1StokesFunction_T >& stokesTmp2            = p2p1StokesFunctionContainer.at( "StokesTmp2" );
 
-   walberla::math::seedRandomGenerator( 42 );
-   std::function< real_t( const Point3D& ) > randFunc = []( const Point3D& ) {
-      return walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
-   };
+   std::shared_ptr< P2VectorFunction_T >& normalsFE = p2VectorFunctionContainer.at( "NormalsFS" );
 
-   //non-dimensionalise viscosity such that minimum value = 1
+   std::shared_ptr< P2ScalarFunction_T >& densityP2      = p2ScalarFunctionContainer.at( "DensityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2    = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2Inv = p2ScalarFunctionContainer.at( "ViscosityFEInv" );
+
+   std::shared_ptr< P0ScalarFunction_T >& viscosityP0 = p0ScalarFunctionContainer.at( "ViscosityFEP0" );
+
+   auto normalFunc_ = [&]( const Point3D& p, Point3D& n ) { normalFunc( p, n ); };
+
    updateViscosity();
 
-   projectionOperator = std::make_shared< P2ProjectNormalOperator >(
+   projectionOperator_ = std::make_shared< P2ProjectNormalOperator >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
-   p2ProlongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
+   rotationOperator_ =
+       std::make_shared< P2RotationOperator >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, normalFunc_ );
 
-   stokesOperator = std::make_shared< StokesOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["ViscosityFE"] ) );
+   p2ProlongationOperator_   = std::make_shared< P2toP2QuadraticProlongation >();
+   p2p1ProlongationOperator_ = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
 
-   stokesOperatorFS = std::make_shared< StokesOperatorFS >( storage,
-                                                            TN.domainParameters.minLevel,
-                                                            TN.domainParameters.maxLevel,
-                                                            p2ScalarFunctionContainer["ViscosityFE"]->getVertexDoFFunction(),
-                                                            p2ScalarFunctionContainer["ViscosityFEInv"]->getVertexDoFFunction(),
-                                                            *projectionOperator,
-                                                            bcVelocity,
-                                                            *( p2ScalarFunctionContainer["DensityFE"] ),
-                                                            TN.simulationParameters.frozenVelocity );
+   if constexpr ( std::is_same_v< ViscosityFunction_T, P1Function< real_t > > )
+   {
+      stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                              TN.domainParameters.minLevel,
+                                                              TN.domainParameters.maxLevel,
+                                                              viscosityP2->getVertexDoFFunction(),
+                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                              *projectionOperator_,
+                                                              bcVelocity,
+                                                              *( densityP2 ),
+                                                              false,
+                                                              nullptr,
+                                                              nullptr,
+                                                              nullptr );
+
+      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                              TN.domainParameters.minLevel,
+                                                                              TN.domainParameters.maxLevel,
+                                                                              viscosityP2->getVertexDoFFunction(),
+                                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                                              *rotationOperator_,
+                                                                              bcVelocity,
+                                                                              *( densityP2 ),
+                                                                              false,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr );
+   }
+   else if constexpr ( std::is_same_v< ViscosityFunction_T, P0Function< real_t > > )
+   {
+      stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                              TN.domainParameters.minLevel,
+                                                              TN.domainParameters.maxLevel,
+                                                              *( viscosityP0 ),
+                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                              *projectionOperator_,
+                                                              bcVelocity,
+                                                              *( densityP2 ),
+                                                              false,
+                                                              nullptr,
+                                                              nullptr,
+                                                              nullptr );
+
+      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                              TN.domainParameters.minLevel,
+                                                                              TN.domainParameters.maxLevel,
+                                                                              *( viscosityP0 ),
+                                                                              viscosityP2Inv->getVertexDoFFunction(),
+                                                                              *rotationOperator_,
+                                                                              bcVelocity,
+                                                                              *( densityP2 ),
+                                                                              false,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Nope" );
+   }
 
    if ( TN.solverParameters.solverFlag == 0u )
    {
-      stokesSolverClass = std::make_shared< StokesMCFGMRESSolver< StokesOperatorFS, P2ProjectNormalOperator > >(
-          storage,
-          TN.domainParameters.minLevel,
-          TN.domainParameters.maxLevel,
-          stokesOperatorFS,
-          projectionOperator,
-          p2p1StokesFunctionContainer["StokesTmpProlongation"],
-          p2p1StokesFunctionContainer["StokesTmp1"],
-          p2p1StokesFunctionContainer["StokesTmp2"],
-          TN );
+      stokesMCSolver_ = std::make_shared< StokesMCFGMRESSolver< StokesOperator_T > >( storage,
+                                                                                      TN.domainParameters.minLevel,
+                                                                                      TN.domainParameters.maxLevel,
+                                                                                      stokesOperator_,
+                                                                                      stokesTmpProlongation,
+                                                                                      stokesTmp1,
+                                                                                      stokesTmp2,
+                                                                                      TN );
+
+      stokesRotationMCSolver_ =
+          std::make_shared< StokesMCFGMRESSolver< StokesOperatorRotation_T > >( storage,
+                                                                                TN.domainParameters.minLevel,
+                                                                                TN.domainParameters.maxLevel,
+                                                                                stokesOperatorRotation_,
+                                                                                stokesTmpProlongation,
+                                                                                stokesTmp1,
+                                                                                stokesTmp2,
+                                                                                TN );
    }
    else if ( TN.solverParameters.solverFlag == 1u )
    {
-      stokesSolverClass = std::make_shared< StokesMCUzawaSolver< StokesOperatorFS, P2ProjectNormalOperator > >(
+      stokesMCSolver_ =
+          std::make_shared< StokesMCUzawaSolver< StokesOperator_T, ProjectionOperator_T > >( storage,
+                                                                                             TN.domainParameters.minLevel,
+                                                                                             TN.domainParameters.maxLevel,
+                                                                                             stokesOperator_,
+                                                                                             projectionOperator_,
+                                                                                             stokesTmpProlongation,
+                                                                                             stokesTmp1,
+                                                                                             TN );
+
+      WALBERLA_LOG_WARNING_ON_ROOT( "Uzawa is not tested/initialized for all operators, so the application can crash" );
+   }
+   else if ( TN.solverParameters.solverFlag == 2u )
+   {
+#ifdef HYTEG_BUILD_WITH_PETSC
+      stokesMCSolver_ = std::make_shared< MCSolverBase< StokesOperator_T > >(
           storage,
           TN.domainParameters.minLevel,
           TN.domainParameters.maxLevel,
-          stokesOperatorFS,
-          projectionOperator,
-          p2p1StokesFunctionContainer["StokesTmpProlongation"],
-          p2p1StokesFunctionContainer["StokesTmp1"],
-          TN );
+          std::make_shared< PETScLUSolver< StokesOperator_T > >( storage, TN.domainParameters.maxLevel ) );
+
+      stokesRotationMCSolver_ = std::make_shared< MCSolverBase< StokesOperatorRotation_T > >(
+          storage,
+          TN.domainParameters.minLevel,
+          TN.domainParameters.maxLevel,
+          std::make_shared< PETScLUSolver< StokesOperatorRotation_T > >( storage, TN.domainParameters.maxLevel ) );
+#else
+      WALBERLA_ABORT( "PETSc solver requested but not built" );
+#endif
    }
    else
    {
       WALBERLA_ABORT( "Unknown solver type" );
    }
 
-   stokesSolverFS = stokesSolverClass->getSolver();
+   stokesSolver_         = stokesMCSolver_->getSolver();
+   stokesRotationSolver_ = stokesRotationMCSolver_->getSolver();
 
-   P2MassOperator = std::make_shared< P2ElementwiseBlendingMassOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
+   p2ScalarMassOperator_ =
+       std::make_shared< P2ScalarMassOperator_T >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
 
-   frozenVelocityRHS = std::make_shared< FrozenVelocityFullOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( p2ScalarFunctionContainer["DensityFE"] ) );
+   frozenVelocityRHS_ = std::make_shared< FrozenVelocityFullOperator_T >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( densityP2 ) );
 
-   /////////////////////////
+   ////////////////////////
    // Diffusion Operator //
    ////////////////////////
-
-   transportOperatorTALA = std::make_shared< P2TransportIcosahedralShellMapOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-
-   transportOperatorP1Coefficients = std::make_shared< P2TransportP1CoefficientsIcosahedralShellMapOperator >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
-
-   transportOperatorTALA->setVelocity( p2p1StokesFunctionContainer["VelocityFE"] );
-   transportOperatorTALA->setVelocityPrev( p2p1StokesFunctionContainer["VelocityFEPrev"] );
-   transportOperatorTALA->setViscosity( p2ScalarFunctionContainer["ViscosityFE"] );
-   transportOperatorTALA->setTemperature( p2ScalarFunctionContainer["TemperatureFE"] );
-
-   transportOperatorTALA->setReferenceTemperature(
-       std::make_shared< std::function< real_t( const Point3D& ) > >( referenceTemperatureFct ) );
 
    oppositeGravityX = [this]( const Point3D& x ) {
       Point3D n;
@@ -513,41 +643,116 @@ void ConvectionSimulation::setupSolversAndOperators()
       return n[2];
    };
 
-   adiabaticCoeffFunc = [this]( const Point3D& x ) { return adiabaticCoefficientFunction( x ); };
-
+   adiabaticCoeffFunc   = [this]( const Point3D& x ) { return adiabaticCoefficientFunction( x ); };
    constEnergyCoeffFunc = [this]( const Point3D& x ) { return constantEnergyCoefficientFunction( x ); };
+   surfTempCoeffFunc    = [this]( const Point3D& x ) { return surfaceTempCoefficientFunction( x ); };
 
-   surfTempCoeffFunc = [this]( const Point3D& x ) { return surfaceTempCoefficientFunction( x ); };
-
-   transportOperatorTALA->setInvGravity( { std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityX ),
-                                           std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityY ),
-                                           std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityZ ) } );
-
-   transportOperatorTALA->setDiffusivityCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( diffFactorFunc ) );
-   transportOperatorTALA->setAdiabaticCoeff(
-       std::make_shared< std::function< real_t( const Point3D& ) > >( adiabaticCoeffFunc ) );
-   transportOperatorTALA->setConstEnergyCoeff(
-       std::make_shared< std::function< real_t( const Point3D& ) > >( constEnergyCoeffFunc ) );
-   transportOperatorTALA->setSurfTempCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
-   transportOperatorTALA->setShearHeatingCoeff( p2ScalarFunctionContainer["ShearHeatingTermCoeff"] );
-
-   if ( TN.simulationParameters.compressible && !TN.simulationParameters.adiabaticHeating )
    {
-      TN.simulationParameters.adiabaticHeating = true;
+      const uint_t temperatureMaxLevel = [&] {
+         if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > > )
+         {
+            return TN.domainParameters.maxLevel;
+         }
+         else if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > > )
+         {
+            return TN.domainParameters.maxLevel + 1;
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown type" );
+         }
+      }();
+
+      const std::shared_ptr< TemperatureFunction_T >& temperatureFE = [&] {
+         if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > > )
+         {
+            return p2ScalarFunctionContainer.at( "TemperatureFE" );
+         }
+         else if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > > )
+         {
+            return p1ScalarFunctionContainer.at( "TemperatureFEP1" );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown type" );
+         }
+      }();
+
+      const std::shared_ptr< TemperatureFunction_T >& viscosityFE = [&] {
+         if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > > )
+         {
+            return p2ScalarFunctionContainer.at( "ViscosityFE" );
+         }
+         else if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > > )
+         {
+            return p1ScalarFunctionContainer.at( "ViscosityFEP1" );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown type" );
+         }
+      }();
+
+      const std::shared_ptr< TemperatureFunction_T >& shearHeatingCoeff = [&] {
+         if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P2Function< real_t > > )
+         {
+            return p2ScalarFunctionContainer.at( "ShearHeatingTermCoeff" );
+         }
+         else if constexpr ( std::is_same_v< TemperatureFunction_T, hyteg::P1Function< real_t > > )
+         {
+            return p1ScalarFunctionContainer.at( "ShearHeatingTermCoeffP1" );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Unknown type" );
+         }
+      }();
+
+      temperatureTransportOperator_ =
+          std::make_shared< TransportOperator_T >( storage, TN.domainParameters.minLevel, temperatureMaxLevel );
+
+      temperatureTransportOperator_->setVelocity( p2p1StokesFunctionContainer["VelocityFE"] );
+      temperatureTransportOperator_->setVelocityPrev( p2p1StokesFunctionContainer["VelocityFEPrev"] );
+      temperatureTransportOperator_->setViscosity( viscosityFE );
+      temperatureTransportOperator_->setTemperature( temperatureFE );
+
+      temperatureTransportOperator_->setReferenceTemperature(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( referenceTemperatureFct ) );
+
+      temperatureTransportOperator_->setInvGravity(
+          { std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityX ),
+            std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityY ),
+            std::make_shared< std::function< real_t( const Point3D& ) > >( oppositeGravityZ ) } );
+
+      temperatureTransportOperator_->setDiffusivityCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( diffFactorFunc ) );
+      temperatureTransportOperator_->setAdiabaticCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( adiabaticCoeffFunc ) );
+      temperatureTransportOperator_->setConstEnergyCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( constEnergyCoeffFunc ) );
+      temperatureTransportOperator_->setSurfTempCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
+      temperatureTransportOperator_->setShearHeatingCoeff( shearHeatingCoeff );
+      temperatureTransportOperator_->setTALADict(
+          { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.compressible },
+            { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
+            { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
+
+      temperatureTransportOperator_->initializeOperators();
+
+      temperatureMMOCOperator_ = std::make_shared< MMOCTransport< TemperatureFunction_T > >(
+          storage, TN.domainParameters.minLevel, temperatureMaxLevel, TimeSteppingScheme::RK4 );
+      temperatureMMOCOperator_->setCautionedEvaluate( TN.simulationParameters.cautionedEvaluate );
+
+      temperatureTransportSolver_ =
+          std::make_shared< CGSolver< TransportOperator_T > >( storage,
+                                                               TN.domainParameters.minLevel,
+                                                               temperatureMaxLevel,
+                                                               TN.solverParameters.diffusionMaxNumIterations,
+                                                               TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+
+      temperatureTransportSolver_->setPrintInfo( true );
    }
-
-   transportOperatorTALA->setTALADict(
-       { { TransportOperatorTermKey::ADIABATIC_HEATING_TERM, TN.simulationParameters.adiabaticHeating },
-         { TransportOperatorTermKey::SHEAR_HEATING_TERM, TN.simulationParameters.shearHeating },
-         { TransportOperatorTermKey::INTERNAL_HEATING_TERM, TN.simulationParameters.internalHeating } } );
-
-   transportOperatorTALA->initializeOperators();
-
-   transportOperator = std::make_shared< MMOCTransport< ScalarFunction > >(
-       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, TimeSteppingScheme::RK4 );
-
-   transportOperator->setP1Evaluate( false );
-   transportOperator->setParticleLocalRadiusTolerance( 1e-3 );
 
    std::function< void( const hyteg::Point3D&, hyteg::Point3D& ) > projectPointsBack = [&]( const hyteg::Point3D& xOld,
                                                                                             hyteg::Point3D&       xNew ) {
@@ -577,17 +782,72 @@ void ConvectionSimulation::setupSolversAndOperators()
       }
    };
 
-   transportOperator->setProjectPointsBackOutsideDomainFunction( projectPointsBack );
+   temperatureMMOCOperator_->setParticleLocalRadiusTolerance( TN.simulationParameters.particleLocationRadius );
 
-   transportSolverTALA = std::make_shared< CGSolver< P2TransportIcosahedralShellMapOperator > >(
-       storage,
-       TN.domainParameters.minLevel,
-       TN.domainParameters.maxLevel,
-       TN.solverParameters.diffusionMaxNumIterations,
-       real_c( 0 ),
-       TN.solverParameters.diffusionAbsoluteResidualUTolerance );
+   if ( TN.simulationParameters.projectPointsBackToDomain )
+   {
+      temperatureMMOCOperator_->setProjectPointsBackOutsideDomainFunction( projectPointsBack );
+   }
 
-   transportSolverTALA->setPrintInfo( true );
+   shearHeatingCoeffCalc = [this]( const Point3D& x, const std::vector< real_t >& density ) {
+      real_t radius = x.norm();
+      real_t shearHeatingCoeff;
+
+      if ( TN.simulationParameters.lithosphereShearHeatingScaling > 1 )
+      {
+         WALBERLA_ABORT( "Shear heating scaling factor at Lithosphere > 1 not allowed! --- Abort simulation ---" );
+      }
+
+      if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
+      {
+         TN.physicalParameters.specificHeatCapacityRadial =
+             terraneo::interpolateDataValues( x,
+                                              TN.physicalParameters.radiusCp,
+                                              TN.physicalParameters.specificHeatCapacityProfile,
+                                              TN.domainParameters.rMin,
+                                              TN.domainParameters.rMax );
+
+         shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                 TN.physicalParameters.rayleighNumber ) *
+                               ( TN.physicalParameters.specificHeatCapacity /
+                                 ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) );
+      }
+      else
+      {
+         shearHeatingCoeff = ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                               ( TN.physicalParameters.rayleighNumber * density[0] ) );
+      }
+
+      if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveDensityProfile )
+      {
+         TN.physicalParameters.specificHeatCapacityRadial =
+             terraneo::interpolateDataValues( x,
+                                              TN.physicalParameters.radiusCp,
+                                              TN.physicalParameters.specificHeatCapacityProfile,
+                                              TN.domainParameters.rMin,
+                                              TN.domainParameters.rMax );
+
+         shearHeatingCoeff = ( ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                                 TN.physicalParameters.rayleighNumber ) *
+                               ( TN.physicalParameters.specificHeatCapacity /
+                                 ( TN.physicalParameters.specificHeatCapacityRadial * densityFunction( x ) ) ) );
+      }
+      else
+      {
+         shearHeatingCoeff = ( TN.physicalParameters.dissipationNumber * TN.physicalParameters.pecletNumber /
+                               ( TN.physicalParameters.rayleighNumber * density[0] ) );
+      }
+
+      if ( radius > TN.domainParameters.rMax -
+                        ( TN.simulationParameters.lithosphereThickness * 1000 / TN.physicalParameters.mantleThickness ) )
+      {
+         return ( shearHeatingCoeff * TN.simulationParameters.lithosphereShearHeatingScaling );
+      }
+      else
+      {
+         return shearHeatingCoeff;
+      }
+   };
 
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "------- Setup solvers & operators: Finished -------" );

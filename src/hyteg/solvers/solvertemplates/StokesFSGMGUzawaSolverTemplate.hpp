@@ -124,7 +124,7 @@ inline std::tuple< std::shared_ptr< Solver< StokesOperatorType > >,
    tmp1->uvw().interpolate( { randFuncA, randFuncA, randFuncA }, maxLevel, Inner );
 
    real_t spectralRadius = chebyshev::estimateRadius(
-       stokesOperatorFSSelf->getA().viscousOperator, maxLevel, powerIterations, storage, tmp1->uvw(), tmpProlongation->uvw() );
+       stokesOperatorFSSelf->getA(), maxLevel, powerIterations, storage, tmp1->uvw(), tmpProlongation->uvw() );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated spectral radius: " << spectralRadius );
 

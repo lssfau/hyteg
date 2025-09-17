@@ -170,7 +170,8 @@ inline std::function< real_t( const Point3D& ) >
 {
    return [=]( const hyteg::Point3D& x ) {
       auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
-      real_t retVal;
+
+      real_t retVal = referenceTemp( x );
 
       const auto rMin = tempInitParams.rMin();
       const auto rMax = tempInitParams.rMax();
@@ -182,18 +183,12 @@ inline std::function< real_t( const Point3D& ) >
       const auto buoyancyFactor    = tempDevInitParams->buoyancyFactor;
 
       // Boundaries
-      if ( ( radius - rMin ) < real_c( 1e-10 ) )
+      if ( ( radius - rMin ) < real_c( 1e-10 ) || ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( Tcmb ) / ( Tcmb - Tsurface );
-      }
-      else if ( ( rMax - radius ) < real_c( 1e-10 ) )
-      {
-         return ( Tsurface ) / ( Tcmb - Tsurface );
+         return retVal;
       }
       else
       {
-         retVal = referenceTemp( x );
-
          // Random generator for Temperature initialisation ( Gaussian White Noise (GWN))
          retVal += buoyancyFactor * retVal * walberla::math::realRandom( real_c( -1 ), real_c( 1 ) );
       }
@@ -234,13 +229,9 @@ inline std::function< real_t( const Point3D& ) >
       real_t retVal = referenceTemp( x );
 
       // Boundaries
-      if ( ( radius - rMin ) < real_c( 1e-10 ) )
+      if ( ( radius - rMin ) < real_c( 1e-10 ) || ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( Tcmb ) / ( Tcmb - Tsurface );
-      }
-      else if ( ( rMax - radius ) < real_c( 1e-10 ) )
-      {
-         return ( Tsurface ) / ( Tcmb - Tsurface );
+         return retVal;
       }
 
       real_t filter;
@@ -302,13 +293,9 @@ inline std::function< real_t( const Point3D& ) >
       real_t retVal = referenceTemp( x );
 
       // Boundaries
-      if ( ( radius - rMin ) < real_c( 1e-10 ) )
+      if ( ( radius - rMin ) < real_c( 1e-10 ) || ( rMax - radius ) < real_c( 1e-10 ) )
       {
-         return ( Tcmb ) / ( Tcmb - Tsurface );
-      }
-      else if ( ( rMax - radius ) < real_c( 1e-10 ) )
-      {
-         return ( Tsurface ) / ( Tcmb - Tsurface );
+         return retVal;
       }
 
       real_t filter;

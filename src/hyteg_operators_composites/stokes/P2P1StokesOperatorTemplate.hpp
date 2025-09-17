@@ -22,6 +22,7 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/operators/ZeroOperator.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg_operators_composites/divergence/P2ToP1DivergenceOperator.hpp"
 #include "hyteg_operators_composites/gradient/P1ToP2GradientOperator.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockFullOperator.hpp"
@@ -120,73 +121,17 @@ class P2P1StokesConstViscOperatorTemplate : public Operator< P2P1TaylorHoodFunct
 /// \tparam GradientOperator   Bᵀ
 /// \tparam DivergenceOperator B
 ///
-template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator >
+template < typename ViscousOperator,
+           typename GradientOperator,
+           typename DivergenceOperator,
+           typename ViscosityFunction_T = P2Function< real_t > >
 class P2P1StokesVarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
    P2P1StokesVarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
                                       uint_t                                     minLevel,
                                       uint_t                                     maxLevel,
-                                      const P2Function< real_t >&                mu )
-   : Operator( storage, minLevel, maxLevel )
-   , A( storage, minLevel, maxLevel, mu )
-   , BT( storage, minLevel, maxLevel )
-   , B( storage, minLevel, maxLevel )
-   , C( storage, minLevel, maxLevel )
-   {}
-
-   using ViscousOperator_T       = ViscousOperator;
-   using GradientOperator_T      = GradientOperator;
-   using DivergenceOperator_T    = DivergenceOperator;
-   using StabilizationOperator_T = ZeroOperator< P1Function< real_t >, P1Function< real_t > >;
-
-   void apply( const P2P1TaylorHoodFunction< real_t >& src,
-               const P2P1TaylorHoodFunction< real_t >& dst,
-               const uint_t                            level,
-               const DoFType                           flag,
-               const UpdateType                        updateType = Replace ) const
-   {
-      A.apply( src.uvw(), dst.uvw(), level, flag, updateType );
-      BT.apply( src.p(), dst.uvw(), level, flag, Add );
-      B.apply( src.uvw(), dst.p(), level, flag, updateType );
-   }
-
-   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                  const P2P1TaylorHoodFunction< idx_t >&      src,
-                  const P2P1TaylorHoodFunction< idx_t >&      dst,
-                  size_t                                      level,
-                  DoFType                                     flag ) const
-   {
-      A.toMatrix( mat, src.uvw(), dst.uvw(), level, flag );
-      BT.toMatrix( mat, src.p(), dst.uvw(), level, flag );
-      B.toMatrix( mat, src.uvw(), dst.p(), level, flag );
-   }
-
-   const ViscousOperator&         getA() const { return A; }
-   const GradientOperator&        getBT() const { return BT; }
-   const DivergenceOperator&      getB() const { return B; }
-   const StabilizationOperator_T& getStab() const { return C; }
-
-   ViscousOperator&         getA() { return A; }
-   GradientOperator&        getBT() { return BT; }
-   DivergenceOperator&      getB() { return B; }
-   StabilizationOperator_T& getStab() { return C; }
-
- private:
-   ViscousOperator         A;
-   GradientOperator        BT;
-   DivergenceOperator      B;
-   StabilizationOperator_T C;
-};
-
-template < typename ViscousOperator, typename GradientOperator, typename DivergenceOperator >
-class P2P1StokesP1VarViscOperatorTemplate : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
-{
- public:
-   P2P1StokesP1VarViscOperatorTemplate( const std::shared_ptr< PrimitiveStorage >& storage,
-                                      uint_t                                     minLevel,
-                                      uint_t                                     maxLevel,
-                                      const P1Function< real_t >&                mu )
+                                      const ViscosityFunction_T&                 mu )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel, mu )
    , BT( storage, minLevel, maxLevel )

@@ -53,6 +53,13 @@ class P2ProjectNormalOperator : public Operator< P2VectorFunction< real_t >, P2V
       project( dst[0], dst[1], dst[idx], level, flag );
    }
 
+   void manipulate( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag, bool transpose = false ) const
+   {
+      WALBERLA_UNUSED( transpose );
+      uint_t idx = dst.getDimension() == 2 ? 0 : 2;
+      project( dst[0], dst[1], dst[idx], level, flag );
+   }
+
    void project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
    /// Assemble operator as sparse matrix
@@ -71,10 +78,13 @@ class P2ProjectNormalOperator : public Operator< P2VectorFunction< real_t >, P2V
                   uint_t                                      level,
                   DoFType                                     flag ) const;
 
+   // transpose flag is kept to maintain the function call similar to the rotation-toMatrix for downstream templating
+   // transpose does not matter for projection matrices as they are symmetric
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2VectorFunction< idx_t >&            num,
                   uint_t                                      level,
-                  DoFType                                     flag ) const;
+                  DoFType                                     flag,
+                  bool                                        transpose = false ) const;
 
    /// Assemble operator as sparse matrix
    ///

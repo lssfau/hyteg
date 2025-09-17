@@ -28,12 +28,14 @@ namespace terraneo {
 // Public functions  //
 ///////////////////////
 
-const SimulationParameters& ConvectionSimulation::getSimulationParams()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+const SimulationParameters& ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::getSimulationParams()
 {
    return TN.simulationParameters;
 }
 
-real_t ConvectionSimulation::densityFunction( const Point3D& x )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::densityFunction( const Point3D& x )
 {
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal;
@@ -68,7 +70,8 @@ real_t ConvectionSimulation::densityFunction( const Point3D& x )
    return retVal;
 }
 
-real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::diffPreFactorFunction( const Point3D& x )
 {
    if ( TN.simulationParameters.haveSpecificHeatCapProfile )
    {
@@ -87,7 +90,8 @@ real_t ConvectionSimulation::diffPreFactorFunction( const Point3D& x )
    }
 }
 
-real_t ConvectionSimulation::adiabaticCoefficientFunction( const Point3D& x )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::adiabaticCoefficientFunction( const Point3D& x )
 {
    if ( TN.simulationParameters.haveSpecificHeatCapProfile && TN.simulationParameters.haveThermalExpProfile )
    {
@@ -114,7 +118,8 @@ real_t ConvectionSimulation::adiabaticCoefficientFunction( const Point3D& x )
    }
 }
 
-real_t ConvectionSimulation::constantEnergyCoefficientFunction( const Point3D& x )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::constantEnergyCoefficientFunction( const Point3D& x )
 {
    real_t intHeatingFactor = 1.0;
    if ( TN.simulationParameters.haveSpecificHeatCapProfile )
@@ -134,12 +139,14 @@ real_t ConvectionSimulation::constantEnergyCoefficientFunction( const Point3D& x
    }
 }
 
-real_t ConvectionSimulation::surfaceTempCoefficientFunction( const Point3D& )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::surfaceTempCoefficientFunction( const Point3D& )
 {
    return 0.0;
 }
 
-void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updatePlateVelocities( P2P1StokesFunction_T& U )
 {
    uint_t                                           coordIdx = 0;
    terraneo::plates::StatisticsPlateNotFoundHandler handlerWithStatistics;
@@ -162,7 +169,7 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
          U.uvw()[coordIdx].interpolate( Velocity, l, idSurface );
 
          //just used for setting up p2p1StokesFunctionContainer["VelocityFEPrev"] in the initialisation
-         if ( TN.simulationParameters.timeStep == 0 )
+         if ( !TN.simulationParameters.simulationInitialised )
          {
             p2p1StokesFunctionContainer["VelocityFEPrev"]->uvw()[coordIdx].interpolate( Velocity, l, idSurface );
          }
@@ -170,17 +177,24 @@ void ConvectionSimulation::updatePlateVelocities( StokesFunction& U )
    }
 }
 
-void ConvectionSimulation::updateViscosity()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateViscosity()
 {
-   if ( p2InjectionOperator == nullptr )
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2  = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2    = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityInvP2 = p2ScalarFunctionContainer.at( "ViscosityFEInv" );
+
+   std::shared_ptr< P0ScalarFunction_T >& viscosityP0 = p0ScalarFunctionContainer.at( "ViscosityFEP0" );
+
+   if ( p2InjectionOperator_ == nullptr )
    {
-      p2InjectionOperator =
+      p2InjectionOperator_ =
           std::make_shared< P2toP2QuadraticInjection >( storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel );
    }
 
    for ( uint_t level = TN.domainParameters.maxLevel; level > TN.domainParameters.minLevel; level-- )
    {
-      p2InjectionOperator->restrict( *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ), level, All );
+      p2InjectionOperator_->restrict( *temperatureP2, level, All );
    }
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > viscosityInit =
@@ -195,17 +209,24 @@ void ConvectionSimulation::updateViscosity()
    // Before interpolation: Ensure the new reference viscosity is set to the min current viscosity if a viscosity profile
    // or a temperature dependent viscosity is utilized.
    // This is will ensure that that the minimum non-dimensionalised value for the viscosity = 1.
-   p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
-       viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, TN.domainParameters.maxLevel, All );
+   viscosityP2->interpolate( viscosityInit, { *temperatureP2 }, TN.domainParameters.maxLevel, All );
 
-   real_t maxViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMaxDoFValue( TN.domainParameters.maxLevel ) *
-                         TN.physicalParameters.referenceViscosity;
+   communication::syncFunctionBetweenPrimitives( viscosityP2->getVertexDoFFunction(), TN.domainParameters.maxLevel );
+
+   P1toP0Conversion(
+       viscosityP2->getVertexDoFFunction(), *viscosityP0, TN.domainParameters.maxLevel, AveragingType::ARITHMETIC_QP );
+
+   P0toP0AveragedInjection p0toP0AveragedInjection( AveragingType::ARITHMETIC, false );
+
+   p0toP0AveragedInjection.restrictToAllLowerLevels( *viscosityP0, TN.domainParameters.maxLevel );
+
+   real_t maxViscosity = viscosityP2->getMaxDoFValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Max viscosity [Pa s]: " << maxViscosity );
 
-   real_t minRefViscosity = p2ScalarFunctionContainer["ViscosityFE"]->getMinDoFValue( TN.domainParameters.maxLevel ) *
-                            TN.physicalParameters.referenceViscosity;
+   real_t minRefViscosity =
+       viscosityP2->getMinDoFValue( TN.domainParameters.maxLevel ) * TN.physicalParameters.referenceViscosity;
    WALBERLA_LOG_INFO_ON_ROOT( "New update reference viscosity [Pa s]: " << minRefViscosity );
 
    if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.haveViscosityProfile )
@@ -221,14 +242,13 @@ void ConvectionSimulation::updateViscosity()
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
    {
-      p2ScalarFunctionContainer["ViscosityFE"]->interpolate(
-          viscosityInit, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
-      p2ScalarFunctionContainer["ViscosityFEInv"]->interpolate(
-          viscosityInitInv, { *( p2ScalarFunctionContainer[std::string( "TemperatureFE" )] ) }, l, All );
+      viscosityP2->interpolate( viscosityInit, { *temperatureP2 }, l, All );
+      viscosityInvP2->interpolate( viscosityInitInv, { *temperatureP2 }, l, All );
    }
 }
 
-void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::normalFunc( const Point3D& p, Point3D& n )
 {
    real_t radius = p.norm();
    if ( std::abs( radius - TN.domainParameters.rMax ) < std::abs( radius - TN.domainParameters.rMin ) )
@@ -241,14 +261,16 @@ void ConvectionSimulation::normalFunc( const Point3D& p, Point3D& n )
    }
 }
 
-void ConvectionSimulation::oppositeGravity( const Point3D& p, Point3D& n )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::oppositeGravity( const Point3D& p, Point3D& n )
 {
    real_t radius = p.norm();
    n             = Point3D( { p[0] / radius, p[1] / radius, p[2] / radius } );
 }
 
 //returns a reference adiabat relevant for the Earth, commonly implemented in TALA
-real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::referenceTemperatureFunction( const Point3D& x )
 {
    auto radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
 
@@ -261,7 +283,7 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       return ( TN.physicalParameters.surfaceTemp ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp );
    }
 
-   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.timeStep > 0 )
+   if ( TN.simulationParameters.adaptiveRefTemp && TN.simulationParameters.simulationInitialised )
    {
       uint_t shell = uint_c(
           std::round( real_c( TN.simulationParameters.numLayers ) *
@@ -271,7 +293,7 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
       return retVal;
    }
    if ( !TN.simulationParameters.compressible && TN.simulationParameters.volAvrgTemperatureDev &&
-        TN.simulationParameters.timeStep > 0 )
+        TN.simulationParameters.simulationInitialised )
    {
       return TN.simulationParameters.avrgTemperatureVol;
    }
@@ -300,14 +322,16 @@ real_t ConvectionSimulation::referenceTemperatureFunction( const Point3D& x )
    }
 }
 
-void ConvectionSimulation::outputTimingTree()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::outputTimingTree()
 {
    auto timer = storage->getTimingTree();
    writeTimingTreeJSON( *timer, TN.outputParameters.outputDirectory + "/" + "TimingTree.json" );
 }
 
 // SQL database for runtime analysis
-void ConvectionSimulation::initTimingDB()
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initTimingDB()
 {
    auto gitHash = hyteg::buildinfo::gitSHA1();
    db           = std::make_shared< hyteg::FixedSizeSQLDB >( TN.outputParameters.fileNameSQLdb, true );
@@ -327,7 +351,9 @@ void ConvectionSimulation::initTimingDB()
 // This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
 // It takes the mean temperature of the corresponding layers as input and calculates the heat flow
 // as q = -k *  grad T * A [TW].
-void ConvectionSimulation::calculateHeatflow( const std::shared_ptr< RadialProfile >& temperatureProfile )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calculateHeatflow(
+    const std::shared_ptr< RadialProfile >& temperatureProfile )
 {
    const real_t pi                  = walberla::math::pi;
    const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
@@ -362,7 +388,9 @@ void ConvectionSimulation::calculateHeatflow( const std::shared_ptr< RadialProfi
 // This function calculates the average heatflow through the layer above the CMB and out of the Earth's surface
 // It takes the mean temperature of the corresponding layers as input and calculates the heat flow
 // as q = -k *  grad T * A [TW].
-void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< RadialProfile >& temperatureProfile )
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calculateHeatflowIntegral(
+    const std::shared_ptr< RadialProfile >& temperatureProfile )
 {
    const real_t pi                  = walberla::math::pi;
    const real_t redimTemp           = TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp;
@@ -373,6 +401,8 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
    const std::vector< real_t >& meanTemp  = temperatureProfile->mean;
    const uint_t                 numLayers = radius.size();
 
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2 = p2ScalarFunctionContainer.at( "TemperatureFE" );
+
    // Calculate heat flows
    const real_t heatFlowFactor = thermalConductivity * mantleThickness * 1e-12;
 
@@ -382,15 +412,11 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
    real_t hGradient   = 1e-2;
    real_t epsBoundary = 1e-7;
 
-   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
-                                                                           TN.domainParameters.maxLevel,
-                                                                           hGradient,
-                                                                           TN.domainParameters.rMax,
-                                                                           epsBoundary,
-                                                                           nuSamples );
+   real_t dTdrIntegralOuter = nusseltcalc::calculateNusseltNumberSphere3D(
+       *temperatureP2, TN.domainParameters.maxLevel, hGradient, TN.domainParameters.rMax, epsBoundary, nuSamples );
 
    real_t dTdrIntegralInner =
-       nusseltcalc::calculateNusseltNumberSphere3D( *( p2ScalarFunctionContainer["TemperatureFE"] ),
+       nusseltcalc::calculateNusseltNumberSphere3D( *temperatureP2,
                                                     TN.domainParameters.maxLevel,
                                                     hGradient,
                                                     TN.domainParameters.rMin + hGradient + 2.0 * epsBoundary,
@@ -403,11 +429,17 @@ void ConvectionSimulation::calculateHeatflowIntegral( const std::shared_ptr< Rad
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow CMB: " << heatFlowCMB << " TW" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average heatflow Surface: " << heatFlowSurface << " TW" );
+
    if ( TN.outputParameters.createTimingDB )
    {
       db->setVariableEntry( "avrg_Heatflow_CMB_TW", heatFlowCMB );
       db->setVariableEntry( "avrg_Heatflow_Surface_TW", heatFlowSurface );
    }
+}
+
+std::function< real_t( const Point3D&, const std::vector< real_t >& ) > DoFCounter( real_t threshold )
+{
+   return [threshold]( const Point3D&, const std::vector< real_t >& values ) { return ( values[0] < threshold ) ? 1.0 : 0.0; };
 }
 
 } // namespace terraneo

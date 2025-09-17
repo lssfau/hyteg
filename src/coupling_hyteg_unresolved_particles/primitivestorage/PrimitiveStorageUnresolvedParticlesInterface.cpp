@@ -109,26 +109,9 @@ void PrimitiveStorageUnresolvedParticlesInterface::periodicallyMapToDomain( Vec3
 
 std::vector< uint_t > PrimitiveStorageUnresolvedParticlesInterface::getNeighborProcesses() const
 {
-   std::set< uint_t > neighborProcesses;
-   if ( !primitiveStorage_->hasGlobalCells() )
-   {
-      for ( auto it : primitiveStorage_->getNeighborFaces() )
-      {
-         auto pID = it.first;
-         neighborProcesses.insert( primitiveStorage_->getPrimitiveRank( pID ) );
-      }
-   }
-   else
-   {
-      for ( auto it : primitiveStorage_->getNeighborCells() )
-      {
-         auto pID = it.first;
-         neighborProcesses.insert( primitiveStorage_->getPrimitiveRank( pID ) );
-      }
-   }
-   neighborProcesses.erase( uint_c( walberla::mpi::MPIManager::instance()->rank() ) );
-
-   return std::vector< uint_t >( neighborProcesses.begin(), neighborProcesses.end() );
+   const std::set< uint_t > neighboringRanks = primitiveStorage_->getNeighboringRanks();
+   const std::vector        neighboringRanksVector( neighboringRanks.begin(), neighboringRanks.end() );
+   return neighboringRanksVector;
 }
 
 bool PrimitiveStorageUnresolvedParticlesInterface::intersectsWithProcessSubdomain( const uint_t  rank,

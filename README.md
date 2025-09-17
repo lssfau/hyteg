@@ -265,7 +265,7 @@ See also [this StackOverflow answer](https://stackoverflow.com/a/37828605).
 
 ## Contact
 
-Nils Kohl `nils.kohl@lmu.de` or Dominik Thönnes `dominik.thoennes@fau.de`.
+Nils Kohl `nils.kohl@lmu.de` or Daniel Bauer `daniel.j.bauer@fau.de`.
 
 ## License
 
