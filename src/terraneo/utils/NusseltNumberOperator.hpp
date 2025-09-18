@@ -52,16 +52,29 @@ inline real_t
  */
 template < typename StokesFunction, typename VelocityMass >
 real_t velocityRMS( const StokesFunction& u,
-                    const StokesFunction& tmp,
+                    const P2Function< real_t >& tmp,
+                    const P2Function< real_t >& tmp1,
                     const VelocityMass&   M,
                     real_t                domainHeight,
                     real_t                domainWidth,
                     uint_t                level )
 {
-   auto norm = std::pow( normL2( u.uvw()[0], tmp.uvw()[0], M, level, All ), 2.0 ) +
-               std::pow( normL2( u.uvw()[1], tmp.uvw()[1], M, level, All ), 2.0 );
+   std::function< real_t(const Point3D&, const std::vector< real_t >&) > magnitudeHelper = [](const Point3D&, const std::vector< real_t >& vals)
+   {
+      return vals[0] * vals[0] + vals[1] * vals[1];
+   };
+
+   tmp1.interpolate(magnitudeHelper, {u.uvw().component(0u), u.uvw().component(1u)}, level, All);
+
+   // auto norm = std::pow( normL2( u.uvw()[0], tmp.uvw()[0], M, level, All ), 2.0 ) +
+   //             std::pow( normL2( u.uvw()[1], tmp.uvw()[1], M, level, All ), 2.0 );
+
+   M.apply(tmp1, tmp, level, All);
+
+   real_t integral = tmp.sumGlobal(level, All);
+
    const auto area = domainHeight * domainWidth;
-   return std::sqrt( norm / area );
+   return std::sqrt( integral / area );
 }
 
 /**

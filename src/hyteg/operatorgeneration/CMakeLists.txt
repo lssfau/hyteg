@@ -47,6 +47,12 @@ target_sources( hyteg
     generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp
     generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.cpp
 
+    generated/BoundaryKMass/P2ElementwiseBoundaryKMassIcosahedralShellMap.hpp
+    generated/BoundaryKMass/P2ElementwiseBoundaryKMassIcosahedralShellMap.cpp
+
+    generated/BoundaryDeltaMass/P2ElementwiseBoundaryDeltaMassIcosahedralShellMap.hpp
+    generated/BoundaryDeltaMass/P2ElementwiseBoundaryDeltaMassIcosahedralShellMap.cpp
+
     generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.hpp
     generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.cpp
 

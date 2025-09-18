@@ -24,6 +24,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvection.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGrad.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradAnnulusMap.hpp"
 #include "hyteg_operators/operators/div_k_grad/P2ElementwiseDivKGradIcosahedralShellMap.hpp"
@@ -131,6 +132,14 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
 
       // $\int_\Omega T_h^{n+1} s_h d\Omega$
       massOperator_.apply( src, dst, level, flag, updateType );
+
+      if( false )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT("Applying advection");
+         temp1_.interpolate( 1.0, level, hyteg::All );
+         advectionOperator_->apply(src, temp2_.uvw().component( 0U ), level, flag);
+         dst.assign( { 1.0, timestep }, { dst, temp2_.uvw().component( 0U ) }, level, flag );
+      }
 
       if ( TALADict_.at( TransportOperatorTermKey::DIFFUSION_TERM ) )
       {
@@ -350,6 +359,9 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
           storage_, minLevel_, maxLevel_, hyteg::TimeSteppingScheme::RK4 );
       WALBERLA_LOG_INFO_ON_ROOT( "Initializing MMOC Done" );
 
+      advectionOperator_ = std::make_shared< hyteg::operatorgeneration::P2ElementwiseAdvection >(
+          storage_, minLevel_, maxLevel_, temp1_, velocity_->uvw().component( 0u ), velocity_->uvw().component( 1u ) );
+
       if ( TALADict_.at( TransportOperatorTermKey::SHEAR_HEATING_TERM ) )
       {
          WALBERLA_CHECK_NOT_NULLPTR( viscosity_ );
@@ -361,7 +373,8 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
                                                                                  *viscosity_,
                                                                                  velocity_->uvw().component( 0U ),
                                                                                  velocity_->uvw().component( 1U ),
-                                                                                 velocity_->uvw().component( zComp ) );
+                                                                                 velocity_->uvw().component( zComp )
+			 );
          WALBERLA_LOG_INFO_ON_ROOT( "Initializing Shear Heating Operator Done" );
       }
 
@@ -567,6 +580,8 @@ class P2TransportOperatorTemplate : public hyteg::Operator< TemperatureFunctionT
    std::shared_ptr< P2ShearHeatingOperatorTALA >                      shearHeatingOperator_;
    std::shared_ptr< P2DivKGradOperatorTALA >                          diffusionOperator_;
    std::shared_ptr< P2KMassOperatorTALA >                             adiabaticOperator_;
+
+   std::shared_ptr< hyteg::operatorgeneration::P2ElementwiseAdvection > advectionOperator_;
 
    /*
    std::shared_ptr< P2AdvectionOperator >        advectionOperator_;
