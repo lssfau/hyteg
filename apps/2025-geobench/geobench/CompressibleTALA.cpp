@@ -69,6 +69,7 @@
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
+// #include "terraneo/operators/P2TransportBDF2Operator.hpp"
 #include "terraneo/operators/P2TransportTALAOperator.hpp"
 // #include "P2TransportTALAOperator.hpp"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
@@ -81,6 +82,9 @@ using namespace hyteg;
 using namespace terraneo;
 
 using P2ToP1ElementwiseKMass = operatorgeneration::P2ToP1ElementwiseKMass;
+
+using TransportOperator_T = terraneo::P2TransportOperator;
+// using TransportOperator_T = terraneo::P2TransportBDF2Operator;
 
 namespace hyteg {
 
@@ -321,7 +325,7 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                UpdateType                                   updateType = Replace ) const override
    {
       divergenceOperator_.apply( src, dst, level, flag, updateType );
-      divergenceCompressibleOperator_.apply( src.component( 1u ), dst, level, flag, Add );
+      divergenceCompressibleOperator_.apply( src, dst, level, flag, Add );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -331,7 +335,7 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                   DoFType                                     flag ) const override
    {
       divergenceOperator_.toMatrix( mat, src, dst, level, flag );
-      divergenceCompressibleOperator_.toMatrix( mat, src.component( 1u ), dst, level, flag );
+      divergenceCompressibleOperator_.toMatrix( mat, src, dst, level, flag );
    }
 
    P1Function< real_t > tmp_;
@@ -340,8 +344,11 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
    DivergenceCompressibleOperator_T divergenceCompressibleOperator_;
 };
 
+// using P2VectorToP1ElementwiseCompressibleDivergenceOperator =
+//     P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, P2ToP1ElementwiseKMass >;
+
 using P2VectorToP1ElementwiseCompressibleDivergenceOperator =
-    P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, P2ToP1ElementwiseKMass >;
+    P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, DivergenceCompressibleOperator >;
 
 using P2P1StokesFullCompressibleOperator =
     operatorgeneration::detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullOperator,
@@ -436,8 +443,8 @@ class TALASimulation
          }
          else if ( bottomMarker( x ) )
          {
-            // return ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
-            return 1.0;
+            return ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
+            // return 1.0;
          }
          return 0.0;
       };
@@ -446,7 +453,7 @@ class TALASimulation
          // return 0.0;
          // real_t tempDevMax = ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
          // return ( 1 - x[1] ) * tempDevMax +
-         return ( 1 - x[1] ) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
+         return (( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) ) * ( 1 - x[1] )) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
       };
 
       TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
@@ -532,7 +539,7 @@ class TALASimulation
 
       transportOp = std::make_shared< P2TransportTimesteppingOperator >( storage_, minLevel_, maxLevel_, params.diffusivity );
 
-      transportTALAOp = std::make_shared< terraneo::P2TransportOperator >( storage_, minLevel_, maxLevel_ );
+      transportTALAOp = std::make_shared< TransportOperator_T >( storage_, minLevel_, maxLevel_ );
 
       cp->interpolate( 1.0, maxLevel, All );
 
@@ -540,8 +547,8 @@ class TALASimulation
 
       if ( params.compressible )
       {
-         rhoFunc = [=]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
-         gradRhoByRhoP2->component( 1U ).interpolate( params.alpha / params.Di, maxLevel_, All );
+         rhoFunc = [=]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.Di ) / params.alpha; };
+         gradRhoByRhoP2->component( 1U ).interpolate( params.Di / params.alpha, maxLevel_, All );
       }
       else
       {
@@ -557,7 +564,7 @@ class TALASimulation
           std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1U ) );
 
       compressibleDivergenceOperator = std::make_shared< P2VectorToP1ElementwiseCompressibleDivergenceOperator >(
-          storage, minLevel, maxLevel, *gradRhoByRhoY );
+          storage, minLevel, maxLevel, rhoP2->getVertexDoFFunction() );
 
       transportTALAOp->setVelocity( u );
       transportTALAOp->setViscosity( viscP2 );
@@ -582,7 +589,9 @@ class TALASimulation
       shearHeatingTermCoeff->interpolate( params.Di / ( params.Ra * params.cpbar ), maxLevel_, All );
       shearHeatingTermCoeff->multElementwise( { *shearHeatingTermCoeff, *rhoInvP2 }, maxLevel_, All );
 
-      constEnergyCoeff->interpolate( 0.0, maxLevel_, All );
+      constEnergyCoeff->assign( {params.Di * params.Di}, {*TRef}, maxLevel_, All );
+      constEnergyCoeff->multElementwise( { *constEnergyCoeff, *rhoInvP2 }, maxLevel_, All );
+      // constEnergyCoeff->interpolate( 0.0, maxLevel_, All );
       surfTempCoeff->interpolate( 0.0, maxLevel_, All );
 
       TRef->interpolate( TRefFunc, maxLevel_, All );
@@ -604,7 +613,7 @@ class TALASimulation
           { terraneo::TransportOperatorTermKey::DIFFUSION_TERM, true },
           { terraneo::TransportOperatorTermKey::SHEAR_HEATING_TERM, params.shearHeating },
           { terraneo::TransportOperatorTermKey::ADIABATIC_HEATING_TERM, params.adiabaticHeating },
-          { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, false },
+          { terraneo::TransportOperatorTermKey::INTERNAL_HEATING_TERM, true },
           { terraneo::TransportOperatorTermKey::SUPG_STABILISATION, params.SUPG },
       } );
 
@@ -656,11 +665,11 @@ class TALASimulation
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
       transportGmresSolver->setPrintInfo( params.verbose );
 
-      transportTALAGmresSolver = std::make_shared< GMRESSolver< terraneo::P2TransportOperator > >(
+      transportTALAGmresSolver = std::make_shared< GMRESSolver< TransportOperator_T > >(
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
       transportTALAGmresSolver->setPrintInfo( true );
 
-      transportTALAMinresSolver = std::make_shared< MinResSolver< terraneo::P2TransportOperator > >(
+      transportTALAMinresSolver = std::make_shared< MinResSolver< TransportOperator_T > >(
           storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresTol );
       transportTALAMinresSolver->setPrintInfo( params.verbose );
 
@@ -769,7 +778,7 @@ class TALASimulation
 
    std::shared_ptr< P2TransportTimesteppingOperator > transportOp;
 
-   std::shared_ptr< terraneo::P2TransportOperator > transportTALAOp;
+   std::shared_ptr< TransportOperator_T > transportTALAOp;
 
    //    std::shared_ptr< P2P1THCompStokesOperator > compStokesOp;
 
@@ -785,8 +794,9 @@ class TALASimulation
    std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
 
    std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
-   std::shared_ptr< GMRESSolver< terraneo::P2TransportOperator > >   transportTALAGmresSolver;
-   std::shared_ptr< MinResSolver< terraneo::P2TransportOperator > >  transportTALAMinresSolver;
+   std::shared_ptr< GMRESSolver< TransportOperator_T > >   transportTALAGmresSolver;
+   std::shared_ptr< MinResSolver< TransportOperator_T > >  transportTALAMinresSolver;
+   
    // std::shared_ptr< PETScLUSolver< P2TransportTALAOperator > >       transportTALADirectSolver;
 
    ParameterContainer params;
@@ -820,11 +830,11 @@ void TALASimulation< StokesOperatorType >::solveU()
 
    uRhsStrong->uvw().component( 0U ).interpolate( 0.0, maxLevel, All );
    uRhsStrong->uvw().component( 1U ).interpolate( params.Ra * params.alphabar, maxLevel, All );
-   // uRhsStrong->uvw().component( 1U ).multElementwise( { uRhsStrong->uvw().component( 1U ), *rhoP2 }, maxLevel, All );
+   uRhsStrong->uvw().component( 1U ).multElementwise( { uRhsStrong->uvw().component( 1U ), *rhoP2 }, maxLevel, All );
 
-   TRefDev->assign( { 1.0, -1.0 }, { *TDev, *TRef }, maxLevel, All );
-   uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *TRefDev }, maxLevel, All );
-   uRhsStrong->uvw().component( 1 ).multElementwise( { uRhsStrong->uvw().component( 1 ), *TRefDev }, maxLevel, All );
+   TRefDev->assign( { 1.0, 1.0 }, { *TDev, *TRef }, maxLevel, All );
+   uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *TDev }, maxLevel, All );
+   uRhsStrong->uvw().component( 1 ).multElementwise( { uRhsStrong->uvw().component( 1 ), *TDev }, maxLevel, All );
 
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
@@ -846,6 +856,8 @@ void TALASimulation< StokesOperatorType >::solveU()
 
    operatorgeneration::P1ToP2ElementwiseKMass alaOp( storage, minLevel, maxLevel, alaCoeff );
 
+   DivergenceCompressibleOperator frozenVelocityOperator(storage, minLevel, maxLevel, rhoP2->getVertexDoFFunction());
+
    if ( ala )
    {
       alaOp.apply( u->p(), uRhs->uvw().component( 1U ), maxLevel, All, Add );
@@ -853,7 +865,8 @@ void TALASimulation< StokesOperatorType >::solveU()
 
    if ( frv )
    {
-      gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+      frozenVelocityOperator.apply( u->uvw(), uRhs->p(), maxLevel, All );
+      // gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
       uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
    }
 
@@ -868,7 +881,7 @@ void TALASimulation< StokesOperatorType >::solveU()
 
    bool direct = mainConf.getParameter< bool >( "direct" );
 
-   zero->getVertexDoFFunction().interpolate( 1.0, maxLevel, All );
+   // zero->getVertexDoFFunction().interpolate( 1.0, maxLevel, All );
 
    for ( uint_t iStokesPicard = 0U; iStokesPicard < nStokesPicard; iStokesPicard++ )
    {
@@ -891,9 +904,9 @@ void TALASimulation< StokesOperatorType >::solveU()
       }
       // stokesMinresSolverNoFS->solve( *stokesOperator, *u, *uRhs, maxLevel );
 
-      real_t minP = u->p().getMinValue( maxLevel, All );
-      u->p().assign( { 1.0, -minP }, { u->p(), zero->getVertexDoFFunction() }, maxLevel, All );
-      // vertexdof::projectMean( u->p(), maxLevel );
+      // real_t minP = u->p().getMinValue( maxLevel, All );
+      // u->p().assign( { 1.0, -minP }, { u->p(), zero->getVertexDoFFunction() }, maxLevel, All );
+      vertexdof::projectMean( u->p(), maxLevel );
 
       vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
@@ -904,8 +917,12 @@ void TALASimulation< StokesOperatorType >::solveU()
          alaOp.apply( u->p(), uRhs->uvw().component( 1U ), maxLevel, All, Add );
       }
 
-      gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
-      uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+      if ( frv )
+      {
+         frozenVelocityOperator.apply( u->uvw(), uRhs->p(), maxLevel, All );
+         // gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+         uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+      }
 
       stokesOperator->apply( *u, *uTemp, maxLevel, flags );
       uTemp->assign( { 1.0, -1.0 }, { *uTemp, *uRhs }, maxLevel, flags );
@@ -989,7 +1006,7 @@ void TALASimulation< StokesOperatorType >::step()
       operatorgeneration::P2ElementwiseAdvection advectionOperator(
           storage, minLevel, maxLevel, ones, u->uvw().component( 0u ), u->uvw().component( 1u ) );
 
-      Ttemp->assign({1.0}, {*TDev}, maxLevel, All);
+      Ttemp->assign( { 1.0 }, { *TDev }, maxLevel, All );
 
       transportTALAOp->apply( *TDev, *TNusseltOut1, maxLevel, All );
 
@@ -999,8 +1016,8 @@ void TALASimulation< StokesOperatorType >::step()
       TNusseltOut1->assign( { 1.0, -1.0 }, { *TNusseltOut1, *TNusseltOut2 }, maxLevel, All );
       TNusseltOut1->assign( { 1.0 / transportTALAOp->timestep }, { *TNusseltOut1 }, maxLevel, All );
 
-      TDev->assign({1.0}, {*Ttemp}, maxLevel, All);
-      advectionOperator.apply(*TDev, *TNusseltOut1, maxLevel, All, Add);
+      TDev->assign( { 1.0 }, { *Ttemp }, maxLevel, All );
+      // advectionOperator.apply( *TDev, *TNusseltOut1, maxLevel, All, Add );
 
       real_t NusseltNumberCBF = -1.0 * ( TNusseltOut1->sumGlobal( maxLevel, NeumannBoundary ) );
 
@@ -1008,7 +1025,7 @@ void TALASimulation< StokesOperatorType >::step()
       WALBERLA_LOG_INFO_ON_ROOT( "NusseltNumberTopCBF = " << NusseltNumberCBF );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-      TDev->assign({1.0}, {*Ttemp}, maxLevel, All);
+      TDev->assign( { 1.0 }, { *Ttemp }, maxLevel, All );
    }
 
    if ( iTimeStep < params.maxTimeSteps )
@@ -1083,7 +1100,7 @@ void TALASimulation< StokesOperatorType >::solve()
 
       simulationTime += transportTALAOp->timestep;
 
-      TRefDev->assign( { -1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
+      TRefDev->assign( { 1.0, 1.0 }, { *TRef, *TDev }, maxLevel, All );
 
       if ( iTimeStep % params.vtkWriteFrequency == 0 )
       {
@@ -1097,7 +1114,7 @@ void TALASimulation< StokesOperatorType >::solve()
 
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
-         TNusselt->assign( { 1.0 }, { *TDev }, maxLevel, All );
+         TNusselt->assign( { 1.0 }, { *TRefDev }, maxLevel, All );
 
          nusseltOp->apply( *TNusselt, *TNusseltOut, maxLevel, NeumannBoundary );
 
@@ -1109,7 +1126,7 @@ void TALASimulation< StokesOperatorType >::solve()
          real_t nusseltNumberTop_10001_1e_3 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.001, 1e-6, 10001 );
          real_t nusseltNumberTop_10001_1e_4 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.0001, 1e-6, 10001 );
          // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
-         real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
+         real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, uTemp->uvw().component(0u), uTemp->uvw().component(1u), massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
@@ -1121,16 +1138,21 @@ void TALASimulation< StokesOperatorType >::solve()
          WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_10001_1e_4 = " << nusseltNumberTop_10001_1e_4 );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop_101 = %4.7e\nnusseltNumberTop_1001 = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
-             nusseltNumberTopIntegrated,
-             nusseltNumberTop_101,
-             nusseltNumberTop_1001,
-             deltaT,
-             velocityRMSValue,
-             nVelocityDoFs,
-             nTemperatureDoFs,
-             nVelocityDoFs + nTemperatureDoFs ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format("nusseltNumberTopIntegrated = %4.7e", nusseltNumberTopIntegrated ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format("velocityRMSValue           = %4.7e", velocityRMSValue ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+         // WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+         //     "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop_101 = %4.7e\nnusseltNumberTop_1001 = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
+         //     nusseltNumberTopIntegrated,
+         //     nusseltNumberTop_101,
+         //     nusseltNumberTop_1001,
+         //     deltaT,
+         //     velocityRMSValue,
+         //     nVelocityDoFs,
+         //     nTemperatureDoFs,
+         //     nVelocityDoFs + nTemperatureDoFs ) );
       }
 
       if ( storeCheckpoint && iTimeStep % storeCheckpointFreq == 0 )

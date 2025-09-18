@@ -1,7 +1,7 @@
 Parameters
 {
-  nx 12;
-  ny 12;
+  nx 8;
+  ny 8;
 	
   rMin 1.0;
   rMax 2.0;
@@ -36,7 +36,7 @@ Parameters
   ala false;
 
   residualVelocityTolPicard 1e-9;
-  nStokesPicard 4;
+  nStokesPicard 1;
   direct false;
 
   AiniPerturb 0.1;
@@ -54,7 +54,7 @@ Parameters
 
   residualExitTol 1e12;
 
-  frv true;
+  frv false;
   frd false;
 
   MMOC true;
@@ -63,7 +63,7 @@ Parameters
   adiabaticHeating true;
   shearHeating true;
 
-  Direct false;
+  // Direct false;
 
   nCouplingIter 2;
   
@@ -72,7 +72,7 @@ Parameters
   dtMin 1e-12;
   dtMax 1e-1;
   dtRaster 1e-7;
-  cflMax 1.2;
+  cflMax 0.75;
   simulationTime 1e1;
   nonLinIter 1;
   iterPicard 1;
@@ -80,17 +80,17 @@ Parameters
   level 1;
 
   cpPath ./output/gmd_stuff/king/checkpoint;
-  cpFilename KingSquare_TALA_FRV_L5_Ra_1e5_Di_0_5_Continuous.bp;
+  cpFilename KingSquare_TALA_FRV_Adv_Ra_1e4_Di_0_5_Continuous.bp;
   cpStartFilename KingSquare_TALA_FRV_Ra_1e5_Di_0_5_Continuous.bp;
 
   importStep 999999;
 
   outputPath ./output/;
-  outputFilename KingSquareFRV1e5_Part1;
+  outputFilename KingSquareFRV1e5_cfl_0.9_Part1;
   vtkWriteFrequency 50;
   adiosXmlConfig ADIOS2config.xml;
 
   storeCheckpointFreq 101;
-  storeCheckpoint true;
-  startFromCheckpoint true;
+  storeCheckpoint false;
+  startFromCheckpoint false;
 }
