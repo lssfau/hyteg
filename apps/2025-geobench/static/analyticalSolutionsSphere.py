@@ -5,7 +5,7 @@ from math import pi
 mtRes = lambda nTan, maxLevel: 2 * (nTan - 1) * 2 ** (maxLevel)
 
 rMin = 1.22
-rDash = 2.18875
+rDash = 1.704375
 rMax = 2.22
 
 solutionDirichletSmooth2d = assess.CylindricalStokesSolutionSmoothZeroSlip(2, 2)
@@ -27,8 +27,8 @@ solutionBelowFreeZeroslipDelta2d = assess.CylindricalStokesSolutionDeltaFreeZero
 
 #################### 3D ###################
 
-l = 8
-m = 4
+l = 12
+m = 8
 k = 2
 
 solutionDirichletSmooth3d = assess.SphericalStokesSolutionSmoothZeroSlip(l, m, k)

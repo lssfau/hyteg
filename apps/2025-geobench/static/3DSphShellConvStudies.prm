@@ -3,13 +3,13 @@ Parameters
   sphNTan 2;
   sphNRad 2;
 
-  rDash 1.72;
+  rDash 1.704375;
 
   // domain
   minLevel 0;
-  maxLevel 2;
+  maxLevel 4;
 
-  lval 8;
+  lval 15;
 
   tol 1e-6;
   minresIter 20000;

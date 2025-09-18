@@ -1356,7 +1356,7 @@ class StokesFlow3D
 
       MassOperator_T      massOperator( storage, minLevel, maxLevel );
       AdvectionOperator_T advectionOperator(
-          storage, minLevel, maxLevel, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ), 1.0 );
+          storage, minLevel, maxLevel, ones, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ) );
 
       CGSolver< MassOperator_T > cgSolver( storage, minLevel, maxLevel );
       cgSolver.setPrintInfo( true );
@@ -1521,7 +1521,7 @@ class StokesFlow3D
 
          sphInterp.interpolate( callSph, maxLevel, All );
 
-         sphInterp.setBoundaryCondition( bcOuterFSHelper );
+         sphInterp.setBoundaryCondition( bcOuterFSHelper );	
          tempHelper.setBoundaryCondition( bcOuterFSHelper );
 
          tempHelper.assign( { 1.0 }, { *radialStressCBF }, maxLevel, All );
@@ -1529,10 +1529,10 @@ class StokesFlow3D
          real_t surfaceTopographyCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
                                                sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
 
-         tempHelper.assign( { 1.0 }, { *radialStressAnalytical }, maxLevel, All );
+	 tempHelper.assign( { 1.0 }, { *radialStressAnalytical }, maxLevel, All );
 
          real_t surfaceTopographyAnalyticalCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
-                                               sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
+                                               sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );	 
 
          sphInterp.setBoundaryCondition( bcInnerFSHelper );
          tempHelper.setBoundaryCondition( bcInnerFSHelper );
@@ -1548,7 +1548,7 @@ class StokesFlow3D
          WALBERLA_LOG_INFO_ON_ROOT( "surfaceTopographyCoefficient = " << surfaceTopographyCoefficient );
          WALBERLA_LOG_INFO_ON_ROOT( "cmbTopographyCoefficient     = " << cmbTopographyCoefficient );
 
-         WALBERLA_LOG_INFO_ON_ROOT("surfaceTopographyAnalyticalCoefficient = " << surfaceTopographyAnalyticalCoefficient);
+	 WALBERLA_LOG_INFO_ON_ROOT("surfaceTopographyAnalyticalCoefficient = " << surfaceTopographyAnalyticalCoefficient);
          WALBERLA_LOG_INFO_ON_ROOT("cmbTopographyAnalyticalCoefficient     = " << cmbTopographyAnalyticalCoefficient);
 
          std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
