@@ -66,6 +66,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/k_mass/P1ElementwiseKMassP0IcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
@@ -421,7 +422,8 @@ struct ParameterData
 };
 
 using StokesOperatorType = P2P1StokesOpgenRotationWrapper;
-using SchurOperator      = operatorgeneration::P1ElementwiseKMassIcosahedralShellMap;
+// using SchurOperator      = operatorgeneration::P1ElementwiseKMassIcosahedralShellMap;
+using SchurOperator      = operatorgeneration::P1ElementwiseKMassP0IcosahedralShellMap;
 
 class TALASimulation
 {
@@ -967,10 +969,11 @@ class TALASimulation
 
       ABlockCGSolver = std::make_shared< CGSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel, maxLevel );
 
-      schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP1 );
+      // schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP1 );
+      schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscP0 );
       schurSolver =
           std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
-
+          
       inexactUzawaSmoother = std::make_shared<
           InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
           storage, minLevel, maxLevel, *schurOperator, chebyshevSmoother, schurSolver, uzawaOmega, relaxSchur, 1u );
@@ -1179,6 +1182,7 @@ class TALASimulation
    // std::shared_ptr< StokesOperatorFS > stokesOperatorFSSelf;
    std::shared_ptr< StokesOperatorType > stokesOperatorRotationOpgen;
    std::shared_ptr< SchurOperator >      schurOperator;
+   
 
    std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
    std::shared_ptr< P2RotationOperator >      rotationOperator;
@@ -1540,7 +1544,7 @@ void TALASimulation::step()
       MassOperator_T      massOperator( storage, minLevel, maxLevel );
       DiffusionOperator_T diffusionOperator( storage, minLevel, maxLevel );
       AdvectionOperator_T advectionOperator(
-          storage, minLevel, maxLevel, Ones, u->uvw().component( 0u ), u->uvw().component( 1u ), u->uvw().component( 2u ) );
+          storage, minLevel, maxLevel, u->uvw().component( 0u ), u->uvw().component( 1u ), u->uvw().component( 2u ), 1.0 );
 
       TNusselt.assign( { 1.0 }, { *T }, maxLevel, All );
 

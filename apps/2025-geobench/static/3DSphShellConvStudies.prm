@@ -1,33 +1,35 @@
 Parameters
 {
-  sphNTan 5;
-  sphNRad 3;
+  sphNTan 2;
+  sphNRad 2;
 
-  rDash 2.18875;
+  rDash 1.72;
 
   // domain
   minLevel 0;
-  maxLevel 3;
+  maxLevel 2;
+
+  lval 8;
 
   tol 1e-6;
   minresIter 20000;
 
   // Type of forcing
   // If true, uses delta forcing, else smooth forcing
-  delta true;
+  delta false;
 
   // Type of boundary condition
   // ONLY ONE CAN BE SET TRUE
   // Both inner and outer boundary -- freeslip
-  freeslip true;
+  freeslip false;
   // Inner freeslip, Outer no-slip
-  mixed false;
+  mixed true;
 
   fgmresIter 50;
   
   solverType 3;
 
-  cRotPenalty 0.01;
+  cRotPenalty 0.0;
 
   nVCycles 10;
   uzawaOmega 0.1;
@@ -38,5 +40,5 @@ Parameters
 
   outputPath ./output/;
 
-  writeVTK false;
+  writeVTK true;
 }
