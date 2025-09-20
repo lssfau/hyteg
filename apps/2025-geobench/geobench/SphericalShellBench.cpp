@@ -804,6 +804,7 @@ class TALASimulation
           storage, minLevel_, maxLevel_, *TNu, bcNusseltOuter, bcNusseltUidOuter );
 
       viscP0 = std::make_shared< P0Function< real_t > >( "viscP0", storage_, minLevel_, maxLevel_ );
+      viscInvP0 = std::make_shared< P0Function< real_t > >( "viscInvP0", storage_, minLevel_, maxLevel_ );
 
       u         = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "u", storage_, minLevel_, maxLevel_, bcVelocity );
       uTmp      = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uTmp", storage_, minLevel_, maxLevel_, bcVelocity );
@@ -970,10 +971,12 @@ class TALASimulation
       ABlockCGSolver = std::make_shared< CGSolver< StokesOperatorType::VelocityOperator_T > >( storage, minLevel, maxLevel );
 
       // schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP1 );
-      schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscP0 );
+      schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP0 );
       schurSolver =
           std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
-          
+      
+      schurSolver->setPrintInfo( true );
+
       inexactUzawaSmoother = std::make_shared<
           InexactUzawaPreconditioner< StokesOperatorType, typename StokesOperatorType::VelocityOperator_T, SchurOperator > >(
           storage, minLevel, maxLevel, *schurOperator, chebyshevSmoother, schurSolver, uzawaOmega, relaxSchur, 1u );
@@ -1149,7 +1152,7 @@ class TALASimulation
    std::shared_ptr< PrimitiveStorage > storage;
    uint_t                              minLevel, maxLevel;
 
-   std::shared_ptr< P0Function< real_t > > viscP0;
+   std::shared_ptr< P0Function< real_t > > viscP0, viscInvP0;
 
    std::shared_ptr< P2Function< real_t > >             T, Tc, TPrev, TInt, TRhs, TRes, rhoP2, viscP2, TNu, TNuIn, TNuOut, ones;
    std::shared_ptr< P1Function< real_t > >             viscInvP1;
@@ -1330,6 +1333,13 @@ void TALASimulation::solveU()
 
    viscP0->averageFromP1( viscP2->getVertexDoFFunction(), maxLevel );
    viscP0->transferToAllLowerLevels( maxLevel );
+
+   std::function< real_t(const Point3D&, const std::vector< real_t >&) > invHelper = [](const Point3D&, const std::vector< real_t >& vals)
+   {
+      return 1.0 / vals[0];
+   };
+
+   viscInvP0->interpolate(invHelper, {*viscP0}, maxLevel, All);
 
    for ( int level = static_cast< int >( maxLevel ); level >= static_cast< int >( minLevel ); level-- )
    {
