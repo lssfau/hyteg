@@ -1,7 +1,7 @@
 Parameters
 {
-  nx 8;
-  ny 8;
+  nx 4;
+  ny 4;
 	
   rMin 1.0;
   rMax 2.0;
@@ -28,7 +28,7 @@ Parameters
   // ny 4;
 
   minLevel 0;
-  maxLevel 5;
+  maxLevel 4;
 
   readInMinLevel 0;
   readInMaxLevel 4;
@@ -86,7 +86,7 @@ Parameters
   importStep 999999;
 
   outputPath ./output/;
-  outputFilename KingSquareFRV1e5_cfl_0.9_Part1;
+  outputFilename KingSquareFull1e5_cfl_0.9_Part1;
   vtkWriteFrequency 50;
   adiosXmlConfig ADIOS2config.xml;
 

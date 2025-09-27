@@ -325,7 +325,10 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                UpdateType                                   updateType = Replace ) const override
    {
       divergenceOperator_.apply( src, dst, level, flag, updateType );
-      divergenceCompressibleOperator_.apply( src, dst, level, flag, Add );
+      // divergenceCompressibleOperator_.apply( src, dst, level, flag, Add );
+      divergenceCompressibleOperator_.apply( src, tmp_, level, flag );
+
+      dst.assign({1.0, -1.0}, {dst, tmp_}, level, flag);
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -334,8 +337,9 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                   uint_t                                      level,
                   DoFType                                     flag ) const override
    {
-      divergenceOperator_.toMatrix( mat, src, dst, level, flag );
-      divergenceCompressibleOperator_.toMatrix( mat, src, dst, level, flag );
+      WALBERLA_ABORT("Cannot assemble matrix");
+      // divergenceOperator_.toMatrix( mat, src, dst, level, flag );
+      // divergenceCompressibleOperator_.toMatrix( mat, src, dst, level, flag );
    }
 
    P1Function< real_t > tmp_;
@@ -1107,11 +1111,6 @@ void TALASimulation< StokesOperatorType >::solve()
          writeVTK( iTimeStep );
       }
 
-      // if ( residualTransport > residualExitTol )
-      // {
-      //    WALBERLA_ABORT( "Residual is blowing up, so exiting!" );
-      // }
-
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
          TNusselt->assign( { 1.0 }, { *TRefDev }, maxLevel, All );
@@ -1120,39 +1119,18 @@ void TALASimulation< StokesOperatorType >::solve()
 
          real_t nusseltNumberTopIntegrated = -1.0 * ( TNusseltOut->sumGlobal( maxLevel, NeumannBoundary ) );
 
-         real_t deltaT                      = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
-         real_t nusseltNumberTop_101        = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
-         real_t nusseltNumberTop_1001       = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.001, 1e-6, 1001 );
-         real_t nusseltNumberTop_10001_1e_3 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.001, 1e-6, 10001 );
-         real_t nusseltNumberTop_10001_1e_4 = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.0001, 1e-6, 10001 );
-         // real_t nusseltNumberBottom = calculateNusseltNumberBottom2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, uTemp->uvw().component(0u), uTemp->uvw().component(1u), massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
 
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_101        = " << nusseltNumberTop_101 );
-         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_1001       = " << nusseltNumberTop_1001 );
-         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_10001_1e_3 = " << nusseltNumberTop_10001_1e_3 );
-         WALBERLA_LOG_INFO_ON_ROOT( "nusseltNumberTop_10001_1e_4 = " << nusseltNumberTop_10001_1e_4 );
-         WALBERLA_LOG_INFO_ON_ROOT( "" );
-
-         WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format("nusseltNumberTopIntegrated = %4.7e", nusseltNumberTopIntegrated ) );
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format("velocityRMSValue           = %4.7e", velocityRMSValue ) );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-
-         // WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-         //     "nusseltNumberTopIntegrated = %4.7e\nnusseltNumberTop_101 = %4.7e\nnusseltNumberTop_1001 = %4.7e\ndeltaT = %4.7e\nvelocityRMS = %4.7e\nnVelocityDoFs = %u\nnTemperatureDoFs = %u\nnDoFs = %u",
-         //     nusseltNumberTopIntegrated,
-         //     nusseltNumberTop_101,
-         //     nusseltNumberTop_1001,
-         //     deltaT,
-         //     velocityRMSValue,
-         //     nVelocityDoFs,
-         //     nTemperatureDoFs,
-         //     nVelocityDoFs + nTemperatureDoFs ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "nVelocityDoFs    = " << nVelocityDoFs );
+         WALBERLA_LOG_INFO_ON_ROOT( "nTemperatureDoFs = " << nTemperatureDoFs );
+         WALBERLA_LOG_INFO_ON_ROOT( "" );
       }
 
       if ( storeCheckpoint && iTimeStep % storeCheckpointFreq == 0 )
