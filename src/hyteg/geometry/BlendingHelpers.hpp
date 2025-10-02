@@ -66,8 +66,9 @@ inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
                                             real_t                              searchToleranceRadius,
-                                            real_t                              distanceTolerance = real_c( 0 ),
-                                            bool                                returnBestGuess   = false )
+                                            real_t                              distanceTolerance       = real_c( 0 ),
+                                            bool                                returnBestGuess         = false,
+                                            bool                                includeNeighboringFaces = false )
 {
    bool        foundCandidate = false;
    PrimitiveID faceID;
@@ -75,7 +76,15 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 
    real_t lowestTol = std::numeric_limits< real_t >::max();
 
-   for ( const auto& it : storage->getFaces() )
+   auto allFaces = storage->getFaces();
+
+   if ( includeNeighboringFaces )
+   {
+      auto neighborFaces = storage->getNeighborFaces();
+      allFaces.insert( neighborFaces.begin(), neighborFaces.end() );
+   }
+
+   for ( const auto& it : allFaces )
    {
       Face& face = *it.second;
 
@@ -107,7 +116,7 @@ inline std::tuple< bool, PrimitiveID, Point3D >
    // No face found? Try different approach
    if ( searchToleranceRadius > real_c( 0 ) )
    {
-      for ( const auto& it : storage->getFaces() )
+      for ( const auto& it : allFaces )
       {
          Face& face = *it.second;
 
@@ -168,8 +177,9 @@ inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
                                             real_t                              searchToleranceRadius,
-                                            real_t                              distanceTolerance = real_c( 0 ),
-                                            bool                                returnBestGuess   = false )
+                                            real_t                              distanceTolerance       = real_c( 0 ),
+                                            bool                                returnBestGuess         = false,
+                                            bool                                includeNeighboringCells = false )
 {
    bool        foundCandidate = false;
    PrimitiveID cellID;
@@ -177,7 +187,15 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 
    real_t lowestTol = std::numeric_limits< real_t >::max();
 
-   for ( const auto& it : storage->getCells() )
+   auto allCells = storage->getCells();
+
+   if ( includeNeighboringCells )
+   {
+      auto neighborCells = storage->getNeighborCells();
+      allCells.insert( neighborCells.begin(), neighborCells.end() );
+   }
+
+   for ( const auto& it : allCells )
    {
       Cell& cell = *it.second;
 
@@ -210,7 +228,7 @@ inline std::tuple< bool, PrimitiveID, Point3D >
    // No cell found? Try different approach
    if ( searchToleranceRadius > real_c( 0 ) )
    {
-      for ( auto& it : storage->getCells() )
+      for ( auto& it : allCells )
       {
          Cell& cell = *it.second;
 
