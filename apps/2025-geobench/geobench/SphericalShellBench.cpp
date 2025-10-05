@@ -65,11 +65,11 @@
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassP0IcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusionIcosahedralShellMap.hpp"
-#include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 
@@ -423,7 +423,7 @@ struct ParameterData
 
 using StokesOperatorType = P2P1StokesOpgenRotationWrapper;
 // using SchurOperator      = operatorgeneration::P1ElementwiseKMassIcosahedralShellMap;
-using SchurOperator      = operatorgeneration::P1ElementwiseKMassP0IcosahedralShellMap;
+using SchurOperator = operatorgeneration::P1ElementwiseKMassP0IcosahedralShellMap;
 
 class TALASimulation
 {
@@ -803,7 +803,7 @@ class TALASimulation
       nusseltOpOuter = std::make_shared< operatorgeneration::P2ElementwiseRadialGradientSurfaceIcosahedralShellMapOperator >(
           storage, minLevel_, maxLevel_, *TNu, bcNusseltOuter, bcNusseltUidOuter );
 
-      viscP0 = std::make_shared< P0Function< real_t > >( "viscP0", storage_, minLevel_, maxLevel_ );
+      viscP0    = std::make_shared< P0Function< real_t > >( "viscP0", storage_, minLevel_, maxLevel_ );
       viscInvP0 = std::make_shared< P0Function< real_t > >( "viscInvP0", storage_, minLevel_, maxLevel_ );
 
       u         = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "u", storage_, minLevel_, maxLevel_, bcVelocity );
@@ -974,7 +974,7 @@ class TALASimulation
       schurOperator = std::make_shared< SchurOperator >( storage, minLevel, maxLevel, *viscInvP0 );
       schurSolver =
           std::make_shared< CGSolver< SchurOperator > >( storage, minLevel, maxLevel, cgSchurSmootherIter, cgSchurSmootherTol );
-      
+
       schurSolver->setPrintInfo( true );
 
       inexactUzawaSmoother = std::make_shared<
@@ -1040,7 +1040,6 @@ class TALASimulation
                                                                                             2u,
                                                                                             CycleType::VCYCLE );
 
-      uint_t fgmresIterations        = mainConf.getParameter< uint_t >( "fgmresIterations" );
       uint_t fgmresIterationsInitial = mainConf.getParameter< uint_t >( "fgmresIterationsInitial" );
 
       real_t fgmresTolerance = mainConf.getParameter< real_t >( "fgmresTolerance" );
@@ -1185,16 +1184,15 @@ class TALASimulation
    // std::shared_ptr< StokesOperatorFS > stokesOperatorFSSelf;
    std::shared_ptr< StokesOperatorType > stokesOperatorRotationOpgen;
    std::shared_ptr< SchurOperator >      schurOperator;
-   
 
    std::shared_ptr< P2ProjectNormalOperator > projectionOperator;
    std::shared_ptr< P2RotationOperator >      rotationOperator;
    // std::shared_ptr< StokesOperatorFreeSlip >  stokesOperatorFS;
    // std::shared_ptr< CompStokesOperatorFreeSlip > compStokesOperatorFS;
 
-   P2ElementwiseBlendingVectorMassOperator vecMassOperator;
-   P2ElementwiseBlendingMassOperator       massOperator;
-   P1ElementwiseBlendingMassOperator       massOperatorP1;
+   P2ElementwiseBlendingVectorMassOperator                  vecMassOperator;
+   operatorgeneration::P2ElementwiseMassIcosahedralShellMap massOperator;
+   P1ElementwiseBlendingMassOperator                        massOperatorP1;
 
    std::shared_ptr< operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap > gradRhoRhoOpX;
    std::shared_ptr< operatorgeneration::P2ToP1ElementwiseKMassIcosahedralShellMap > gradRhoRhoOpY;
@@ -1334,12 +1332,10 @@ void TALASimulation::solveU()
    viscP0->averageFromP1( viscP2->getVertexDoFFunction(), maxLevel );
    viscP0->transferToAllLowerLevels( maxLevel );
 
-   std::function< real_t(const Point3D&, const std::vector< real_t >&) > invHelper = [](const Point3D&, const std::vector< real_t >& vals)
-   {
-      return 1.0 / vals[0];
-   };
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > invHelper =
+       []( const Point3D&, const std::vector< real_t >& vals ) { return 1.0 / vals[0]; };
 
-   viscInvP0->interpolate(invHelper, {*viscP0}, maxLevel, All);
+   viscInvP0->interpolate( invHelper, { *viscP0 }, maxLevel, All );
 
    for ( int level = static_cast< int >( maxLevel ); level >= static_cast< int >( minLevel ); level-- )
    {
@@ -1539,7 +1535,7 @@ void TALASimulation::step()
       BoundaryCondition bcTemp;
       bcTemp.createAllInnerBC();
 
-      BoundaryUID bcTempUid = bcTemp.createFreeslipBC( "OuterFreeslip", { MeshInfo::flagOuterBoundary } );
+      bcTemp.createFreeslipBC( "OuterFreeslip", { MeshInfo::flagOuterBoundary } );
 
       P2Function< real_t > Ones( "Ones", storage, minLevel, maxLevel, bcTemp );
       P2Function< real_t > TNusselt( "TNusselt", storage, minLevel, maxLevel, bcTemp );
@@ -1547,14 +1543,12 @@ void TALASimulation::step()
 
       Ones.interpolate( 1.0, maxLevel, All );
 
-      using MassOperator_T      = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
       using DiffusionOperator_T = operatorgeneration::P2ElementwiseDiffusionIcosahedralShellMap;
       using AdvectionOperator_T = operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap;
 
-      MassOperator_T      massOperator( storage, minLevel, maxLevel );
       DiffusionOperator_T diffusionOperator( storage, minLevel, maxLevel );
       AdvectionOperator_T advectionOperator(
-          storage, minLevel, maxLevel, u->uvw().component( 0u ), u->uvw().component( 1u ), u->uvw().component( 2u ), 1.0 );
+          storage, minLevel, maxLevel, Ones, u->uvw().component( 0u ), u->uvw().component( 1u ), u->uvw().component( 2u ) );
 
       TNusselt.assign( { 1.0 }, { *T }, maxLevel, All );
 
@@ -1568,8 +1562,8 @@ void TALASimulation::step()
       real_t NusseltNumberCBF = TNusseltOut.sumGlobal( maxLevel, FreeslipBoundary );
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          "CBF_NusseltNumberOuterZhong = " << ( params.rMax * ( params.rMax - params.rMin ) / params.rMin ) *
-                                                  ( NusseltNumberCBF / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) ) );
+          "CBF_NusseltNumberOuter = " << ( params.rMax * ( params.rMax - params.rMin ) / params.rMin ) *
+                                             ( NusseltNumberCBF / ( 4.0 * walberla::math::pi * params.rMax * params.rMax ) ) );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nPicard done!\n" ) );
@@ -1688,8 +1682,8 @@ void TALASimulation::solve()
          WALBERLA_LOG_INFO_ON_ROOT( "Zhong calc:" );
          WALBERLA_LOG_INFO_ON_ROOT( "Nusselt number integrated outer  = " << NusseltOuterZhongCalc );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-		
-	 TNu->copyBoundaryConditionFromFunction( *TNuIn );
+
+         TNu->copyBoundaryConditionFromFunction( *TNuIn );
          ones->copyBoundaryConditionFromFunction( *TNuIn );
 
          TNu->copyBoundaryConditionFromFunction( *TNuIn );

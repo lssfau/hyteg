@@ -46,7 +46,7 @@ Parameters
   freeslip true;
   mixed false;
 
-  rMu 1;
+  rMu 30;
   TRef 0.5;
   
   nPlumes 8;
@@ -95,9 +95,9 @@ Parameters
   cgSmootherIter 10;
   cgSchurSmootherIter 500;
   cgSchurSmootherTol 1e-12;
-  fgmresIterationsInitial 6;
+  fgmresIterationsInitial 0;
   nStepsInitial 25;
-  fgmresIterations 6;
+  fgmresIterations 0;
   fgmresTolerance 1e-4;
 
   uzawaPreSmooth 1;
@@ -141,7 +141,7 @@ Parameters
 
   Direct false;
 
-  maxTimeSteps 2;
+  maxTimeSteps 1;
   dtStart 1e-6;
   dtMin 1e-12;
   dtMax 1e-1;
@@ -162,10 +162,11 @@ Parameters
   adios2CheckpointFreq 100;
 
   modelOutputDir ./output/;
-  modelName rMu30_Part9;
+  modelName rMu30_Part11;
   
-  startCheckpointPath /import/freenas-m-03-geodynamics/pponkumar-25/sphbench/sph128/cubic/Ra1e5/rMu30_Part8/checkpoint/;
-  startCheckpointFilename rMu30_Part8;
+  // startCheckpointPath /import/freenas-m-03-geodynamics/pponkumar-25/sphbench/sph128/cubic/Ra1e5/rMu30_Part8/checkpoint/;
+  startCheckpointPath /home/pponkumar/freenas-storage/sng-data/sphcheckpoint/c3/;
+  startCheckpointFilename rMu30_Part11;
   startFromCheckpoint true;
 
   importStep 99999;

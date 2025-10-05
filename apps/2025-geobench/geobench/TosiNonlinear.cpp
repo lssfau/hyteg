@@ -74,9 +74,6 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
                                                                        const StokesABlockType&        stokesABlockOperator,
                                                                        const StokesSchurOperatorType& schurOperator )
 {
-   uint_t ABlockCoarseIter = 100u;
-   real_t ABlockCoarseTol  = 1e-8;
-
    uint_t ABlockPreSmooth  = 5u;
    uint_t ABlockPostSmooth = 5u;
 
@@ -109,9 +106,6 @@ inline std::shared_ptr< Solver< StokesOperatorType > > fgmresMGSolver( const std
 
    auto ABlockProlongationOperator = std::make_shared< P2toP2QuadraticVectorProlongation >();
    auto ABlockRestrictionOperator  = std::make_shared< P2toP2QuadraticVectorRestriction >();
-
-   // auto ABlockCoarseGridSolver =
-   //     std::make_shared< MinResSolver< StokesABlockType > >( storage, minLevel, maxLevel, ABlockCoarseIter, ABlockCoarseTol );
 
    auto ABlockCoarseGridSolver = std::make_shared< PETScLUSolver< StokesABlockType > >( storage, minLevel );
    ABlockCoarseGridSolver->setReassembleMatrix( true );

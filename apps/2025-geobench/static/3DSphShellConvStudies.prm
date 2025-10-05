@@ -1,12 +1,12 @@
 Parameters
 {
-  sphNTan 2;
-  sphNRad 2;
+  sphNTan 5;
+  sphNRad 3;
 
-  rDash 1.704375;
+  rDash 1.72;
 
   // domain
-  minLevel 0;
+  minLevel 2;
   maxLevel 4;
 
   lval 15;
@@ -25,7 +25,7 @@ Parameters
   // Inner freeslip, Outer no-slip
   mixed true;
 
-  fgmresIter 50;
+  fgmresIter 125;
   
   solverType 3;
 

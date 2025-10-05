@@ -37,11 +37,11 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
 #include "hyteg/operatorgeneration/generated/BoundaryMass/P2ElementwiseBoundaryMassIcosahedralShellMapOperator.hpp"
 #include "hyteg/operatorgeneration/generated/DivergenceRotation/P2VectorToP1DivergenceRotationIcosahedralShellMapOperator.hpp"
 #include "hyteg/operatorgeneration/generated/EpsilonRotation/P2VectorEpsilonRotationIcosahedralShellMapOperator.hpp"
@@ -64,7 +64,6 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockPreconditioners.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-
 #include "hyteg_operators/operators/advection/P2ElementwiseAdvectionIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/mass/P2ElementwiseMassIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
@@ -104,14 +103,12 @@ typedef operatorgeneration::P2P1StokesEpsilonIcosahedralShellMapOperator StokesO
 
 typedef operatorgeneration::P2ElementwiseBoundaryMassIcosahedralShellMapOperator BoundaryMassOperator;
 
-using BoundaryMassElementwiseOperator_T = P2ElementwiseOperator< forms::p2_blending_delta_function_surface_integral >;
-
 typedef hyteg::P2P1TaylorHoodFunction< real_t > StokesFunction;
 typedef hyteg::P2ProjectNormalOperator          ProjectionOperator;
 
-typedef hyteg::P2ElementwiseBlendingMassOperator       MassOperator;
-typedef hyteg::P1ElementwiseBlendingMassOperator       MassOperatorP1;
-typedef hyteg::P2ElementwiseBlendingVectorMassOperator VecMassOperator;
+typedef operatorgeneration::P2ElementwiseMassIcosahedralShellMap MassOperator;
+typedef hyteg::P1ElementwiseBlendingMassOperator                 MassOperatorP1;
+typedef hyteg::P2ElementwiseBlendingVectorMassOperator           VecMassOperator;
 
 typedef hyteg::P2toP2QuadraticProlongation VelocityProlongation;
 typedef hyteg::P2VectorFunction< real_t >  VelocityFunction;
@@ -471,21 +468,21 @@ std::function< real_t( const hyteg::Point3D& ) > flagOuterOnBoundary = []( const
 
 namespace hyteg {
 
-void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
-                            P2VectorFunction< real_t >&        u,
-                            P2VectorFunction< real_t >&        rtheta,
-                            P2Function< real_t >&              temp,
-                            uint_t                             level )
+void removeRotationalModes( MassOperator&               massOperator,
+                            P2VectorFunction< real_t >& u,
+                            P2VectorFunction< real_t >& rtheta,
+                            P2Function< real_t >&       temp,
+                            uint_t                      level )
 {
    if ( temp.getStorage()->hasGlobalCells() )
    {
-      std::function< real_t( const Point3D& ) > rValue = []( const Point3D& x ) {
-         return std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+      std::function< real_t( const Point3D& ) > rSquaredValue = []( const Point3D& x ) {
+         return x[0] * x[0] + x[1] * x[1] + x[2] * x[2];
       };
 
-      rtheta[2].interpolate( rValue, level, All );
+      rtheta[2].interpolate( rSquaredValue, level, All );
       massOperator.apply( rtheta[2], temp, level, All );
-      real_t rSquare = temp.dotGlobal( rtheta[2], level, All );
+      real_t rSquare = temp.sumGlobal( level, All );
 
       /***************************************************************************/
       // Z axis mode
@@ -502,7 +499,7 @@ void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
 
       rtheta[2].assign( { 1.0, 1.0 }, { rtheta[0], rtheta[1] }, level, All );
       massOperator.apply( rtheta[2], temp, level, All );
-      real_t rThetaDotUZ = temp.dotGlobal( rtheta[2], level, All );
+      real_t rThetaDotUZ = temp.sumGlobal( level, All );
 
       rtheta[0].interpolate( zAxisModeX, level, All );
       rtheta[1].interpolate( zAxisModeY, level, All );
@@ -525,7 +522,7 @@ void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
 
       rtheta[0].assign( { 1.0, 1.0 }, { rtheta[1], rtheta[2] }, level, All );
       massOperator.apply( rtheta[0], temp, level, All );
-      real_t rThetaDotUX = temp.dotGlobal( rtheta[0], level, All );
+      real_t rThetaDotUX = temp.sumGlobal( level, All );
 
       rtheta[1].interpolate( xAxisModeX, level, All );
       rtheta[2].interpolate( xAxisModeY, level, All );
@@ -548,7 +545,7 @@ void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
 
       rtheta[1].assign( { 1.0, 1.0 }, { rtheta[2], rtheta[0] }, level, All );
       massOperator.apply( rtheta[1], temp, level, All );
-      real_t rThetaDotUY = temp.dotGlobal( rtheta[1], level, All );
+      real_t rThetaDotUY = temp.sumGlobal( level, All );
 
       rtheta[2].interpolate( yAxisModeX, level, All );
       rtheta[0].interpolate( yAxisModeY, level, All );
@@ -558,13 +555,13 @@ void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
    }
    else
    {
-      std::function< real_t( const Point3D& ) > rValue = []( const Point3D& x ) {
-         return std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+      std::function< real_t( const Point3D& ) > rSquaredValue = []( const Point3D& x ) {
+         return x[0] * x[0] + x[1] * x[1] + x[2] * x[2];
       };
 
-      rtheta[1].interpolate( rValue, level, All );
+      rtheta[1].interpolate( rSquaredValue, level, All );
       massOperator.apply( rtheta[1], temp, level, All );
-      real_t rSquare = temp.dotGlobal( rtheta[1], level, All );
+      real_t rSquare = temp.sumGlobal( level, All );
 
       /***************************************************************************/
       // Z axis mode
@@ -580,7 +577,7 @@ void removeRotationalModes( P2ElementwiseBlendingMassOperator& massOperator,
 
       rtheta[1].assign( { 1.0, 1.0 }, { rtheta[0], rtheta[1] }, level, All );
       massOperator.apply( rtheta[1], temp, level, All );
-      real_t rThetaDotUZ = temp.dotGlobal( rtheta[1], level, All );
+      real_t rThetaDotUZ = temp.sumGlobal( level, All );
 
       rtheta[0].interpolate( zAxisModeX, level, All );
       rtheta[1].interpolate( zAxisModeY, level, All );
@@ -643,23 +640,6 @@ class StokesFlow3D
 
    // VTK output
    std::shared_ptr< OutputWriter_T > vtkOutput;
-
-   // Params for Stokes MG
-   // const uint_t uzawaPreSmooth       = 10;
-   // const uint_t uzawaPostSmooth      = 10;
-   // const uint_t uzawaInnerIterations = 10;
-   // const uint_t innerJacSmooth       = 4;
-   // const real_t jacobiOmega          = real_c( 0.66 );
-   // const real_t uzawaOmega           = real_c( 0.37 );
-
-   // const uint_t coarseStokesIter = 1000U;
-   // const uint_t fineStokesIter   = 1000U;
-
-   // const uint_t outerIterStokes = 3U;
-
-   // const real_t coarseGridTolerance = 1e-8;
-
-   // const bool verbose = true;
 
    const uint_t minLevel;
    const uint_t maxLevel;
@@ -796,7 +776,8 @@ class StokesFlow3D
       fSurfIntOut = std::make_shared< P2Function< real_t > >( "fSurfIntOut", storage, minLevel_, maxLevel_, bcDeltaSurf );
 
       pressureP2 = std::make_shared< P2Function< real_t > >( "pressureP2", storage, minLevel_, maxLevel_ + 1 );
-      pressureAnalyticalP2 = std::make_shared< P2Function< real_t > >( "pressureAnalyticalP2", storage, minLevel_, maxLevel_ + 1 );
+      pressureAnalyticalP2 =
+          std::make_shared< P2Function< real_t > >( "pressureAnalyticalP2", storage, minLevel_, maxLevel_ + 1 );
 
       radialStress    = std::make_shared< P2Function< real_t > >( "radialStress", storage, minLevel_, maxLevel_ + 1 );
       radialStressCBF = std::make_shared< P2Function< real_t > >( "radialStressCBF", storage, minLevel_, maxLevel_ + 1, bcCBF );
@@ -1160,8 +1141,6 @@ class StokesFlow3D
          auto chebyshevSmoother = std::make_shared< ChebyshevSmoother< P2P1StokesOpgenRotationWrapper::VelocityOperator_T > >(
              storage, minLevel, maxLevel );
 
-         uint_t powerIter = 50u;
-
          P2VectorFunction< real_t > uTmp( "uTmp", storage, minLevel, maxLevel );
          P2VectorFunction< real_t > uSpecTmp( "uSpecTmp", storage, minLevel, maxLevel );
 
@@ -1174,18 +1153,9 @@ class StokesFlow3D
          stokesOperatorRotationOpgen->stokesViscousOperator_.computeInverseDiagonalOperatorValues();
 
          real_t spectralRadius = 5.0;
-         // real_t spectralRadius = chebyshev::estimateRadius(
-         //     stokesOperatorRotationOpgen->stokesViscousOperator_, maxLevel, powerIter, storage, uTmp, uSpecTmp );
-
          WALBERLA_LOG_INFO_ON_ROOT( "spectralRadius = " << spectralRadius );
 
          chebyshevSmoother->setupCoefficients( 3u, spectralRadius );
-
-         real_t uzawaOmega = mainConf->getParameter< real_t >( "uzawaOmega" );
-
-         // real_t uzawaRelaxationParameter = estimateUzawaRelaxationParameter(storage, chebyshevSmoother, maxLevel, powerIter, 3u);
-
-         // WALBERLA_LOG_INFO_ON_ROOT( "uzawaRelaxationParameter = " << uzawaRelaxationParameter );
 
          auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
          auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
@@ -1233,8 +1203,6 @@ class StokesFlow3D
          auto   fgmresSolver = std::make_shared< FGMRESSolver< P2P1StokesOpgenRotationWrapper > >(
              storage, minLevel, maxLevel, fgmresIter, 25u, 1e-16, 1e-16, 0.0, blockPreconditioner );
          fgmresSolver->setPrintInfo( true );
-
-         uint_t nVCycles = mainConf->getParameter< uint_t >( "nVCycles" );
 
          rotationOperator.rotate( *f, maxLevel, FreeslipBoundary, false );
          fRotated->assign( { 1.0 }, { *f }, maxLevel, All );
@@ -1335,7 +1303,7 @@ class StokesFlow3D
       // return 0.0;
    }
 
-   void calculateRadialStressError( bool prolongation = false, bool relativeError = false )
+   void calculateRadialStressError()
    {
       BoundaryCondition bcTemp;
       bcTemp.createAllInnerBC();
@@ -1351,14 +1319,12 @@ class StokesFlow3D
 
       ones.interpolate( 1.0, maxLevel, All );
 
-      using MassOperator_T      = operatorgeneration::P2ElementwiseMassIcosahedralShellMap;
       using AdvectionOperator_T = operatorgeneration::P2ElementwiseAdvectionIcosahedralShellMap;
 
-      MassOperator_T      massOperator( storage, minLevel, maxLevel );
       AdvectionOperator_T advectionOperator(
           storage, minLevel, maxLevel, ones, uComponent.component( 0u ), uComponent.component( 1u ), uComponent.component( 2u ) );
 
-      CGSolver< MassOperator_T > cgSolver( storage, minLevel, maxLevel );
+      CGSolver< MassOperator > cgSolver( storage, minLevel, maxLevel );
       cgSolver.setPrintInfo( true );
 
       {
@@ -1414,7 +1380,7 @@ class StokesFlow3D
              return 2.0 * nTgradUn - vals[9];
           };
 
-      P1toP2Conversion(u->p(), *pressureP2, maxLevel, All);
+      P1toP2Conversion( u->p(), *pressureP2, maxLevel, All );
 
       radialStress->interpolate( radialStressHelper,
                                  { dUxdX.component( 0u ),
@@ -1521,7 +1487,7 @@ class StokesFlow3D
 
          sphInterp.interpolate( callSph, maxLevel, All );
 
-         sphInterp.setBoundaryCondition( bcOuterFSHelper );	
+         sphInterp.setBoundaryCondition( bcOuterFSHelper );
          tempHelper.setBoundaryCondition( bcOuterFSHelper );
 
          tempHelper.assign( { 1.0 }, { *radialStressCBF }, maxLevel, All );
@@ -1529,10 +1495,10 @@ class StokesFlow3D
          real_t surfaceTopographyCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
                                                sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
 
-	 tempHelper.assign( { 1.0 }, { *radialStressAnalytical }, maxLevel, All );
+         tempHelper.assign( { 1.0 }, { *radialStressAnalytical }, maxLevel, All );
 
          real_t surfaceTopographyAnalyticalCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
-                                               sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );	 
+                                                         sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
 
          sphInterp.setBoundaryCondition( bcInnerFSHelper );
          tempHelper.setBoundaryCondition( bcInnerFSHelper );
@@ -1543,28 +1509,38 @@ class StokesFlow3D
 
          tempHelper.assign( { 1.0 }, { *radialStressAnalytical }, maxLevel, All );
          real_t cmbTopographyAnalyticalCoefficient = sphInterp.dotGlobal( tempHelper, maxLevel, FreeslipBoundary ) /
-                                           sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
+                                                     sphInterp.dotGlobal( sphInterp, maxLevel, FreeslipBoundary );
 
          WALBERLA_LOG_INFO_ON_ROOT( "surfaceTopographyCoefficient = " << surfaceTopographyCoefficient );
          WALBERLA_LOG_INFO_ON_ROOT( "cmbTopographyCoefficient     = " << cmbTopographyCoefficient );
 
-	 WALBERLA_LOG_INFO_ON_ROOT("surfaceTopographyAnalyticalCoefficient = " << surfaceTopographyAnalyticalCoefficient);
-         WALBERLA_LOG_INFO_ON_ROOT("cmbTopographyAnalyticalCoefficient     = " << cmbTopographyAnalyticalCoefficient);
+         WALBERLA_LOG_INFO_ON_ROOT( "surfaceTopographyAnalyticalCoefficient = " << surfaceTopographyAnalyticalCoefficient );
+         WALBERLA_LOG_INFO_ON_ROOT( "cmbTopographyAnalyticalCoefficient     = " << cmbTopographyAnalyticalCoefficient );
 
          std::string outputPath = std::string( mainConf->getParameter< std::string >( "outputPath" ) );
 
          WALBERLA_ROOT_SECTION()
          {
-            uint_t lval = mainConf->getParameter< uint_t >("lval");
+            uint_t lval = mainConf->getParameter< uint_t >( "lval" );
 
-            std::ofstream fileSurfaceTopography = std::ofstream( walberla::format( "%s/surfaceTopography_l%d.txt", outputPath.c_str(), lval), std::ofstream::app );
-            std::ofstream fileCmbTopography = std::ofstream( walberla::format( "%s/cmbTopography_l%d.txt", outputPath.c_str(), lval), std::ofstream::app );
+            std::ofstream fileSurfaceTopography =
+                std::ofstream( walberla::format( "%s/surfaceTopography_l%d.txt", outputPath.c_str(), lval ), std::ofstream::app );
+            std::ofstream fileCmbTopography =
+                std::ofstream( walberla::format( "%s/cmbTopography_l%d.txt", outputPath.c_str(), lval ), std::ofstream::app );
             // std::ofstream fileCmbTopography = std::ofstream( outputPath + "cmbTopography.txt", std::ofstream::app );
 
             real_t rDash = mainConf->getParameter< real_t >( "rDash" );
 
-            fileSurfaceTopography << walberla::format( "%4.10e, %4.10e, %4.10e", rDash, surfaceTopographyCoefficient, surfaceTopographyAnalyticalCoefficient ) << std::endl;
-            fileCmbTopography << walberla::format( "%4.10e, %4.10e, %4.10e", rDash, cmbTopographyCoefficient, cmbTopographyAnalyticalCoefficient ) << std::endl;
+            fileSurfaceTopography << walberla::format( "%4.10e, %4.10e, %4.10e",
+                                                       rDash,
+                                                       surfaceTopographyCoefficient,
+                                                       surfaceTopographyAnalyticalCoefficient )
+                                  << std::endl;
+            fileCmbTopography << walberla::format( "%4.10e, %4.10e, %4.10e",
+                                                   rDash,
+                                                   cmbTopographyCoefficient,
+                                                   cmbTopographyAnalyticalCoefficient )
+                              << std::endl;
          }
       }
 
@@ -1590,7 +1566,8 @@ class StokesFlow3D
       radialStressErr->assign( { 1.0, -1.0 }, { *radialStress, *radialStressAnalytical }, maxLevel, FreeslipBoundary );
       boundaryMassOperator.apply( *radialStressErr, uGradientL2Projection, maxLevel, FreeslipBoundary );
 
-      real_t radialStressErrFSBoundaryMassL2 = std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
+      real_t radialStressErrFSBoundaryMassL2 =
+          std::sqrt( radialStressErr->dotGlobal( uGradientL2Projection, maxLevel, FreeslipBoundary ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "radialStressErrFSBoundaryMassL2 = " << radialStressErrFSBoundaryMassL2 );
    }
@@ -1658,11 +1635,8 @@ int main( int argc, char* argv[] )
    // const real_t rMin = walberla::math::pi, rMax = 2 * walberla::math::pi;
    const real_t rMin = 1.22, rMax = 2.22;
    uint_t       nTan = mainConf->getParameter< uint_t >( "sphNTan" );
-   uint_t       nRad = mainConf->getParameter< uint_t >( "sphNRad" );
 
    const real_t rDash = mainConf->getParameter< real_t >( "rDash" );
-
-   const real_t rMean = ( rMin + rMax ) / 2.0;
 
    hyteg::MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
@@ -1679,8 +1653,7 @@ int main( int argc, char* argv[] )
    //    meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rMean, (rMax + rMean) / 2.0, rMax} );
    // }
 
-   meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, {rMin, rDash, rMax} );
-   // hyteg::MeshInfo::meshSphericalShell( nTan, nRad, rMin, rMax, hyteg::MeshInfo::SHELLMESH_ON_THE_FLY );
+   meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, { rMin, rDash, rMax } );
 
    auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -1716,7 +1689,7 @@ int main( int argc, char* argv[] )
    std::array< real_t, 2U > errorU = problem.calculateErrorU( true );
    real_t                   errorP = problem.calculateErrorP( true );
 
-   problem.calculateRadialStressError( true );
+   problem.calculateRadialStressError();
 
    if ( mainConf->getParameter< bool >( "writeVTK" ) )
       problem.writeVTK();

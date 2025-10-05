@@ -28,7 +28,7 @@ Parameters
   rMu 1;
   TRef 0.5;
 
-  maxLevel 3;
+  maxLevel 5;
   minLevel 2;
 
   verbose true;
@@ -53,7 +53,7 @@ Parameters
   uzawaPostSmooth 1;
 
   fgmresIterations 5;
-  fgmresRestartIter 2;
+  fgmresRestartIter 3;
   
   logFilename test.out;
   timingTreeFilename test.json;

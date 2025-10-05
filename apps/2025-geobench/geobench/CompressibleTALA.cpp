@@ -328,7 +328,7 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
       // divergenceCompressibleOperator_.apply( src, dst, level, flag, Add );
       divergenceCompressibleOperator_.apply( src, tmp_, level, flag );
 
-      dst.assign({1.0, -1.0}, {dst, tmp_}, level, flag);
+      dst.assign( { 1.0, -1.0 }, { dst, tmp_ }, level, flag );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -337,7 +337,13 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
                   uint_t                                      level,
                   DoFType                                     flag ) const override
    {
-      WALBERLA_ABORT("Cannot assemble matrix");
+      WALBERLA_UNUSED( mat );
+      WALBERLA_UNUSED( src );
+      WALBERLA_UNUSED( dst );
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+
+      WALBERLA_ABORT( "Cannot assemble matrix" );
       // divergenceOperator_.toMatrix( mat, src, dst, level, flag );
       // divergenceCompressibleOperator_.toMatrix( mat, src, dst, level, flag );
    }
@@ -352,7 +358,9 @@ class P2VectorToP1ElementwiseCompressibleDivergenceTemplate : public Operator< P
 //     P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, P2ToP1ElementwiseKMass >;
 
 using P2VectorToP1ElementwiseCompressibleDivergenceOperator =
-    P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >, DivergenceOperator, DivergenceCompressibleOperator >;
+    P2VectorToP1ElementwiseCompressibleDivergenceTemplate< P1Function< real_t >,
+                                                           DivergenceOperator,
+                                                           DivergenceCompressibleOperator >;
 
 using P2P1StokesFullCompressibleOperator =
     operatorgeneration::detail::P2P1StokesVarViscOperatorTemplate< operatorgeneration::P2ViscousBlockFullOperator,
@@ -457,7 +465,8 @@ class TALASimulation
          // return 0.0;
          // real_t tempDevMax = ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) );
          // return ( 1 - x[1] ) * tempDevMax +
-         return (( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) ) * ( 1 - x[1] )) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
+         return ( ( 1.0 - params.T0 * ( std::exp( params.Di ) - 1.0 ) ) * ( 1 - x[1] ) ) +
+                params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
       };
 
       TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
@@ -593,7 +602,7 @@ class TALASimulation
       shearHeatingTermCoeff->interpolate( params.Di / ( params.Ra * params.cpbar ), maxLevel_, All );
       shearHeatingTermCoeff->multElementwise( { *shearHeatingTermCoeff, *rhoInvP2 }, maxLevel_, All );
 
-      constEnergyCoeff->assign( {params.Di * params.Di}, {*TRef}, maxLevel_, All );
+      constEnergyCoeff->assign( { params.Di * params.Di }, { *TRef }, maxLevel_, All );
       constEnergyCoeff->multElementwise( { *constEnergyCoeff, *rhoInvP2 }, maxLevel_, All );
       // constEnergyCoeff->interpolate( 0.0, maxLevel_, All );
       surfTempCoeff->interpolate( 0.0, maxLevel_, All );
@@ -798,9 +807,9 @@ class TALASimulation
    std::shared_ptr< MinResSolver< P2TransportTimesteppingOperator > > transportMinresSolver;
 
    std::shared_ptr< GMRESSolver< P2TransportTimesteppingOperator > > transportGmresSolver;
-   std::shared_ptr< GMRESSolver< TransportOperator_T > >   transportTALAGmresSolver;
-   std::shared_ptr< MinResSolver< TransportOperator_T > >  transportTALAMinresSolver;
-   
+   std::shared_ptr< GMRESSolver< TransportOperator_T > >             transportTALAGmresSolver;
+   std::shared_ptr< MinResSolver< TransportOperator_T > >            transportTALAMinresSolver;
+
    // std::shared_ptr< PETScLUSolver< P2TransportTALAOperator > >       transportTALADirectSolver;
 
    ParameterContainer params;
@@ -860,7 +869,7 @@ void TALASimulation< StokesOperatorType >::solveU()
 
    operatorgeneration::P1ToP2ElementwiseKMass alaOp( storage, minLevel, maxLevel, alaCoeff );
 
-   DivergenceCompressibleOperator frozenVelocityOperator(storage, minLevel, maxLevel, rhoP2->getVertexDoFFunction());
+   DivergenceCompressibleOperator frozenVelocityOperator( storage, minLevel, maxLevel, rhoP2->getVertexDoFFunction() );
 
    if ( ala )
    {
@@ -1119,14 +1128,15 @@ void TALASimulation< StokesOperatorType >::solve()
 
          real_t nusseltNumberTopIntegrated = -1.0 * ( TNusseltOut->sumGlobal( maxLevel, NeumannBoundary ) );
 
-         real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, uTemp->uvw().component(0u), uTemp->uvw().component(1u), massOperator, 1, 1, maxLevel );
+         real_t velocityRMSValue = nusseltcalc::velocityRMS(
+             *u, uTemp->uvw().component( 0u ), uTemp->uvw().component( 1u ), massOperator, 1, 1, maxLevel );
 
          uint_t nVelocityDoFs    = numberOfGlobalDoFs( *u, maxLevel );
          uint_t nTemperatureDoFs = numberOfGlobalDoFs( *TDev, maxLevel );
 
          WALBERLA_LOG_INFO_ON_ROOT( "" );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format("nusseltNumberTopIntegrated = %4.7e", nusseltNumberTopIntegrated ) );
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format("velocityRMSValue           = %4.7e", velocityRMSValue ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "nusseltNumberTopIntegrated = %4.7e", nusseltNumberTopIntegrated ) );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "velocityRMSValue           = %4.7e", velocityRMSValue ) );
          WALBERLA_LOG_INFO_ON_ROOT( "" );
          WALBERLA_LOG_INFO_ON_ROOT( "nVelocityDoFs    = " << nVelocityDoFs );
          WALBERLA_LOG_INFO_ON_ROOT( "nTemperatureDoFs = " << nTemperatureDoFs );
