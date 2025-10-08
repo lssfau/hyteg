@@ -10,3 +10,6 @@ This folder contains the code used to produce benchmark results. The codes are s
 
 * `scalability`
     - Contains a simple app which runs the FGMRES solver for the Stoke system and computes the runtime
+
+* `plotting`
+    - Contains python notebook and data required to create the plots related to the GMD paper

@@ -54,7 +54,7 @@ Parameters
 
   residualExitTol 1e12;
 
-  frv false;
+  frv true;
   frd false;
 
   MMOC true;
