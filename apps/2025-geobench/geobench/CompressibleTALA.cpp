@@ -880,7 +880,7 @@ void TALASimulation< StokesOperatorType >::solveU()
    {
       frozenVelocityOperator.apply( u->uvw(), uRhs->p(), maxLevel, All );
       // gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
-      uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+      // uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
    }
 
    // u->uvw().interpolate( { bcVelocityX, bcVelocityY }, maxLevel, DirichletBoundary );
@@ -934,7 +934,7 @@ void TALASimulation< StokesOperatorType >::solveU()
       {
          frozenVelocityOperator.apply( u->uvw(), uRhs->p(), maxLevel, All );
          // gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
-         uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
+         // uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
       }
 
       stokesOperator->apply( *u, *uTemp, maxLevel, flags );
