@@ -1340,10 +1340,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    std::vector< std::shared_ptr< LSQ > > lsq_interface_; // lsq for interface primitives (faces in 3d / edges in 2d)
    uint_t                                downsampling_;
 
-   // precomputed stencils for vertices and edges (3d)
+   // precomputed irregular stencils (vertices in 2D, vertices and edges in 3D
    VarStencilMap stencil_vtx_;
    VarStencilMap stencil_edge_3d_;
-   // precomputed stencils for level 1-3
+   // precomputed regular stencils for level 1-3
    StencilMap< 2 > stencil_edge_2d_;
    StencilMap< 2 > stencil_face_2d_;
    StencilMap< 3 > stencil_face_3d_;
