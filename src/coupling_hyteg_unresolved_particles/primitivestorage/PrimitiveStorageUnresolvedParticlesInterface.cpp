@@ -43,31 +43,25 @@ bool PrimitiveStorageUnresolvedParticlesInterface::isContainedInProcessSubdomain
 int PrimitiveStorageUnresolvedParticlesInterface::findContainingProcessRank( const Vec3& pt ) const
 {
    std::set< int > containingProcessRanks;
+
+   const Point3D                            pointOfInterest( pt[0], pt[1], pt[2] );
+   std::tuple< bool, PrimitiveID, Point3D > target{};
    if ( !primitiveStorage_->hasGlobalCells() )
    {
-      Point3D    pointOfInterest( pt[0], pt[1], pt[2] );
-      const auto target      = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
-      const auto coordExists = std::get< 0 >( target );
-      const auto id          = std::get< 1 >( target );
-      const auto computationalCoords = std::get< 2 >( target );
-
-      if ( coordExists )
-      {
-         containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( id ) ) );
-      }
+      target = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
    }
    else
    {
-      Point3D    pointOfInterest( pt[0], pt[1], pt[2] );
-      const auto target      = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
-      const auto coordExists = std::get< 0 >( target );
-      const auto id          = std::get< 1 >( target );
-      const auto computationalCoords = std::get< 2 >( target );
+      target = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
+   }
 
-      if ( coordExists )
-      {
-         containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( id ) ) );
-      }
+   const auto [coordExists, id, computationalCoords] = target;
+
+   WALBERLA_UNUSED( computationalCoords );
+
+   if ( coordExists )
+   {
+      containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( id ) ) );
    }
 
    if ( containingProcessRanks.empty() )
@@ -103,26 +97,29 @@ bool PrimitiveStorageUnresolvedParticlesInterface::intersectsWithProcessSubdomai
       return false;
    }
 
+   const Point3D                            pointOfInterest( pt[0], pt[1], pt[2] );
+   std::tuple< bool, PrimitiveID, Point3D > target{};
+
    if ( !primitiveStorage_->hasGlobalCells() )
    {
-      Point3D    pointOfInterest( pt[0], pt[1], pt[2] );
-      const auto target              = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, radius );
-      const auto coordExists         = std::get< 0 >( target );
-      const auto id                  = std::get< 1 >( target );
-      const auto computationalCoords = std::get< 2 >( target );
+      target = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, radius );
+   }
+   else
+   {
+      target = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, radius );
+   }
 
+   const auto [coordExists, id, computationalCoords] = target;
+
+   if ( !primitiveStorage_->hasGlobalCells() )
+   {
       return coordExists && primitiveStorage_->faceExistsLocally( id );
    }
    else
    {
-      Point3D    pointOfInterest( pt[0], pt[1], pt[2] );
-      const auto target              = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, radius );
-      const auto coordExists         = std::get< 0 >( target );
-      const auto id                  = std::get< 1 >( target );
-      const auto computationalCoords = std::get< 2 >( target );
-
       return coordExists && primitiveStorage_->cellExistsLocally( id );
    }
+
    return false;
 }
 

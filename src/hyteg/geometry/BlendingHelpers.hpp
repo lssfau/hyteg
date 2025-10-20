@@ -62,6 +62,10 @@ using walberla::real_t;
 ///   3. If approach #2 fails and returnBestGuess is true, the face & respective computational domain point
 ///      fulfilling the verifyPointPairing() check with the smallest point face distance are returned,
 ///      provided we found one in step 1.
+///
+/// Additionally, if includeNeighboringFaces is true, then we do not only look for a process-local primitive, but also
+/// search in the set of neighboring primitives.
+///
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain2D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
@@ -173,6 +177,10 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 ///   3. If approach #2 fails and returnBestGuess is true, the cell & respective computational domain point
 ///      fulfilling the verifyPointPairing() check with the smallest point cell distance are returned,
 ///      provided we found one in step 1.
+///
+/// Additionally, if includeNeighboringFaces is true, then we do not only look for a process-local primitive, but also
+/// search in the set of neighboring primitives.
+///
 inline std::tuple< bool, PrimitiveID, Point3D >
     mapFromPhysicalToComputationalDomain3D( std::shared_ptr< PrimitiveStorage > storage,
                                             const Point3D&                      physicalCoords,
