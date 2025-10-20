@@ -178,7 +178,7 @@ inline std::tuple< bool, PrimitiveID, Point3D >
 ///      fulfilling the verifyPointPairing() check with the smallest point cell distance are returned,
 ///      provided we found one in step 1.
 ///
-/// Additionally, if includeNeighboringFaces is true, then we do not only look for a process-local primitive, but also
+/// Additionally, if includeNeighboringCells is true, then we do not only look for a process-local primitive, but also
 /// search in the set of neighboring primitives.
 ///
 inline std::tuple< bool, PrimitiveID, Point3D >
