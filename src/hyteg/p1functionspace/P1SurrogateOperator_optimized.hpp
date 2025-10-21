@@ -457,7 +457,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // compute local stiffness matrices and add contributions to stencil
             Matrixr< 1, 3 > matrixRow;
-            auto&           stencil = stencils[i];
+            auto&           stencil = stencils[i - 1];
             form_.integrateRow( 0, { { x, x + d[p1::stencil::W], x + d[p1::stencil::S] } }, matrixRow );
             stencil[p1::stencil::C] = real_t( matrixRow( 0, 0 ) );
             stencil[p1::stencil::W] = real_t( matrixRow( 0, 1 ) );
@@ -476,11 +476,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::E] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::N] = real_t( matrixRow( 0, 2 ) );
-               form_.integrateRow( 0, { { x, x + d[p1::stencil::N], x + d[p1::stencil::NW] } }, matrixRow );
+               form_N.integrateRow( 0, { { x, x + d[p1::stencil::N], x + d[p1::stencil::NW] } }, matrixRow );
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::N] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::NW] = real_t( matrixRow( 0, 2 ) );
-               form_.integrateRow( 0, { { x, x + d[p1::stencil::NW], x + d[p1::stencil::W] } }, matrixRow );
+               form_N.integrateRow( 0, { { x, x + d[p1::stencil::NW], x + d[p1::stencil::W] } }, matrixRow );
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::NW] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::W] += real_t( matrixRow( 0, 2 ) );

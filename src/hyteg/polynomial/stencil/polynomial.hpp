@@ -92,7 +92,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
     * Usage: `p.fix_z(z);` `p.fix_y(y);` `p.eval(x);`
     *
     * @param x The x-coordinate.
-    * @return p|_zy(x)
     */
    inline void eval( const real_t x ) const
    {
@@ -118,6 +117,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       }
    }
 
+   // return the result of last call of eval(x)
    inline const Stencil<>& px() const
    {
       if constexpr ( DIM_primitive == 1 )
