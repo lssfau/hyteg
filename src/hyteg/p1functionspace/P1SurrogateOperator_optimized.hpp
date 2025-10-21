@@ -1194,6 +1194,21 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       // todo
    }
 
+   void apply_face_precomputed_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
+   void apply_face_precomputed_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
+   void apply_cell_precomputed_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
    void apply_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
       const auto n           = levelinfo::num_microvertices_per_edge( lvl );
@@ -1231,6 +1246,22 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          }
       }
    }
+
+   void apply_face_surrogate_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
+   void apply_face_surrogate_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
+   void apply_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
    //! todo remove everything from here ========>
 
    /* interpolate polynomials
