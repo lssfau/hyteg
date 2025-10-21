@@ -77,6 +77,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    // container for surrogate stencils. usage: map[id][lvl] -> poly-stencil approximating the stencil of el_id on lvl
    template < uint8_t DIM_domain, uint8_t DIM_primitive >
    using PolyStencilMap = surrogate::ElementWiseData< PolyStencil< DIM_domain, DIM_primitive > >;
+   // data structure for DoF indices
+   using DofIdx = p1::stencil::StencilData< 3, walberla::uint_t >;
 
  public:
    P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -217,7 +219,82 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const override final
    {
-      //todo
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
+      this->startTiming( "Apply" );
+      src.template communicate< Vertex, Edge >( level );
+      src.template communicate< Edge, Face >( level );
+      src.template communicate< Face, Cell >( level );
+
+      src.template communicate< Cell, Face >( level );
+      src.template communicate< Face, Edge >( level );
+      src.template communicate< Edge, Vertex >( level );
+
+      const int dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
+
+      this->timingTree_->start( "Macro-Vertex" );
+
+      for ( const auto& [vtxId, vtx] : storage_->getVertices() )
+      {
+         const auto bc = dst.getBoundaryCondition().getBoundaryType( vtx->getMeshBoundaryFlag() );
+
+         if ( testFlag( bc, flag ) )
+         {
+            auto        srcData = vtx->getData( src.getVertexDataID() )->getPointer( level );
+            auto        dstData = vtx->getData( dst.getVertexDataID() )->getPointer( level );
+            const auto& stencil = stencil_vtx_.at( vtxId )[level][0];
+
+            if ( updateType == Replace )
+            {
+               dstData[0] = real_c( 0 );
+            } // else updateType == Add
+
+            for ( uint_t i = 0; i < stencil.size(); ++i )
+            {
+               dstData[0] += stencil[i] * srcData[i];
+            }
+         }
+      }
+
+      this->timingTree_->stop( "Macro-Vertex" );
+
+      this->timingTree_->start( "Macro-Edge" );
+
+      if ( level >= 1 )
+      {
+         for ( const auto& [edgeId, edge] : storage_->getEdges() )
+         {
+            const auto bc = dst.getBoundaryCondition().getBoundaryType( edge->getMeshBoundaryFlag() );
+
+            if ( testFlag( bc, flag ) )
+            {
+               auto srcData = edge->getData( src.getEdgeDataID() )->getPointer( level );
+               auto dstData = edge->getData( dst.getEdgeDataID() )->getPointer( level );
+
+               if ( dim == 2 )
+               {
+                  if ( level < min_lvl_for_surrogate )
+                  {
+                     apply_edge_precomputed_2d( edge, level, srcData, dstData );
+                  }
+                  else
+                  {
+                     apply_edge_surrogate_2d( edge, level, srcData, dstData );
+                  }
+               }
+               else // dim == 3
+               {
+                  apply_edge_precomputed_3d( edge, level, srcData, dstData );
+               }
+            }
+         }
+      }
+
+      this->timingTree_->stop( "Macro-Edge" );
+
+      // todo
+
+      this->stopTiming( "Apply" );
    }
 
    void smooth_gs( const P1Function< real_t >& dst,
@@ -1012,6 +1089,82 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       }
    }
 
+   void apply_edge_precomputed_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+      const auto n_nbr_faces = edge->getNumNeighborFaces();
+      const auto stencilSize = ( ( n_nbr_faces == 2 ) ? p1::stencil::SE : p1::stencil::N ) + 1;
+
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         dofIdx[d] = vertexdof::macroedge::indexFromVertex( lvl, 1, p1::stencil::backConversion[d] );
+      }
+
+      const auto& stencils = stencil_edge_2d_.at( edge->getID() )[lvl];
+
+      // loop over inner vertices on the macro edge
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         const auto& stencil = stencils[i - 1];
+
+         if ( updateType == Replace )
+         {
+            dstData[i] = real_c( 0 );
+         } // else updateType == Add
+
+         // apply stencil
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dstData[i] += stencil[d] * srcData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+      }
+   }
+
+   void apply_edge_precomputed_3d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      // todo
+   }
+
+   void apply_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
+   {
+      const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+      const auto n_nbr_faces = edge->getNumNeighborFaces();
+      const auto stencilSize = ( ( n_nbr_faces == 2 ) ? p1::stencil::SE : p1::stencil::N ) + 1;
+
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         dofIdx[d] = vertexdof::macroedge::indexFromVertex( lvl, 1, p1::stencil::backConversion[d] );
+      }
+
+      const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
+      const PolyDomain           X( level );
+
+      // loop over inner vertices on the macro edge
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         // evaluate polynomial
+         const auto x = X[i];
+         surrogate.eval( x );
+         const auto& stencil = surrogate.px();
+
+         if ( updateType == Replace )
+         {
+            dstData[i] = real_c( 0 );
+         } // else updateType == Add
+
+         // apply stencil
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dstData[i] += stencils[i - 1][d] * srcData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+      }
+   }
    //! todo remove everything from here ========>
 
    /* interpolate polynomials
