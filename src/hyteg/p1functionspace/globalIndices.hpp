@@ -115,18 +115,18 @@ enum Dir
    C,
    W,
    E,
-   N,
    S,
-   NW,
    SE,
+   NW,
+   N,
    TC,
    TW,
    TS,
    TSE,
    BC,
-   BN,
    BE,
-   BNW
+   BNW,
+   BN
 };
 
 // convert stencilDirection to stencil::Dir
@@ -140,14 +140,14 @@ static constexpr Dir conversion( stencilDirection sd )
       return Dir::W;
    case stencilDirection::VERTEX_E:
       return Dir::E;
-   case stencilDirection::VERTEX_N:
-      return Dir::N;
    case stencilDirection::VERTEX_S:
       return Dir::S;
-   case stencilDirection::VERTEX_NW:
-      return Dir::NW;
    case stencilDirection::VERTEX_SE:
       return Dir::SE;
+   case stencilDirection::VERTEX_NW:
+      return Dir::NW;
+   case stencilDirection::VERTEX_N:
+      return Dir::N;
    case stencilDirection::VERTEX_TC:
       return Dir::TC;
    case stencilDirection::VERTEX_TW:
@@ -158,12 +158,12 @@ static constexpr Dir conversion( stencilDirection sd )
       return Dir::TSE;
    case stencilDirection::VERTEX_BC:
       return Dir::BC;
-   case stencilDirection::VERTEX_BN:
-      return Dir::BN;
    case stencilDirection::VERTEX_BE:
       return Dir::BE;
    case stencilDirection::VERTEX_BNW:
       return Dir::BNW;
+   case stencilDirection::VERTEX_BN:
+      return Dir::BN;
    default:
       return Dir::C;
    }
@@ -174,36 +174,36 @@ static constexpr StencilData< 3, stencilDirection > backConversion = {
     stencilDirection::VERTEX_C,
     stencilDirection::VERTEX_W,
     stencilDirection::VERTEX_E,
-    stencilDirection::VERTEX_N,
     stencilDirection::VERTEX_S,
-    stencilDirection::VERTEX_NW,
     stencilDirection::VERTEX_SE,
+    stencilDirection::VERTEX_NW,
+    stencilDirection::VERTEX_N,
     stencilDirection::VERTEX_TC,
     stencilDirection::VERTEX_TW,
     stencilDirection::VERTEX_TS,
     stencilDirection::VERTEX_TSE,
     stencilDirection::VERTEX_BC,
-    stencilDirection::VERTEX_BN,
     stencilDirection::VERTEX_BE,
-    stencilDirection::VERTEX_BNW //
+    stencilDirection::VERTEX_BNW,
+    stencilDirection::VERTEX_BN //
 };
 
 static const StencilData< 3, indexing::Index > offset = {
-    indexing::Index{ 0, 0, 0 },  // C
-    indexing::Index{ -1, 0, 0 }, // W
-    indexing::Index{ 1, 0, 0 },  // E
-    indexing::Index{ 0, 1, 0 },  // N
-    indexing::Index{ 0, -1, 0 }, // S
-    indexing::Index{ -1, 1, 0 }, // NW
-    indexing::Index{ 1, -1, 0 }, // SE
-    indexing::Index{ 0, 0, 1 },  // TC
-    indexing::Index{ -1, 0, 1 }, // TW
-    indexing::Index{ 0, -1, 1 }, // TS
-    indexing::Index{ 1, -1, 1 }, // TSE
-    indexing::Index{ 0, 0, -1 }, // BC
-    indexing::Index{ 0, 1, -1 }, // BN
-    indexing::Index{ 1, 0, -1 }, // BE
-    indexing::Index{ -1, 1, -1 } // BNW
+    indexing::Index{ 0, 0, 0 },   // C
+    indexing::Index{ -1, 0, 0 },  // W
+    indexing::Index{ 1, 0, 0 },   // E
+    indexing::Index{ 0, -1, 0 },  // S
+    indexing::Index{ 1, -1, 0 },  // SE
+    indexing::Index{ -1, 1, 0 },  // NW
+    indexing::Index{ 0, 1, 0 },   // N
+    indexing::Index{ 0, 0, 1 },   // TC
+    indexing::Index{ -1, 0, 1 },  // TW
+    indexing::Index{ 0, -1, 1 },  // TS
+    indexing::Index{ 1, -1, 1 },  // TSE
+    indexing::Index{ 0, 0, -1 },  // BC
+    indexing::Index{ 1, 0, -1 },  // BE
+    indexing::Index{ -1, 1, -1 }, // BNW
+    indexing::Index{ 0, 1, -1 }   // BN
 };
 
 // get global indices of adjacent vertices
@@ -217,11 +217,11 @@ static void getGlobalIndices( const uint_t& level, const indexing::Index& vtx, S
       const auto& d = offset[k];
       if constexpr ( DIM == 2 )
       {
-         globalDofIndices[C] = indexing::macroFaceIndex( n, vtx.x() + d.x(), vtx.y() + d.y() );
+         globalDofIndices[k] = indexing::macroFaceIndex( n, vtx.x() + d.x(), vtx.y() + d.y() );
       }
       else
       {
-         globalDofIndices[C] = indexing::macroCellIndex( n, vtx.x() + d.x(), vtx.y() + d.y(), vtx.z() + d.z() );
+         globalDofIndices[k] = indexing::macroCellIndex( n, vtx.x() + d.x(), vtx.y() + d.y(), vtx.z() + d.z() );
       }
    }
 }
