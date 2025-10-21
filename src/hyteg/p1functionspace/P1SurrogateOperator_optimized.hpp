@@ -292,7 +292,73 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       this->timingTree_->stop( "Macro-Edge" );
 
-      // todo
+      this->timingTree_->start( "Macro-Face" );
+
+      if ( level >= 2 )
+      {
+         for ( const auto& [faceId, face] : storage_->getFaces() )
+         {
+            const auto bc = dst.getBoundaryCondition().getBoundaryType( face->getMeshBoundaryFlag() );
+
+            if ( testFlag( bc, flag ) )
+            {
+               auto srcData = face->getData( src.getFaceDataID() )->getPointer( level );
+               auto dstData = face->getData( dst.getFaceDataID() )->getPointer( level );
+
+               if ( dim == 2 )
+               {
+                  if ( level < min_lvl_for_surrogate )
+                  {
+                     apply_face_precomputed_2d( face, level, srcData, dstData );
+                  }
+                  else
+                  {
+                     apply_face_surrogate_2d( face, level, srcData, dstData );
+                  }
+               }
+               else // dim == 3
+               {
+                  if ( level < min_lvl_for_surrogate )
+                  {
+                     apply_face_precomputed_3d( face, level, srcData, dstData );
+                  }
+                  else
+                  {
+                     apply_face_surrogate_3d( face, level, srcData, dstData );
+                  }
+               }
+            }
+         }
+      }
+
+      this->timingTree_->stop( "Macro-Face" );
+
+      this->timingTree_->start( "Macro-Cell" );
+
+      if ( level >= 2 )
+      {
+         for ( const auto& [cellId, cell] : storage_->getCells() )
+         {
+            const auto bc = dst.getBoundaryCondition().getBoundaryType( cell->getMeshBoundaryFlag() );
+
+            if ( testFlag( bc, flag ) )
+            {
+               auto srcData = cell->getData( src.getCellDataID() )->getPointer( level );
+               auto dstData = cell->getData( dst.getCellDataID() )->getPointer( level );
+
+               if ( level < min_lvl_for_surrogate )
+               {
+                  apply_cell_precomputed_3d( cell, level, srcData, dstData );
+               }
+               else
+               {
+                  apply_cell_surrogate_3d( cell, level, srcData, dstData );
+               }
+            }
+         }
+      }
+
+      this->timingTree_->stop( "Macro-Cell" );
 
       this->stopTiming( "Apply" );
    }
