@@ -589,7 +589,7 @@ class TALASimulation
       params.gmresIter = mainConf.getParameter< uint_t >( "transportGmresIter" );
       params.gmresTol  = mainConf.getParameter< real_t >( "transportGmresTol" );
 
-      tempIni = [=]( const Point3D& x ) {
+      tempIni = [this]( const Point3D& x ) {
          return ( 1 - x[2] ) +
                 params.AiniPerturb * std::sin( 2.0 * walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[2] );
       };
