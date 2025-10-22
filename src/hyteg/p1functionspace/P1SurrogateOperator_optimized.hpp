@@ -829,7 +829,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // loop over inner vertices on the macro face
          uint_t dof = 0;
-         for ( uint_t j = 1; j < n - 1; ++j )
+         for ( uint_t j = 1; j < n - 2; ++j )
          {
             const Point3D xj = x0 + real_t( j ) * dy;
 
@@ -946,7 +946,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // loop over inner vertices on the macro face
          uint_t dof = 0;
-         for ( uint_t j = 1; j < n - 1; ++j )
+         for ( uint_t j = 1; j < n - 2; ++j )
          {
             const Point3D xj = x0 + real_t( j ) * dy;
 
@@ -1037,14 +1037,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // loop over inner vertices on the macro cell
          uint_t dof = 0;
-         for ( uint_t k = 1; k < n - 1; ++k )
+         for ( uint_t k = 1; k < n - 3; ++k )
          {
             const Point3D xk = x0 + real_t( k ) * dz;
-            for ( uint_t j = 1; j < n - 1; ++j )
+            for ( uint_t j = 1; j < n - 2 - k; ++j )
             {
                const Point3D xj = xk + real_t( j ) * dy;
 
-               for ( uint_t i = 1; i < n - 1 - j; ++i )
+               for ( uint_t i = 1; i < n - 1 - j - k; ++i )
                {
                   const Point3D x = xj + real_t( i ) * dx;
 
@@ -1256,7 +1256,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       // loop over inner vertices on the macro face
       uint_t dof = 0;
-      for ( uint_t j = 1; j < n - 1; ++j )
+      for ( uint_t j = 1; j < n - 2; ++j )
       {
          // indices of neighboring DoF
          DofIdx dofIdx{};
@@ -1298,7 +1298,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       // loop over inner vertices on the macro face
       uint_t dof = 0;
-      for ( uint_t j = 1; j < n - 1; ++j )
+      for ( uint_t j = 1; j < n - 2; ++j )
       {
          // indices of neighboring DoF
          DofIdx dofIdx{};
