@@ -1134,17 +1134,18 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
-                  if ( idx_face.z() != 0 ) // micro-vertex in cell
+                  if ( idx_face.z() != 0 ) // micro-vertex in interior of cell
                   {
                      // define association between stencil::Dir and idx_face
-                     uint_t dir = 0;
-                     while ( dir < n_offsets_assigned && idx_face != logical_offsets[dir] )
+
+                     // check whether idx_face is already associated with some direction
+                     bool not_registered_yet =
+                         std::find( logical_offsets.begin(), logical_offsets.begin() + n_offsets_assigned, idx_face ) ==
+                         logical_offsets.begin() + n_offsets_assigned;
+                     
+                     if ( not_registered_yet )
                      {
-                        ++dir;
-                     }
-                     if ( dir == n_offsets_assigned )
-                     {
-                        logical_offsets[dir] = idx_face;
+                        logical_offsets[n_offsets_assigned] = idx_face;
                         ++n_offsets_assigned;
                      }
                   }
