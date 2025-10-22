@@ -1191,7 +1191,55 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void apply_edge_precomputed_3d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo
+      const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+      const auto n_nbr_faces = edge->getNumNeighborFaces();
+      const auto n_nbr_cells = edge->getNumNeighborCells();
+      const auto stencilSize = vertexDoFMacroEdgeStencilMemorySize( lvl, edge );
+
+      constexpr auto C = stencilDirection::VERTEX_C;
+      constexpr auto W = stencilDirection::VERTEX_W;
+      constexpr auto E = stencilDirection::VERTEX_E;
+
+      // indices of neighboring DoF
+      std::vector< walberla::uint_t > dofIdx( stencilSize );
+      for ( auto& sd : { C, W, E } )
+      {
+         dofIdx[vertexdof::macroedge::stencilIndexOnEdge( sd )] = //
+             vertexdof::macroedge::indexFromVertex( lvl, 1, sd );
+      }
+      for ( uint_t faceIdx = 0; faceIdx < n_nbr_faces; ++faceIdx )
+      {
+         for ( auto& sd : { W, E } )
+         {
+            dofIdx[vertexdof::macroedge::stencilIndexOnNeighborFace( sd, faceIdx )] =
+                vertexdof::macroedge::indexFromVertexOnNeighborFace( lvl, 1, faceIdx, sd );
+         }
+      }
+      for ( uint_t cellIdx = 0; cellIdx < n_nbr_cells; ++cellIdx )
+      {
+         dofIdx[vertexdof::macroedge::stencilIndexOnNeighborCell( cellIdx, n_nbr_faces )] =
+             vertexdof::macroedge::indexFromVertexOnNeighborCell( lvl, 1, cellIdx, n_nbr_faces );
+      }
+
+      const auto& stencils = stencil_edge_3d_.at( edge->getID() )[lvl];
+
+      // loop over inner vertices on the macro edge
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         const auto& stencil = stencils[i - 1];
+
+         if ( updateType == Replace )
+         {
+            dstData[i] = real_c( 0 );
+         } // else updateType == Add
+
+         // apply stencil
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dstData[i] += stencil[d] * srcData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+      }
    }
 
    void apply_face_precomputed_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
