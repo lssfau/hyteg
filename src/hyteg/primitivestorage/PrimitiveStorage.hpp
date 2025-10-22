@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Bartuschat, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -93,6 +93,7 @@ class MigrationInfo
 
    /// Returns the mapping (local ID -> receiving process) for the primitive migration
    const MigrationMap_T& getMap() const { return map_; }
+
    /// Returns the number of primitives that this process will own after the migration.
    uint_t getNumReceivingPrimitives() const { return numReceivingPrimitives_; }
 
@@ -123,11 +124,13 @@ class PrimitiveStorage : private walberla::NonCopyable
 
    using PrimitiveTypeEnum = Primitive::PrimitiveTypeEnum;
 
-   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0, const bool& keepAllPrimitivesEverywhere = false );
+   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage,
+                              const uint_t&                additionalHaloDepth         = 0,
+                              const bool&                  keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
                      const std::shared_ptr< walberla::WcTimingTree >& timingTree,
-                     const uint_t&                                    additionalHaloDepth = 0,
-                     const bool& keepAllPrimitivesEverywhere = false );
+                     const uint_t&                                    additionalHaloDepth         = 0,
+                     const bool&                                      keepAllPrimitivesEverywhere = false );
    PrimitiveStorage( const VertexMap&      vtxs,
                      const EdgeMap&        edges,
                      const FaceMap&        faces,
@@ -195,10 +198,6 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// \brief Returns the refinement level of the corresponding primitive.
    uint_t getRefinementLevel( const PrimitiveID& pid ) const;
 
-   /// @name \ref Primitive access methods
-   /// Various methods to obtain primitives or IDs.
-   ///@{
-
    /// Returns the number of primitives with no children.
    uint_t getNumberOfLocalPrimitives() const
    {
@@ -214,7 +213,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns the number of cells with no children.
    uint_t getNumberOfLocalCells() const;
 
-   /// Returns true if there are cell-primitives globally (even if there are none on the process that calls this function).
+   /// Returns true if there are cell-primitives globally (even if there are none on the process that calls this function)
    bool hasGlobalCells() const { return hasGlobalCells_; }
 
    /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
@@ -727,23 +726,32 @@ class PrimitiveStorage : private walberla::NonCopyable
    void deletePrimitiveData( const std::map< PrimitiveID, std::shared_ptr< PrimitiveType > >& primitives,
                              const PrimitiveDataID< DataType, PrimitiveType >&                dataID );
 
-   /// The first indirection specifies the hierarchy level.
+   /// \name The first indirection specifies the hierarchy level
+   ///@{
    std::map< uint_t, VertexMap > vertices_;
    std::map< uint_t, EdgeMap >   edges_;
    std::map< uint_t, FaceMap >   faces_;
    std::map< uint_t, CellMap >   cells_;
+   ///@}
 
-   //maps that only contain leaf primitives that do not have any children
+   /// \name Maps that only contain leaf primitives that do not have any children
+   ///@{
    VertexMap leafVertices_;
    EdgeMap   leafEdges_;
    FaceMap   leafFaces_;
    CellMap   leafCells_;
+   ///@}
 
+   /// \name Maps involving neighbouring primitives, the first indirection specifies the hierarchy level
+   ///@{
    std::map< uint_t, VertexMap > neighborVertices_;
    std::map< uint_t, EdgeMap >   neighborEdges_;
    std::map< uint_t, FaceMap >   neighborFaces_;
    std::map< uint_t, CellMap >   neighborCells_;
+   ///@}
 
+   /// \name Functions for managing data handling callbacks
+   ///@{
    template < typename DataType >
    void addDataHandlingCallbacks(
        const PrimitiveDataID< DataType, Primitive >&                                                   dataID,
@@ -843,9 +851,10 @@ class PrimitiveStorage : private walberla::NonCopyable
       cellDataSerializationFunctions_.erase( dataID );
       cellDataDeserializationFunctions_.erase( dataID );
    }
+   ///@}
 
-   // Maps from data ID to respective callback functions
-
+   /// \name Maps from data ID to respective callback functions
+   ///@{
    std::map< uint_t, std::function< void( const std::shared_ptr< Primitive >& ) > > primitiveDataInitializationFunctions_;
    std::map< uint_t, std::function< void( const std::shared_ptr< Primitive >&, walberla::mpi::SendBuffer& ) > >
        primitiveDataSerializationFunctions_;
@@ -875,6 +884,7 @@ class PrimitiveStorage : private walberla::NonCopyable
        cellDataSerializationFunctions_;
    std::map< uint_t, std::function< void( const std::shared_ptr< Cell >&, walberla::mpi::RecvBuffer& ) > >
        cellDataDeserializationFunctions_;
+   ///@}
 
    uint_t primitiveDataHandlers_;
 
@@ -882,15 +892,21 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// First indirection is the hierarchy level.
    std::map< uint_t, std::map< PrimitiveID, uint_t > > neighborRanks_;
 
-   void   wasModified() { modificationStamp_++; }
+   /// The stamp should always be increased when the topology of the storage somehow changes -
+   /// e.g. after migration of primitives to other processes; use \ref wasModified for this
    uint_t modificationStamp_;
 
-   /// updates the maps that contain the leaf primitives (primitives without any children
+   /// Auxilliary function for consistently updating the \ref modificationStamp_
+   void wasModified() { modificationStamp_++; }
+
+   /// Updates the maps that contain the leaf primitives (primitives without any children
    /// has to be called if the primitives in the storage have changed
    void updateLeafPrimitiveMaps();
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
+   /// Boolean marking whether the mesh represented by the PrimitiveStorage object contains
+   /// cell-primitives globally, i.e. on at least one process, not necessarily the local one
    bool hasGlobalCells_;
 
    /// This comm is identical for
