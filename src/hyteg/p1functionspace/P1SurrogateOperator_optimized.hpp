@@ -1265,11 +1265,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
          }
 
-      const auto& stencils = stencil_face_2d_.at( face->getID() )[lvl];
-      // loop over inner vertices on the macro face
-      uint_t dof = 0;
-      for ( uint_t j = 1; j < n - 1; ++j )
-      {
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             const auto& stencil = stencils[dof];
