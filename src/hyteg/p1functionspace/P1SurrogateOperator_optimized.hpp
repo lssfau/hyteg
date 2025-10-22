@@ -1289,7 +1289,55 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void apply_face_precomputed_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo
+      const auto  n           = levelinfo::num_microvertices_per_edge( lvl );
+      const auto  n_nbr_cells = face->getNumNeighborCells();
+      const auto  stencilSize = 7 + 4 * n_nbr_cells;
+      const auto& offsets     = offsets_face_3d_.at( faceId );
+
+      const auto& stencils = stencil_face_3d_.at( face->getID() )[lvl];
+
+      // loop over inner vertices on the macro face
+      uint_t dof = 0;
+      for ( uint_t j = 1; j < n - 1; ++j )
+      {
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < 7; ++d )
+         {
+            // neighbors on face
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y() );
+         }
+         for ( int d = 7; d < 11; ++d )
+         {
+            // neighbors on first nbr cell
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 0 );
+         }
+         for ( int d = 11; d < stencilSize; ++d )
+         {
+            // neighbors on second nbr cell
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 1 );
+         }
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            const auto& stencil = stencils[dof];
+            const auto  dstIdx  = dofIdx[p1::stencil::C];
+
+            if ( updateType == Replace )
+            {
+               dstData[i] = real_c( 0 );
+            } // else updateType == Add
+
+            // apply stencil
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+               ++dofIdx[d];
+            }
+
+            ++dof;
+         }
+      }
    }
 
    void apply_cell_precomputed_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* srcData, real_t* dstData )
