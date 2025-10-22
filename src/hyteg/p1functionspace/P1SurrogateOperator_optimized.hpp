@@ -1174,6 +1174,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       for ( uint_t i = 1; i < n - 1; ++i )
       {
          const auto& stencil = stencils[i - 1];
+         const auto  dstIdx  = dofIdx[p1::stencil::C];
 
          if ( updateType == Replace )
          {
@@ -1183,7 +1184,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          // apply stencil
          for ( int d = 0; d < stencilSize; ++d )
          {
-            dstData[i] += stencil[d] * srcData[dofIdx[d]];
+            dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
             ++dofIdx[d];
          }
       }
@@ -1227,6 +1228,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       for ( uint_t i = 1; i < n - 1; ++i )
       {
          const auto& stencil = stencils[i - 1];
+         const auto  dstIdx  = dofIdx[p1::stencil::C];
 
          if ( updateType == Replace )
          {
@@ -1236,7 +1238,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          // apply stencil
          for ( int d = 0; d < stencilSize; ++d )
          {
-            dstData[i] += stencil[d] * srcData[dofIdx[d]];
+            dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
             ++dofIdx[d];
          }
       }
