@@ -47,7 +47,7 @@ CMake will then produce Makefiles for the included tests and applications. To bu
 
 Required:
 
-* a C++17 compliant compiler (e.g. gcc, clang, Intel or MSVC)
+* a C++20 compliant compiler (e.g. gcc, clang or Intel)
 * [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.20 )
 
 Automatically cloned via git submodules (**NO need to install/download/clone these manually**):
