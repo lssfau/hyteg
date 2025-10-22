@@ -1407,7 +1407,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          surrogate.eval( x );
          const auto& stencil = surrogate.px();
 
-         const auto  dstIdx  = dofIdx[p1::stencil::C];
+         const auto dstIdx = dofIdx[p1::stencil::C];
 
          if ( updateType == Replace )
          {
@@ -1425,17 +1425,160 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void apply_face_surrogate_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo
+      const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+      constexpr auto stencilSize = 7;
+
+      const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
+      const PolyDomain           X( level );
+
+      // loop over inner vertices on the macro face
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
+         }
+
+         // restrict polynomial to 2D
+         const auto y = X[j];
+         surrogate.fix_y( y );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            // evaluate polynomial
+            const auto x = X[i];
+            surrogate.eval( x );
+            const auto& stencil = surrogate.px();
+
+            const auto dstIdx = dofIdx[p1::stencil::C];
+
+            if ( updateType == Replace )
+            {
+               dstData[i] = real_c( 0 );
+            } // else updateType == Add
+
+            // apply stencil
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+               ++dofIdx[d];
+            }
+         }
+      }
    }
 
    void apply_face_surrogate_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo
+      const auto  n           = levelinfo::num_microvertices_per_edge( lvl );
+      const auto  n_nbr_cells = face->getNumNeighborCells();
+      const auto  stencilSize = 7 + 4 * n_nbr_cells;
+      const auto& offsets     = offsets_face_3d_.at( faceId );
+
+      const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
+      const PolyDomain           X( level );
+
+      // loop over inner vertices on the macro face
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < 7; ++d )
+         {
+            // neighbors on face
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y() );
+         }
+         for ( int d = 7; d < 11; ++d )
+         {
+            // neighbors on first nbr cell
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 0 );
+         }
+         for ( int d = 11; d < stencilSize; ++d )
+         {
+            // neighbors on second nbr cell
+            dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 1 );
+         }
+
+         // restrict polynomial to 2D
+         const auto y = X[j];
+         surrogate.fix_y( y );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            // evaluate polynomial
+            const auto x = X[i];
+            surrogate.eval( x );
+            const auto& stencil = surrogate.px();
+
+            const auto dstIdx = dofIdx[p1::stencil::C];
+
+            if ( updateType == Replace )
+            {
+               dstData[i] = real_c( 0 );
+            } // else updateType == Add
+
+            // apply stencil
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+               ++dofIdx[d];
+            }
+         }
+      }
    }
 
    void apply_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo
+      const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+      constexpr auto stencilSize = 15;
+
+      const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
+      const PolyDomain           X( level );
+
+      // loop over inner vertices on the macro cell
+      for ( uint_t k = 1; k < n - 3; ++k )
+      {
+         // restrict polynomial to 2D
+         const auto z = X[k];
+         surrogate.fix_z( z );
+
+         for ( uint_t j = 1; j < n - 2 - k; ++j )
+         {
+            // indices of neighboring DoF
+            DofIdx dofIdx{};
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               dofIdx[d] = vertexdof::macrocell::indexFromVertex( lvl, 1, j, k, p1::stencil::backConversion[d] );
+            }
+
+            // restrict polynomial to 1D
+            const auto y = X[j];
+            surrogate.fix_y( y );
+
+            for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+            {
+               // evaluate polynomial
+               const auto x = X[i];
+               surrogate.eval( x );
+               const auto& stencil = surrogate.px();
+
+               const auto dstIdx = dofIdx[p1::stencil::C];
+
+               if ( updateType == Replace )
+               {
+                  dstData[i] = real_c( 0 );
+               } // else updateType == Add
+
+               // apply stencil
+               for ( int d = 0; d < stencilSize; ++d )
+               {
+                  dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+                  ++dofIdx[d];
+               }
+            }
+         }
+      }
    }
 
    //! todo remove everything from here ========>
