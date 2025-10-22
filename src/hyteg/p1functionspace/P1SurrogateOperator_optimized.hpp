@@ -1385,10 +1385,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void apply_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* srcData, real_t* dstData )
    {
-      // todo check if this is correct (compare with apply_edge_precomputed_2d())
       const auto n           = levelinfo::num_microvertices_per_edge( lvl );
       const auto n_nbr_faces = edge->getNumNeighborFaces();
-      const auto stencilSize = ( ( n_nbr_faces == 2 ) ? p1::stencil::SE : p1::stencil::N ) + 1;
+      const auto stencilSize = 3 + 2 * n_nbr_faces;
 
       // indices of neighboring DoF
       DofIdx dofIdx{};
@@ -1408,6 +1407,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          surrogate.eval( x );
          const auto& stencil = surrogate.px();
 
+         const auto  dstIdx  = dofIdx[p1::stencil::C];
+
          if ( updateType == Replace )
          {
             dstData[i] = real_c( 0 );
@@ -1416,7 +1417,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          // apply stencil
          for ( int d = 0; d < stencilSize; ++d )
          {
-            dstData[i] += stencils[i - 1][d] * srcData[dofIdx[d]];
+            dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
             ++dofIdx[d];
          }
       }
