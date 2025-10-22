@@ -1094,6 +1094,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void compute_offsets_for_face_stencil_3d()
    {
+      /* only the first 7 directions are the same for all faces. The directions in the cell interior depend on the
+         local orientation of the face w.r.t. the cell. */
+
       const uint_t          lvl = 2; // make sure there are interior vertices
       const auto            n   = levelinfo::num_microvertices_per_edge( lvl );
       const indexing::Index idx1( 1, 1, 0 );
@@ -1136,13 +1139,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   // stencil direction
                   if ( idx_face.z() != 0 ) // micro-vertex in interior of cell
                   {
-                     // define association between stencil::Dir and idx_face
-
                      // check whether idx_face is already associated with some direction
                      bool not_registered_yet =
                          std::find( logical_offsets.begin(), logical_offsets.begin() + n_offsets_assigned, idx_face ) ==
                          logical_offsets.begin() + n_offsets_assigned;
-                     
+
+                     // define association between stencil::Dir and idx_face
                      if ( not_registered_yet )
                      {
                         logical_offsets[n_offsets_assigned] = idx_face;
@@ -1160,7 +1162,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    {
       const auto n           = levelinfo::num_microvertices_per_edge( lvl );
       const auto n_nbr_faces = edge->getNumNeighborFaces();
-      const auto stencilSize = ( ( n_nbr_faces == 2 ) ? p1::stencil::SE : p1::stencil::N ) + 1;
+      const auto stencilSize = 3 + 2 * n_nbr_faces;
 
       // indices of neighboring DoF
       DofIdx dofIdx{};
@@ -1250,12 +1252,18 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
       constexpr auto stencilSize = 7;
 
-      // indices of neighboring DoF
-      DofIdx dofIdx{};
-      for ( int d = 0; d < stencilSize; ++d )
+      const auto& stencils = stencil_face_2d_.at( face->getID() )[lvl];
+
+      // loop over inner vertices on the macro face
+      uint_t dof = 0;
+      for ( uint_t j = 1; j < n - 1; ++j )
       {
-         dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, 1, p1::stencil::backConversion[d] );
-      }
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
+         }
 
       const auto& stencils = stencil_face_2d_.at( face->getID() )[lvl];
       // loop over inner vertices on the macro face
@@ -1688,7 +1696,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    PolyStencilMap< 2, 2 > surrogate_face_2d_;
    PolyStencilMap< 3, 2 > surrogate_face_3d_;
    PolyStencilMap< 3, 3 > surrogate_cell_3d_;
-   // logical offsets on 3d faces
+   // logical offsets on 3d faces, i.e. stencil directions as {-1,0,1}^3 tuples
    std::map< PrimitiveID, p1::stencil::StencilData< 3, indexing::Index > > offsets_face_3d_;
 };
 
