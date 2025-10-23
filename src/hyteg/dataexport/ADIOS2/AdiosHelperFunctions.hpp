@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "hyteg/HytegDefinitions.hpp"
+
 #include <adios2.h>
 #include <variant>
 
