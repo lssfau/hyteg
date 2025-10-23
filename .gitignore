@@ -4,6 +4,7 @@
 # !.vscode/tasks.json
 # !.vscode/launch.json
 !.vscode/extensions.json
+data/terraneo/plates/*
 .idea
 cmake-build-*
 .vs/

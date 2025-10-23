@@ -602,7 +602,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
          const real_t scaling0 = real_c( 1 );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 2: {
@@ -612,7 +612,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
          const real_t scaling0 = real_c( 1 ) + dt0 / ( dt0 + dt1 );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 3: {
@@ -623,7 +623,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
          const real_t scaling0 = real_c( 1 ) + ( dt0 / ( dt0 + dt1 ) + dt0 / ( dt0 + dt1 + dt2 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 4: {
@@ -636,7 +636,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
              real_c( 1 ) + ( dt0 / ( dt0 + dt1 ) + dt0 / ( dt0 + dt1 + dt2 ) + dt0 / ( dt3 + dt0 + dt1 + dt2 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 5: {
@@ -650,7 +650,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
                                                  dt0 / ( dt0 + dt1 + dt2 + dt3 ) + dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 6: {
@@ -666,7 +666,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
                              dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 ) + dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 + dt5 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 7: {
@@ -684,7 +684,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
                              dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 + dt5 + dt6 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 8: {
@@ -704,7 +704,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
                dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 + dt5 + dt6 ) + dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 + dt5 + dt6 + dt7 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       case 9: {
@@ -726,7 +726,7 @@ class BDFScheme : public TimeDiscretisationScheme< DstFunctionType, MassOperator
                dt0 / ( dt0 + dt1 + dt2 + dt3 + dt4 + dt5 + dt6 + dt7 + dt8 ) );
 
          mat->createFromMatrixLinComb( { dt0 }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       break;
       default:

@@ -68,13 +68,13 @@ class BlockFunction
    ///
    /// \note We implicitely assume that each sub-function has the same
    /// value for minLevel
-   uint_t getMinLevel() { return subFunc_[0]->getMinLevel(); }
+   uint_t getMinLevel() const { return subFunc_[0]->getMinLevel(); }
 
    /// Query function object for maximal level on which it defined
    ///
    /// \note We implicitely assume that each sub-function has the same
    /// value for maxLevel
-   uint_t getMaxLevel() { return subFunc_[0]->getMaxLevel(); }
+   uint_t getMaxLevel() const { return subFunc_[0]->getMaxLevel(); }
    /// @}
 
    /// @name Component access

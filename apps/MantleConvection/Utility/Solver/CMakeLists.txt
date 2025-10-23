@@ -1,0 +1,4 @@
+add_subdirectory(ABlock)
+add_subdirectory(AdvectionDiffusion)
+add_subdirectory(SaddlePoint)
+add_subdirectory(Schur)

@@ -160,7 +160,7 @@ class CrankNicolsonScheme
          const real_t scaling0 = real_c( 1 );
 
          mat->createFromMatrixLinComb( { dt0 * real_c( 0.5 ) }, { mat } );
-         hyteg::applyToMatrixScaled( massOperator, mat, srcIdx, dstIdx, scaling0, level, flag );
+         hyteg::applyToMatrixScaled( massOperator, scaling0, mat, srcIdx, dstIdx, level, flag );
       }
       else
       {

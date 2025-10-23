@@ -105,6 +105,8 @@ DEFINE_CLASS_METHOD_CHECK( computeAndStoreLocalElementMatrices, void, (), );
 
 DEFINE_CLASS_METHOD_CHECK( getLumpedInverseDiagonalValues, std::shared_ptr< typename OperatorType::srcType >, (), const );
 
+DEFINE_CLASS_METHOD_CHECK( setState, void, ( hyteg::BFBTState ), );
+
 DEFINE_CLASS_METHOD_CHECK( smooth_jac,
                            void,
                            ( const typename OperatorType::srcType&,

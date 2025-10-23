@@ -103,6 +103,10 @@ if( HYTEG_TERRANEO_MODULE )
   add_subdirectory(TerraNeo)
 endif()
 
+if( HYTEG_MANTLECONVECTION_APP )
+  add_subdirectory( MantleConvection )
+endif()
+
 if( HYTEG_BUILD_WITH_PYTHON3 )
   add_subdirectory(2024-convbench)
 endif()

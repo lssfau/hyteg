@@ -1,0 +1,5 @@
+add_subdirectory(ABlockTest)
+add_subdirectory(CoupledMantleConvection)
+add_subdirectory(SchurComplementComparison)
+add_subdirectory(Scalability)
+add_subdirectory(TimeDiscretisation)
