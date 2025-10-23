@@ -1921,41 +1921,21 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             for ( const auto& [edgeId, edge] : storage_->getEdges() )
             {
                auto diagData = edge->getData( diagonal->getEdgeDataID() )->getPointer( lvl );
-               auto diagIdx  = vertexdof::macroedge::index( lvl, 1 );
 
                if ( dim == 2 )
                {
                   if ( lvl < min_lvl_for_surrogate )
                   {
-                     const auto& stencils = stencil_edge_2d_.at( edgeId )[lvl];
-                     for ( uint_t i = 1; i < n - 1; ++i )
-                     {
-                        diagData[diagIdx] = stencils[i - 1][p1::stencil::C];
-                        ++diagIdx;
-                     }
+                     assemble_diagonalOperator_edge_precomputed_2d( edge, lvl, diagData );
                   }
                   else
                   {
-                     const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edgeId )[lvl];
-                     const PolyDomain           X( lvl );
-                     for ( uint_t i = 1; i < n - 1; ++i )
-                     {
-                        const auto x = X[i];
-                        surrogate.eval( x );
-                        diagData[diagIdx] = surrogate.px()[p1::stencil::C];
-                        ++diagIdx;
-                     }
+                     assemble_diagonalOperator_edge_surrogate_2d( edge, lvl, diagData );
                   }
                }
                else // dim == 3
                {
-                  const auto  c        = vertexdof::macroedge::stencilIndexOnEdge( hyteg::stencilDirection::VERTEX_C );
-                  const auto& stencils = stencil_edge_3d_.at( edgeId )[lvl];
-                  for ( uint_t i = 1; i < n - 1; ++i )
-                  {
-                     diagData[diagIdx] = stencils[i - 1][c];
-                     ++diagIdx;
-                  }
+                  assemble_diagonalOperator_edge_precomputed_3d( edge, lvl, diagData );
                }
             }
          }
@@ -1968,90 +1948,24 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                if ( dim == 2 )
                {
-                  if ( lvl < min_lvl_for_surrogate ) // precomputed version
+                  if ( lvl < min_lvl_for_surrogate )
                   {
-                     const auto& stencils = stencil_face_2d_.at( faceId )[lvl];
-
-                     uint_t dof = 0;
-                     for ( uint_t j = 1; j < n - 2; ++j )
-                     {
-                        auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
-
-                        for ( uint_t i = 1; i < n - 1 - j; ++i )
-                        {
-                           diagData[diagIdx] = stencils[dof][p1::stencil::C];
-                           ++diagIdx;
-                           ++dof;
-                        }
-                     }
+                     assemble_diagonalOperator_face_precomputed_2d( face, lvl, diagData );
                   }
-                  else // surrogate version
+                  else
                   {
-                     const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( faceId )[lvl];
-                     const PolyDomain           X( lvl );
-
-                     for ( uint_t j = 1; j < n - 2; ++j )
-                     {
-                        auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
-
-                        // restrict polynomial to 1D
-                        const auto y = X[j];
-                        surrogate.fix_y( y );
-
-                        for ( uint_t i = 1; i < n - 1 - j; ++i )
-                        {
-                           // evaluate polynomial
-                           const auto x = X[i];
-                           surrogate.eval( x );
-
-                           diagData[diagIdx] = surrogate.px()[p1::stencil::C];
-                           ++diagIdx;
-                        }
-                     }
+                     assemble_diagonalOperator_face_surrogate_2d( face, lvl, diagData );
                   }
                }
                else // dim == 3
                {
-                  if ( lvl < min_lvl_for_surrogate ) // precomputed version
+                  if ( lvl < min_lvl_for_surrogate )
                   {
-                     const auto& stencils = stencil_face_3d_.at( faceId )[lvl];
-
-                     uint_t dof = 0;
-                     for ( uint_t j = 1; j < n - 2; ++j )
-                     {
-                        auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
-
-                        for ( uint_t i = 1; i < n - 1 - j; ++i )
-                        {
-                           diagData[diagIdx] = stencils[dof][p1::stencil::C];
-                           ++diagIdx;
-                           ++dof;
-                        }
-                     }
+                     assemble_diagonalOperator_face_precomputed_3d( face, lvl, diagData );
                   }
-                  else // surrogate version
+                  else
                   {
-                     const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( faceId )[lvl];
-                     const PolyDomain           X( lvl );
-
-                     for ( uint_t j = 1; j < n - 2; ++j )
-                     {
-                        auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
-
-                        // restrict polynomial to 1D
-                        const auto y = X[j];
-                        surrogate.fix_y( y );
-
-                        for ( uint_t i = 1; i < n - 1 - j; ++i )
-                        {
-                           // evaluate polynomial
-                           const auto x = X[i];
-                           surrogate.eval( x );
-
-                           diagData[diagIdx] = surrogate.px()[p1::stencil::C];
-                           ++diagIdx;
-                        }
-                     }
+                     assemble_diagonalOperator_face_surrogate_3d( face, lvl, diagData );
                   }
                }
             }
@@ -2061,56 +1975,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          {
             for ( const auto& [cellId, cell] : storage_->getCells() )
             {
-               if ( lvl < min_lvl_for_surrogate ) // precomputed version
+               if ( lvl < min_lvl_for_surrogate )
                {
-                  const auto& stencils = stencil_cell_3d_.at( cellId )[lvl];
-
-                  uint_t dof = 0;
-                  for ( uint_t k = 1; k < n - 3; ++k )
-                  {
-                     for ( uint_t j = 1; j < n - 2 - k; ++j )
-                     {
-                        auto diagIdx = vertexdof::macrocell::index( lvl, 1, j, k );
-
-                        for ( uint_t i = 1; i < n - 1 - j - k; ++i )
-                        {
-                           diagData[diagIdx] = stencils[dof][p1::stencil::C];
-                           ++diagIdx;
-                           ++dof;
-                        }
-                     }
-                  }
+                  assemble_diagonalOperator_cell_precomputed_3d( cell, lvl, diagData );
                }
-               else // surrogate version
+               else
                {
-                  const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cellId )[lvl];
-                  const PolyDomain           X( lvl );
-
-                  for ( uint_t k = 1; k < n - 3; ++k )
-                  {
-                     // restrict polynomial to 2D
-                     const auto z = X[k];
-                     surrogate.fix_z( z );
-
-                     for ( uint_t j = 1; j < n - 2 - k; ++j )
-                     {
-                        auto diagIdx = vertexdof::macrocell::index( lvl, 1, j, k );
-
-                        // restrict polynomial to 1D
-                        const auto y = X[j];
-                        surrogate.fix_y( y );
-
-                        for ( uint_t i = 1; i < n - 1 - j - k; ++i )
-                        {
-                           // evaluate polynomial
-                           const auto x = X[i];
-                           surrogate.eval( x );
-
-                           diagData[diagIdx] = surrogate.px()[p1::stencil::C];
-                           ++diagIdx;
-                        }
-                     }
-                  }
+                  assemble_diagonalOperator_cell_surrogate_3d( cell, lvl, diagData );
                }
             }
          }
@@ -2118,6 +1989,182 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          if ( invert )
          {
             diagonal->invertElementwise( lvl, All, false );
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_edge_precomputed_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* diagData )
+   {
+      auto        diagIdx  = vertexdof::macroedge::index( lvl, 1 );
+      const auto& stencils = stencil_edge_2d_.at( edge->getID() )[lvl];
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         diagData[diagIdx] = stencils[i - 1][p1::stencil::C];
+         ++diagIdx;
+      }
+   }
+
+   void assemble_diagonalOperator_edge_precomputed_3d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* diagData )
+   {
+      auto        diagIdx  = vertexdof::macroedge::index( lvl, 1 );
+      const auto  c        = vertexdof::macroedge::stencilIndexOnEdge( hyteg::stencilDirection::VERTEX_C );
+      const auto& stencils = stencil_edge_3d_.at( edgeId )[lvl];
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         diagData[diagIdx] = stencils[i - 1][c];
+         ++diagIdx;
+      }
+   }
+
+   void assemble_diagonalOperator_face_precomputed_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* diagData )
+   {
+      const auto& stencils = stencil_face_2d_.at( face->getID() )[lvl];
+
+      uint_t dof = 0;
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            diagData[diagIdx] = stencils[dof][p1::stencil::C];
+            ++diagIdx;
+            ++dof;
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_face_precomputed_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* diagData )
+   {
+      const auto& stencils = stencil_face_3d_.at( face->getID() )[lvl];
+
+      uint_t dof = 0;
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            diagData[diagIdx] = stencils[dof][p1::stencil::C];
+            ++diagIdx;
+            ++dof;
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_cell_precomputed_2d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* diagData )
+   {
+      const auto& stencils = stencil_cell_3d_.at( cell->getID() )[lvl];
+
+      uint_t dof = 0;
+      for ( uint_t k = 1; k < n - 3; ++k )
+      {
+         for ( uint_t j = 1; j < n - 2 - k; ++j )
+         {
+            auto diagIdx = vertexdof::macrocell::index( lvl, 1, j, k );
+
+            for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+            {
+               diagData[diagIdx] = stencils[dof][p1::stencil::C];
+               ++diagIdx;
+               ++dof;
+            }
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, const real_t* diagData )
+   {
+      auto                       diagIdx   = vertexdof::macroedge::index( lvl, 1 );
+      const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
+      const PolyDomain           X( lvl );
+      for ( uint_t i = 1; i < n - 1; ++i )
+      {
+         const auto x = X[i];
+         surrogate.eval( x );
+         diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+         ++diagIdx;
+      }
+   }
+
+   void assemble_diagonalOperator_face_surrogate_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* diagData )
+   {
+      const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
+      const PolyDomain           X( lvl );
+
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
+
+         // restrict polynomial to 1D
+         const auto y = X[j];
+         surrogate.fix_y( y );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            // evaluate polynomial
+            const auto x = X[i];
+            surrogate.eval( x );
+
+            diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+            ++diagIdx;
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_face_surrogate_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, const real_t* diagData )
+   {
+      const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
+      const PolyDomain           X( lvl );
+
+      for ( uint_t j = 1; j < n - 2; ++j )
+      {
+         auto diagIdx = vertexdof::macroface::index( lvl, 1, j );
+
+         // restrict polynomial to 1D
+         const auto y = X[j];
+         surrogate.fix_y( y );
+
+         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         {
+            // evaluate polynomial
+            const auto x = X[i];
+            surrogate.eval( x );
+
+            diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+            ++diagIdx;
+         }
+      }
+   }
+
+   void assemble_diagonalOperator_cell_surrogate_2d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, const real_t* diagData )
+   {
+      const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
+      const PolyDomain           X( lvl );
+
+      for ( uint_t k = 1; k < n - 3; ++k )
+      {
+         // restrict polynomial to 2D
+         const auto z = X[k];
+         surrogate.fix_z( z );
+
+         for ( uint_t j = 1; j < n - 2 - k; ++j )
+         {
+            auto diagIdx = vertexdof::macrocell::index( lvl, 1, j, k );
+
+            // restrict polynomial to 1D
+            const auto y = X[j];
+            surrogate.fix_y( y );
+
+            for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+            {
+               // evaluate polynomial
+               const auto x = X[i];
+               surrogate.eval( x );
+
+               diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+               ++diagIdx;
+            }
          }
       }
    }
