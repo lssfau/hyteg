@@ -1206,6 +1206,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       // indices of neighboring DoF
       std::vector< walberla::uint_t > dofIdx( stencilSize );
+      // for the 3D edge the center is not associated with stencil[0], since, for simplicity, we keep the old ordering here.
+      uint_t centerIdx = vertexdof::macroedge::stencilIndexOnEdge( C );
       for ( auto& sd : { C, W, E } )
       {
          dofIdx[vertexdof::macroedge::stencilIndexOnEdge( sd )] = //
@@ -1231,7 +1233,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       for ( uint_t i = 1; i < n - 1; ++i )
       {
          const auto& stencil = stencils[i - 1];
-         const auto  dstIdx  = dofIdx[p1::stencil::C];
+         const auto  dstIdx  = dofIdx[centerIdx];
 
          if ( updateType == Replace )
          {
@@ -1397,7 +1399,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       }
 
       const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
-      const PolyDomain           X( level );
+      const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro edge
       for ( uint_t i = 1; i < n - 1; ++i )
@@ -1429,7 +1431,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       constexpr auto stencilSize = 7;
 
       const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
-      const PolyDomain           X( level );
+      const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro face
       for ( uint_t j = 1; j < n - 2; ++j )
@@ -1441,7 +1443,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
          }
 
-         // restrict polynomial to 2D
+         // restrict polynomial to 1D
          const auto y = X[j];
          surrogate.fix_y( y );
 
@@ -1477,7 +1479,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto& offsets     = offsets_face_3d_.at( faceId );
 
       const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
-      const PolyDomain           X( level );
+      const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro face
       for ( uint_t j = 1; j < n - 2; ++j )
@@ -1500,7 +1502,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 1 );
          }
 
-         // restrict polynomial to 2D
+         // restrict polynomial to 1D
          const auto y = X[j];
          surrogate.fix_y( y );
 
@@ -1534,7 +1536,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       constexpr auto stencilSize = 15;
 
       const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
-      const PolyDomain           X( level );
+      const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro cell
       for ( uint_t k = 1; k < n - 3; ++k )
