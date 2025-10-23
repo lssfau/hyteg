@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Benjamin Mann
+ * Copyright (c) 2021-2025 Benjamin Mann, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -302,7 +302,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
    else if ( ref_strat.t == Strategy::PERCENTILE )
    {
       auto sizeR = uint_t( std::round( real_t( _n_elements ) * ref_strat.p ) );
-      crit_r     = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      crit_r     = [sizeR]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " -> refinemnt strategy: percentile with p = " << ref_strat.p * 100 << "%" );
@@ -328,7 +328,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          ++sizeR;
       }
       // refine all elements in R
-      crit_r = [=]( real_t, uint_t i ) -> bool { return i < sizeR; };
+      crit_r = [sizeR]( real_t, uint_t i ) -> bool { return i < sizeR; };
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " -> refinemnt strategy: Dörfler marking with p = " << ref_strat.p );
@@ -370,7 +370,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
    else if ( cors_strat.t == Strategy::PERCENTILE )
    {
       auto sizeC = uint_t( std::round( real_t( _n_elements ) * cors_strat.p ) );
-      crit_c     = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      crit_c     = [this, sizeC]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening strategy: percentile with p = " << cors_strat.p * 100 << "%" );
@@ -386,7 +386,7 @@ void K_Mesh< K_Simplex >::refineRG( const ErrorVector& errors_local, Strategy re
          WALBERLA_LOG_WARNING_ON_ROOT( "n_C + n_R > n_el for n_C = p*n_R -> using n_C = n_el - n_R instead!" );
          sizeC = _n_elements - sizeR;
       }
-      crit_c = [=]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
+      crit_c = [this, sizeC]( real_t, uint_t i ) -> bool { return i >= _n_elements - sizeC; };
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " -> coarsening strategy: coarsen p*|R| elements where p = " << cors_strat.p );
@@ -1124,7 +1124,7 @@ std::shared_ptr< PrimitiveStorage > K_Mesh< K_Simplex >::make_localPrimitives( s
       for ( uint_t cellLocalFaceID = 0; cellLocalFaceID < K + 1; ++cellLocalFaceID )
       {
          FaceData* face           = vertexIDXsToFace[{
-             v[faceOrder[cellLocalFaceID][0]], v[faceOrder[cellLocalFaceID][1]], v[faceOrder[cellLocalFaceID][2]] }];
+                       v[faceOrder[cellLocalFaceID][0]], v[faceOrder[cellLocalFaceID][1]], v[faceOrder[cellLocalFaceID][2]] }];
          faceIDs[cellLocalFaceID] = face->getPrimitiveID();
          auto& faceVtxs           = face->get_vertices();
 
