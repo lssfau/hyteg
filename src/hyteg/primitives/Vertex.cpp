@@ -27,7 +27,7 @@ namespace hyteg {
 using walberla::uint_c;
 
 Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
-  : Primitive( primitiveID ), dofType_(Inner), coordinates_( coordinates )
+  : Primitive( primitiveID ), coordinates_( coordinates )
 {}
 
 uint_t Vertex::edge_index(const PrimitiveID& edge) const
@@ -57,13 +57,11 @@ std::ostream& operator<<(std::ostream &os, const hyteg::Vertex &vertex)
 
 void Vertex::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
-  sendBuffer << dofType_;
   sendBuffer << coordinates_;
 }
 
 void Vertex::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
-  recvBuffer >> dofType_;
   recvBuffer >> coordinates_;
 }
 

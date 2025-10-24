@@ -142,7 +142,6 @@ class Vertex : public Primitive
    void addFace( const PrimitiveID& faceID ) { neighborFaces_.push_back( faceID ); }
    void addCell( const PrimitiveID& cellID ) { neighborCells_.push_back( cellID ); }
 
-   DoFType dofType_;
    Point3D coordinates_;
 };
 
