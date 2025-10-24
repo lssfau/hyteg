@@ -799,6 +799,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
       const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
 
+      constexpr std::array< std::array< p1::stencil::Dir, 2 >, 6 > microElements{ { p1::stencil::W, p1::stencil::S },
+                                                                                  { p1::stencil::S, p1::stencil::SE },
+                                                                                  { p1::stencil::SE, p1::stencil::E },
+                                                                                  { p1::stencil::E, p1::stencil::N },
+                                                                                  { p1::stencil::N, p1::stencil::NW },
+                                                                                  { p1::stencil::NW, p1::stencil::W } };
+
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
          auto& stencils = stencil_face_2d_[faceId][lvl];
@@ -819,13 +826,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
          d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
 
-         p1::stencil::StencilData< 2, Point3D >                   coords;
-         const std::array< std::array< p1::stencil::Dir, 2 >, 6 > microElements{ { p1::stencil::W, p1::stencil::S },
-                                                                                 { p1::stencil::S, p1::stencil::SE },
-                                                                                 { p1::stencil::SE, p1::stencil::E },
-                                                                                 { p1::stencil::E, p1::stencil::N },
-                                                                                 { p1::stencil::N, p1::stencil::NW },
-                                                                                 { p1::stencil::NW, p1::stencil::W } };
+         p1::stencil::StencilData< 2, Point3D > coords;
 
          // loop over inner vertices on the macro face
          uint_t dof = 0;
@@ -1171,8 +1172,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          for ( uint_t d = 0; d < stencil.size(); ++d )
          {
             lsq.setRHS( samples[d] );
-            auto& coeffs      = lsq.solve();
-            surrogate.set_coefficients(d, coeffs);
+            auto& coeffs = lsq.solve();
+            surrogate.set_coefficients( d, coeffs );
          }
       }
    }
