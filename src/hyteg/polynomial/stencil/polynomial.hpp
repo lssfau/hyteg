@@ -67,6 +67,21 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       }
    }
 
+   template < typename CoeffVector >
+   inline void set_coefficients( p1::stencil::Dir d, CoeffVector & coeffs )
+   {
+      if ( uint_t( coeffs.size() ) != n_coeff )
+      {
+         WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
+      }
+      using coeff_idx_t = decltype( coeffs.size() );
+
+      for ( uint_t i = 0; i < n_coeff; ++i ) // polynomial coefficients
+      {
+         ( *this )[i][d] = static_cast< real_t >( all_coeffs[d][static_cast< coeff_idx_t >( i )] );
+      }
+   }
+
    // fix z coordinate s.th. only 2d polynomial must be evaluated
    inline void fix_z( const real_t z ) const
    {

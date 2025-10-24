@@ -1074,7 +1074,107 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void compute_surrogates_edge_2d( uint_t lvl )
    {
-      // todo
+      auto&        lsq = *lsq_interface_[lvl];
+      LSQData< 2 > samples;
+      for ( uint_t d = 0; d < 7; ++d )
+      {
+         samples[d].resize( lsq.rows );
+      }
+
+      const auto n = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
+
+      P1Form      form_N( form_ );
+      Face*       face_S;
+      Face*       face_N;
+      PrimitiveID vtxId_N, vtxId_S;
+
+      for ( const auto& [edgeId, edge] : storage_->getEdges() )
+      {
+         // neighbor face
+         auto n_nbr_faces = edge->getNumNeighborFaces();
+         face_S           = storage_->getFace( edge->neighborFaces()[0] );
+         form_.setGeometryMap( face_S->getGeometryMap() );
+         vtxId_S = face_S->get_vertex_opposite_to_edge( edgeId );
+         if ( n_nbr_faces == 2 )
+         {
+            face_N = storage_->getFace( edge->neighborFaces()[1] );
+            form_N.setGeometryMap( face_N->getGeometryMap() );
+            vtxId_N = face_N->get_vertex_opposite_to_edge( edgeId );
+         }
+
+         // coordinates
+         auto x0 = edge->getCoordinates()[0];
+         auto x1 = edge->getCoordinates()[1];
+         auto dx = h * edge->getDirection();
+         // coordinate offsets of stencil nbrs
+         p1::stencil::StencilData< 2, Point3D > d;
+         d[p1::stencil::W] = -dx;
+         d[p1::stencil::E] = dx;
+         if ( n_nbr_faces == 2 )
+         {
+            auto coord_N      = storage_->getVertex( vtxId_N )->getCoordinates();
+            d[p1::stencil::N] = h * ( coord_N - x0 );
+         }
+         auto coord_S       = storage_->getVertex( vtxId_S )->getCoordinates();
+         d[p1::stencil::S]  = h * ( coord_S - x1 );
+         d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
+         d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
+
+         // loop over inner vertices on the macro edge
+         auto it = lsq.samplingIterator();
+         while ( it != it.end() )
+         {
+            // compute local stiffness matrices and add contributions to stencil
+            Stencil< 2 > stencil {}
+            Matrixr< 1, 3 > matrixRow;
+            auto            x = x0 + real_t( it.i() ) * dx;
+            form_.integrateRow( 0, { { x, x + d[p1::stencil::W], x + d[p1::stencil::S] } }, matrixRow );
+            stencil[p1::stencil::C] = real_t( matrixRow( 0, 0 ) );
+            stencil[p1::stencil::W] = real_t( matrixRow( 0, 1 ) );
+            stencil[p1::stencil::S] = real_t( matrixRow( 0, 2 ) );
+            form_.integrateRow( 0, { { x, x + d[p1::stencil::S], x + d[p1::stencil::SE] } }, matrixRow );
+            stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+            stencil[p1::stencil::S] += real_t( matrixRow( 0, 1 ) );
+            stencil[p1::stencil::SE] = real_t( matrixRow( 0, 2 ) );
+            form_.integrateRow( 0, { { x, x + d[p1::stencil::SE], x + d[p1::stencil::E] } }, matrixRow );
+            stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+            stencil[p1::stencil::SE] += real_t( matrixRow( 0, 1 ) );
+            stencil[p1::stencil::E] = real_t( matrixRow( 0, 2 ) );
+            if ( n_nbr_faces == 2 )
+            {
+               form_N.integrateRow( 0, { { x, x + d[p1::stencil::E], x + d[p1::stencil::N] } }, matrixRow );
+               stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+               stencil[p1::stencil::E] += real_t( matrixRow( 0, 1 ) );
+               stencil[p1::stencil::N] = real_t( matrixRow( 0, 2 ) );
+               form_N.integrateRow( 0, { { x, x + d[p1::stencil::N], x + d[p1::stencil::NW] } }, matrixRow );
+               stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+               stencil[p1::stencil::N] += real_t( matrixRow( 0, 1 ) );
+               stencil[p1::stencil::NW] = real_t( matrixRow( 0, 2 ) );
+               form_N.integrateRow( 0, { { x, x + d[p1::stencil::NW], x + d[p1::stencil::W] } }, matrixRow );
+               stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+               stencil[p1::stencil::NW] += real_t( matrixRow( 0, 1 ) );
+               stencil[p1::stencil::W] += real_t( matrixRow( 0, 2 ) );
+            }
+
+            // add data sample
+            for ( uint_t d = 0; d < stencil.size(); ++d )
+            {
+               samples[d][it()] = stencil[d];
+            }
+            ++it;
+         }
+         for ( uint_t i = 1; i < n - 1; ++i ) {}
+
+         // fit stencil polynomials
+         PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_[edgeId][lvl];
+         for ( uint_t d = 0; d < stencil.size(); ++d )
+         {
+            lsq.setRHS( samples[d] );
+            auto& coeffs      = lsq.solve();
+            surrogate.set_coefficients(d, coeffs);
+         }
+      }
    }
 
    void compute_surrogates_face_2d( uint_t lvl )
