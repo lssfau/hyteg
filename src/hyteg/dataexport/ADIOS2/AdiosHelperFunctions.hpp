@@ -19,13 +19,12 @@
  */
 #pragma once
 
-#include "hyteg/HytegDefinitions.hpp"
-
 #include <adios2.h>
 #include <variant>
 
 #include "hyteg/BuildInfo.hpp"
 #include "hyteg/Git.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 
 using walberla::uint_t;
