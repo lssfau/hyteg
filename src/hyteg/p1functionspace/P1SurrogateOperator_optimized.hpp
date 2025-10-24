@@ -1189,8 +1189,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          samples[d].resize( lsq.rows );
       }
 
-      const auto n     = levelinfo::num_microvertices_per_edge( lvl );
-      const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
+      const auto n = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
       constexpr std::array< std::array< p1::stencil::Dir, 2 >, 6 > //
           microElements{ { p1::stencil::W, p1::stencil::S },
@@ -1270,8 +1270,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          samples[d].resize( lsq.rows );
       }
 
-      const auto n     = levelinfo::num_microvertices_per_edge( lvl );
-      const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
+      const auto n = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
       const indexing::Index idx1( 1, 1, 0 );
 
@@ -1402,7 +1402,94 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void compute_surrogates_cell_3d( uint_t lvl )
    {
-      // todo
+      // prepare setup of least squares problem
+      auto&        lsq = *lsq_volume_[lvl];
+      LSQData< 3 > samples;
+      for ( uint_t d = 0; d < samples.size(); ++d )
+      {
+         samples[d].resize( lsq.rows );
+      }
+
+      const auto n = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
+
+      std::array< std::array< p1::stencil::Dir, 4 >, 24 > microElements;
+      for ( uint_t mc = 0; mc < 24; ++mc )
+      {
+         for ( uint_t mv = 0; mv < 4; ++mv )
+         {
+            microElements[mc][mv] = p1::stencil::conversion( P1Elements::P1Elements3D::allCellsAtInnerVertex[mc][mv] )
+         }
+      }
+
+      for ( const auto& [cellId, cell] : storage_->getCells() )
+      {
+         form_.setGeometryMap( cell->getGeometryMap() );
+
+         // coordinates
+         const Point3D x0 = cell->getCoordinates()[0];
+         const Point3D dx = h * ( cell->getCoordinates()[1] - x0 );
+         const Point3D dy = h * ( cell->getCoordinates()[2] - x0 );
+         const Point3D dz = h * ( cell->getCoordinates()[3] - x0 );
+
+         // coordinate offsets of stencil nbrs
+         p1::stencil::StencilData< 3, Point3D > d;
+         d[p1::stencil::W]   = -dx;
+         d[p1::stencil::E]   = dx;
+         d[p1::stencil::N]   = dy;
+         d[p1::stencil::S]   = -dy;
+         d[p1::stencil::NW]  = d[p1::stencil::N] + d[p1::stencil::W];
+         d[p1::stencil::SE]  = d[p1::stencil::S] + d[p1::stencil::E];
+         d[p1::stencil::TC]  = dz;
+         d[p1::stencil::TW]  = d[p1::stencil::TC] + d[p1::stencil::W];
+         d[p1::stencil::TS]  = d[p1::stencil::TC] + d[p1::stencil::S];
+         d[p1::stencil::TSE] = d[p1::stencil::TC] + d[p1::stencil::SE];
+         d[p1::stencil::BC]  = -dz;
+         d[p1::stencil::BE]  = d[p1::stencil::BC] + d[p1::stencil::E];
+         d[p1::stencil::BN]  = d[p1::stencil::BC] + d[p1::stencil::N];
+         d[p1::stencil::BNW] = d[p1::stencil::BC] + d[p1::stencil::NW];
+
+         // loop over sample points on the macro face
+         auto it = lsq.samplingIterator();
+         while ( it != it.end() )
+         {
+            const Point3D x = x0 + real_t( k ) * dz + real_t( it.i() ) * dx + real_t( it.j() ) * dy;
+            // coordinates of neighbor points
+            p1::stencil::StencilData< 3, Point3D > coords;
+            for ( uint_t dir = 1; dir < d.size(); ++dir )
+            {
+               coords[dir] = x + d[dir];
+            }
+
+            // compute local stiffness matrices and add contributions to stencil
+            Stencil< 3 >    stencil{};
+            Matrixr< 1, 4 > matrixRow;
+            for ( auto& el : microElements )
+            {
+               form_.integrateRow( 0, { { x, coords[el[1]], coords[el[2]], coords[el[3]] } }, matrixRow );
+               for ( uint_t mv = 0; mv < 4; ++mv )
+               {
+                  stencil[el[mv]] += real_t( matrixRow( 0, mv ) );
+               }
+            }
+
+            // add data sample
+            for ( uint_t d = 0; d < stencil.size(); ++d )
+            {
+               samples[d][it()] = stencil[d];
+            }
+            ++it;
+         }
+
+         // fit stencil polynomials
+         PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_[cellId][lvl];
+         for ( uint_t d = 0; d < stencil.size(); ++d )
+         {
+            lsq.setRHS( samples[d] );
+            auto& coeffs = lsq.solve();
+            surrogate.set_coefficients( d, coeffs );
+         }
+      }
    }
 
    void compute_offsets_for_face_stencil_3d()
