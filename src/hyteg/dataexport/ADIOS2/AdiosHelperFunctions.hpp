@@ -24,6 +24,7 @@
 
 #include "hyteg/BuildInfo.hpp"
 #include "hyteg/Git.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 
 using walberla::uint_t;

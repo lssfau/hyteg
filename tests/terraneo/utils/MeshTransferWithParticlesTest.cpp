@@ -28,8 +28,6 @@
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"

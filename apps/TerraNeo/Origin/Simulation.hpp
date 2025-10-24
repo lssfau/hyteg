@@ -106,6 +106,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
          // If continueSimulation, also read in velocity from checkpoint. Else solveStokes to get initial velocity solution.
          if ( TN.simulationParameters.continueSimulation )
          {
+#ifdef HYTEG_BUILD_WITH_ADIOS2
             if ( TN.domainParameters.maxLevel > checkpointDataInfo[0].maxLevel )
             {
                WALBERLA_LOG_INFO_ON_ROOT(
@@ -137,6 +138,9 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
             WALBERLA_LOG_INFO_ON_ROOT( "Starting from checkpoint at timestep "
                                        << TN.simulationParameters.timeStep0 << " and model runtime "
                                        << TN.simulationParameters.modelRunTimeMa << " Ma." );
+#else
+         WALBERLA_ABORT( " No submodule ADIOS2 enabled! Continuing from checkpoint not possible - Abort simulation " );
+#endif
          }
          else
          {
