@@ -799,12 +799,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
       const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
 
-      constexpr std::array< std::array< p1::stencil::Dir, 2 >, 6 > microElements{ { p1::stencil::W, p1::stencil::S },
-                                                                                  { p1::stencil::S, p1::stencil::SE },
-                                                                                  { p1::stencil::SE, p1::stencil::E },
-                                                                                  { p1::stencil::E, p1::stencil::N },
-                                                                                  { p1::stencil::N, p1::stencil::NW },
-                                                                                  { p1::stencil::NW, p1::stencil::W } };
+      constexpr std::array< std::array< p1::stencil::Dir, 2 >, 6 > //
+          microElements{ { p1::stencil::W, p1::stencil::S },
+                         { p1::stencil::S, p1::stencil::SE },
+                         { p1::stencil::SE, p1::stencil::E },
+                         { p1::stencil::E, p1::stencil::N },
+                         { p1::stencil::N, p1::stencil::NW },
+                         { p1::stencil::NW, p1::stencil::W } };
 
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
@@ -1075,6 +1076,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void compute_surrogates_edge_2d( uint_t lvl )
    {
+      // prepare setup of least squares problem
       auto&        lsq = *lsq_interface_[lvl];
       LSQData< 2 > samples;
       for ( uint_t d = 0; d < 7; ++d )
@@ -1122,12 +1124,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
          d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
 
-         // loop over inner vertices on the macro edge
+         // loop over sample points on the macro edge
          auto it = lsq.samplingIterator();
          while ( it != it.end() )
          {
             // compute local stiffness matrices and add contributions to stencil
-            Stencil< 2 > stencil {}
+            Stencil< 2 >    stencil{};
             Matrixr< 1, 3 > matrixRow;
             auto            x = x0 + real_t( it.i() ) * dx;
             form_.integrateRow( 0, { { x, x + d[p1::stencil::W], x + d[p1::stencil::S] } }, matrixRow );
@@ -1165,7 +1167,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             }
             ++it;
          }
-         for ( uint_t i = 1; i < n - 1; ++i ) {}
 
          // fit stencil polynomials
          PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_[edgeId][lvl];
@@ -1180,7 +1181,85 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void compute_surrogates_face_2d( uint_t lvl )
    {
-      // todo
+      // prepare setup of least squares problem
+      auto&        lsq = *lsq_interface_[lvl];
+      LSQData< 2 > samples;
+      for ( uint_t d = 0; d < 7; ++d )
+      {
+         samples[d].resize( lsq.rows );
+      }
+
+      const auto n     = levelinfo::num_microvertices_per_edge( lvl );
+      const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
+      const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
+
+      constexpr std::array< std::array< p1::stencil::Dir, 2 >, 6 > //
+          microElements{ { p1::stencil::W, p1::stencil::S },
+                         { p1::stencil::S, p1::stencil::SE },
+                         { p1::stencil::SE, p1::stencil::E },
+                         { p1::stencil::E, p1::stencil::N },
+                         { p1::stencil::N, p1::stencil::NW },
+                         { p1::stencil::NW, p1::stencil::W } };
+
+      for ( const auto& [faceId, face] : storage_->getFaces() )
+      {
+         form_.setGeometryMap( face->getGeometryMap() );
+
+         // coordinates
+         const Point3D x0 = face->getCoordinates()[0];
+         const Point3D dx = h * ( face->getCoordinates()[1] - x0 );
+         const Point3D dy = h * ( face->getCoordinates()[2] - x0 );
+
+         // coordinate offsets of stencil nbrs
+         p1::stencil::StencilData< 2, Point3D > d;
+         d[p1::stencil::W]  = -dx;
+         d[p1::stencil::E]  = dx;
+         d[p1::stencil::N]  = dy;
+         d[p1::stencil::S]  = -dy;
+         d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
+         d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
+
+         p1::stencil::StencilData< 2, Point3D > coords;
+
+         // loop over sample points on the macro face
+         auto it = lsq.samplingIterator();
+         while ( it != it.end() )
+         {
+            // coordinates of neighbor points
+            const Point3D x = x0 + real_t( it.i() ) * dx + real_t( it.j() ) * dy;
+            for ( uint_t dir = 1; dir < d.size(); ++dir )
+            {
+               coords[dir] = x + d[dir];
+            }
+
+            // compute local stiffness matrices and add contributions to stencil
+            Stencil< 2 >    stencil{};
+            Matrixr< 1, 3 > matrixRow;
+            for ( auto& el : microElements )
+            {
+               form_.integrateRow( 0, { { x, coords[el[0]], coords[el[1]] } }, matrixRow );
+               stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
+               stencil[el[0]] += real_t( matrixRow( 0, 1 ) );
+               stencil[el[1]] += real_t( matrixRow( 0, 2 ) );
+            }
+
+            // add data sample
+            for ( uint_t d = 0; d < stencil.size(); ++d )
+            {
+               samples[d][it()] = stencil[d];
+            }
+            ++it;
+         }
+
+         // fit stencil polynomials
+         PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_[faceId][lvl];
+         for ( uint_t d = 0; d < stencil.size(); ++d )
+         {
+            lsq.setRHS( samples[d] );
+            auto& coeffs = lsq.solve();
+            surrogate.set_coefficients( d, coeffs );
+         }
+      }
    }
 
    void compute_surrogates_face_3d( uint_t lvl )
