@@ -107,13 +107,13 @@ class LeastSquares
        * @param lvl The level of refinement.
        * @param downsampling The downsampling factor.
        */
-      inline Iterator( uint_t d, uint_t lvl, uint_t downsampling )
+      inline Iterator( uint_t dim, uint_t lvl, uint_t downsampling )
       : _n( idx_t( 0 ) )
       , _i( idx_t( 1 ) )
       , _j( idx_t( ( dim > 1 ) ? 1 : 0 ) )
       , _k( idx_t( ( dim > 2 ) ? 1 : 0 ) )
       , _ijk_max( idx_t( n_edge( lvl, 1 ) + 1 ) )
-      , _n_max( n_primitive( d, lvl, downsampling ) )
+      , _n_max( n_primitive( dim, lvl, downsampling ) )
       , _stride( downsampling )
       {}
       /**
