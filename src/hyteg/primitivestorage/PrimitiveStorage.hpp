@@ -267,6 +267,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///@{
    const Primitive* getPrimitive( const PrimitiveID& id ) const;
    Primitive*       getPrimitive( const PrimitiveID& id );
+   std::shared_ptr< const Primitive > getPointerToPrimitive( const PrimitiveID& id ) const;
+   std::shared_ptr< Primitive > getPointerToPrimitive( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
@@ -275,6 +277,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///@{
    const Vertex* getVertex( const PrimitiveID& id ) const;
    Vertex*       getVertex( const PrimitiveID& id );
+   std::shared_ptr< const Vertex > getPointerToVertex( const PrimitiveID& id ) const;
+   std::shared_ptr< Vertex > getPointerToVertex( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
@@ -288,6 +292,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///@{
    const Edge* getEdge( const PrimitiveID& id ) const;
    Edge*       getEdge( const PrimitiveID& id );
+   std::shared_ptr< const Edge > getPointerToEdge( const PrimitiveID& id ) const;
+   std::shared_ptr< Edge > getPointerToEdge( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
@@ -301,6 +307,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///@{
    const Face* getFace( const PrimitiveID& id ) const;
    Face*       getFace( const PrimitiveID& id );
+   std::shared_ptr< const Face > getPointerToFace( const PrimitiveID& id ) const;
+   std::shared_ptr< Face > getPointerToFace( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
@@ -314,6 +322,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///@{
    const Cell* getCell( const PrimitiveID& id ) const;
    Cell*       getCell( const PrimitiveID& id );
+   std::shared_ptr< const Cell > getPointerToCell( const PrimitiveID& id ) const;
+   std::shared_ptr< Cell > getPointerToCell( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.

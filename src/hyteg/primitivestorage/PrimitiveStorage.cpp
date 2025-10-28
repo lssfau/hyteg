@@ -1370,69 +1370,84 @@ PrimitiveStorage::CellMap PrimitiveStorage::getNeighborCells() const
 
 const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id ) const
 {
-   auto vertexPtr = getVertex( id );
+   return getPointerToPrimitive( id ).get();
+}
+
+std::shared_ptr< const Primitive > PrimitiveStorage::getPointerToPrimitive( const PrimitiveID& id ) const
+{
+   auto vertexPtr = getPointerToVertex( id );
    if ( vertexPtr != nullptr )
    {
       return vertexPtr;
    }
 
-   auto edgePtr = getEdge( id );
+   auto edgePtr = getPointerToEdge( id );
    if ( edgePtr != nullptr )
    {
       return edgePtr;
    }
 
-   auto facePtr = getFace( id );
+   auto facePtr = getPointerToFace( id );
    if ( facePtr != nullptr )
    {
       return facePtr;
    }
 
-   auto cellPtr = getCell( id );
+   auto cellPtr = getPointerToCell( id );
    if ( cellPtr != nullptr )
    {
       return cellPtr;
    }
 
-   return nullptr;
+   return std::shared_ptr< const Primitive >();
 }
 
 Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id )
 {
-   auto vertexPtr = getVertex( id );
+   return getPointerToPrimitive( id ).get();
+}
+
+std::shared_ptr< Primitive > PrimitiveStorage::getPointerToPrimitive( const PrimitiveID& id )
+{
+   auto vertexPtr = getPointerToVertex( id );
    if ( vertexPtr != nullptr )
    {
       return vertexPtr;
    }
 
-   auto edgePtr = getEdge( id );
+   auto edgePtr = getPointerToEdge( id );
    if ( edgePtr != nullptr )
    {
       return edgePtr;
    }
 
-   auto facePtr = getFace( id );
+   auto facePtr = getPointerToFace( id );
    if ( facePtr != nullptr )
    {
       return facePtr;
    }
 
-   auto cellPtr = getCell( id );
+   auto cellPtr = getPointerToCell( id );
    if ( cellPtr != nullptr )
    {
       return cellPtr;
    }
 
-   return nullptr;
+   return std::shared_ptr< Primitive >();
 }
 
 const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
+{
+   return getPointerToVertex( id ).get();
+}
+
+std::shared_ptr< const Vertex > PrimitiveStorage::getPointerToVertex( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : vertices_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
@@ -1441,12 +1456,12 @@ const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< const Vertex >();
 }
 
 const Vertex* PrimitiveStorage::getLocalVertex( const PrimitiveID& id ) const
@@ -1464,11 +1479,16 @@ const Vertex* PrimitiveStorage::getLocalVertex( const PrimitiveID& id ) const
 
 Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
 {
+   return getPointerToVertex( id ).get();
+}
+
+std::shared_ptr< Vertex > PrimitiveStorage::getPointerToVertex( const PrimitiveID& id )
+{
    for ( auto& [level, primitives] : vertices_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives[id];
       }
       WALBERLA_UNUSED( level );
    }
@@ -1477,21 +1497,26 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives[id];
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< Vertex >();
 }
 
 const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
+{
+   return getPointerToEdge( id ).get();
+}
+
+std::shared_ptr< const Edge > PrimitiveStorage::getPointerToEdge( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : edges_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
@@ -1500,12 +1525,12 @@ const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< const Edge >();
 }
 
 const Edge* PrimitiveStorage::getLocalEdge( const PrimitiveID& id ) const
@@ -1524,11 +1549,16 @@ const Edge* PrimitiveStorage::getLocalEdge( const PrimitiveID& id ) const
 
 Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
 {
+   return getPointerToEdge( id ).get();
+}
+
+std::shared_ptr< Edge > PrimitiveStorage::getPointerToEdge( const PrimitiveID& id )
+{
    for ( auto& [level, primitives] : edges_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives[id];
       }
       WALBERLA_UNUSED( level );
    }
@@ -1537,21 +1567,26 @@ Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives[id];
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< Edge >();
 }
 
 const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
+{
+   return getPointerToFace( id ).get();
+}
+
+std::shared_ptr< const Face > PrimitiveStorage::getPointerToFace( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : faces_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
@@ -1560,12 +1595,12 @@ const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< const Face >();
 }
 
 const Face* PrimitiveStorage::getLocalFace( const PrimitiveID& id ) const
@@ -1584,34 +1619,44 @@ const Face* PrimitiveStorage::getLocalFace( const PrimitiveID& id ) const
 
 Face* PrimitiveStorage::getFace( const PrimitiveID& id )
 {
-   for ( auto& [level, primitives] : faces_ )
+   return getPointerToFace( id ).get();
+}
+
+std::shared_ptr< Face > PrimitiveStorage::getPointerToFace( const PrimitiveID& id )
+{
+   for ( const auto& [level, primitives] : faces_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   for ( auto& [level, primitives] : neighborFaces_ )
+   for ( const auto& [level, primitives] : neighborFaces_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   return nullptr;
+   return std::shared_ptr< Face >();
 }
 
 const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
+{
+   return getPointerToCell( id ).get();
+}
+
+std::shared_ptr< const Cell > PrimitiveStorage::getPointerToCell( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : cells_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
@@ -1620,11 +1665,11 @@ const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives.at( id ).get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
-   return nullptr;
+   return std::shared_ptr< const Cell >();
 }
 
 const Cell* PrimitiveStorage::getLocalCell( const PrimitiveID& id ) const
@@ -1642,25 +1687,29 @@ const Cell* PrimitiveStorage::getLocalCell( const PrimitiveID& id ) const
 
 Cell* PrimitiveStorage::getCell( const PrimitiveID& id )
 {
-   for ( auto& [level, primitives] : cells_ )
+   return getPointerToCell( id ).get();
+}
+
+std::shared_ptr< Cell > PrimitiveStorage::getPointerToCell( const PrimitiveID& id )
+{
+   for ( const auto& [level, primitives] : cells_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
 
-   for ( auto& [level, primitives] : neighborCells_ )
+   for ( const auto& [level, primitives] : neighborCells_ )
    {
       if ( primitives.count( id ) > 0 )
       {
-         return primitives[id].get();
+         return primitives.at( id );
       }
       WALBERLA_UNUSED( level );
    }
-
-   return nullptr;
+   return std::shared_ptr< Cell >();
 }
 
 std::vector< PrimitiveID > PrimitiveStorage::getPrimitiveIDs() const
