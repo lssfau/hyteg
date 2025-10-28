@@ -24,6 +24,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/p1functionspace/P1SurrogateOperator_optimized.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -42,9 +43,9 @@
 using walberla::real_t;
 using namespace hyteg;
 
+template < uint_t q >
 void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        storage,
                               std::function< real_t( const hyteg::Point3D& ) >& k,
-                              const uint_t                                      q,
                               const uint_t                                      level )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "P1 surrogate operator test" )
@@ -52,9 +53,10 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-12 : 5e-4 );
 
    // operators
-   forms::p1_div_k_grad_affine_q3    form( k, k );
-   P1AffineDivkGradOperator          A( storage, level, level, form );
+   forms::p1_div_k_grad_affine_q3                form( k, k );
+   P1AffineDivkGradOperator                      A( storage, level, level, form );
    deprecated::P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
+   P1SurrogateAffineDivKGradOperator< q >        A_q_opt( storage, level, level, form );
 
    A_q.interpolateStencils( q, level );
 
@@ -62,7 +64,10 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
    hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
+   hyteg::P1Function< real_t > Aqu_opt( "(A_q_opt)u", storage, level, level );
    hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
+   hyteg::P1Function< real_t > err_opt( "(A-A_q_opt)u", storage, level, level );
+   hyteg::P1Function< real_t > err_q_qopt( "(A_q-A_q_opt)u", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
@@ -72,11 +77,20 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    // apply operators
    A.apply( u, Au, level, All, Replace );
    A_q.apply( u, Aqu, level, All, Replace );
+   A_q_opt.apply( u, Aqu_opt, level, All, Replace );
 
-   // compute error
+   // compute errors
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
    auto errorMax = err.getMaxDoFMagnitude( level );
    WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
+
+   err_opt.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
+   errorMax = err_opt.getMaxDoFMagnitude( level );
+   WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q_opt)u||_inf" );
+
+   err_q_qopt.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
+   errorMax = err_q_qopt.getMaxDoFMagnitude( level );
+   WALBERLA_CHECK_LESS( errorMax, epsilon / 100, "||(A_q - A_q_opt)u||_inf" );
 }
 
 int main( int argc, char* argv[] )
@@ -115,7 +129,7 @@ int main( int argc, char* argv[] )
    //  Prepare setup for 2D tests
    // ----------------------------
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -124,20 +138,20 @@ int main( int argc, char* argv[] )
    //  Run some 2D tests
    // -------------------
    WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=1, level=2" );
-   P1SurrogateOperatorTest( storage, k1, 1, 2 );
+   P1SurrogateOperatorTest< 1 >( storage, k1, 2 );
    WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=2, level=3" );
-   P1SurrogateOperatorTest( storage, k2, 2, 3 );
+   P1SurrogateOperatorTest< 2 >( storage, k2, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=3, level=3" );
-   P1SurrogateOperatorTest( storage, k3, 3, 3 );
+   P1SurrogateOperatorTest< 3 >( storage, k3, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=3" );
-   P1SurrogateOperatorTest( storage, k4, 4, 3 );
+   P1SurrogateOperatorTest< 4 >( storage, k4, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=4" );
-   P1SurrogateOperatorTest( storage, k4, 4, 4 );
+   P1SurrogateOperatorTest< 4 >( storage, k4, 4 );
 
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
-   MeshInfo              meshInfo3d = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), 1, 1, 1 );
+   MeshInfo              meshInfo3d = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage3d( meshInfo3d, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3d );
    std::shared_ptr< PrimitiveStorage > storage3d = std::make_shared< PrimitiveStorage >( setupStorage3d );
@@ -146,15 +160,15 @@ int main( int argc, char* argv[] )
    //  Run some 3D tests
    // -------------------
    WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=1, level=3" );
-   P1SurrogateOperatorTest( storage3d, k1, 1, 3 );
+   P1SurrogateOperatorTest< 1 >( storage3d, k1, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=2, level=3" );
-   P1SurrogateOperatorTest( storage3d, k2, 2, 3 );
+   P1SurrogateOperatorTest< 2 >( storage3d, k2, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=3, level=3" );
-   P1SurrogateOperatorTest( storage3d, k3, 3, 3 );
+   P1SurrogateOperatorTest< 3 >( storage3d, k3, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=3" );
-   P1SurrogateOperatorTest( storage3d, k4, 4, 3 );
+   P1SurrogateOperatorTest< 4 >( storage3d, k4, 3 );
    WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=4" );
-   P1SurrogateOperatorTest( storage3d, k4, 4, 4 );
+   P1SurrogateOperatorTest< 4 >( storage3d, k4, 4 );
 
    return 0;
 }
