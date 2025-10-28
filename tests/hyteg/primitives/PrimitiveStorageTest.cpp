@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -144,7 +144,7 @@ static void testPrimitiveStorage()
       WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Vertex >( vertexID ) );
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( vertexID ) );
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( vertexID ) );
-      Vertex* vertex = storage->getPrimitiveGenerically< Vertex >( vertexID );
+      std::shared_ptr< Vertex > vertex = storage->getPrimitiveGenerically< Vertex >( vertexID );
       WALBERLA_LOG_INFO( "" << vertex->getID() );
    }
 
@@ -154,7 +154,7 @@ static void testPrimitiveStorage()
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( edgeID ) );
       WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Edge >( edgeID ) );
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Face >( edgeID ) );
-      Edge* edge = storage->getPrimitiveGenerically< Edge >( edgeID );
+      std::shared_ptr< Edge > edge = storage->getPrimitiveGenerically< Edge >( edgeID );
       WALBERLA_LOG_INFO( "" << edge->getID() );
    }
 
@@ -164,7 +164,7 @@ static void testPrimitiveStorage()
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Vertex >( faceID ) );
       WALBERLA_CHECK( !storage->primitiveExistsLocallyGenerically< Edge >( faceID ) );
       WALBERLA_CHECK( storage->primitiveExistsLocallyGenerically< Face >( faceID ) );
-      Face* face = storage->getPrimitiveGenerically< Face >( faceID );
+      std::shared_ptr< Face > face = storage->getPrimitiveGenerically< Face >( faceID );
       WALBERLA_LOG_INFO( "" << face->getID() );
    }
 

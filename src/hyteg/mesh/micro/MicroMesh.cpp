@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -883,9 +883,9 @@ Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
       return microFaceCenterPositionNoMesh( storage, faceId, level, microFaceIndex, faceType, true );
    }
 
-   const uint_t dim  = microMesh->dimension();
-   const Face*  face = storage->getPrimitiveGenerically< Face >( faceId );
-   Point3D      center;
+   const uint_t                  dim  = microMesh->dimension();
+   std::shared_ptr< const Face > face = storage->getPrimitiveGenerically< Face >( faceId );
+   Point3D                       center;
 
    if ( microMesh->polynomialDegree() == 1 )
    {

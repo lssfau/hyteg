@@ -265,20 +265,20 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// The returned \ref Primitive is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Primitive does not exist locally nor in the direct neighborhood.
    ///@{
-   const Primitive* getPrimitive( const PrimitiveID& id ) const;
-   Primitive*       getPrimitive( const PrimitiveID& id );
+   const Primitive*                   getPrimitive( const PrimitiveID& id ) const;
+   Primitive*                         getPrimitive( const PrimitiveID& id );
    std::shared_ptr< const Primitive > getPointerToPrimitive( const PrimitiveID& id ) const;
-   std::shared_ptr< Primitive > getPointerToPrimitive( const PrimitiveID& id );
+   std::shared_ptr< Primitive >       getPointerToPrimitive( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
    /// The returned \ref Vertex is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Vertex does not exist locally nor in the direct neighborhood.
    ///@{
-   const Vertex* getVertex( const PrimitiveID& id ) const;
-   Vertex*       getVertex( const PrimitiveID& id );
+   const Vertex*                   getVertex( const PrimitiveID& id ) const;
+   Vertex*                         getVertex( const PrimitiveID& id );
    std::shared_ptr< const Vertex > getPointerToVertex( const PrimitiveID& id ) const;
-   std::shared_ptr< Vertex > getPointerToVertex( const PrimitiveID& id );
+   std::shared_ptr< Vertex >       getPointerToVertex( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
@@ -290,10 +290,10 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// The returned \ref Edge is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Edge does not exist locally nor in the direct neighborhood.
    ///@{
-   const Edge* getEdge( const PrimitiveID& id ) const;
-   Edge*       getEdge( const PrimitiveID& id );
+   const Edge*                   getEdge( const PrimitiveID& id ) const;
+   Edge*                         getEdge( const PrimitiveID& id );
    std::shared_ptr< const Edge > getPointerToEdge( const PrimitiveID& id ) const;
-   std::shared_ptr< Edge > getPointerToEdge( const PrimitiveID& id );
+   std::shared_ptr< Edge >       getPointerToEdge( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
@@ -305,10 +305,10 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// The returned \ref Face is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Face does not exist locally nor in the direct neighborhood.
    ///@{
-   const Face* getFace( const PrimitiveID& id ) const;
-   Face*       getFace( const PrimitiveID& id );
+   const Face*                   getFace( const PrimitiveID& id ) const;
+   Face*                         getFace( const PrimitiveID& id );
    std::shared_ptr< const Face > getPointerToFace( const PrimitiveID& id ) const;
-   std::shared_ptr< Face > getPointerToFace( const PrimitiveID& id );
+   std::shared_ptr< Face >       getPointerToFace( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
@@ -320,10 +320,10 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// The returned \ref Cell is either local or lies in the direct neighborhood.
    /// Returns nullptr if the \ref Cell does not exist locally nor in the direct neighborhood.
    ///@{
-   const Cell* getCell( const PrimitiveID& id ) const;
-   Cell*       getCell( const PrimitiveID& id );
+   const Cell*                   getCell( const PrimitiveID& id ) const;
+   Cell*                         getCell( const PrimitiveID& id );
    std::shared_ptr< const Cell > getPointerToCell( const PrimitiveID& id ) const;
-   std::shared_ptr< Cell > getPointerToCell( const PrimitiveID& id );
+   std::shared_ptr< Cell >       getPointerToCell( const PrimitiveID& id );
    ///@}
 
    /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.
@@ -336,13 +336,13 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// @name Generic versions of the getter methods.
    ///@{
    template < typename PrimitiveType >
-   const PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id ) const
+   std::shared_ptr< const PrimitiveType > getPrimitiveGenerically( const PrimitiveID& id ) const
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
 
    template < typename PrimitiveType >
-   PrimitiveType* getPrimitiveGenerically( const PrimitiveID& id )
+   std::shared_ptr< PrimitiveType > getPrimitiveGenerically( const PrimitiveID& id )
    {
       static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
    }
