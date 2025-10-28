@@ -78,11 +78,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    using DofIdx = p1::stencil::StencilData< 3, walberla::uint_t >;
 
  public:
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form() )
-   {}
-
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form )
+   // Ctor using form, downsampling and precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        const P1Form&                              form,
+                        size_t                                     downsampling,
+                        const std::string&                         path_to_svd,
+                        bool                                       needsInverseDiagEntries = false )
    : Operator< P1Function< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
    , form_( form )
    , is_initialized_( false )
@@ -99,91 +102,57 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    , surrogate_face_2d_( storage, maxLevel, 2 )
    , surrogate_face_3d_( storage, maxLevel, 2 )
    , surrogate_cell_3d_( storage, maxLevel, 3 )
-   {}
-
-   init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries )
    {
-      uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
-
-      if ( dim == 3 )
-      {
-         // mapping between logical indices and stencil directions for each face
-         compute_offsets_for_face_stencil_3d();
-      }
-
-      /* precompute and store stencils
-         * irregular stencils are precomputed for all levels
-         * regular stencils are precomputed for levels 1-3
-      */
-      for ( uint_t level = 0; level <= maxLevel_; ++level )
-      {
-         if ( dim == 2 )
-         {
-            precompute_stencil_vtx_2d( level );
-            if ( 1 <= level && level < min_lvl_for_surrogate )
-            {
-               precompute_stencil_edge_2d( level );
-            }
-            if ( 2 <= level && level < min_lvl_for_surrogate )
-            {
-               precompute_stencil_face_2d( level );
-            }
-         }
-         else
-         {
-            precompute_stencil_vtx_3d( level );
-            if ( 1 <= level )
-            {
-               precompute_stencil_edge_3d( level );
-            }
-            if ( 2 <= level && level < min_lvl_for_surrogate )
-            {
-               precompute_stencil_face_3d( level );
-               precompute_stencil_cell_3d( level );
-            }
-         }
-      }
-
-      // approximate regular stencils for level 4+ by polynomials
-      for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
-      {
-         // initialize least squares approximation
-         if ( lsq_volume_[level] == nullptr || downsampling_ != downsampling )
-         {
-            if ( path_to_svd == "" )
-            {
-               lsq_volume_[level]    = std::make_shared< LSQ >( dim, DEGREE, level, downsampling );
-               lsq_interface_[level] = std::make_shared< LSQ >( dim - 1, DEGREE, level, downsampling );
-            }
-            else
-            {
-               lsq_volume_[level]    = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling );
-               lsq_interface_[level] = std::make_shared< LSQ >( path_to_svd, dim - 1, DEGREE, level, downsampling );
-            }
-            downsampling_ = downsampling;
-         }
-
-         if ( dim == 2 )
-         {
-            compute_surrogates_edge_2d( level );
-            compute_surrogates_face_2d( level );
-         }
-         else
-         {
-            compute_surrogates_face_3d( level );
-            compute_surrogates_cell_3d( level );
-         }
-      }
-
-      if ( needsInverseDiagEntries )
-      {
-         computeInverseDiagonalOperatorValues();
-      }
-
-      is_initialized_ = true;
+      init( downsampling, path_to_svd, needsInverseDiagEntries );
    }
 
-   /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
+   // Ctor using form and downsampling, no precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        const P1Form&                              form,
+                        size_t                                     downsampling,
+                        bool                                       needsInverseDiagEntries = false )
+   : P1SurrogateOperator( storage, minLevel, maxLevel, form, downsampling, "", needsInverseDiagEntries )
+   {}
+
+   // Ctor using form, no downsampling, no precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        const P1Form&                              form,
+                        bool                                       needsInverseDiagEntries = false )
+   : P1SurrogateOperator( storage, minLevel, maxLevel, form, 1, "", needsInverseDiagEntries )
+   {}
+
+   // Ctor using downsampling and precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        size_t                                     downsampling,
+                        const std::string&                         path_to_svd,
+                        bool                                       needsInverseDiagEntries = false )
+   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), downsampling, path_to_svd, needsInverseDiagEntries )
+   {}
+
+   // Ctor using downsampling, no precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        size_t                                     downsampling,
+                        bool                                       needsInverseDiagEntries = false )
+   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), downsampling, "", needsInverseDiagEntries )
+   {}
+
+   // Ctor using no downsampling, no precomputed SVD
+   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        bool                                       needsInverseDiagEntries = false )
+   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), 1, "", needsInverseDiagEntries )
+   {}
+
+      /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
       @returns [h^(d/2)*||A - Aq||_F restricted to K] for all macro elements K
    */
    std::map< PrimitiveID, real_t > computeSurrogateError( uint_t level ) const
@@ -420,6 +389,88 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    };
 
  private:
+   init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries )
+   {
+      uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
+
+      if ( dim == 3 )
+      {
+         // mapping between logical indices and stencil directions for each face
+         compute_offsets_for_face_stencil_3d();
+      }
+
+      /* precompute and store stencils
+         * irregular stencils are precomputed for all levels
+         * regular stencils are precomputed for levels 1-3
+      */
+      for ( uint_t level = 0; level <= maxLevel_; ++level )
+      {
+         if ( dim == 2 )
+         {
+            precompute_stencil_vtx_2d( level );
+            if ( 1 <= level && level < min_lvl_for_surrogate )
+            {
+               precompute_stencil_edge_2d( level );
+            }
+            if ( 2 <= level && level < min_lvl_for_surrogate )
+            {
+               precompute_stencil_face_2d( level );
+            }
+         }
+         else
+         {
+            precompute_stencil_vtx_3d( level );
+            if ( 1 <= level )
+            {
+               precompute_stencil_edge_3d( level );
+            }
+            if ( 2 <= level && level < min_lvl_for_surrogate )
+            {
+               precompute_stencil_face_3d( level );
+               precompute_stencil_cell_3d( level );
+            }
+         }
+      }
+
+      // approximate regular stencils for level 4+ by polynomials
+      for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
+      {
+         // initialize least squares approximation
+         if ( lsq_volume_[level] == nullptr || downsampling_ != downsampling )
+         {
+            if ( path_to_svd == "" )
+            {
+               lsq_volume_[level]    = std::make_shared< LSQ >( dim, DEGREE, level, downsampling );
+               lsq_interface_[level] = std::make_shared< LSQ >( dim - 1, DEGREE, level, downsampling );
+            }
+            else
+            {
+               lsq_volume_[level]    = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling );
+               lsq_interface_[level] = std::make_shared< LSQ >( path_to_svd, dim - 1, DEGREE, level, downsampling );
+            }
+            downsampling_ = downsampling;
+         }
+
+         if ( dim == 2 )
+         {
+            compute_surrogates_edge_2d( level );
+            compute_surrogates_face_2d( level );
+         }
+         else
+         {
+            compute_surrogates_face_3d( level );
+            compute_surrogates_cell_3d( level );
+         }
+      }
+
+      if ( needsInverseDiagEntries )
+      {
+         computeInverseDiagonalOperatorValues();
+      }
+
+      is_initialized_ = true;
+   }
+
    std::map< PrimitiveID, real_t > computeSurrogateError2D( uint_t level ) const
    {
       // todo
