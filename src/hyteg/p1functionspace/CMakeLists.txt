@@ -17,12 +17,13 @@ target_sources( hyteg
     VertexDoFIndexing.cpp
     P1Petsc.hpp
     P1SurrogateOperator.hpp
+    P1SurrogateOperator_optimized.hpp
     VertexDoFMacroFace.hpp
     P1VectorFunction.hpp
     P1ProjectNormalOperator.cpp
     P1RotationOperator.cpp
     P1Function.hpp
-    VertexDoFMacroVertex.hpp     
+    VertexDoFMacroVertex.hpp
 )
 add_subdirectory( variablestencil )
 add_subdirectory( freeslip )
