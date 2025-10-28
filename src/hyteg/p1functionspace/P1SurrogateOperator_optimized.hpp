@@ -21,17 +21,14 @@
 #pragma once
 #include <hyteg/Stencil.hpp>
 #include <hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q2.hpp>
-#include <hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp>
 #include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp>
 #include <hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp>
-#include <hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp>
 #include <hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp>
 #include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/P1Elements.hpp>
 #include <hyteg/p1functionspace/P1Function.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/globalIndices.hpp>
-#include <hyteg/polynomial/elementwise/data.hpp>
 #include <hyteg/polynomial/stencil/leastSquares.hpp>
 #include <hyteg/polynomial/stencil/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
@@ -379,6 +376,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                     DoFType                     flag ) const override
    {
       // todo
+      WALBERLA_ABORT( "P1SurrogateOperator::smooth_sor not implemented!" );
    }
 
    void smooth_jac( const P1Function< real_t >& dst,
@@ -425,11 +423,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    std::map< PrimitiveID, real_t > computeSurrogateError2D( uint_t level ) const
    {
       // todo
+      //? is this even necessary?
    }
 
    std::map< PrimitiveID, real_t > computeSurrogateError3D( uint_t level ) const
    {
-      // todo
+      // todo;
+      //? is this even necessary?
    }
 
    void precompute_stencil_vtx_2d( uint_t lvl )
@@ -2287,11 +2287,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    std::map< PrimitiveID, p1::stencil::StencilData< 3, indexing::Index > > offsets_face_3d_;
 };
 
-// todo test other forms
-
-// typedef P1SurrogateOperator< forms::p1_diffusion_blending_q1 >  P1SurrogateLaplaceOperator;
-// typedef P1SurrogateOperator< forms::p1_mass_blending_q4 >       P1SurrogateMassOperator;
-// typedef P1SurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
-// typedef P1SurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1SurrogateAffineDivkGradOperator;
+template < uint8_t DEGREE >
+using P1SurrogateBlendingMassOperator = P1SurrogateOperator< forms::p1_mass_blending_q4, DEGREE >;
+template < uint8_t DEGREE >
+using P1SurrogateBlendingLaplaceOperator = P1SurrogateOperator< forms::p1_diffusion_blending_q2, DEGREE >;
+template < uint8_t DEGREE >
+using P1SurrogateAffineDivKGradOperator = P1SurrogateOperator< forms::p1_div_k_grad_affine_q3, DEGREE >;
+template < uint8_t DEGREE >
+using P1SurrogateBlendingDivKGradOperator = P1SurrogateOperator< forms::p1_div_k_grad_blending_q3, DEGREE >;
 
 } // namespace hyteg
