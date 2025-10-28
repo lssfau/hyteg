@@ -31,8 +31,8 @@ template < uint8_t DIM_domain, uint8_t DIM_primitive, uint8_t DEGREE >
 class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE ) >
 {
  public:
-   constexpr uint_t n_coeff   = hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE );
-   constexpr uint_t n_stencil = stencilSize( DIM_domain );
+   static constexpr uint_t n_coeff   = hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE );
+   static constexpr uint_t n_stencil = stencilSize( DIM_domain );
    template < typename T = real_t >
    using Stencil = StencilData< DIM_domain, T >;
 
@@ -68,7 +68,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    }
 
    template < typename CoeffVector >
-   inline void set_coefficients( p1::stencil::Dir d, CoeffVector & coeffs )
+   inline void set_coefficients( p1::stencil::Dir d, CoeffVector& coeffs )
    {
       if ( uint_t( coeffs.size() ) != n_coeff )
       {
@@ -78,7 +78,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
       for ( uint_t i = 0; i < n_coeff; ++i ) // polynomial coefficients
       {
-         ( *this )[i][d] = static_cast< real_t >( all_coeffs[d][static_cast< coeff_idx_t >( i )] );
+         ( *this )[i][d] = static_cast< real_t >( coeffs[static_cast< coeff_idx_t >( i )] );
       }
    }
 
@@ -236,10 +236,16 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       {
          const auto max_k = DEGREE - phi[ij].degree();
 
-         _restriction[ij] = ( *this )[ij]; // k=0
+         for ( uint_t d = 0; d < n_stencil; ++d )
+         {
+            _restriction[ij][d] = ( *this )[ij][d]; // k=0
+         }
          for ( int k = 1; k <= max_k; ++k )
          {
-            _restriction[ij] += ( *this )[ijk++] * z_pow[k];
+            for ( uint_t d = 0; d < n_stencil; ++d )
+            {
+               _restriction[ij][d] += ( *this )[ijk++][d] * z_pow[k];
+            }
          }
       }
    }

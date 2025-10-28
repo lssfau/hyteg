@@ -200,7 +200,7 @@ class LeastSquares
    uint_t adjust_downsampling( uint_t ds = 0 ) const
    {
       // ds must be less than (2^lvl - 1) / dimP
-      uint_t strict_upper_bound = n_edge( _lvl, _q + 1);
+      uint_t strict_upper_bound = n_edge( _lvl, _q + 1 );
 
       if ( strict_upper_bound <= 1 )
       {
@@ -209,7 +209,7 @@ class LeastSquares
       }
 
       auto max_ds = strict_upper_bound - 1;
-      if ( ds == 0 || ds > max_ds)
+      if ( ds == 0 || ds > max_ds )
       {
          // use the maximum
          return max_ds;
@@ -238,7 +238,7 @@ class LeastSquares
       {
          m = "V";
       }
-      auto suffix = walberla::format( "_d%d_q%d_l%d_s%d_f%d", _dim, _q, _lvl, _downsampling, _offset, 8 * sizeof( FLOAT ) );
+      auto suffix = walberla::format( "_d%d_q%d_l%d_s%d_f%d", _dim, _q, _lvl, _downsampling, 8 * sizeof( FLOAT ) );
       return m + suffix + ".dat";
    }
 
@@ -282,9 +282,9 @@ class LeastSquares
       // Setup Vandermonde matrix
 
       // monomial basis
-      constexpr polynomial::Basis< DEGREE > phi;
+      constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
       // conversion from i∈ℕ to x∈ℝ
-      const polynomial::Domain< FLOAT > X( _lvl );
+      const hyteg::surrogate::polynomial::Domain< FLOAT > X( _lvl );
 
       auto it = samplingIterator();
       while ( it != it.end() )
@@ -324,7 +324,7 @@ class LeastSquares
    : _dim( dim )
    , _q( degree )
    , _lvl( lvl )
-   , _downsampling( adjust_downsampling( downsampling, offset ) )
+   , _downsampling( adjust_downsampling( downsampling ) )
    , rows( n_primitive( _dim, _lvl, _downsampling ) )
    , cols( hyteg::surrogate::polynomial::dimP( _dim, _q ) )
    , A( rows, cols )
@@ -416,7 +416,7 @@ class LeastSquares
     *          If the given downsampling factor is too large, i.e., the resulting system would not be
     *          overdetermined, it is automatically reduced.
     */
-   LeastSquares( uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1)
+   LeastSquares( uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( dim, degree, lvl, downsampling, false, "" )
    {}
 
@@ -434,11 +434,7 @@ class LeastSquares
     *          If the given downsampling factor is too large, i.e., the resulting system would not be
     *          overdetermined, it is automatically reduced.
     */
-   LeastSquares( const std::string& path_to_svd,
-                 uint_t             dim,
-                 uint_t             degree,
-                 uint_t             lvl,
-                 uint_t             downsampling = 1)
+   LeastSquares( const std::string& path_to_svd, uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( dim, degree, lvl, downsampling, true, path_to_svd )
    {}
 
@@ -519,8 +515,6 @@ class LeastSquares
    const uint_t _lvl;
    // downsampling factor
    const uint_t _downsampling;
-   // number of points at the end of each row to be skipped
-   const uint_t _offset;
 
  public:
    // number of interpolation points
