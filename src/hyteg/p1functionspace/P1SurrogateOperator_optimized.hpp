@@ -548,23 +548,24 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             Edge* edge        = storage_->getEdge( nbrEdgeIds[d - 1] );
             nbrVtxIds[d]      = edge->get_opposite_vertex( vtxId );
             auto nbr_x        = storage_->getVertex( nbrVtxIds[d] )->getCoordinates();
-            nbrMicroCoords[d] = h * nbr_x + ( 1 - h ) * x;
+            nbrMicroCoords[d] = h * nbr_x + ( 1.0 - h ) * x;
          }
 
          for ( auto& cellId : vtx->neighborCells() )
          {
             Cell* cell = storage_->getCell( cellId );
 
-            // map cell nbr vertices to vtx nbr vertices, i.e., stencil direction
-            std::array< uint_t, 4 > stencilDir;
-            for ( uint_t v = 0; v < 4; ++v )
+            // check which of the vtx's neighbor vertices are on the boundary of this cell
+            std::array< uint_t, 4 > stencilDir{};
+            // stencilDir[0] = 0 ≡ vtx
+            for ( uint_t j = 1, v = 1; j < nbrVtxIds.size() && v < 4; ++j )
             {
-               auto cellNbrVtxId = cell->neighborVertices()[v];
-               for ( uint_t j = 0; j < nbrVtxIds.size(); ++j )
+               for ( const auto& cellNbrVtx :  cell->neighborVertices())
                {
-                  if ( cellNbrVtxId == nbrVtxIds[j] )
+                  if ( cellNbrVtx == nbrVtxIds[j] )
                   {
                      stencilDir[v] = j;
+                     ++v;
                      break;
                   }
                }
