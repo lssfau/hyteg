@@ -402,7 +402,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          * irregular stencils are precomputed for all levels
          * regular stencils are precomputed for levels 1-3
       */
-      for ( uint_t level = 0; level <= maxLevel_; ++level )
+      for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
       {
          if ( dim == 2 )
          {
@@ -432,7 +432,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       }
 
       // approximate regular stencils for level 4+ by polynomials
-      for ( uint_t level = min_lvl_for_surrogate; level <= maxLevel_; ++level )
+      for ( uint_t level = std::max( minLevel_, min_lvl_for_surrogate ); level <= maxLevel_; ++level )
       {
          // initialize least squares approximation
          if ( lsq_volume_[level] == nullptr || downsampling_ != downsampling )
@@ -1628,7 +1628,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          if ( updateType == Replace )
          {
-            dstData[i] = real_c( 0 );
+            dstData[dstIdx] = real_c( 0 );
          } // else updateType == Add
 
          // apply stencil
@@ -1688,7 +1688,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          if ( updateType == Replace )
          {
-            dstData[i] = real_c( 0 );
+            dstData[dstIdx] = real_c( 0 );
          } // else updateType == Add
 
          // apply stencil
@@ -1729,7 +1729,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             if ( updateType == Replace )
             {
-               dstData[i] = real_c( 0 );
+               dstData[dstIdx] = real_c( 0 );
             } // else updateType == Add
 
             // apply stencil
@@ -1786,7 +1786,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             if ( updateType == Replace )
             {
-               dstData[i] = real_c( 0 );
+               dstData[dstIdx] = real_c( 0 );
             } // else updateType == Add
 
             // apply stencil
@@ -1832,7 +1832,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                if ( updateType == Replace )
                {
-                  dstData[i] = real_c( 0 );
+                  dstData[dstIdx] = real_c( 0 );
                } // else updateType == Add
 
                // apply stencil
@@ -1880,7 +1880,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          if ( updateType == Replace )
          {
-            dstData[i] = real_c( 0 );
+            dstData[dstIdx] = real_c( 0 );
          } // else updateType == Add
 
          // apply stencil
@@ -1929,7 +1929,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             if ( updateType == Replace )
             {
-               dstData[i] = real_c( 0 );
+               dstData[dstIdx] = real_c( 0 );
             } // else updateType == Add
 
             // apply stencil
@@ -1992,7 +1992,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             if ( updateType == Replace )
             {
-               dstData[i] = real_c( 0 );
+               dstData[dstIdx] = real_c( 0 );
             } // else updateType == Add
 
             // apply stencil
@@ -2048,7 +2048,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                if ( updateType == Replace )
                {
-                  dstData[i] = real_c( 0 );
+                  dstData[dstIdx] = real_c( 0 );
                } // else updateType == Add
 
                // apply stencil
