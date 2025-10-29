@@ -750,7 +750,7 @@ class IcosahedralShellMap : public GeometryMap
 
       for ( uint_t k = 0; k < nbrFaces.size(); k++ )
       {
-         const Face* candidate = storage.getFace( nbrFaces[k] );
+         const std::shared_ptr< const Face > candidate = storage.getFace( nbrFaces[k] );
          candidate->getNeighborVertices( verts );
 
          // check that not both vertices are part of the face

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -122,8 +122,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       {
          for ( const auto& vertex : setupStorage.getVertices() )
          {
-            const auto    neighborVertexID = vertex.first;
-            const Vertex* neighborVertex   = setupStorage.getVertex( neighborVertexID );
+            const auto neighborVertexID = vertex.first;
+            const auto neighborVertex   = setupStorage.getVertex( neighborVertexID );
             if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
             {
                neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -133,8 +133,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 
          for ( const auto& edge : setupStorage.getEdges() )
          {
-            const auto  neighborEdgeID = edge.first;
-            const Edge* neighborEdge   = setupStorage.getEdge( neighborEdgeID );
+            const auto neighborEdgeID = edge.first;
+            const auto neighborEdge   = setupStorage.getEdge( neighborEdgeID );
             if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
             {
                neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -144,8 +144,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 
          for ( const auto& face : setupStorage.getFaces() )
          {
-            const auto  neighborFaceID = face.first;
-            const Face* neighborFace   = setupStorage.getFace( neighborFaceID );
+            const auto neighborFaceID = face.first;
+            const auto neighborFace   = setupStorage.getFace( neighborFaceID );
             if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
             {
                neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -155,8 +155,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 
          for ( const auto& cell : setupStorage.getCells() )
          {
-            const auto  neighborCellID = cell.first;
-            const Cell* neighborCell   = setupStorage.getCell( neighborCellID );
+            const auto neighborCellID = cell.first;
+            const auto neighborCell   = setupStorage.getCell( neighborCellID );
             if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
             {
                neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
@@ -351,7 +351,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborVertexID : vertex->neighborVertices() )
       {
-         const Vertex* neighborVertex = setupStorage.getVertex( neighborVertexID );
+         const auto neighborVertex = setupStorage.getVertex( neighborVertexID );
          if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
          {
             neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -361,7 +361,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborEdgeID : vertex->neighborEdges() )
       {
-         const Edge* neighborEdge = setupStorage.getEdge( neighborEdgeID );
+         const auto neighborEdge = setupStorage.getEdge( neighborEdgeID );
          if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
          {
             neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -371,7 +371,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborFaceID : vertex->neighborFaces() )
       {
-         const Face* neighborFace = setupStorage.getFace( neighborFaceID );
+         const auto neighborFace = setupStorage.getFace( neighborFaceID );
          if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
          {
             neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -381,7 +381,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborCellID : vertex->neighborCells() )
       {
-         const Cell* neighborCell = setupStorage.getCell( neighborCellID );
+         const auto neighborCell = setupStorage.getCell( neighborCellID );
          if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
          {
             neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
@@ -397,7 +397,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborVertexID : edge->neighborVertices() )
       {
-         const Vertex* neighborVertex = setupStorage.getVertex( neighborVertexID );
+         const auto neighborVertex = setupStorage.getVertex( neighborVertexID );
          if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
          {
             neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -407,7 +407,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborEdgeID : edge->neighborEdges() )
       {
-         const Edge* neighborEdge = setupStorage.getEdge( neighborEdgeID );
+         const auto neighborEdge = setupStorage.getEdge( neighborEdgeID );
          if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
          {
             neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -417,7 +417,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborFaceID : edge->neighborFaces() )
       {
-         const Face* neighborFace = setupStorage.getFace( neighborFaceID );
+         const auto neighborFace = setupStorage.getFace( neighborFaceID );
          if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
          {
             neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -427,7 +427,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborCellID : edge->neighborCells() )
       {
-         const Cell* neighborCell = setupStorage.getCell( neighborCellID );
+         const auto neighborCell = setupStorage.getCell( neighborCellID );
          if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
          {
             neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
@@ -443,7 +443,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborVertexID : face->neighborVertices() )
       {
-         const Vertex* neighborVertex = setupStorage.getVertex( neighborVertexID );
+         const auto neighborVertex = setupStorage.getVertex( neighborVertexID );
          if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
          {
             neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -453,7 +453,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborEdgeID : face->neighborEdges() )
       {
-         const Edge* neighborEdge = setupStorage.getEdge( neighborEdgeID );
+         const auto neighborEdge = setupStorage.getEdge( neighborEdgeID );
          if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
          {
             neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -463,7 +463,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborFaceID : face->neighborFaces() )
       {
-         const Face* neighborFace = setupStorage.getFace( neighborFaceID );
+         const auto neighborFace = setupStorage.getFace( neighborFaceID );
          if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
          {
             neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -473,7 +473,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborCellID : face->neighborCells() )
       {
-         const Cell* neighborCell = setupStorage.getCell( neighborCellID );
+         const auto neighborCell = setupStorage.getCell( neighborCellID );
          if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
          {
             neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
@@ -489,7 +489,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborVertexID : cell->neighborVertices() )
       {
-         const Vertex* neighborVertex = setupStorage.getVertex( neighborVertexID );
+         const auto neighborVertex = setupStorage.getVertex( neighborVertexID );
          if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
          {
             neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -499,7 +499,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborEdgeID : cell->neighborEdges() )
       {
-         const Edge* neighborEdge = setupStorage.getEdge( neighborEdgeID );
+         const auto neighborEdge = setupStorage.getEdge( neighborEdgeID );
          if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
          {
             neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -509,7 +509,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborFaceID : cell->neighborFaces() )
       {
-         const Face* neighborFace = setupStorage.getFace( neighborFaceID );
+         const auto neighborFace = setupStorage.getFace( neighborFaceID );
          if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
          {
             neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -519,7 +519,7 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 
       for ( const auto& neighborCellID : cell->neighborCells() )
       {
-         const Cell* neighborCell = setupStorage.getCell( neighborCellID );
+         const auto neighborCell = setupStorage.getCell( neighborCellID );
          if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
          {
             neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
@@ -3832,8 +3832,8 @@ void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage
 {
    for ( const auto& vertex : setupStorage.getVertices() )
    {
-      const auto    neighborVertexID = vertex.first;
-      const Vertex* neighborVertex   = setupStorage.getVertex( neighborVertexID );
+      const auto neighborVertexID = vertex.first;
+      const auto neighborVertex   = setupStorage.getVertex( neighborVertexID );
       if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
       {
          neighborVertices_[0][neighborVertexID] = std::make_shared< Vertex >( *neighborVertex );
@@ -3843,8 +3843,8 @@ void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage
 
    for ( const auto& edge : setupStorage.getEdges() )
    {
-      const auto  neighborEdgeID = edge.first;
-      const Edge* neighborEdge   = setupStorage.getEdge( neighborEdgeID );
+      const auto neighborEdgeID = edge.first;
+      const auto neighborEdge   = setupStorage.getEdge( neighborEdgeID );
       if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
       {
          neighborEdges_[0][neighborEdgeID] = std::make_shared< Edge >( *neighborEdge );
@@ -3854,8 +3854,8 @@ void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage
 
    for ( const auto& face : setupStorage.getFaces() )
    {
-      const auto  neighborFaceID = face.first;
-      const Face* neighborFace   = setupStorage.getFace( neighborFaceID );
+      const auto neighborFaceID = face.first;
+      const auto neighborFace   = setupStorage.getFace( neighborFaceID );
       if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
       {
          neighborFaces_[0][neighborFaceID] = std::make_shared< Face >( *neighborFace );
@@ -3865,8 +3865,8 @@ void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage
 
    for ( const auto& cell : setupStorage.getCells() )
    {
-      const auto  neighborCellID = cell.first;
-      const Cell* neighborCell   = setupStorage.getCell( neighborCellID );
+      const auto neighborCellID = cell.first;
+      const auto neighborCell   = setupStorage.getCell( neighborCellID );
       if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
       {
          neighborCells_[0][neighborCellID] = std::make_shared< Cell >( *neighborCell );
