@@ -619,18 +619,18 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          auto x1 = edge->getCoordinates()[1];
          auto dx = h * edge->getDirection();
          // coordinate offsets of stencil nbrs
-         p1::stencil::StencilData< 2, Point3D > d;
-         d[p1::stencil::W] = -dx;
-         d[p1::stencil::E] = dx;
+         p1::stencil::StencilData< 2, Point3D > dX;
+         dX[p1::stencil::W] = -dx;
+         dX[p1::stencil::E] = dx;
          if ( n_nbr_faces == 2 )
          {
             auto coord_N      = storage_->getVertex( vtxId_N )->getCoordinates();
-            d[p1::stencil::N] = h * ( coord_N - x0 );
+            dX[p1::stencil::N] = h * ( coord_N - x0 );
          }
          auto coord_S       = storage_->getVertex( vtxId_S )->getCoordinates();
-         d[p1::stencil::S]  = h * ( coord_S - x1 );
-         d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
-         d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
+         dX[p1::stencil::S]  = h * ( coord_S - x1 );
+         dX[p1::stencil::NW] = dX[p1::stencil::N] + dX[p1::stencil::W];
+         dX[p1::stencil::SE] = dX[p1::stencil::S] + dX[p1::stencil::E];
 
          // loop over inner vertices on the macro edge
          for ( uint_t i = 1; i < n - 1; ++i )
@@ -640,29 +640,29 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             // compute local stiffness matrices and add contributions to stencil
             Matrixr< 1, 3 > matrixRow;
             auto&           stencil = stencils[i - 1];
-            form_.integrateRow( 0, { { x, x + d[p1::stencil::W], x + d[p1::stencil::S] } }, matrixRow );
+            form_.integrateRow( 0, { { x, x + dX[p1::stencil::W], x + dX[p1::stencil::S] } }, matrixRow );
             stencil[p1::stencil::C] = real_t( matrixRow( 0, 0 ) );
             stencil[p1::stencil::W] = real_t( matrixRow( 0, 1 ) );
             stencil[p1::stencil::S] = real_t( matrixRow( 0, 2 ) );
-            form_.integrateRow( 0, { { x, x + d[p1::stencil::S], x + d[p1::stencil::SE] } }, matrixRow );
+            form_.integrateRow( 0, { { x, x + dX[p1::stencil::S], x + dX[p1::stencil::SE] } }, matrixRow );
             stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
             stencil[p1::stencil::S] += real_t( matrixRow( 0, 1 ) );
             stencil[p1::stencil::SE] = real_t( matrixRow( 0, 2 ) );
-            form_.integrateRow( 0, { { x, x + d[p1::stencil::SE], x + d[p1::stencil::E] } }, matrixRow );
+            form_.integrateRow( 0, { { x, x + dX[p1::stencil::SE], x + dX[p1::stencil::E] } }, matrixRow );
             stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
             stencil[p1::stencil::SE] += real_t( matrixRow( 0, 1 ) );
             stencil[p1::stencil::E] = real_t( matrixRow( 0, 2 ) );
             if ( n_nbr_faces == 2 )
             {
-               form_N.integrateRow( 0, { { x, x + d[p1::stencil::E], x + d[p1::stencil::N] } }, matrixRow );
+               form_N.integrateRow( 0, { { x, x + dX[p1::stencil::E], x + dX[p1::stencil::N] } }, matrixRow );
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::E] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::N] = real_t( matrixRow( 0, 2 ) );
-               form_N.integrateRow( 0, { { x, x + d[p1::stencil::N], x + d[p1::stencil::NW] } }, matrixRow );
+               form_N.integrateRow( 0, { { x, x + dX[p1::stencil::N], x + dX[p1::stencil::NW] } }, matrixRow );
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::N] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::NW] = real_t( matrixRow( 0, 2 ) );
-               form_N.integrateRow( 0, { { x, x + d[p1::stencil::NW], x + d[p1::stencil::W] } }, matrixRow );
+               form_N.integrateRow( 0, { { x, x + dX[p1::stencil::NW], x + dX[p1::stencil::W] } }, matrixRow );
                stencil[p1::stencil::C] += real_t( matrixRow( 0, 0 ) );
                stencil[p1::stencil::NW] += real_t( matrixRow( 0, 1 ) );
                stencil[p1::stencil::W] += real_t( matrixRow( 0, 2 ) );
@@ -863,13 +863,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          const Point3D dy = h * ( face->getCoordinates()[2] - x0 );
 
          // coordinate offsets of stencil nbrs
-         p1::stencil::StencilData< 2, Point3D > d;
-         d[p1::stencil::W]  = -dx;
-         d[p1::stencil::E]  = dx;
-         d[p1::stencil::N]  = dy;
-         d[p1::stencil::S]  = -dy;
-         d[p1::stencil::NW] = d[p1::stencil::N] + d[p1::stencil::W];
-         d[p1::stencil::SE] = d[p1::stencil::S] + d[p1::stencil::E];
+         p1::stencil::StencilData< 2, Point3D > dX;
+         dX[p1::stencil::W]  = -dx;
+         dX[p1::stencil::E]  = dx;
+         dX[p1::stencil::N]  = dy;
+         dX[p1::stencil::S]  = -dy;
+         dX[p1::stencil::NW] = dX[p1::stencil::N] + dX[p1::stencil::W];
+         dX[p1::stencil::SE] = dX[p1::stencil::S] + dX[p1::stencil::E];
 
          p1::stencil::StencilData< 2, Point3D > coords;
 
@@ -883,9 +883,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                const Point3D x = xj + real_t( i ) * dx;
 
-               for ( uint_t dir = 1; dir < d.size(); ++dir )
+               for ( uint_t d = 0; d < dX.size(); ++d )
                {
-                  coords[dir] = x + d[dir];
+                  coords[d] = x + dX[d];
                }
 
                // compute local stiffness matrices and add contributions to stencil
@@ -924,7 +924,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          const Point3D dy = h * ( face->getCoordinates()[2] - x0 );
 
          // coordinate offsets of stencil nbrs
-         p1::stencil::StencilData< 3, Point3D > d;
+         p1::stencil::StencilData< 3, Point3D > dX;
 
          // logical offsets
          const auto& logical_offsets = offsets_face_3d_.at( faceId );
@@ -971,17 +971,17 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                   // stencil direction
                   const indexing::Index offset = idx_face - idx1_face;
-                  for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
+                  for ( uint_t d = 0; d < logical_offsets.size(); ++d )
                   {
-                     if ( offset == logical_offsets[dir] )
+                     if ( offset == logical_offsets[d] )
                      {
-                        stencilIndex[c][mc][mv] = dir;
+                        stencilIndex[c][mc][mv] = d;
                         break;
                      }
                   }
 
                   // coordinate offset from center
-                  d[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx_cell ) - center;
+                  dX[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx_cell ) - center;
                }
             }
          }
@@ -1000,9 +1000,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                const Point3D x = xj + real_t( i ) * dx;
 
-               for ( uint_t dir = 1; dir < d.size(); ++dir )
+               for ( uint_t d = 0; d < dX.size(); ++d )
                {
-                  coords[dir] = x + d[dir];
+                  coords[d] = x + dX[d];
                }
 
                auto& stencil = stencils[dof];
@@ -1063,21 +1063,21 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          const Point3D dz = h * ( cell->getCoordinates()[3] - x0 );
 
          // coordinate offsets of stencil nbrs
-         p1::stencil::StencilData< 3, Point3D > d;
-         d[p1::stencil::W]   = -dx;
-         d[p1::stencil::E]   = dx;
-         d[p1::stencil::N]   = dy;
-         d[p1::stencil::S]   = -dy;
-         d[p1::stencil::NW]  = d[p1::stencil::N] + d[p1::stencil::W];
-         d[p1::stencil::SE]  = d[p1::stencil::S] + d[p1::stencil::E];
-         d[p1::stencil::TC]  = dz;
-         d[p1::stencil::TW]  = d[p1::stencil::TC] + d[p1::stencil::W];
-         d[p1::stencil::TS]  = d[p1::stencil::TC] + d[p1::stencil::S];
-         d[p1::stencil::TSE] = d[p1::stencil::TC] + d[p1::stencil::SE];
-         d[p1::stencil::BC]  = -dz;
-         d[p1::stencil::BE]  = d[p1::stencil::BC] + d[p1::stencil::E];
-         d[p1::stencil::BN]  = d[p1::stencil::BC] + d[p1::stencil::N];
-         d[p1::stencil::BNW] = d[p1::stencil::BC] + d[p1::stencil::NW];
+         p1::stencil::StencilData< 3, Point3D > dX;
+         dX[p1::stencil::W]   = -dx;
+         dX[p1::stencil::E]   = dx;
+         dX[p1::stencil::N]   = dy;
+         dX[p1::stencil::S]   = -dy;
+         dX[p1::stencil::NW]  = dX[p1::stencil::N] + dX[p1::stencil::W];
+         dX[p1::stencil::SE]  = dX[p1::stencil::S] + dX[p1::stencil::E];
+         dX[p1::stencil::TC]  = dz;
+         dX[p1::stencil::TW]  = dX[p1::stencil::TC] + dX[p1::stencil::W];
+         dX[p1::stencil::TS]  = dX[p1::stencil::TC] + dX[p1::stencil::S];
+         dX[p1::stencil::TSE] = dX[p1::stencil::TC] + dX[p1::stencil::SE];
+         dX[p1::stencil::BC]  = -dz;
+         dX[p1::stencil::BE]  = dX[p1::stencil::BC] + dX[p1::stencil::E];
+         dX[p1::stencil::BN]  = dX[p1::stencil::BC] + dX[p1::stencil::N];
+         dX[p1::stencil::BNW] = dX[p1::stencil::BC] + dX[p1::stencil::NW];
 
          p1::stencil::StencilData< 3, Point3D > coords;
 
@@ -1094,9 +1094,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                {
                   const Point3D x = xj + real_t( i ) * dx;
 
-                  for ( uint_t dir = 1; dir < d.size(); ++dir )
+                  for ( uint_t d = 0; d < dX.size(); ++d )
                   {
-                     coords[dir] = x + d[dir];
+                     coords[d] = x + dX[d];
                   }
 
                   // compute local stiffness matrices and add contributions to stencil
@@ -1269,7 +1269,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             const Point3D x = x0 + real_t( it.i() ) * dx + real_t( it.j() ) * dy;
             // coordinates of neighbor points
             p1::stencil::StencilData< 2, Point3D > coords;
-            for ( uint_t d = 1; d < dX.size(); ++d )
+            for ( uint_t d = 0; d < dX.size(); ++d )
             {
                coords[d] = x + dX[d];
             }
@@ -1396,9 +1396,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             const Point3D x = x0 + real_t( it.i() ) * dx + real_t( it.j() ) * dy;
             // coordinates of neighbor points
             p1::stencil::StencilData< 3, Point3D > coords;
-            for ( uint_t dir = 1; dir < dX.size(); ++dir )
+            for ( uint_t d = 0; d < dX.size(); ++d )
             {
-               coords[dir] = x + dX[dir];
+               coords[d] = x + dX[d];
             }
 
             Stencil< 3 > stencil{};
@@ -1501,9 +1501,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             const Point3D x = x0 + real_t( it.i() ) * dx + real_t( it.j() ) * dy + real_t( it.k() ) * dz;
             // coordinates of neighbor points
             p1::stencil::StencilData< 3, Point3D > coords;
-            for ( uint_t dir = 1; dir < dX.size(); ++dir )
+            for ( uint_t d = 0; d < dX.size(); ++d )
             {
-               coords[dir] = x + dX[dir];
+               coords[d] = x + dX[d];
             }
 
             // compute local stiffness matrices and add contributions to stencil
