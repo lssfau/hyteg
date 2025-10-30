@@ -677,7 +677,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
       const indexing::Index idx1_edge( 1, 0, 0 );
-      Matrixr< 1, 4 >       localStiffnessMatrixRow;
+      Matrixr< 1, 4 >       matrixRow;
 
       for ( const auto& [edgeId, edge] : storage_->getEdges() )
       {
@@ -825,11 +825,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      coord += x;
                   }
                   // compute local stiffness matrix
-                  form[c].integrateRow( 0, coords, localStiffnessMatrixRow );
+                  form[c].integrateRow( 0, coords, matrixRow );
                   // assemble stencil
                   for ( uint_t mv = 0; mv < 4; ++mv )
                   {
-                     stencil[stencilIndex[c][mc][mv]] += localStiffnessMatrixRow[mv];
+                     stencil[stencilIndex[c][mc][mv]] += matrixRow[mv];
                   }
                }
             }
@@ -988,7 +988,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // assemble stencil
          p1::stencil::StencilData< 3, Point3D > coords;
-         Matrixr< 1, 4 >                        localStiffnessMatrixRow;
+         Matrixr< 1, 4 >                        matrixRow;
 
          // loop over inner vertices on the macro face
          uint_t dof = 0;
@@ -1021,11 +1021,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                         coords_mc[mv] = coords[stencilIndex[c][mc][mv]];
                      }
                      // compute local stiffness matrix
-                     form[c].integrateRow( 0, coords_mc, localStiffnessMatrixRow );
+                     form[c].integrateRow( 0, coords_mc, matrixRow );
                      // assemble stencil
                      for ( uint_t mv = 0; mv < 4; ++mv )
                      {
-                        stencil[stencilIndex[c][mc][mv]] += localStiffnessMatrixRow[mv];
+                        stencil[stencilIndex[c][mc][mv]] += matrixRow[mv];
                      }
                   }
                }
@@ -1416,12 +1416,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      coords_mc[mv] = coords[stencilIndex[c][mc][mv]];
                   }
                   // compute local stiffness matrices and add contributions to stencil
-                  Matrixr< 1, 4 > localStiffnessMatrixRow;
-                  form[c].integrateRow( 0, coords_mc, localStiffnessMatrixRow );
+                  Matrixr< 1, 4 > matrixRow;
+                  form[c].integrateRow( 0, coords_mc, matrixRow );
                   // assemble stencil
                   for ( uint_t mv = 0; mv < 4; ++mv )
                   {
-                     stencil[stencilIndex[c][mc][mv]] += localStiffnessMatrixRow[mv];
+                     stencil[stencilIndex[c][mc][mv]] += matrixRow[mv];
                   }
                }
             }
