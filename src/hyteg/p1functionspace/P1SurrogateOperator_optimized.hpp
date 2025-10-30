@@ -970,9 +970,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
+                  const indexing::Index offset = idx_face - idx1_face;
                   for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
                   {
-                     if ( idx_face == logical_offsets[dir] )
+                     if ( offset == logical_offsets[dir] )
                      {
                         stencilIndex[c][mc][mv] = dir;
                         break;
@@ -1372,9 +1373,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
+                  const indexing::Index offset = idx_face - idx1_face;
                   for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
                   {
-                     if ( idx_face == logical_offsets[dir] )
+                     if ( offset == logical_offsets[dir] )
                      {
                         stencilIndex[c][mc][mv] = dir;
                         break;
@@ -1576,19 +1578,18 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   const indexing::Index idx_cell = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( mv );
                   // logical index on the face
                   const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
+                  // offset from center
+                  const indexing::Index offset = idx_face - idx1_face;
 
                   // stencil direction
-                  if ( idx_face.z() != 0 ) // micro-vertex in interior of cell
+                  if ( offset.z() != 0 ) // micro-vertex in interior of cell
                   {
-                     // check whether idx_face is already associated with some direction
-                     bool not_registered_yet =
-                         std::find( logical_offsets.begin(), logical_offsets.begin() + n_offsets_assigned, idx_face ) ==
-                         logical_offsets.begin() + n_offsets_assigned;
-
-                     // define association between stencil::Dir and idx_face
-                     if ( not_registered_yet )
+                     // check whether offset is already associated with some direction
+                     const auto end = logical_offsets.begin() + n_offsets_assigned;
+                     if ( std::find( logical_offsets.begin(), end, offset ) == end )
                      {
-                        logical_offsets[n_offsets_assigned] = idx_face;
+                        // define association between stencil::Dir and offset
+                        logical_offsets[n_offsets_assigned] = offset;
                         ++n_offsets_assigned;
                      }
                   }
