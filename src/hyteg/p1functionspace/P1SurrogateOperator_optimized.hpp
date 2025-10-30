@@ -560,7 +560,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             // stencilDir[0] = 0 ≡ vtx
             for ( uint_t j = 1, v = 1; j < nbrVtxIds.size() && v < 4; ++j )
             {
-               for ( const auto& cellNbrVtx :  cell->neighborVertices())
+               for ( const auto& cellNbrVtx : cell->neighborVertices() )
                {
                   if ( cellNbrVtx == nbrVtxIds[j] )
                   {
@@ -676,7 +676,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto n = levelinfo::num_microvertices_per_edge( lvl );
       const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
-      const indexing::Index idx1( 1, 0, 0 );
+      const indexing::Index idx1_edge( 1, 0, 0 );
       Matrixr< 1, 4 >       localStiffnessMatrixRow;
 
       for ( const auto& [edgeId, edge] : storage_->getEdges() )
@@ -717,7 +717,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      indexingBasis[3] = d;
                }
             }
-            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+            const auto idx1_cell = indexing::basisConversion( idx1_edge, indexingBasis, { 0, 1, 2, 3 }, n );
             const auto center    = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx1_cell );
 
             // intersection of nbrFaces from edge and cell
@@ -737,11 +737,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                for ( uint_t mv = 0; mv < 4; ++mv )
                {
                   // logical index in the macrocell
-                  indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
+                  indexing::Index idx_cell = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
                   // coordinate offset from center
-                  coordinateOffset[c][mc][mv] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
+                  coordinateOffset[c][mc][mv] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx_cell ) - center;
                   // micro-vertex on macro-edge, -face, or -cell?
-                  auto                  faces_mc_k = vertexdof::macrocell::isOnCellFace( idx, lvl );
+                  auto                  faces_mc_k = vertexdof::macrocell::isOnCellFace( idx_cell, lvl );
                   std::vector< uint_t > intersectingFaces;
                   std::set_intersection( edgeFaces.begin(),
                                          edgeFaces.end(),
@@ -752,8 +752,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   // compute stencil index for edge stencil
                   if ( intersectingFaces.size() >= 2 ) // edge
                   {
-                     const auto edgeIdx = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
-                     const int  offset  = int( edgeIdx.x() - 1 );
+                     const auto idx_edge = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
+                     const int  offset   = int( idx_edge.x() - 1 );
                      if ( offset == 0 )
                      {
                         stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C );
@@ -772,13 +772,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                      const auto faceId        = cell->neighborFaces()[intersectingFaces[0]];
                      const auto faceIdxOnEdge = edge->face_index( faceId );
                      // To get the correct indexing basis, we check which one results in a zero entry in the z coordinate.
-                     const auto                    firstTestIndexingBasis  = indexingBasis;
-                     const std::array< uint_t, 4 > secondTestIndexingBasis = {
+                     const auto                    indexingBasis_1 = indexingBasis;
+                     const std::array< uint_t, 4 > indexingBasis_2 = {
                          indexingBasis[0], indexingBasis[1], indexingBasis[3], indexingBasis[2] };
-                     const auto edgeIdxFirst  = indexing::basisConversion( idx, { 0, 1, 2, 3 }, firstTestIndexingBasis, n );
-                     const auto edgeIdxSecond = indexing::basisConversion( idx, { 0, 1, 2, 3 }, secondTestIndexingBasis, n );
-                     const auto faceIdx       = edgeIdxFirst.z() == 0 ? edgeIdxFirst : edgeIdxSecond;
-                     const int  offset        = int( faceIdx.x() - 1 );
+                     const auto idx_edge_1 = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_1, n );
+                     const auto idx_edge_2 = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_2, n );
+                     const auto idx_face   = idx_edge_1.z() == 0 ? idx_edge_1 : idx_edge_2;
+                     const int  offset     = int( idx_face.x() - 1 );
                      if ( offset == 0 )
                      {
                         stencilIndex[c][mc][mv] =
@@ -911,7 +911,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto h     = real_t( 1.0 / ( real_t( n - 1 ) ) );
       const auto n_dof = levelinfo::num_microvertices_per_face_from_width( n - 2 );
 
-      const indexing::Index idx1( 1, 1, 0 );
+      const indexing::Index idx1_face( 1, 1, 0 );
 
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
@@ -949,7 +949,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                 { cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 0 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 1 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 2 ) } );
-            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+            const auto idx1_cell = indexing::basisConversion( idx1_face, indexingBasis, { 0, 1, 2, 3 }, n );
             const auto center    = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx1_cell );
 
             // micro-cells associated with the stencil
@@ -965,9 +965,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                for ( uint_t mv = 0; mv < 4; ++mv )
                {
                   // logical index in the macrocell
-                  const indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
+                  const indexing::Index idx_cell = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
                   // logical index on the face
-                  const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
+                  const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
                   for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
@@ -980,7 +980,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   }
 
                   // coordinate offset from center
-                  d[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
+                  d[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx_cell ) - center;
                }
             }
          }
@@ -1316,7 +1316,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto n = levelinfo::num_microvertices_per_edge( lvl );
       const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
-      const indexing::Index idx1( 1, 1, 0 );
+      const indexing::Index idx1_face( 1, 1, 0 );
 
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
@@ -1351,7 +1351,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                 { cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 0 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 1 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 2 ) } );
-            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+            const auto idx1_cell = indexing::basisConversion( idx1_face, indexingBasis, { 0, 1, 2, 3 }, n );
             const auto center    = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx1_cell );
 
             // micro-cells associated with the stencil
@@ -1367,9 +1367,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                for ( uint_t mv = 0; mv < 4; ++mv )
                {
                   // logical index in the macrocell
-                  const indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
+                  const indexing::Index idx_cell = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( microCell[mv] );
                   // logical index on the face
-                  const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
+                  const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
                   for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
@@ -1382,7 +1382,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   }
 
                   // coordinate offset from center
-                  dX[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx ) - center;
+                  dX[stencilIndex[c][mc][mv]] = vertexdof::macrocell::coordinateFromIndex( lvl, *cell, idx_cell ) - center;
                }
             }
          }
@@ -1535,14 +1535,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       }
    }
 
-   void compute_offsets_for_face_stencil_3d()
+   void compute_offsets_for_face_stencil_3d( uint_t lvl )
    {
       /* only the first 7 directions are the same for all faces. The directions in the cell interior depend on the
          local orientation of the face w.r.t. the cell. */
-
-      const uint_t          lvl = 2; // make sure there are interior vertices
-      const auto            n   = levelinfo::num_microvertices_per_edge( lvl );
-      const indexing::Index idx1( 1, 1, 0 );
+      const auto            n = levelinfo::num_microvertices_per_edge( lvl );
+      const indexing::Index idx1_face( 1, 1, 0 );
 
       for ( const auto& [faceId, face] : storage_->getFaces() )
       {
@@ -1562,7 +1560,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                 { cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 0 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 1 ),
                   cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceId ).at( 2 ) } );
-            const auto idx1_cell = indexing::basisConversion( idx1, indexingBasis, { 0, 1, 2, 3 }, n );
+            const auto idx1_cell = indexing::basisConversion( idx1_face, indexingBasis, { 0, 1, 2, 3 }, n );
 
             // micro-cells associated with the stencil
             const auto microCells = P1Elements::P1Elements3D::getNeighboringElements( idx1_cell, lvl );
@@ -1575,9 +1573,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                for ( auto& mv : microCell )
                {
                   // logical index in the macrocell
-                  const indexing::Index idx = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( mv );
+                  const indexing::Index idx_cell = idx1_cell + vertexdof::logicalIndexOffsetFromVertex( mv );
                   // logical index on the face
-                  const auto idx_face = indexing::basisConversion( idx, { 0, 1, 2, 3 }, indexingBasis, n );
+                  const auto idx_face = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
 
                   // stencil direction
                   if ( idx_face.z() != 0 ) // micro-vertex in interior of cell
