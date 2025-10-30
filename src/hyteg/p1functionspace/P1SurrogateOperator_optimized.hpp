@@ -1374,11 +1374,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                   // stencil direction
                   const indexing::Index offset = idx_face - idx1_face;
-                  for ( uint_t dir = 0; dir < logical_offsets.size(); ++dir )
+                  for ( uint_t d = 0; d < logical_offsets.size(); ++d )
                   {
-                     if ( offset == logical_offsets[dir] )
+                     if ( offset == logical_offsets[d] )
                      {
-                        stencilIndex[c][mc][mv] = dir;
+                        stencilIndex[c][mc][mv] = d;
                         break;
                      }
                   }
