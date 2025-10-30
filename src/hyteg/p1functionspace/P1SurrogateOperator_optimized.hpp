@@ -624,10 +624,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          dX[p1::stencil::E] = dx;
          if ( n_nbr_faces == 2 )
          {
-            auto coord_N      = storage_->getVertex( vtxId_N )->getCoordinates();
+            auto coord_N       = storage_->getVertex( vtxId_N )->getCoordinates();
             dX[p1::stencil::N] = h * ( coord_N - x0 );
          }
-         auto coord_S       = storage_->getVertex( vtxId_S )->getCoordinates();
+         auto coord_S        = storage_->getVertex( vtxId_S )->getCoordinates();
          dX[p1::stencil::S]  = h * ( coord_S - x1 );
          dX[p1::stencil::NW] = dX[p1::stencil::N] + dX[p1::stencil::W];
          dX[p1::stencil::SE] = dX[p1::stencil::S] + dX[p1::stencil::E];
@@ -971,7 +971,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                   // stencil direction
                   const indexing::Index offset = idx_face - idx1_face;
-                  for ( uint_t d = 0; d < logical_offsets.size(); ++d )
+                  const uint_t d0 = ( offset.z() == 0 ) ? 0 : 7 + 4 * c; // 0-6: mv on face, 7-10: mv on c=0, 11-14: mv on c=1
+                  for ( uint_t d = d0; d < logical_offsets.size(); ++d )
                   {
                      if ( offset == logical_offsets[d] )
                      {
@@ -1374,7 +1375,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
                   // stencil direction
                   const indexing::Index offset = idx_face - idx1_face;
-                  for ( uint_t d = 0; d < logical_offsets.size(); ++d )
+                  const uint_t d0 = ( offset.z() == 0 ) ? 0 : 7 + 4 * c; // 0-6: mv on face, 7-10: mv on c=0, 11-14: mv on c=1
+                  for ( uint_t d = d0; d < logical_offsets.size(); ++d )
                   {
                      if ( offset == logical_offsets[d] )
                      {
@@ -1585,10 +1587,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   if ( offset.z() != 0 ) // micro-vertex in interior of cell
                   {
                      // check whether offset is already associated with some direction
-                     const auto end = logical_offsets.begin() + n_offsets_assigned;
-                     if ( std::find( logical_offsets.begin(), end, offset ) == end )
+                     const auto begin = logical_offsets.begin() + 7 + 4 * c;
+                     const auto end   = logical_offsets.begin() + n_offsets_assigned;
+                     if ( std::find( begin, end, offset ) == end ) // not associated, yet
                      {
-                        // define association between stencil::Dir and offset
                         logical_offsets[n_offsets_assigned] = offset;
                         ++n_offsets_assigned;
                      }
