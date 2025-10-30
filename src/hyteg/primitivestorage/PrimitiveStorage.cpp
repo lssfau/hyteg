@@ -1370,30 +1370,30 @@ PrimitiveStorage::CellMap PrimitiveStorage::getNeighborCells() const
 
 const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id ) const
 {
-   return getPointerToPrimitive( id ).get();
+   return getSharedPointerToPrimitive( id ).get();
 }
 
-std::shared_ptr< const Primitive > PrimitiveStorage::getPointerToPrimitive( const PrimitiveID& id ) const
+std::shared_ptr< const Primitive > PrimitiveStorage::getSharedPointerToPrimitive( const PrimitiveID& id ) const
 {
-   auto vertexPtr = getPointerToVertex( id );
+   auto vertexPtr = getSharedPointerToVertex( id );
    if ( vertexPtr != nullptr )
    {
       return vertexPtr;
    }
 
-   auto edgePtr = getPointerToEdge( id );
+   auto edgePtr = getSharedPointerToEdge( id );
    if ( edgePtr != nullptr )
    {
       return edgePtr;
    }
 
-   auto facePtr = getPointerToFace( id );
+   auto facePtr = getSharedPointerToFace( id );
    if ( facePtr != nullptr )
    {
       return facePtr;
    }
 
-   auto cellPtr = getPointerToCell( id );
+   auto cellPtr = getSharedPointerToCell( id );
    if ( cellPtr != nullptr )
    {
       return cellPtr;
@@ -1404,30 +1404,30 @@ std::shared_ptr< const Primitive > PrimitiveStorage::getPointerToPrimitive( cons
 
 Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID& id )
 {
-   return getPointerToPrimitive( id ).get();
+   return getSharedPointerToPrimitive( id ).get();
 }
 
-std::shared_ptr< Primitive > PrimitiveStorage::getPointerToPrimitive( const PrimitiveID& id )
+std::shared_ptr< Primitive > PrimitiveStorage::getSharedPointerToPrimitive( const PrimitiveID& id )
 {
-   auto vertexPtr = getPointerToVertex( id );
+   auto vertexPtr = getSharedPointerToVertex( id );
    if ( vertexPtr != nullptr )
    {
       return vertexPtr;
    }
 
-   auto edgePtr = getPointerToEdge( id );
+   auto edgePtr = getSharedPointerToEdge( id );
    if ( edgePtr != nullptr )
    {
       return edgePtr;
    }
 
-   auto facePtr = getPointerToFace( id );
+   auto facePtr = getSharedPointerToFace( id );
    if ( facePtr != nullptr )
    {
       return facePtr;
    }
 
-   auto cellPtr = getPointerToCell( id );
+   auto cellPtr = getSharedPointerToCell( id );
    if ( cellPtr != nullptr )
    {
       return cellPtr;
@@ -1438,10 +1438,10 @@ std::shared_ptr< Primitive > PrimitiveStorage::getPointerToPrimitive( const Prim
 
 const Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id ) const
 {
-   return getPointerToVertex( id ).get();
+   return getSharedPointerToVertex( id ).get();
 }
 
-std::shared_ptr< const Vertex > PrimitiveStorage::getPointerToVertex( const PrimitiveID& id ) const
+std::shared_ptr< const Vertex > PrimitiveStorage::getSharedPointerToVertex( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : vertices_ )
    {
@@ -1479,10 +1479,10 @@ const Vertex* PrimitiveStorage::getLocalVertex( const PrimitiveID& id ) const
 
 Vertex* PrimitiveStorage::getVertex( const PrimitiveID& id )
 {
-   return getPointerToVertex( id ).get();
+   return getSharedPointerToVertex( id ).get();
 }
 
-std::shared_ptr< Vertex > PrimitiveStorage::getPointerToVertex( const PrimitiveID& id )
+std::shared_ptr< Vertex > PrimitiveStorage::getSharedPointerToVertex( const PrimitiveID& id )
 {
    for ( auto& [level, primitives] : vertices_ )
    {
@@ -1507,10 +1507,10 @@ std::shared_ptr< Vertex > PrimitiveStorage::getPointerToVertex( const PrimitiveI
 
 const Edge* PrimitiveStorage::getEdge( const PrimitiveID& id ) const
 {
-   return getPointerToEdge( id ).get();
+   return getSharedPointerToEdge( id ).get();
 }
 
-std::shared_ptr< const Edge > PrimitiveStorage::getPointerToEdge( const PrimitiveID& id ) const
+std::shared_ptr< const Edge > PrimitiveStorage::getSharedPointerToEdge( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : edges_ )
    {
@@ -1549,10 +1549,10 @@ const Edge* PrimitiveStorage::getLocalEdge( const PrimitiveID& id ) const
 
 Edge* PrimitiveStorage::getEdge( const PrimitiveID& id )
 {
-   return getPointerToEdge( id ).get();
+   return getSharedPointerToEdge( id ).get();
 }
 
-std::shared_ptr< Edge > PrimitiveStorage::getPointerToEdge( const PrimitiveID& id )
+std::shared_ptr< Edge > PrimitiveStorage::getSharedPointerToEdge( const PrimitiveID& id )
 {
    for ( auto& [level, primitives] : edges_ )
    {
@@ -1577,10 +1577,10 @@ std::shared_ptr< Edge > PrimitiveStorage::getPointerToEdge( const PrimitiveID& i
 
 const Face* PrimitiveStorage::getFace( const PrimitiveID& id ) const
 {
-   return getPointerToFace( id ).get();
+   return getSharedPointerToFace( id ).get();
 }
 
-std::shared_ptr< const Face > PrimitiveStorage::getPointerToFace( const PrimitiveID& id ) const
+std::shared_ptr< const Face > PrimitiveStorage::getSharedPointerToFace( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : faces_ )
    {
@@ -1619,10 +1619,10 @@ const Face* PrimitiveStorage::getLocalFace( const PrimitiveID& id ) const
 
 Face* PrimitiveStorage::getFace( const PrimitiveID& id )
 {
-   return getPointerToFace( id ).get();
+   return getSharedPointerToFace( id ).get();
 }
 
-std::shared_ptr< Face > PrimitiveStorage::getPointerToFace( const PrimitiveID& id )
+std::shared_ptr< Face > PrimitiveStorage::getSharedPointerToFace( const PrimitiveID& id )
 {
    for ( const auto& [level, primitives] : faces_ )
    {
@@ -1647,10 +1647,10 @@ std::shared_ptr< Face > PrimitiveStorage::getPointerToFace( const PrimitiveID& i
 
 const Cell* PrimitiveStorage::getCell( const PrimitiveID& id ) const
 {
-   return getPointerToCell( id ).get();
+   return getSharedPointerToCell( id ).get();
 }
 
-std::shared_ptr< const Cell > PrimitiveStorage::getPointerToCell( const PrimitiveID& id ) const
+std::shared_ptr< const Cell > PrimitiveStorage::getSharedPointerToCell( const PrimitiveID& id ) const
 {
    for ( const auto& [level, primitives] : cells_ )
    {
@@ -1687,10 +1687,10 @@ const Cell* PrimitiveStorage::getLocalCell( const PrimitiveID& id ) const
 
 Cell* PrimitiveStorage::getCell( const PrimitiveID& id )
 {
-   return getPointerToCell( id ).get();
+   return getSharedPointerToCell( id ).get();
 }
 
-std::shared_ptr< Cell > PrimitiveStorage::getPointerToCell( const PrimitiveID& id )
+std::shared_ptr< Cell > PrimitiveStorage::getSharedPointerToCell( const PrimitiveID& id )
 {
    for ( const auto& [level, primitives] : cells_ )
    {

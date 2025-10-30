@@ -81,61 +81,61 @@ inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Cell >( 
 template <>
 inline std::shared_ptr< const Primitive > PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID& id ) const
 {
-   return getPointerToPrimitive( id );
+   return getSharedPointerToPrimitive( id );
 }
 
 template <>
 inline std::shared_ptr< Primitive > PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID& id )
 {
-   return getPointerToPrimitive( id );
+   return getSharedPointerToPrimitive( id );
 }
 
 template <>
 inline std::shared_ptr< const Vertex > PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID& id ) const
 {
-   return getPointerToVertex( id );
+   return getSharedPointerToVertex( id );
 }
 
 template <>
 inline std::shared_ptr< Vertex > PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID& id )
 {
-   return getPointerToVertex( id );
+   return getSharedPointerToVertex( id );
 }
 
 template <>
 inline std::shared_ptr< const Edge > PrimitiveStorage::getPrimitiveGenerically< Edge >( const PrimitiveID& id ) const
 {
-   return getPointerToEdge( id );
+   return getSharedPointerToEdge( id );
 }
 
 template <>
 inline std::shared_ptr< Edge > PrimitiveStorage::getPrimitiveGenerically< Edge >( const PrimitiveID& id )
 {
-   return getPointerToEdge( id );
+   return getSharedPointerToEdge( id );
 }
 
 template <>
 inline std::shared_ptr< const Face > PrimitiveStorage::getPrimitiveGenerically< Face >( const PrimitiveID& id ) const
 {
-   return getPointerToFace( id );
+   return getSharedPointerToFace( id );
 }
 
 template <>
 inline std::shared_ptr< Face > PrimitiveStorage::getPrimitiveGenerically< Face >( const PrimitiveID& id )
 {
-   return getPointerToFace( id );
+   return getSharedPointerToFace( id );
 }
 
 template <>
 inline std::shared_ptr< const Cell > PrimitiveStorage::getPrimitiveGenerically< Cell >( const PrimitiveID& id ) const
 {
-   return getPointerToCell( id );
+   return getSharedPointerToCell( id );
 }
 
 template <>
 inline std::shared_ptr< Cell > PrimitiveStorage::getPrimitiveGenerically< Cell >( const PrimitiveID& id )
 {
-   return getPointerToCell( id );
+   return getSharedPointerToCell( id );
 }
 
 template <>
