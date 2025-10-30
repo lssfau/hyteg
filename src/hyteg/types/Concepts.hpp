@@ -33,6 +33,11 @@ namespace hyteg::concepts {
 template < typename T >
 concept value_type = std::floating_point< T > || std::integral< T >;
 
+/// Concept for macro-primitives                                                                                                                                                             
+template < typename T >
+concept concrete_primitive =
+    std::is_same_v< T, Cell > || std::is_same_v< T, Face > || std::is_same_v< T, Edge > || std::is_same_v< T, Vertex >;
+
 // auxilliary concept
 template < typename T >
 concept nedelec = requires( T obj )
