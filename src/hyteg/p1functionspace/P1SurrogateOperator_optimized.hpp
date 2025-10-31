@@ -729,6 +729,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             coordinateOffset[c].resize( microCells.size() );
             stencilIndex[c].resize( microCells.size() );
 
+            // find mapping from microCell->microVtx to stencil idx
             // iterate over micro-cells
             for ( uint_t mc = 0; mc < microCells.size(); ++mc )
             {
@@ -750,45 +751,30 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                                          std::back_inserter( intersectingFaces ) );
 
                   // compute stencil index for edge stencil
+                  constexpr auto C = stencilDirection::VERTEX_C;
+                  constexpr auto W = stencilDirection::VERTEX_W;
+                  constexpr auto E = stencilDirection::VERTEX_E;
                   if ( intersectingFaces.size() >= 2 ) // edge
                   {
-                     const auto idx_edge = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
-                     const int  offset   = int( idx_edge.x() - 1 );
-                     if ( offset == 0 )
-                     {
-                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C );
-                     }
-                     else if ( offset == 1 )
-                     {
-                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E );
-                     }
-                     else if ( offset == -1 )
-                     {
-                        stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W );
-                     }
+                     const auto idx_edge     = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis, n );
+                     const int  offset       = int( idx_edge.x() ) - int( idx1_edge.x() );
+                     const auto sd           = ( offset == 0 ) ? C : ( ( offset > 0 ) ? E : W );
+                     stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnEdge( sd );
                   }
                   else if ( intersectingFaces.size() == 1 ) // face
                   {
-                     const auto faceId        = cell->neighborFaces()[intersectingFaces[0]];
+                     const auto faceId       = cell->neighborFaces()[intersectingFaces[0]];
                      const auto faceIdxOnEdge = edge->face_index( faceId );
                      // To get the correct indexing basis, we check which one results in a zero entry in the z coordinate.
                      const auto                    indexingBasis_1 = indexingBasis;
                      const std::array< uint_t, 4 > indexingBasis_2 = {
                          indexingBasis[0], indexingBasis[1], indexingBasis[3], indexingBasis[2] };
-                     const auto idx_edge_1 = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_1, n );
-                     const auto idx_edge_2 = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_2, n );
-                     const auto idx_face   = idx_edge_1.z() == 0 ? idx_edge_1 : idx_edge_2;
-                     const int  offset     = int( idx_face.x() - 1 );
-                     if ( offset == 0 )
-                     {
-                        stencilIndex[c][mc][mv] =
-                            vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, faceIdxOnEdge );
-                     }
-                     else if ( offset == 1 )
-                     {
-                        stencilIndex[c][mc][mv] =
-                            vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, faceIdxOnEdge );
-                     }
+                     const auto idx_tst_1    = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_1, n );
+                     const auto idx_tst_2    = indexing::basisConversion( idx_cell, { 0, 1, 2, 3 }, indexingBasis_2, n );
+                     const auto idx_face     = ( idx_tst_1.z() == 0 ) ? idx_tst_1 : idx_tst_2;
+                     const int  offset       = int( idx_face.x() ) - int( idx1_edge.x() );
+                     const auto sd           = ( offset == 0 ) ? E : W;
+                     stencilIndex[c][mc][mv] = vertexdof::macroedge::stencilIndexOnNeighborFace( sd, faceIdxOnEdge );
                   }
                   else if ( intersectingFaces.size() == 0 ) // cell
                   {
@@ -1658,7 +1644,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       // indices of neighboring DoF
       std::vector< walberla::uint_t > dofIdx( stencilSize );
-      // for the 3D edge the center is not associated with stencil[0], since, for simplicity, we keep the old ordering here.
+      // for simplicity, we keep the old ordering for 3D edges, hence the center is not associated with stencil[0].
       uint_t centerIdx = vertexdof::macroedge::stencilIndexOnEdge( C );
       for ( auto& sd : { C, W, E } )
       {
