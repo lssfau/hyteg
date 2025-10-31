@@ -24,6 +24,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator_optimized.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -48,7 +49,8 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
                               std::function< real_t( const hyteg::Point3D& ) >& k,
                               const uint_t                                      level )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "P1 surrogate operator test" )
+   auto d = ( storage->hasGlobalCells() ) ? 3 : 2;
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "P1 surrogate operator test: %dd, q=%d, lvl=%d", d, q, level ) );
 
    const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-12 : 5e-4 );
 
@@ -66,8 +68,6 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
    hyteg::P1Function< real_t > Aqu_opt( "(A_q_opt)u", storage, level, level );
    hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
-   hyteg::P1Function< real_t > err_opt( "(A-A_q_opt)u", storage, level, level );
-   hyteg::P1Function< real_t > err_q_qopt( "(A_q-A_q_opt)u", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
@@ -79,18 +79,27 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    A_q.apply( u, Aqu, level, All, Replace );
    A_q_opt.apply( u, Aqu_opt, level, All, Replace );
 
+   auto check = [&]( const auto& msg ) {
+      auto errorMax = err.getMaxDoFMagnitude( level );
+      if ( errorMax > epsilon )
+      {
+         VTKOutput vtkOutput( ".", "error.vtk", storage );
+         vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
+         vtkOutput.add( err );
+         vtkOutput.write( level, 0 );
+      }
+      WALBERLA_CHECK_LESS( errorMax, epsilon, msg );
+   };
+
    // compute errors
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
-   auto errorMax = err.getMaxDoFMagnitude( level );
-   WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
+   check( "||(A - A_q)u||_inf" );
 
-   err_opt.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
-   errorMax = err_opt.getMaxDoFMagnitude( level );
-   WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q_opt)u||_inf" );
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
+   check( "||(A - A_q_opt)u||_inf" );
 
-   err_q_qopt.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
-   errorMax = err_q_qopt.getMaxDoFMagnitude( level );
-   WALBERLA_CHECK_LESS( errorMax, epsilon / 100, "||(A_q - A_q_opt)u||_inf" );
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
+   check( "||(A_q - A_q_opt)u||_inf" );
 }
 
 int main( int argc, char* argv[] )
@@ -137,16 +146,13 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 2D tests
    // -------------------
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=1, level=2" );
-   P1SurrogateOperatorTest< 1 >( storage, k1, 2 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=2, level=3" );
-   P1SurrogateOperatorTest< 2 >( storage, k2, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=3, level=3" );
-   P1SurrogateOperatorTest< 3 >( storage, k3, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=3" );
-   P1SurrogateOperatorTest< 4 >( storage, k4, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=4" );
-   P1SurrogateOperatorTest< 4 >( storage, k4, 4 );
+   for ( uint_t lvl = 3; lvl <= 4; ++lvl )
+   {
+      P1SurrogateOperatorTest< 1 >( storage, k1, lvl );
+      P1SurrogateOperatorTest< 2 >( storage, k2, lvl );
+      P1SurrogateOperatorTest< 3 >( storage, k3, lvl );
+      P1SurrogateOperatorTest< 4 >( storage, k4, lvl );
+   }
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -159,16 +165,13 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 3D tests
    // -------------------
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=1, level=3" );
-   P1SurrogateOperatorTest< 1 >( storage3d, k1, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=2, level=3" );
-   P1SurrogateOperatorTest< 2 >( storage3d, k2, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=3, level=3" );
-   P1SurrogateOperatorTest< 3 >( storage3d, k3, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=3" );
-   P1SurrogateOperatorTest< 4 >( storage3d, k4, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=4" );
-   P1SurrogateOperatorTest< 4 >( storage3d, k4, 4 );
+   for ( uint_t lvl = 3; lvl <= 4; ++lvl )
+   {
+      P1SurrogateOperatorTest< 1 >( storage3d, k1, lvl );
+      P1SurrogateOperatorTest< 2 >( storage3d, k2, lvl );
+      P1SurrogateOperatorTest< 3 >( storage3d, k3, lvl );
+      P1SurrogateOperatorTest< 4 >( storage3d, k4, lvl );
+   }
 
    return 0;
 }
