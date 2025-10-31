@@ -33,33 +33,26 @@ namespace hyteg::concepts {
 template < typename T >
 concept value_type = std::floating_point< T > || std::integral< T >;
 
-/// Concept for macro-primitives                                                                                                                                                             
+/// Concept for macro-primitives
 template < typename T >
 concept concrete_primitive =
     std::is_same_v< T, Cell > || std::is_same_v< T, Face > || std::is_same_v< T, Edge > || std::is_same_v< T, Vertex >;
 
-// auxilliary concept
-template < typename T >
-concept nedelec = requires( T obj )
-{
-   // clang-format off
-   {obj} -> std::same_as< n1e1::N1E1VectorFunction< typename T::valueType > >;
-   // clang-format on
-};
-
 /// \concept fe_function_scalar
-/// \brief Concept matching any kind of scalar-valued finite element function in HyTeG
+/// \brief Concept matching any kind of scalar-valued finite element function in HyTeG (T::getDimension() returns 1)
 template < typename T >
-concept fe_function_scalar = std::is_base_of_v< Function< T >, T > && !nedelec< T >;
+concept fe_function_scalar =
+    std::is_base_of_v< Function< T >, T > && !std::is_same_v< n1e1::N1E1VectorFunction< typename T::valueType >, T >;
 
 /// Concept matching any kind of vector-valued finite element function in HyTeG
 template < typename T >
-concept fe_function_vectorial = std::is_base_of_v< CSFVectorFunction< T >, T > || nedelec< T >;
+concept fe_function_vectorial =
+    std::is_base_of_v< CSFVectorFunction< T >, T > || std::is_same_v< n1e1::N1E1VectorFunction< typename T::valueType >, T >;
 
 /// Concept matching any kind of block/composite finite element function in HyTeG (e.g. P2-P1 Taylor-Hood)
 template < typename T >
 concept fe_function_composite = std::is_base_of_v< BlockFunction< typename T::ValueType >, T > ||
-std::is_base_of_v< BlockFunction< typename T::valueType >, T >;
+                                std::is_base_of_v< BlockFunction< typename T::valueType >, T >;
 
 /// Concept matching any kind of Finite Element function in HyTeG
 template < typename T >
