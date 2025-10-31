@@ -919,6 +919,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// cell-primitives globally, i.e. on at least one process, not necessarily the local one
    bool hasGlobalCells_;
 
+   /// MPI communicator for processes with and without primitives
+   ///
    /// This comm is identical for
    /// - all processes that own primitives locally
    /// - all processes that do not own any primitives locally.
