@@ -394,8 +394,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
       if ( dim == 3 )
       {
-         // mapping between logical indices and stencil directions for each face
-         compute_offsets_for_face_stencil_3d();
+         /* mapping between logical indices and stencil directions for each face
+            The offsets are invariant wrt. level, hence it is sufficient to compute
+            them for some fixed level.
+         */
+         compute_offsets_for_face_stencil_3d( 2 );
       }
 
       /* precompute and store stencils
