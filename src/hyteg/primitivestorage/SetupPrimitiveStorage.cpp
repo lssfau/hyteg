@@ -582,7 +582,7 @@ void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       
                   auto nbrTargetRank = getTargetRank( neighborPrimitiveID );
                   if ( nbrTargetRank != targetRank )
                   {
-                     const Primitive* neighborPrimitive;
+                     std::shared_ptr< const Primitive > neighborPrimitive;
                      if ( nbrPrimitiveType == 0 )
                      {
                         neighborPrimitive = getVertex( neighborPrimitiveID );
@@ -675,7 +675,7 @@ void SetupPrimitiveStorage::scatterPrimitives( VertexMap&                       
    }
 }
 
-Primitive* SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id )
+std::shared_ptr< Primitive > SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id )
 {
    if ( vertexExists( id ) )
    {
@@ -696,7 +696,7 @@ Primitive* SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id )
    return nullptr;
 }
 
-const Primitive* SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id ) const
+std::shared_ptr< const Primitive > SetupPrimitiveStorage::getPrimitive( const PrimitiveID& id ) const
 {
    if ( vertexExists( id ) )
    {

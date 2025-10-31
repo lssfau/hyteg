@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -76,16 +76,48 @@ class SetupPrimitiveStorage
    bool faceExists( const PrimitiveID& id ) const { return faces_.count( id ) > 0; }
    bool cellExists( const PrimitiveID& id ) const { return cells_.count( id ) > 0; }
 
-   Primitive*       getPrimitive( const PrimitiveID& id );
-   const Primitive* getPrimitive( const PrimitiveID& id ) const;
-   Vertex*          getVertex( const PrimitiveID& id ) { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
-   const Vertex*    getVertex( const PrimitiveID& id ) const { return vertexExists( id ) ? vertices_.at( id ).get() : nullptr; }
-   Edge*            getEdge( const PrimitiveID& id ) { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   const Edge*      getEdge( const PrimitiveID& id ) const { return edgeExists( id ) ? edges_.at( id ).get() : nullptr; }
-   Face*            getFace( const PrimitiveID& id ) { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   const Face*      getFace( const PrimitiveID& id ) const { return faceExists( id ) ? faces_.at( id ).get() : nullptr; }
-   Cell*            getCell( const PrimitiveID& id ) { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
-   const Cell*      getCell( const PrimitiveID& id ) const { return cellExists( id ) ? cells_.at( id ).get() : nullptr; }
+   std::shared_ptr< Primitive >       getPrimitive( const PrimitiveID& id );
+   std::shared_ptr< const Primitive > getPrimitive( const PrimitiveID& id ) const;
+
+   std::shared_ptr< Vertex > getVertex( const PrimitiveID& id )
+   {
+      return vertexExists( id ) ? vertices_.at( id ) : std::shared_ptr< Vertex >();
+   }
+
+   std::shared_ptr< const Vertex > getVertex( const PrimitiveID& id ) const
+   {
+      return vertexExists( id ) ? vertices_.at( id ) : std::shared_ptr< const Vertex >();
+   }
+
+   std::shared_ptr< Edge > getEdge( const PrimitiveID& id )
+   {
+      return edgeExists( id ) ? edges_.at( id ) : std::shared_ptr< Edge >();
+   }
+
+   std::shared_ptr< const Edge > getEdge( const PrimitiveID& id ) const
+   {
+      return edgeExists( id ) ? edges_.at( id ) : std::shared_ptr< const Edge >();
+   }
+
+   std::shared_ptr< Face > getFace( const PrimitiveID& id )
+   {
+      return faceExists( id ) ? faces_.at( id ) : std::shared_ptr< Face >();
+   }
+
+   std::shared_ptr< const Face > getFace( const PrimitiveID& id ) const
+   {
+      return faceExists( id ) ? faces_.at( id ) : std::shared_ptr< const Face >();
+   }
+
+   std::shared_ptr< Cell > getCell( const PrimitiveID& id )
+   {
+      return cellExists( id ) ? cells_.at( id ) : std::shared_ptr< Cell >();
+   }
+
+   std::shared_ptr< const Cell > getCell( const PrimitiveID& id ) const
+   {
+      return cellExists( id ) ? cells_.at( id ) : std::shared_ptr< const Cell >();
+   }
 
    void getSetupPrimitives( PrimitiveMap& setupPrimitiveMap ) const;
 

@@ -236,7 +236,7 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
       for ( const PrimitiveID& senderID : senderIDs )
       {
          WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( senderID ) );
-         SenderType* sender = storage->getPrimitiveGenerically< SenderType >( senderID );
+         SenderType* sender = storage->getPrimitiveGenerically< SenderType >( senderID ).get();
 
          std::vector< PrimitiveID > receivingNeighborhood;
          if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
@@ -275,7 +275,7 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
             if ( getLocalCommunicationMode() == DIRECT &&
                  storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
             {
-               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
+               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID ).get();
                for ( auto& packInfo : packInfos_ )
                {
                   auto directCommunicationFunction = [sender, receiver, packInfo]() -> void {
@@ -312,7 +312,7 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
       // Ranks to receive from
       for ( const PrimitiveID& receiverID : receiverIDs )
       {
-         ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
+         ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID ).get();
 
          std::vector< PrimitiveID > sendingNeighborhood;
          if constexpr ( std::is_same_v< SenderType, Face > && std::is_same_v< ReceiverType, Face > )
@@ -387,7 +387,7 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
                WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
                WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( receiverID ) );
 
-               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
+               ReceiverType* receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID ).get();
 
                for ( const auto& packInfo : packInfos_ )
                {

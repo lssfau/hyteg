@@ -698,7 +698,7 @@ void greedy( SetupPrimitiveStorage& storage )
          WALBERLA_ASSERT_GREATER( nextPrimitives.size(), 0 );
 
          // Pop a primitive from the queue
-         const Primitive* currentPrimitive = storage.getPrimitive( nextPrimitives.front() );
+         const std::shared_ptr< const Primitive > currentPrimitive = storage.getPrimitive( nextPrimitives.front() );
          nextPrimitives.pop();
 
          // Set the target rank to the current process if the process does not already carry enough primitives of that type.
