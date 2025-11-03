@@ -45,6 +45,11 @@ struct myClass {
   T attribute;
 };
 
+template< concepts::concrete_primitive primitive_t >
+void accessTypeInfo( const primitive_t& primitive ) {
+  WALBERLA_LOG_INFO_ON_ROOT( "" << "Type is " << primitive.getType() );
+}
+
 // Test using concept
 void getFunctionName( const concepts::fe_function auto& function ) {
   std::cout << "Name of function is ' " << function.getFunctionName() << "'" << std::endl;
