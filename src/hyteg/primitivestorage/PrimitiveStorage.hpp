@@ -925,6 +925,23 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Is refreshed by calling splitCommunicatorByPrimitiveDistribution().
    MPI_Comm splitComm_;
 
+   /// Number of additional layers of neighbor primitives to keep information on
+   ///
+   /// The PrimitiveStorage stores pointers to all process local Primitives and additionally
+   /// pointers to the Primitives that are neighbors. (Simulation data is generally only added
+   /// to process-local Primitives, but instances of neighboring Primitives are required for certain
+   /// features.)
+   ///
+   /// If additionalHaloDepth is set to 0, Primitive instances of neighbors of process local
+   /// Primitives are stored as neighbors. If additionalHaloDepth is set to 1, Primitive instances
+   /// of neighbors of the neighboring Primitives (that are obtained for additionalHaloDepth == 0)
+   /// are also stored, etc.
+   ///
+   /// This can be required for instance to access the geometry of neighboring Cell Primitives from
+   /// local Cell Primitives as they are separated by a Face Primitive. That Face Primitive is stored
+   /// as a neighbor for additionalHaloDepth == 0. Having set additionalHaloDepth == 1 also stores
+   /// the Face's neighbor (the other Cell Primitive). Iteratively, increasing additionalHaloDepth
+   /// adds more layers of neighbors of neighbors.
    uint_t additionalHaloDepth_{ 0u };
 
    std::shared_ptr< micromesh::MicroMesh > microMesh_;
