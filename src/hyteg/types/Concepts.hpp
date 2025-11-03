@@ -18,16 +18,33 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <concepts>
 
-#include "core/Environment.h"
+namespace hyteg {
 
-#include "hyteg/functions/CSFVectorFunction.hpp"
-#include "hyteg/functions/Function.hpp"
+// forward declarations
+class Vertex;
+class Edge;
+class Face;
+class Cell;
 
-using walberla::real_t;
+template < typename T >
+class Function;
 
-namespace hyteg::concepts {
+template < typename T >
+class CSFVectorFunction;
+
+template < typename T >
+class BlockFunction;
+
+namespace n1e1 {
+template < typename T >
+class N1E1VectorFunction;
+}
+
+namespace concepts {
 
 /// Concept for admissable value types of finite element functions
 template < typename T >
@@ -58,4 +75,5 @@ concept fe_function_composite = std::is_base_of_v< BlockFunction< typename T::Va
 template < typename T >
 concept fe_function = fe_function_scalar< T > || fe_function_vectorial< T > || fe_function_composite< T >;
 
-} // namespace hyteg::concepts
+} // namespace concepts
+} // namespace hyteg
