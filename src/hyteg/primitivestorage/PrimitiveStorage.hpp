@@ -925,7 +925,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Is refreshed by calling splitCommunicatorByPrimitiveDistribution().
    MPI_Comm splitComm_;
 
-   uint_t additionalHaloDepth_;
+   uint_t additionalHaloDepth_{ 0u };
 
    std::shared_ptr< micromesh::MicroMesh > microMesh_;
 };
