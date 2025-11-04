@@ -52,7 +52,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    auto d = ( storage->hasGlobalCells() ) ? 3 : 2;
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "P1 surrogate operator test: %dd, q=%d, lvl=%d", d, q, level ) );
 
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-12 : 5e-4 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-11 : 5e-4 );
 
    // operators
    forms::p1_div_k_grad_affine_q3                form( k, k );

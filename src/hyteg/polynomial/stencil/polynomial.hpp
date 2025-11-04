@@ -244,8 +244,9 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
          {
             for ( uint_t d = 0; d < n_stencil; ++d )
             {
-               _restriction[ij][d] += ( *this )[ijk++][d] * z_pow[k];
+               _restriction[ij][d] += ( *this )[ijk][d] * z_pow[k];
             }
+            ++ijk;
          }
       }
    }

@@ -766,7 +766,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                   }
                   else if ( intersectingFaces.size() == 1 ) // face
                   {
-                     const auto faceId       = cell->neighborFaces()[intersectingFaces[0]];
+                     const auto faceId        = cell->neighborFaces()[intersectingFaces[0]];
                      const auto faceIdxOnEdge = edge->face_index( faceId );
                      // To get the correct indexing basis, we check which one results in a zero entry in the z coordinate.
                      const auto                    indexingBasis_1 = indexingBasis;
