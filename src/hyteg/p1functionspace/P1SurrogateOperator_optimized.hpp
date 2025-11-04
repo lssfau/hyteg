@@ -559,10 +559,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto n = levelinfo::num_microvertices_per_edge( lvl );
       const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
-      P1Form      form_N( form_ );
-      Face*       face_S;
-      Face*       face_N;
-      PrimitiveID vtxId_N, vtxId_S;
+      P1Form form_N( form_ );
+      Face*  face_S;
+      Face*  face_N;
 
       for ( const auto& [edgeId, edge] : storage_->getEdges() )
       {
@@ -573,12 +572,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          auto n_nbr_faces = edge->getNumNeighborFaces();
          face_S           = storage_->getFace( edge->neighborFaces()[0] );
          form_.setGeometryMap( face_S->getGeometryMap() );
-         vtxId_S = face_S->get_vertex_opposite_to_edge( edgeId );
          if ( n_nbr_faces == 2 )
          {
             face_N = storage_->getFace( edge->neighborFaces()[1] );
             form_N.setGeometryMap( face_N->getGeometryMap() );
-            vtxId_N = face_N->get_vertex_opposite_to_edge( edgeId );
          }
 
          // coordinates
@@ -591,10 +588,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          dX[p1::stencil::E] = dx;
          if ( n_nbr_faces == 2 )
          {
-            auto coord_N       = storage_->getVertex( vtxId_N )->getCoordinates();
+            auto idx_N         = face_N->vertex_index( face_N->get_vertex_opposite_to_edge( edgeId ) );
+            auto coord_N       = face_N->getCoordinates()[idx_N];
             dX[p1::stencil::N] = h * ( coord_N - x0 );
          }
-         auto coord_S        = storage_->getVertex( vtxId_S )->getCoordinates();
+         auto idx_S          = face_S->vertex_index( face_S->get_vertex_opposite_to_edge( edgeId ) );
+         auto coord_S        = face_S->getCoordinates()[idx_S];
          dX[p1::stencil::S]  = h * ( coord_S - x1 );
          dX[p1::stencil::NW] = dX[p1::stencil::N] + dX[p1::stencil::W];
          dX[p1::stencil::SE] = dX[p1::stencil::S] + dX[p1::stencil::E];
@@ -1088,7 +1087,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       P1Form      form_N( form_ );
       Face*       face_S;
       Face*       face_N;
-      PrimitiveID vtxId_N, vtxId_S;
 
       for ( const auto& [edgeId, edge] : storage_->getEdges() )
       {
@@ -1096,12 +1094,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          auto n_nbr_faces = edge->getNumNeighborFaces();
          face_S           = storage_->getFace( edge->neighborFaces()[0] );
          form_.setGeometryMap( face_S->getGeometryMap() );
-         vtxId_S = face_S->get_vertex_opposite_to_edge( edgeId );
          if ( n_nbr_faces == 2 )
          {
             face_N = storage_->getFace( edge->neighborFaces()[1] );
             form_N.setGeometryMap( face_N->getGeometryMap() );
-            vtxId_N = face_N->get_vertex_opposite_to_edge( edgeId );
          }
 
          // coordinates
@@ -1114,10 +1110,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          dX[p1::stencil::E] = dx;
          if ( n_nbr_faces == 2 )
          {
-            auto coord_N       = storage_->getVertex( vtxId_N )->getCoordinates();
+            auto idx_N         = face_N->vertex_index( face_N->get_vertex_opposite_to_edge( edgeId ) );
+            auto coord_N       = face_N->getCoordinates()[idx_N];
             dX[p1::stencil::N] = h * ( coord_N - x0 );
          }
-         auto coord_S        = storage_->getVertex( vtxId_S )->getCoordinates();
+         auto idx_S          = face_S->vertex_index( face_S->get_vertex_opposite_to_edge( edgeId ) );
+         auto coord_S        = face_S->getCoordinates()[idx_S];
          dX[p1::stencil::S]  = h * ( coord_S - x1 );
          dX[p1::stencil::NW] = dX[p1::stencil::N] + dX[p1::stencil::W];
          dX[p1::stencil::SE] = dX[p1::stencil::S] + dX[p1::stencil::E];
