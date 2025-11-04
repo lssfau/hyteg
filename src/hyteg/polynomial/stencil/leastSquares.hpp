@@ -45,25 +45,13 @@ using walberla::uint_t;
  *
  * @param lvl The level of refinement.
  * @param downsampling The downsampling factor.
- * @return The number of sampling points along the edge, i.e., ceil((2^lvl - 1)/downsampling)
+ * @param offset Offset from the primitive boundary.
+ * @return The number of sampling points along the edge, i.e., ceil((2^lvl - 1 - offset)/downsampling)
  */
-static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling )
+static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling, uint_t offset = 0 )
 {
-   return ( ( ( 1 << lvl ) - 2 ) / downsampling ) + 1;
-}
-
-/**
- * @brief Computes the number of sample points on a primitive
- *
- * @param dim Dimension of the primitive.
- * @param n The number of sample points along an edge.
- * @return The number of sample points on the primitive.
- */
-static constexpr inline uint_t n_primitive( uint_t dim, uint_t n )
-{
-   return ( dim == 1 ) ? n :
-          ( dim == 2 ) ? indexing::layout::linearMacroFaceSize( n ) :
-                         indexing::layout::linearMacroCellSize( n );
+   WALBERLA_ASSERT_GREATER( 1 << lvl, 2 + offset );
+   return ( ( ( 1 << lvl ) - 2 - offset ) / downsampling ) + 1;
 }
 
 /**
@@ -76,7 +64,10 @@ static constexpr inline uint_t n_primitive( uint_t dim, uint_t n )
  */
 static constexpr inline uint_t n_primitive( uint_t dim, uint_t lvl, uint_t downsampling )
 {
-   return n_primitive( dim, n_edge( lvl, downsampling ) - dim + 1 );
+   const auto n = n_edge( lvl, downsampling, dim - 1 );
+   return ( dim == 1 ) ? n :
+          ( dim == 2 ) ? indexing::layout::linearMacroFaceSize( n ) :
+                         indexing::layout::linearMacroCellSize( n );
 }
 
 /**
@@ -199,23 +190,24 @@ class LeastSquares
     */
    uint_t adjust_downsampling( uint_t ds = 0 ) const
    {
-      // ds must be less than (2^lvl - 1) / dimP
-      uint_t strict_upper_bound = n_edge( _lvl, _q + 1 );
+      // ds must be less than N / dimP, where N is the maximum number of inner vertices per row
+      uint_t strict_upper_bound = n_edge( _lvl, _q + 1, _dim - 1 );
 
       if ( strict_upper_bound <= 1 )
       {
          // polynomial degree to high to yield an overdetermined system
          return 1;
       }
-
-      auto max_ds = strict_upper_bound - 1;
-      if ( ds == 0 || ds > max_ds )
+      else if ( 0 < ds && ds < strict_upper_bound )
       {
-         // use the maximum
-         return max_ds;
+         // system is overdetermined with the chosen downsampling factor
+         return ds;
       }
-
-      return ds;
+      else
+      {
+         // use the maximum possible downsampling factor
+         return strict_upper_bound - 1;
+      }
    }
 
    template < typename MatrixType >

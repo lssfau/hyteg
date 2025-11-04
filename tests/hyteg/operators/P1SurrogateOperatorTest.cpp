@@ -58,7 +58,8 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    forms::p1_div_k_grad_affine_q3                form( k, k );
    P1AffineDivkGradOperator                      A( storage, level, level, form );
    deprecated::P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
-   P1SurrogateAffineDivKGradOperator< q >        A_q_opt( storage, level, level, form );
+   P1SurrogateAffineDivKGradOperator< q >        A_q_opt( storage, level, level, form, 1 );
+   P1SurrogateAffineDivKGradOperator< q >        A_q_opt_ds( storage, level, level, form, 0 );
 
    A_q.interpolateStencils( q, level );
 
@@ -67,6 +68,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
    hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
    hyteg::P1Function< real_t > Aqu_opt( "(A_q_opt)u", storage, level, level );
+   hyteg::P1Function< real_t > Aqu_opt_ds( "(A_q_opt_ds)u", storage, level, level );
    hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
@@ -78,6 +80,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    A.apply( u, Au, level, All, Replace );
    A_q.apply( u, Aqu, level, All, Replace );
    A_q_opt.apply( u, Aqu_opt, level, All, Replace );
+   A_q_opt_ds.apply( u, Aqu_opt_ds, level, All, Replace );
 
    auto check = [&]( const auto& msg ) {
       auto errorMax = err.getMaxDoFMagnitude( level );
@@ -98,8 +101,14 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    err.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
    check( "||(A - A_q_opt)u||_inf" );
 
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt_ds }, level, All );
+   check( "||(A - A_q_opt_ds)u||_inf" );
+
    err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
    check( "||(A_q - A_q_opt)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
+   check( "||(A_q - A_q_opt_ds)u||_inf" );
 }
 
 int main( int argc, char* argv[] )

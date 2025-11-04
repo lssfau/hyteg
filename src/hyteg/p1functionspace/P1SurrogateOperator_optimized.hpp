@@ -77,13 +77,13 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    using DofIdx = p1::stencil::StencilData< 3, walberla::uint_t >;
 
  public:
-   // Ctor using form, downsampling and precomputed SVD
+   // Ctor requiring form
    P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                         size_t                                     minLevel,
                         size_t                                     maxLevel,
                         const P1Form&                              form,
-                        size_t                                     downsampling,
-                        const std::string&                         path_to_svd,
+                        size_t                                     downsampling            = 1,
+                        const std::string&                         path_to_svd             = "",
                         bool                                       needsInverseDiagEntries = false )
    : Operator< P1Function< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
    , form_( form )
@@ -105,50 +105,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       init( downsampling, path_to_svd, needsInverseDiagEntries );
    }
 
-   // Ctor using form and downsampling, no precomputed SVD
+   // Ctor without form
    P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                         size_t                                     minLevel,
                         size_t                                     maxLevel,
-                        const P1Form&                              form,
-                        size_t                                     downsampling,
-                        bool                                       needsInverseDiagEntries = false )
-   : P1SurrogateOperator( storage, minLevel, maxLevel, form, downsampling, "", needsInverseDiagEntries )
-   {}
-
-   // Ctor using form, no downsampling, no precomputed SVD
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                        size_t                                     minLevel,
-                        size_t                                     maxLevel,
-                        const P1Form&                              form,
-                        bool                                       needsInverseDiagEntries = false )
-   : P1SurrogateOperator( storage, minLevel, maxLevel, form, 1, "", needsInverseDiagEntries )
-   {}
-
-   // Ctor using downsampling and precomputed SVD
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                        size_t                                     minLevel,
-                        size_t                                     maxLevel,
-                        size_t                                     downsampling,
-                        const std::string&                         path_to_svd,
+                        size_t                                     downsampling            = 1,
+                        const std::string&                         path_to_svd             = "",
                         bool                                       needsInverseDiagEntries = false )
    : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), downsampling, path_to_svd, needsInverseDiagEntries )
-   {}
-
-   // Ctor using downsampling, no precomputed SVD
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                        size_t                                     minLevel,
-                        size_t                                     maxLevel,
-                        size_t                                     downsampling,
-                        bool                                       needsInverseDiagEntries = false )
-   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), downsampling, "", needsInverseDiagEntries )
-   {}
-
-   // Ctor using no downsampling, no precomputed SVD
-   P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                        size_t                                     minLevel,
-                        size_t                                     maxLevel,
-                        bool                                       needsInverseDiagEntries = false )
-   : P1SurrogateOperator( storage, minLevel, maxLevel, P1Form(), 1, "", needsInverseDiagEntries )
    {}
 
    /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
