@@ -1989,27 +1989,75 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             const auto y = X[j];
             surrogate.fix_y( y );
 
-            for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+            const auto n_inner_loop = n - 1 - j - k;
+
+            uint_t i = 1;
+            // unrolled loop
+            for ( ; i + 3 < n_inner_loop; i += 4 )
             {
-               // evaluate polynomial
-               const auto x = X[i];
-               surrogate.eval( x );
-               const auto& stencil = surrogate.px();
+               const std::array< real_t, 4 > x{ X[i], X[i + 1], X[i + 2], X[i + 3] };
+               surrogate.eval_vec( x );
+               const auto& stencil_vec = surrogate.px_vec();
 
                const auto dstIdx = dofIdx[p1::stencil::C];
 
                if ( updateType == Replace )
                {
-                  dstData[dstIdx] = real_c( 0 );
-               } // else updateType == Add
-
-               // apply stencil
+                  dstData[dstIdx]     = real_c( 0 );
+                  dstData[dstIdx + 1] = real_c( 0 );
+                  dstData[dstIdx + 2] = real_c( 0 );
+                  dstData[dstIdx + 3] = real_c( 0 );
+               }
                for ( int d = 0; d < stencilSize; ++d )
                {
-                  dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
-                  ++dofIdx[d];
+                  dstData[dstIdx] += stencil_vec[d][0] * srcData[dofIdx[d]];
+                  dstData[dstIdx + 1] += stencil_vec[d][1] * srcData[dofIdx[d] + 1];
+                  dstData[dstIdx + 2] += stencil_vec[d][2] * srcData[dofIdx[d] + 2];
+                  dstData[dstIdx + 3] += stencil_vec[d][3] * srcData[dofIdx[d] + 3];
+                  dofIdx[d] += 4;
                }
             }
+            // remainder
+            if ( i < n_inner_loop )
+            {
+               const std::array< real_t, 4 > x{ X[i], X[i + 1], X[i + 2], X[i + 3] };
+               surrogate.eval_vec( x );
+               const auto& stencil_vec = surrogate.px_vec();
+
+               const auto dstIdx = dofIdx[p1::stencil::C];
+
+               if ( updateType == Replace )
+               {
+                  for ( int remainder = 0; i + remainder < n_inner_loop; ++remainder )
+                  {
+                     dstData[dstIdx + remainder] = real_c( 0 );
+                  }
+               }
+               for ( int d = 0; d < stencilSize; ++d )
+               {
+                  for ( int remainder = 0; i + remainder < n_inner_loop; ++remainder )
+                  {
+                     dstData[dstIdx + remainder] += stencil_vec[d][remainder] * srcData[dofIdx[d] + remainder];
+                  }
+               }
+            }
+            // non-vectorized version
+            // for ( i = 1; i < n_inner_loop; ++i )
+            // {
+            //    const auto x = X[i];
+            //    surrogate.eval( x );
+            //    const auto& stencil = surrogate.px();
+            //    const auto  dstIdx  = dofIdx[p1::stencil::C];
+            //    if ( updateType == Replace )
+            //    {
+            //       dstData[dstIdx] = real_c( 0 );
+            //    }
+            //    for ( int d = 0; d < stencilSize; ++d )
+            //    {
+            //       dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+            //       ++dofIdx[d];
+            //    }
+            // }
          }
       }
    }
