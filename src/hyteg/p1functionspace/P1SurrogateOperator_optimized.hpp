@@ -514,7 +514,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          {
             Edge* edge        = storage_->getEdge( nbrEdgeIds[d - 1] );
             nbrVtxIds[d]      = edge->get_opposite_vertex( vtxId );
-            auto nbr_x        = storage_->getVertex( nbrVtxIds[d] )->getCoordinates();
+            auto nbr_x        = edge->getCoordinates()[edge->vertex_index( nbrVtxIds[d] )];
             nbrMicroCoords[d] = h * nbr_x + ( 1.0 - h ) * x;
          }
 
@@ -1084,9 +1084,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto n = levelinfo::num_microvertices_per_edge( lvl );
       const auto h = real_t( 1.0 / ( real_t( n - 1 ) ) );
 
-      P1Form      form_N( form_ );
-      Face*       face_S;
-      Face*       face_N;
+      P1Form form_N( form_ );
+      Face*  face_S;
+      Face*  face_N;
 
       for ( const auto& [edgeId, edge] : storage_->getEdges() )
       {
