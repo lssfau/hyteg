@@ -23,5 +23,5 @@ waLBerla_add_executable( NAME jumpCoefficient
 if(HYTEG_BUILD_WITH_AVX AND WALBERLA_DOUBLE_ACCURACY)
       waLBerla_add_executable( NAME surrogateBenchmark
             FILES surrogateBenchmark.cpp
-            DEPENDS hyteg opgen-mogli-diffusion)
+            DEPENDS hyteg opgen-mogli-diffusion constant_stencil_operator)
 endif()

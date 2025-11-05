@@ -22,17 +22,17 @@
 #include <core/math/Random.h>
 #include <core/mpi/MPIManager.h>
 #include <hyteg/elementwiseoperators/P1ElementwiseSurrogateOperator.hpp>
+#include <hyteg/geometry/IcosahedralShellMap.hpp>
+#include <hyteg/p1functionspace/P1SurrogateOperator_optimized.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp>
 
-#include <hyteg/geometry/IcosahedralShellMap.hpp>
-
-
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "operators/P1ElementwiseDiffusion.hpp"
+#include "operators/P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
-#include "operators/P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
 
 using walberla::real_t;
@@ -100,6 +100,18 @@ double apply_surrogate( const std::shared_ptr< PrimitiveStorage >& storage,
    return apply( A_q, u, Au, level, iter );
 }
 
+template < uint8_t DEGREE >
+double apply_surrogate_stencil( const std::shared_ptr< PrimitiveStorage >& storage,
+                                const hyteg::P1Function< real_t >&         u,
+                                hyteg::P1Function< real_t >&               Au,
+                                const uint_t                               level,
+                                const forms::p1_div_k_grad_blending_q3&    form,
+                                const uint_t                               iter )
+{
+   P1SurrogateOperator< forms::p1_div_k_grad_blending_q3, DEGREE > A_q( storage, level, level, form, 0 );
+   return apply( A_q, u, Au, level, iter );
+}
+
 template < uint8_t MAX_SURROGATE_DEGREE >
 void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t level, const uint_t iter )
 {
@@ -115,7 +127,8 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    }
    auto k = [&]( const hyteg::Point3D& x ) { return k_poly.eval_naive( x ); };
 
-   forms::p1_div_k_grad_affine_q3 form( k, k );
+   forms::p1_div_k_grad_affine_q3   form( k, k );
+   forms::p1_div_k_grad_blending_q3 form_blending( k, k );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
@@ -134,6 +147,11 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10s | %10s |", "operator type", "t in sec", "MDoF/s" ) );
    walberla::WcTimer timer;
 
+   // apply constant stencil operator
+   P1ConstantLaplaceOperator A_stencil( storage, level, level );
+   t = apply( A_stencil, u, Au, level, iter );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "const. stencil", t, int( n_dof / t * 1e-6 ) ) );
+
    // apply constant operator
    operatorgeneration::P1ElementwiseDiffusion A( storage, level, level );
    t = apply( A, u, Au, level, iter );
@@ -144,19 +162,22 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    t = apply( A_opt, u, Au, level, iter );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. optimized", t, int( n_dof / t * 1e-6 ) ) );
 
-   if (dim == 3)
+   if ( dim == 3 )
    {
       // apply optimized blending operator
-      operatorgeneration::P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_blend( storage, level, level );
+      operatorgeneration::P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_blend(
+          storage, level, level );
       t = apply( A_blend, u, Au, level, iter );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. blending", t, int( n_dof / t * 1e-6 ) ) );
 
       // apply optimized divKGrad blending operator
       hyteg::P1Function< real_t > kk( "k", storage, level, level );
-      kk.interpolate(k,level);
-      operatorgeneration::P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_divKGrad( storage, level, level, kk );
+      kk.interpolate( k, level );
+      operatorgeneration::P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab A_divKGrad(
+          storage, level, level, kk );
       t = apply( A_divKGrad, u, Au, level, iter );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. blending", t, int( n_dof / t * 1e-6 ) ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%20s | %10.1e | %10d |", "gen. blend. divKgrad", t, int( n_dof / t * 1e-6 ) ) );
    }
 
    // // apply optimized operator with avx512
@@ -165,36 +186,70 @@ void benchmark( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t
    // WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%20s | %10.1e | %10d |", "gen. opt. AVX512", t, int( n_dof / t * 1e-6 ) ) );
 
    // apply surrogate operators
+   // for ( uint8_t q = 0; q <= MAX_SURROGATE_DEGREE; ++q )
+   // {
+   //    switch ( q )
+   //    {
+   //    case 0:
+   //       t = apply_surrogate< 0 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 1:
+   //       t = apply_surrogate< 1 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 2:
+   //       t = apply_surrogate< 2 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 3:
+   //       t = apply_surrogate< 3 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 4:
+   //       t = apply_surrogate< 4 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 5:
+   //       t = apply_surrogate< 5 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    case 6:
+   //       t = apply_surrogate< 6 >( storage, u, Au, level, form, iter );
+   //       break;
+   //    default:
+   //       WALBERLA_LOG_WARNING_ON_ROOT( "Unsupported surrogate degree" );
+   //       break;
+   //    }
+   //    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q=", q, t, int( n_dof / t * 1e-6 ) ) );
+   // }
+
+   // apply surrogate stencil operators
    for ( uint8_t q = 0; q <= MAX_SURROGATE_DEGREE; ++q )
    {
       switch ( q )
       {
       case 0:
-         t = apply_surrogate< 0 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 0 >( storage, u, Au, level, form_blending, iter );
          break;
       case 1:
-         t = apply_surrogate< 1 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 1 >( storage, u, Au, level, form_blending, iter );
          break;
       case 2:
-         t = apply_surrogate< 2 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 2 >( storage, u, Au, level, form_blending, iter );
          break;
       case 3:
-         t = apply_surrogate< 3 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 3 >( storage, u, Au, level, form_blending, iter );
          break;
       case 4:
-         t = apply_surrogate< 4 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 4 >( storage, u, Au, level, form_blending, iter );
          break;
       case 5:
-         t = apply_surrogate< 5 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 5 >( storage, u, Au, level, form_blending, iter );
          break;
       case 6:
-         t = apply_surrogate< 6 >( storage, u, Au, level, form, iter );
+         t = apply_surrogate_stencil< 6 >( storage, u, Au, level, form_blending, iter );
          break;
       default:
          WALBERLA_LOG_WARNING_ON_ROOT( "Unsupported surrogate degree" );
          break;
       }
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q=", q, t, int( n_dof / t * 1e-6 ) ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          walberla::format( "%19s%d | %10.1e | %10d |", "surrogate q=", q, t, int( n_dof / t * 1e-6 ) ) );
    }
 }
 
@@ -218,9 +273,9 @@ int main( int argc, char* argv[] )
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
-   auto     n3         = compute_domain_size< 3 >( n_procs );
+   auto n3 = compute_domain_size< 3 >( n_procs );
    // MeshInfo meshInfo3d = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), n3[0], n3[1], n3[2] );
-   MeshInfo meshInfo3d = MeshInfo::meshSphericalShell(2,2,0.5,1.0);
+   MeshInfo              meshInfo3d = MeshInfo::meshSphericalShell( 2, 2, 0.5, 1.0 );
    SetupPrimitiveStorage setupStorage3d( meshInfo3d, n_procs );
    IcosahedralShellMap::setMap( setupStorage3d );
    loadbalancing::roundRobin( setupStorage3d );
@@ -231,7 +286,7 @@ int main( int argc, char* argv[] )
    // -------------------
    uint_t            lvl2  = 10;
    uint_t            lvl3  = 7;
-   constexpr uint8_t q_max = 3;
+   constexpr uint8_t q_max = 6;
    uint_t            iter  = 10;
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "2d, level=%d", lvl2 ) );
