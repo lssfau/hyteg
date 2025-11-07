@@ -1971,7 +1971,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       {
          // restrict polynomial to 2D
          const auto z = X[k];
-         const PolyStencil< 3, 2 > surrogate2 = surrogate.fix_z( z );
+         const auto surrogate2 = surrogate.fix_z( z );
 
          for ( uint_t j = 1; j < n - 2 - k; ++j )
          {
@@ -1984,7 +1984,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // restrict polynomial to 1D
             const auto y = X[j];
-            const PolyStencil< 3, 1 > surrogate1 = surrogate2.fix_y( y );
+            const auto surrogate1 = surrogate2.fix_y( y );
 
             this->timingTree_->start( "inner-loop" );
 
