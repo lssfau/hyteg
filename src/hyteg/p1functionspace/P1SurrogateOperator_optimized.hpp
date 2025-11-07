@@ -1820,14 +1820,12 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const PolyStencil< 2, 1 > surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
       const PolyDomain           X( lvl );
 
-      const auto& stencil = surrogate.px();
-
       // loop over inner vertices on the macro edge
       for ( uint_t i = 1; i < n - 1; ++i )
       {
          // evaluate polynomial
          const auto x = X[i];
-         surrogate.eval( x );
+         const auto stencil = surrogate.eval( x );
 
          const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1871,13 +1869,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          const auto y = X[j];
          const auto surrogate1 = surrogate.fix_y( y );
 
-         const auto&                stencil     = surrogate1.px();
-
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate1.eval( x );
+            const auto stencil = surrogate1.eval( x );
 
             const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1935,13 +1931,11 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          const auto y = X[j];
          const auto surrogate1 = surrogate.fix_y( y );
 
-         const auto&                stencil     = surrogate1.px();
-
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate1.eval( x );
+            const auto stencil = surrogate1.eval( x );
 
             const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1977,7 +1971,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       {
          // restrict polynomial to 2D
          const auto z = X[k];
-         const auto surrogate2 = surrogate.fix_z( z );
+         const PolyStencil< 3, 2 > surrogate2 = surrogate.fix_z( z );
 
          for ( uint_t j = 1; j < n - 2 - k; ++j )
          {
@@ -1990,9 +1984,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // restrict polynomial to 1D
             const auto y = X[j];
-            const auto surrogate1 = surrogate2.fix_y( y );
-
-            const auto&                stencil     = surrogate1.px();
+            const PolyStencil< 3, 1 > surrogate1 = surrogate2.fix_y( y );
 
             this->timingTree_->start( "inner-loop" );
 
@@ -2000,7 +1992,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                // evaluate polynomial
                const auto x = X[i];
-               surrogate1.eval( x );
+               const auto stencil = surrogate1.eval( x );
 
                const auto dstIdx = dofIdx[p1::stencil::C];
                if ( updateType == Replace )
@@ -2216,8 +2208,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       for ( uint_t i = 1; i < n - 1; ++i )
       {
          const auto x = X[i];
-         surrogate.eval( x );
-         diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+         const auto stencil = surrogate.eval( x );
+         diagData[diagIdx] = stencil[p1::stencil::C];
          ++diagIdx;
       }
    }
@@ -2240,9 +2232,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate1.eval( x );
+            const auto stencil = surrogate1.eval( x );
 
-            diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
+            diagData[diagIdx] = stencil[p1::stencil::C];
             ++diagIdx;
          }
       }
@@ -2266,9 +2258,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate1.eval( x );
+            const auto stencil = surrogate1.eval( x );
 
-            diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
+            diagData[diagIdx] = stencil[p1::stencil::C];
             ++diagIdx;
          }
       }
@@ -2298,9 +2290,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             {
                // evaluate polynomial
                const auto x = X[i];
-               surrogate1.eval( x );
+               const auto stencil = surrogate1.eval( x );
 
-               diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
+               diagData[diagIdx] = stencil[p1::stencil::C];
                ++diagIdx;
             }
          }

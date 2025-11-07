@@ -99,60 +99,55 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    /** @brief Evaluate the 1d polynomial at x
     * @param x The x-coordinate.
     */
-   inline void eval( const real_t x ) const
+   inline Stencil<> eval( const real_t x ) const
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
+      Stencil<> result;
       for ( uint_t d = 0; d < n_stencil; ++d )
       {
-         _result[d] = ( *this )[0][d];
+         result[d] = ( *this )[0][d];
       }
       auto xpow = x;
-      for ( uint_t i = 1; i < n_coeff; ++i )
+      for ( uint_t i = 1; i <= DEGREE; ++i )
       {
          for ( uint_t d = 0; d < n_stencil; ++d )
          {
-            _result[d] += ( *this )[i][d] * xpow;
+            result[d] += ( *this )[i][d] * xpow;
          }
          xpow *= x;
       }
+      return result;
    }
 
    /** @brief Vectorized version of eval(). Evaluate the 1d polynomial at x1,x2,x3,x4
     * @param x The x-coordinates.
     */
-   inline void eval_vec( const std::array< real_t, 4 >& x ) const
-   {
-      static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
-      for ( uint_t d = 0; d < n_stencil; ++d )
-      {
-         _result_vec[d][0] = ( *this )[0][d];
-         _result_vec[d][1] = ( *this )[0][d];
-         _result_vec[d][2] = ( *this )[0][d];
-         _result_vec[d][3] = ( *this )[0][d];
-      }
-      auto xpow = x;
-      for ( uint_t i = 1; i < n_coeff; ++i )
-      {
-         for ( uint_t d = 0; d < n_stencil; ++d )
-         {
-            _result_vec[d][0] += ( *this )[i][d] * xpow[0];
-            _result_vec[d][1] += ( *this )[i][d] * xpow[1];
-            _result_vec[d][2] += ( *this )[i][d] * xpow[2];
-            _result_vec[d][3] += ( *this )[i][d] * xpow[3];
-         }
-         xpow[0] *= x[0];
-         xpow[1] *= x[1];
-         xpow[2] *= x[2];
-         xpow[3] *= x[3];
-      }
-   }
-
-   // return the result of last call of eval(x)
-   inline const Stencil<>& px() const
-   {
-      static_assert( DIM_primitive == 1, "Final result can only be obtained from 1D polynomial!" );
-      return _result;
-   }
+   // inline void eval_vec( const std::array< real_t, 4 >& x ) const
+   // {
+   //    static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
+   //    for ( uint_t d = 0; d < n_stencil; ++d )
+   //    {
+   //       _result_vec[d][0] = ( *this )[0][d];
+   //       _result_vec[d][1] = ( *this )[0][d];
+   //       _result_vec[d][2] = ( *this )[0][d];
+   //       _result_vec[d][3] = ( *this )[0][d];
+   //    }
+   //    auto xpow = x;
+   //    for ( uint_t i = 1; i < n_coeff; ++i )
+   //    {
+   //       for ( uint_t d = 0; d < n_stencil; ++d )
+   //       {
+   //          _result_vec[d][0] += ( *this )[i][d] * xpow[0];
+   //          _result_vec[d][1] += ( *this )[i][d] * xpow[1];
+   //          _result_vec[d][2] += ( *this )[i][d] * xpow[2];
+   //          _result_vec[d][3] += ( *this )[i][d] * xpow[3];
+   //       }
+   //       xpow[0] *= x[0];
+   //       xpow[1] *= x[1];
+   //       xpow[2] *= x[2];
+   //       xpow[3] *= x[3];
+   //    }
+   // }
 
    // return the result of last call of eval_vec(x)
    inline const StencilData< DIM_domain, std::array< real_t, 4 > >& px_vec() const
@@ -271,10 +266,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
       return result;
    }
-
-   // location to write result
-   mutable Stencil<>                                          _result;
-   mutable StencilData< DIM_domain, std::array< real_t, 4 > > _result_vec;
 };
 
 // Base case for _restriction
