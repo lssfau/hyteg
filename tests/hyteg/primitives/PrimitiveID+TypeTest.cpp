@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -82,7 +82,6 @@ static void testPrimitiveID()
 
 static void testPrimitiveTypes()
 {
-
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/regular_octahedron_8el.msh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
@@ -111,6 +110,40 @@ static void testPrimitiveTypes()
    }
 }
 
+void testPrimitiveIDFormatting()
+{
+   // Generate a small PrimitiveStorage
+   MeshInfo              meshInfo = MeshInfo::singleTriangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 0.0 ), Point2D( 1.0, 1.0 ) );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage, 0 );
+
+   std::stringstream sstr;
+
+   std::string control{
+       "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000001034500000000000000000000000000000110" };
+
+   for ( const auto& item : storage->getVertices() )
+   {
+      WALBERLA_LOG_INFO( "PrimitiveStorage holds VERTEX " << item.second->getID() );
+      sstr << item.second->getID();
+   }
+
+   for ( const auto& item : storage->getEdges() )
+   {
+      WALBERLA_LOG_INFO( "PrimitiveStorage holds EDGE   " << PrimitiveIDFormat::COARSE_ID << item.second->getID() );
+      sstr << item.second->getID();
+   }
+
+   PrimitiveIDFormatter::set( PrimitiveIDFormat::TRIM );
+   for ( const auto& item : storage->getFaces() )
+   {
+      WALBERLA_LOG_INFO( "PrimitiveStorage holds FACE   " << item.second->getID() );
+      sstr << item.second->getID();
+   }
+
+   WALBERLA_CHECK_EQUAL( sstr.str(), control );
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -126,6 +159,9 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Running testPrimitiveTypes()" );
    hyteg::testPrimitiveTypes();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Running testPrimitiveIDFormatting()" );
+   hyteg::testPrimitiveIDFormatting();
 
    return EXIT_SUCCESS;
 }
