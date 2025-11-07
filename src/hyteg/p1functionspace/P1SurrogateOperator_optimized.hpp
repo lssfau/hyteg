@@ -1817,8 +1817,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          dofIdx[d] = vertexdof::macroedge::indexFromVertex( lvl, 1, p1::stencil::backConversion[d] );
       }
 
-      const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
+      const PolyStencil< 2, 1 > surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
       const PolyDomain           X( lvl );
+
+      const auto& stencil = surrogate.px();
 
       // loop over inner vertices on the macro edge
       for ( uint_t i = 1; i < n - 1; ++i )
@@ -1826,7 +1828,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
          // evaluate polynomial
          const auto x = X[i];
          surrogate.eval( x );
-         const auto& stencil = surrogate.px();
 
          const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1853,7 +1854,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
       constexpr auto stencilSize = 7;
 
-      const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
+      const PolyStencil< 2, 2 > surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro face
@@ -1868,14 +1869,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // restrict polynomial to 1D
          const auto y = X[j];
-         surrogate.fix_y( y );
+         const auto surrogate1 = surrogate.fix_y( y );
+
+         const auto&                stencil     = surrogate1.px();
 
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate.eval( x );
-            const auto& stencil = surrogate.px();
+            surrogate1.eval( x );
 
             const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1905,7 +1907,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       const auto  stencilSize = 7 + 4 * n_nbr_cells;
       const auto& offsets     = offsets_face_3d_.at( face->getID() );
 
-      const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
+      const PolyStencil< 3, 2 > surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro face
@@ -1931,14 +1933,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // restrict polynomial to 1D
          const auto y = X[j];
-         surrogate.fix_y( y );
+         const auto surrogate1 = surrogate.fix_y( y );
+
+         const auto&                stencil     = surrogate1.px();
 
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate.eval( x );
-            const auto& stencil = surrogate.px();
+            surrogate1.eval( x );
 
             const auto dstIdx = dofIdx[p1::stencil::C];
 
@@ -1959,14 +1962,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    void apply_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell,
                                  uint_t                         lvl,
-                                 const real_t*                  srcData,
-                                 real_t*                        dstData,
+                                 const real_t* RESTRICT const   srcData,
+                                 real_t* RESTRICT               dstData,
                                  UpdateType                     updateType ) const
    {
       const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
       constexpr auto stencilSize = 15;
 
-      const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
+      const PolyStencil< 3, 3 >  surrogate   = surrogate_cell_3d_.at( cell->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro cell
@@ -1974,7 +1977,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       {
          // restrict polynomial to 2D
          const auto z = X[k];
-         surrogate.fix_z( z );
+         const auto surrogate2 = surrogate.fix_z( z );
 
          for ( uint_t j = 1; j < n - 2 - k; ++j )
          {
@@ -1983,81 +1986,37 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             for ( int d = 0; d < stencilSize; ++d )
             {
                dofIdx[d] = vertexdof::macrocell::indexFromVertex( lvl, 1, j, k, p1::stencil::backConversion[d] );
-            }
+            };
 
             // restrict polynomial to 1D
             const auto y = X[j];
-            surrogate.fix_y( y );
+            const auto surrogate1 = surrogate2.fix_y( y );
 
-            const auto n_inner_loop = n - 1 - j - k;
+            const auto&                stencil     = surrogate1.px();
 
-            uint_t i = 1;
-            // unrolled loop
-            for ( ; i + 3 < n_inner_loop; i += 4 )
+            this->timingTree_->start( "inner-loop" );
+
+            for ( uint_t i = 1; i < n - 1 - j - k; ++i )
             {
-               const std::array< real_t, 4 > x{ X[i], X[i + 1], X[i + 2], X[i + 3] };
-               surrogate.eval_vec( x );
-               const auto& stencil_vec = surrogate.px_vec();
+               // evaluate polynomial
+               const auto x = X[i];
+               surrogate1.eval( x );
 
                const auto dstIdx = dofIdx[p1::stencil::C];
-
                if ( updateType == Replace )
                {
-                  dstData[dstIdx]     = real_c( 0 );
-                  dstData[dstIdx + 1] = real_c( 0 );
-                  dstData[dstIdx + 2] = real_c( 0 );
-                  dstData[dstIdx + 3] = real_c( 0 );
-               }
+                  dstData[dstIdx] = real_t(0.0);
+               } // else updateType == Add
+
+               // apply stencil
                for ( int d = 0; d < stencilSize; ++d )
                {
-                  dstData[dstIdx] += stencil_vec[d][0] * srcData[dofIdx[d]];
-                  dstData[dstIdx + 1] += stencil_vec[d][1] * srcData[dofIdx[d] + 1];
-                  dstData[dstIdx + 2] += stencil_vec[d][2] * srcData[dofIdx[d] + 2];
-                  dstData[dstIdx + 3] += stencil_vec[d][3] * srcData[dofIdx[d] + 3];
-                  dofIdx[d] += 4;
+                  dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
+                  ++dofIdx[d];
                }
             }
-            // remainder
-            if ( i < n_inner_loop )
-            {
-               const std::array< real_t, 4 > x{ X[i], X[i + 1], X[i + 2], X[i + 3] };
-               surrogate.eval_vec( x );
-               const auto& stencil_vec = surrogate.px_vec();
 
-               const auto dstIdx = dofIdx[p1::stencil::C];
-
-               if ( updateType == Replace )
-               {
-                  for ( int remainder = 0; i + remainder < n_inner_loop; ++remainder )
-                  {
-                     dstData[dstIdx + remainder] = real_c( 0 );
-                  }
-               }
-               for ( int d = 0; d < stencilSize; ++d )
-               {
-                  for ( int remainder = 0; i + remainder < n_inner_loop; ++remainder )
-                  {
-                     dstData[dstIdx + remainder] += stencil_vec[d][remainder] * srcData[dofIdx[d] + remainder];
-                  }
-               }
-            }
-            // non-vectorized version
-            // for ( i = 1; i < n_inner_loop; ++i )
-            // {
-            //    const auto x = X[i];
-            //    surrogate.eval( x );
-            //    const auto& stencil = surrogate.px();
-            //    const auto  dstIdx  = dofIdx[p1::stencil::C];
-            //    if ( updateType == Replace )
-            //    {
-            //       dstData[dstIdx] = real_c( 0 );
-            //    }
-            //    for ( int d = 0; d < stencilSize; ++d )
-            //    {
-            //       dstData[dstIdx] += stencil[d] * srcData[dofIdx[d]];
-            //       ++dofIdx[d];
-            //    }
-            // }
+            this->timingTree_->stop( "inner-loop" );
          }
       }
    }
@@ -2252,7 +2211,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    {
       const auto                 n         = levelinfo::num_microvertices_per_edge( lvl );
       auto                       diagIdx   = vertexdof::macroedge::index( lvl, 1 );
-      const PolyStencil< 2, 1 >& surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
+      const PolyStencil< 2, 1 > surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
       const PolyDomain           X( lvl );
       for ( uint_t i = 1; i < n - 1; ++i )
       {
@@ -2266,7 +2225,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    void assemble_diagonalOperator_face_surrogate_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, real_t* diagData )
    {
       const auto                 n         = levelinfo::num_microvertices_per_edge( lvl );
-      const PolyStencil< 2, 2 >& surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
+      const PolyStencil< 2, 2 > surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       for ( uint_t j = 1; j < n - 2; ++j )
@@ -2275,15 +2234,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // restrict polynomial to 1D
          const auto y = X[j];
-         surrogate.fix_y( y );
+         const auto surrogate1 = surrogate.fix_y( y );
 
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate.eval( x );
+            surrogate1.eval( x );
 
-            diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+            diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
             ++diagIdx;
          }
       }
@@ -2292,7 +2251,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    void assemble_diagonalOperator_face_surrogate_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, real_t* diagData )
    {
       const auto                 n         = levelinfo::num_microvertices_per_edge( lvl );
-      const PolyStencil< 3, 2 >& surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
+      const PolyStencil< 3, 2 > surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       for ( uint_t j = 1; j < n - 2; ++j )
@@ -2301,15 +2260,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
          // restrict polynomial to 1D
          const auto y = X[j];
-         surrogate.fix_y( y );
+         const auto surrogate1 = surrogate.fix_y( y );
 
          for ( uint_t i = 1; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
-            surrogate.eval( x );
+            surrogate1.eval( x );
 
-            diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+            diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
             ++diagIdx;
          }
       }
@@ -2318,14 +2277,14 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    void assemble_diagonalOperator_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, real_t* diagData )
    {
       const auto                 n         = levelinfo::num_microvertices_per_edge( lvl );
-      const PolyStencil< 3, 3 >& surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
+      const PolyStencil< 3, 3 > surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
       const PolyDomain           X( lvl );
 
       for ( uint_t k = 1; k < n - 3; ++k )
       {
          // restrict polynomial to 2D
          const auto z = X[k];
-         surrogate.fix_z( z );
+         const auto surrogate2 = surrogate.fix_z( z );
 
          for ( uint_t j = 1; j < n - 2 - k; ++j )
          {
@@ -2333,15 +2292,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
             // restrict polynomial to 1D
             const auto y = X[j];
-            surrogate.fix_y( y );
+            const auto surrogate1 = surrogate2.fix_y( y );
 
             for ( uint_t i = 1; i < n - 1 - j - k; ++i )
             {
                // evaluate polynomial
                const auto x = X[i];
-               surrogate.eval( x );
+               surrogate1.eval( x );
 
-               diagData[diagIdx] = surrogate.px()[p1::stencil::C];
+               diagData[diagIdx] = surrogate1.px()[p1::stencil::C];
                ++diagIdx;
             }
          }
