@@ -149,13 +149,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    //    }
    // }
 
-   // return the result of last call of eval_vec(x)
-   inline const StencilData< DIM_domain, std::array< real_t, 4 > >& px_vec() const
-   {
-      static_assert( DIM_primitive == 1, "Final result can only be obtained from 1D polynomial!" );
-      return _result_vec;
-   }
-
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
    Stencil<> eval_naive( const Point3D& x ) const
    {
