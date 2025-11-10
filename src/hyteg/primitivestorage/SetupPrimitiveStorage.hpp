@@ -21,6 +21,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -54,11 +55,12 @@ class SetupPrimitiveStorage
 
    SetupPrimitiveStorage( const MeshInfo& meshInfo, const uint_t& numberOfProcesses );
 
-   SetupPrimitiveStorage( const VertexMap& vertices,
-                          const EdgeMap&   edges,
-                          const FaceMap&   faces,
-                          const CellMap&   cells,
-                          const uint_t&    numberOfProcesses );
+   SetupPrimitiveStorage( const VertexMap&                                   vertices,
+                          const EdgeMap&                                     edges,
+                          const FaceMap&                                     faces,
+                          const CellMap&                                     cells,
+                          const uint_t&                                      numberOfProcesses,
+                          std::shared_ptr< std::map< PrimitiveID, uint_t > > rankMap = nullptr );
 
    void initialize( const MeshInfo& meshInfo );
 
