@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -33,6 +33,7 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/Concepts.hpp"
 #include "hyteg/types/Matrix.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
@@ -71,7 +72,7 @@ inline Point3D coordinateFromIndex( const uint_t& level, const Edge& edge, const
    return edge.getCoordinates()[0] + step * real_c( index.x() );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType assembleLocal( const uint_t&                            level,
                                 idx_t                                    pos,
                                 const Matrix3r&                          localMatrix,
@@ -92,7 +93,7 @@ inline ValueType assembleLocal( const uint_t&                            level,
    return meanCoeff * tmp;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void assembleLocalStencil( uint_t                                   level,
                                   idx_t                                    pos,
                                   const Matrix3r&                          localMatrix,
@@ -111,7 +112,7 @@ inline void assembleLocalStencil( uint_t                                   level
    opr_data[vertexdof::stencilIndexFromVertex( vertices[2] )] += meanCoeff * localMatrix( idx[0], idx[2] );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const uint_t&                                               level,
                          Edge&                                                       edge,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& edgeMemoryId,
@@ -125,7 +126,7 @@ inline void interpolate( const uint_t&                                          
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
                          const uint_t&                                                                               level,
                          Edge&                                                                                       edge,
@@ -157,7 +158,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void swap( const uint_t&                                               level,
                   Edge&                                                       edge,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcID,
@@ -168,7 +169,7 @@ inline void swap( const uint_t&                                               le
    srcData->swap( *dstData, level );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void assign( const uint_t&                                                              level,
                     Edge&                                                                      edge,
                     const std::vector< ValueType >&                                            scalars,
@@ -195,7 +196,7 @@ inline void assign( const uint_t&                                               
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               level,
                  const Edge&                                                 edge,
                  const ValueType&                                            scalar,
@@ -210,7 +211,7 @@ inline void add( const uint_t&                                               lev
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                                              level,
                  Edge&                                                                      edge,
                  const std::vector< ValueType >&                                            scalars,
@@ -235,7 +236,7 @@ inline void add( const uint_t&                                                  
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              Edge&                                                                      edge,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,
@@ -258,7 +259,7 @@ inline void multElementwise( const uint_t&                                      
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType dot( const uint_t&                                               level,
                       Edge&                                                       edge,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsMemoryId,
@@ -278,7 +279,7 @@ inline ValueType dot( const uint_t&                                             
    return scalarProduct.get();
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType sum( const uint_t&                                               level,
                       const Edge&                                                 edge,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataID,
@@ -303,7 +304,7 @@ inline ValueType sum( const uint_t&                                             
    return sum;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void apply( const uint_t&                                               level,
                    Edge&                                                       edge,
                    const PrimitiveDataID< StencilMemory< ValueType >, Edge >&  operatorId,
@@ -364,7 +365,7 @@ inline void apply( const uint_t&                                               l
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_gs( const uint_t&                                               level,
                        Edge&                                                       edge,
                        const PrimitiveDataID< StencilMemory< ValueType >, Edge >&  operatorId,
@@ -421,7 +422,7 @@ inline void smooth_gs( const uint_t&                                            
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_sor( const uint_t&                                               level,
                         Edge&                                                       edge,
                         const PrimitiveDataID< StencilMemory< ValueType >, Edge >&  operatorId,
@@ -451,10 +452,10 @@ inline void smooth_sor( const uint_t&                                           
 
    for ( int ii = start; ii != stop; ii += incr )
    {
-      const idx_t  i       = ii;
-      const auto   dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
-      const auto   dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
-      const auto   dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
+      const idx_t i       = ii;
+      const auto  dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
+      const auto  dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
+      const auto  dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
 
       tmp = rhs[dofIdxC];
 
@@ -485,7 +486,7 @@ inline void smooth_sor( const uint_t&                                           
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_jac( const uint_t&                                               level,
                         Edge&                                                       edge,
                         const PrimitiveDataID< StencilMemory< ValueType >, Edge >&  operatorId,
@@ -534,7 +535,7 @@ inline void smooth_jac( const uint_t&                                           
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void enumerate( const uint_t&                                               level,
                        Edge&                                                       edge,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
@@ -550,7 +551,7 @@ inline void enumerate( const uint_t&                                            
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void printFunctionMemory( const uint_t&                                               level,
                                  const Edge&                                                 edge,
                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
@@ -584,7 +585,7 @@ inline void printFunctionMemory( const uint_t&                                  
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
@@ -601,7 +602,7 @@ inline ValueType
    return localMax;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFMagnitude( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
@@ -619,7 +620,7 @@ inline ValueType
    return localMax;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMinDoFValue( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
 {
@@ -636,7 +637,7 @@ inline ValueType
    return localMin;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType reduce( uint_t                                                      level,
                          std::function< ValueType( ValueType, ValueType ) >&         reduceOperation,
                          ValueType                                                   initialValue,
@@ -652,7 +653,7 @@ inline ValueType reduce( uint_t                                                 
    return initialValue;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void saveOperator( const uint_t&                                              level,
                           Edge&                                                      edge,
                           const PrimitiveStorage&                                    storage,
@@ -729,7 +730,7 @@ inline void saveIdentityOperator( const uint_t&                                 
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
@@ -747,7 +748,7 @@ inline void createVectorFromFunction( const uint_t&                             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createFunctionFromVector( const uint_t&                                               level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,

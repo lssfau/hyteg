@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -33,6 +33,7 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/Concepts.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -45,7 +46,7 @@ using walberla::uint_t;
 inline Point3D
     coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation& orientation )
 {
-   const real_t stepFrequency = 1.0 / real_c(levelinfo::num_microedges_per_edge(Level));
+   const real_t  stepFrequency = 1.0 / real_c( levelinfo::num_microedges_per_edge( Level ) );
    const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
    const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
    Point3D       increment;
@@ -101,7 +102,7 @@ inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroCell( const E
    return orientationInMacroCell;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&                                               level,
                                                       Face&                                                       face,
                                                       const Point3D&                                              coordinates,
@@ -208,7 +209,7 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const uint_t&                                               Level,
                          Face&                                                       face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
@@ -238,7 +239,7 @@ inline void interpolate( const uint_t&                                          
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
                          const uint_t&                                                                               Level,
                          Face&                                                                                       face,
@@ -304,7 +305,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void swap( const uint_t&                                               level,
                   Face&                                                       face,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,
@@ -315,7 +316,7 @@ inline void swap( const uint_t&                                               le
    srcData->swap( *dstData, level );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               Level,
                  Face&                                                       face,
                  const ValueType&                                            scalar,
@@ -349,7 +350,7 @@ inline void add( const uint_t&                                               Lev
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                                              Level,
                  Face&                                                                      face,
                  const std::vector< ValueType >&                                            scalars,
@@ -415,7 +416,7 @@ inline void add( const uint_t&                                                  
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void assign( const uint_t&                                                              Level,
                     Face&                                                                      face,
                     const std::vector< ValueType >&                                            scalars,
@@ -481,7 +482,7 @@ inline void assign( const uint_t&                                               
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              Face&                                                                      face,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
@@ -540,7 +541,7 @@ inline void multElementwise( const uint_t&                                      
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType dot( const uint_t&                                               Level,
                       Face&                                                       face,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
@@ -578,7 +579,7 @@ inline ValueType dot( const uint_t&                                             
    return scalarProduct.get();
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType sum( const uint_t&                                               Level,
                       Face&                                                       face,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataId,
@@ -624,7 +625,7 @@ inline ValueType sum( const uint_t&                                             
    return scalarProduct.get();
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void enumerate( const uint_t&                                               Level,
                        Face&                                                       face,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
@@ -824,7 +825,7 @@ inline void apply3D( const uint_t&                                              
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void
     printFunctionMemory( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
 {
@@ -862,7 +863,7 @@ inline void
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
@@ -896,7 +897,7 @@ inline ValueType
    return localMax;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMinDoFValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
@@ -930,7 +931,7 @@ inline ValueType
    return localMin;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
@@ -994,7 +995,7 @@ inline void
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
@@ -1029,7 +1030,7 @@ inline void createVectorFromFunction( const uint_t&                             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
@@ -1096,7 +1097,7 @@ inline void applyDirichletBC( const uint_t&                                     
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void setBoundaryToZero( const uint_t&                                               level,
                                const Face&                                                 face,
                                const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceDataID )

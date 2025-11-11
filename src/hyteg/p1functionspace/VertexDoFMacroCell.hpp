@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -38,6 +38,7 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/Concepts.hpp"
 #include "hyteg/types/types.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
@@ -75,7 +76,7 @@ inline Point3D coordinateFromIndex( const uint_t& level, const Cell& cell, const
    return cell.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() ) + zStep * real_c( index.z() );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const uint_t&                                               level,
                          const Cell&                                                 cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
@@ -91,7 +92,7 @@ inline void interpolate( const uint_t&                                          
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                                  storage,
                          const uint_t&                                                                               level,
                          const Cell&                                                                                 cell,
@@ -124,7 +125,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void swap( const uint_t&                                               level,
                   Cell&                                                       cell,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcID,
@@ -135,7 +136,7 @@ inline void swap( const uint_t&                                               le
    srcData->swap( *dstData, level );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline real_t evaluate( const uint_t&, const Cell&, const Point3D&, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& )
 {
    WALBERLA_ABORT( "VertexDoF macro-cell evaluate not implemented for this data type." )
@@ -371,7 +372,7 @@ inline real_t evaluate( const uint_t&                                           
    return value;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void assign( const uint_t&                                                              level,
                     const Cell&                                                                cell,
                     const std::vector< ValueType >&                                            scalars,
@@ -400,7 +401,7 @@ inline void assign( const uint_t&                                               
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               level,
                  const Cell&                                                 cell,
                  const ValueType&                                            scalar,
@@ -415,7 +416,7 @@ inline void add( const uint_t&                                               lev
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                                              level,
                  const Cell&                                                                cell,
                  const std::vector< ValueType >&                                            scalars,
@@ -444,7 +445,7 @@ inline void add( const uint_t&                                                  
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              const Cell&                                                                cell,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcIds,
@@ -472,7 +473,7 @@ inline void multElementwise( const uint_t&                                      
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType dot( const uint_t&                                               level,
                       const Cell&                                                 cell,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& lhsId,
@@ -493,7 +494,7 @@ inline ValueType dot( const uint_t&                                             
    return sp;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType sum( const uint_t&                                               level,
                       const Cell&                                                 cell,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataID,
@@ -519,7 +520,7 @@ inline ValueType sum( const uint_t&                                             
    return sum;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void apply( const uint_t&                                                   level,
                    Cell&                                                           cell,
                    const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell >& operatorId,
@@ -580,7 +581,7 @@ inline void apply( const uint_t&                                                
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_gs( const uint_t&                                                   level,
                        Cell&                                                           cell,
                        const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell >& operatorId,
@@ -617,7 +618,7 @@ inline void smooth_gs( const uint_t&                                            
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_sor( const uint_t&                                                   level,
                         Cell&                                                           cell,
                         const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell >& operatorId,
@@ -655,7 +656,7 @@ inline void smooth_sor( const uint_t&                                           
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void enumerate( const uint_t&                                               Level,
                        Cell&                                                       cell,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId,
@@ -671,7 +672,7 @@ inline void enumerate( const uint_t&                                            
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
@@ -687,7 +688,7 @@ inline ValueType
    return localMax;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMinDoFValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
@@ -703,7 +704,7 @@ inline ValueType
    return localMin;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFMagnitude( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
 {
@@ -720,7 +721,7 @@ inline ValueType
    return localMax;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType reduce( uint_t                                                      level,
                          std::function< ValueType( ValueType, ValueType ) >&         reduceOperation,
                          ValueType                                                   initialValue,
@@ -778,7 +779,7 @@ inline void saveIdentityOperator( const uint_t&                                 
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Cell&                                                       cell,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,
@@ -797,7 +798,7 @@ inline void createVectorFromFunction( const uint_t&                             
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Cell&                                                       cell,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,

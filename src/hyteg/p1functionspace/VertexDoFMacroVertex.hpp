@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,7 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/Concepts.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
 #include "hyteg/format.hpp"
@@ -35,7 +36,7 @@ namespace hyteg {
 namespace vertexdof {
 namespace macrovertex {
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const uint_t&                                                 level,
                          const Vertex&                                                 vertex,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& vertexMemoryId,
@@ -45,7 +46,7 @@ inline void interpolate( const uint_t&                                          
    vertexMemory[0]   = scalar;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                                   storage,
                          Vertex&                                                                      vertex,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                vertexMemoryId,
@@ -65,7 +66,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
    vertexMemory->getPointer( level )[0] = expr( coordinate, srcVector );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void swap( const uint_t&                                                 level,
                   Vertex&                                                       vertex,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcID,
@@ -76,7 +77,7 @@ inline void swap( const uint_t&                                                 
    srcData->swap( *dstData, level );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void assign( Vertex&                                                                      vertex,
                     const std::vector< ValueType >&                                              scalars,
                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
@@ -93,7 +94,7 @@ inline void assign( Vertex&                                                     
    vertex.getData( dstId )->getPointer( level )[0] = tmp;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( const Vertex&                                                 vertex,
                  const ValueType&                                              scalar,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -102,7 +103,7 @@ inline void add( const Vertex&                                                 v
    vertex.getData( dstId )->getPointer( level )[0] += scalar;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void add( Vertex&                                                                      vertex,
                  const std::vector< ValueType >&                                              scalars,
                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
@@ -119,7 +120,7 @@ inline void add( Vertex&                                                        
    vertex.getData( dstId )->getPointer( level )[0] += tmp;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                                level,
                              Vertex&                                                                      vertex,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
@@ -135,7 +136,7 @@ inline void multElementwise( const uint_t&                                      
    vertex.getData( dstId )->getPointer( level )[0] = tmp;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType dot( Vertex&                                                       vertex,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& lhsMemoryId,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsMemoryId,
@@ -144,7 +145,7 @@ inline ValueType dot( Vertex&                                                   
    return vertex.getData( lhsMemoryId )->getPointer( level )[0] * vertex.getData( rhsMemoryId )->getPointer( level )[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType sum( const uint_t&                                                 level,
                       const Vertex&                                                 vertex,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID,
@@ -157,7 +158,7 @@ inline ValueType sum( const uint_t&                                             
    return vertex.getData( dataID )->getPointer( level )[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void apply( Vertex&                                                       vertex,
                    const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
@@ -184,7 +185,7 @@ inline void apply( Vertex&                                                      
    }
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_gs( Vertex&                                                       vertex,
                        const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -205,7 +206,7 @@ inline void smooth_gs( Vertex&                                                  
    dst[0] /= opr_data[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_sor( Vertex&                                                       vertex,
                         const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -228,7 +229,7 @@ inline void smooth_sor( Vertex&                                                 
    dst[0] = ( 1.0 - relax ) * dst[0] + relax * tmp / opr_data[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void smooth_jac( Vertex&                                                       vertex,
                         const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -251,7 +252,7 @@ inline void smooth_jac( Vertex&                                                 
    dst[0] /= opr_data[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void
     enumerate( size_t level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId, ValueType& num )
 {
@@ -259,7 +260,7 @@ inline void
    dst[0]   = num++;
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
@@ -267,7 +268,7 @@ inline ValueType
    return src[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMaxDoFMagnitude( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
@@ -275,7 +276,7 @@ inline ValueType
    return std::abs( src[0] );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline ValueType
     getMinDoFValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
 {
@@ -283,7 +284,7 @@ inline ValueType
    return src[0];
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void saveOperator( Vertex&                                                      vertex,
                           const PrimitiveDataID< StencilMemory< ValueType >, Vertex >& operatorId,
                           const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&    srcId,
@@ -310,7 +311,7 @@ inline void saveIdentityOperator( Vertex&                                       
    mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
@@ -323,7 +324,7 @@ inline void createVectorFromFunction( const Vertex&                             
    vec->setValue( uint_c( numerator ), src[0] );
 }
 
-template < typename ValueType >
+template < concepts::value_type ValueType >
 inline void createFunctionFromVector( Vertex&                                                       vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >&     numeratorId,
