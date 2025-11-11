@@ -33,6 +33,8 @@
 #include <hyteg/polynomial/stencil/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
 
+#define RESTRICT WALBERLA_RESTRICT
+
 namespace hyteg {
 
 template < class P1Form, uint8_t DEGREE >
