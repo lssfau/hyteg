@@ -260,9 +260,10 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer )
 /// Enum for changing output conversion of PrimitiveID objects
 enum class PrimitiveIDFormat
 {
-   FULL,     ///< output complete bit-pattern of ID
-   TRIM,     ///< output complete bit-pattern w/o leading turned-off bits and MSB
-   COARSE_ID ///< output only COARSE_ID as integer value
+   FULL,           ///< output complete bit-pattern of ID
+   TRIM,           ///< output complete bit-pattern w/o leading turned-off bits and MSB
+   COARSE_ID,      ///< output only COARSE_ID as integer value
+   ID_LIST         ///< output the ID as list of integers showing the parent - child relations
 };
 
 /// Class for handling output conversion of PrimitiveID objects
@@ -291,6 +292,25 @@ struct PrimitiveIDFormatter
          aux >>= ( pid.numAncestors() * PrimitiveID::BITS_REFINEMENT );
 
          os << aux.to_ullong();
+         break;
+      }
+      case PrimitiveIDFormat::ID_LIST: {
+         uint_t msb                = pid.msbPosition(); // one-based
+         uint_t numRefinementSteps = pid.numAncestors();
+
+         PrimitiveID::IDType aux = pid.id_;
+         aux.reset( msb - 1 );
+         aux >>= ( numRefinementSteps * PrimitiveID::BITS_REFINEMENT );
+         os << aux.to_ullong();
+
+         for ( int k = 1; k <= numRefinementSteps; ++k )
+         {
+            aux = pid.id_;
+            aux >>= ( ( pid.numAncestors() - k ) * PrimitiveID::BITS_REFINEMENT );
+            aux <<= ( PrimitiveID::BITS_TOTAL - PrimitiveID::BITS_REFINEMENT );
+            aux >>= ( PrimitiveID::BITS_TOTAL - PrimitiveID::BITS_REFINEMENT );
+            os << " <- " << aux.to_ullong();
+         }
          break;
       }
       }
