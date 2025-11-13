@@ -284,12 +284,11 @@ struct PrimitiveIDFormatter
          break;
       }
       case PrimitiveIDFormat::COARSE_ID: {
-         PrimitiveID::IDType aux         = pid.id_;
-         uint_t              msb         = pid.msbPosition(); // one-based
-         uint_t              numChildren = ( msb - PrimitiveID::BITS_COARSE_LEVEL_ID - 1 ) / PrimitiveID::BITS_REFINEMENT;
+         PrimitiveID::IDType aux = pid.id_;
+         uint_t              msb = pid.msbPosition(); // one-based
 
          aux.reset( msb - 1 );
-         aux >> ( numChildren * PrimitiveID::BITS_REFINEMENT );
+         aux >>= ( pid.numAncestors() * PrimitiveID::BITS_REFINEMENT );
 
          os << aux.to_ullong();
          break;
