@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -34,11 +34,12 @@
 #include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
 #include "hyteg/primitives/PrimitiveID.hpp"
+#include "hyteg/types/Concepts.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
-// to removed when moving to walberla namespace
+// to be removed when moving to walberla namespace
 using walberla::NonCopyable;
 using walberla::uint_t;
 
@@ -68,6 +69,7 @@ class PrimitiveData : private NonCopyable
 
 class PrimitiveID;
 class PrimitiveStorage;
+class SubStorage;
 namespace adaptiveRefinement {
 template < class K_Simplex >
 class K_Mesh;
@@ -99,6 +101,7 @@ class Primitive
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
+   friend class SubStorage;
    template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 

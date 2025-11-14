@@ -197,6 +197,42 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Edge > >&                              srcEdges,
+                                  std::shared_ptr< Edge >&                                                   dstEdge,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( dstEdge->getID(), srcEdges[0]->getID() )
+
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   for ( size_t i = 1; i < rowsize - 1; ++i )
+   {
+      WALBERLA_ASSERT_EQUAL( dstEdge->getID(), srcEdges[0]->getID() )
+
+      ValueType tmp =
+          scalars[0] * srcEdges[0]
+                           ->getData( srcIds[0] )
+                           ->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+
+      for ( size_t k = 1; k < srcIds.size(); ++k )
+      {
+         WALBERLA_ASSERT_EQUAL( dstEdge->getID(), srcEdges[k]->getID() )
+
+         tmp += scalars[k] *
+                srcEdges[k]
+                    ->getData( srcIds[k] )
+                    ->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      }
+
+      dstEdge->getData( dstId )->getPointer(
+          level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = tmp;
+   }
+}
+
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               level,
                  const Edge&                                                 edge,
                  const ValueType&                                            scalar,

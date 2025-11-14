@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,25 +21,30 @@
 #pragma once
 
 #include <array>
-#include <core/DataTypes.h>
-#include <core/debug/CheckFunctions.h>
-#include <hyteg/Math.hpp>
-#include <hyteg/primitives/Primitive.hpp>
-#include <hyteg/primitivestorage/PrimitiveStorage.hpp>
-#include <hyteg/types/PointND.hpp>
-#include <hyteg/types/types.hpp>
 #include <vector>
+
+#include "core/DataTypes.h"
+#include "core/debug/CheckFunctions.h"
+
+#include "hyteg/Math.hpp"
+#include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/types/Concepts.hpp"
+#include "hyteg/types/PointND.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
 class Vertex;
 class Edge;
+class SubStorage;
 
 class Face : public Primitive
 {
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
+   friend class SubStorage;
    template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 

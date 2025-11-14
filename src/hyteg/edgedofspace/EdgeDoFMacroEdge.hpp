@@ -190,6 +190,39 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Edge > >&                              srcEdges,
+                                  std::shared_ptr< Edge >&                                                   dstEdge,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
+
+   auto dstData = dstEdge->getData( dstId )->getPointer( level );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
+   {
+      auto tmp = static_cast< ValueType >( 0.0 );
+
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.x(), stencilDirection::EDGE_HO_C );
+
+      for ( uint_t i = 0; i < scalars.size(); i++ )
+      {
+         WALBERLA_ASSERT_EQUAL( dstEdge->getID(), srcEdges[i]->getID() )
+
+         const ValueType scalar  = scalars[i];
+         const auto      srcData = srcEdges[i]->getData( srcIds[i] )->getPointer( level );
+
+         tmp += scalar * srcData[idx];
+      }
+
+      dstData[idx] = tmp;
+   }
+}
+
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              Edge&                                                                      edge,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,

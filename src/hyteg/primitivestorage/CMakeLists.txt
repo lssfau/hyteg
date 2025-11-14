@@ -1,9 +1,10 @@
 target_sources( hyteg
     PRIVATE
+    PrimitiveStorage.cpp     
     PrimitiveStorage.hpp
     SetupPrimitiveStorage.cpp
     SetupPrimitiveStorage.hpp
+    SubStorage.hpp
     Visualization.hpp
-    PrimitiveStorage.cpp     
 )
 add_subdirectory( loadbalancing )
