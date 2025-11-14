@@ -119,36 +119,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       return result;
    }
 
-   /** @brief Vectorized version of eval(). Evaluate the 1d polynomial at x1,x2,x3,x4
-    * @param x The x-coordinates.
-    */
-   // inline void eval_vec( const std::array< real_t, 4 >& x ) const
-   // {
-   //    static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
-   //    for ( uint_t d = 0; d < n_stencil; ++d )
-   //    {
-   //       _result_vec[d][0] = ( *this )[0][d];
-   //       _result_vec[d][1] = ( *this )[0][d];
-   //       _result_vec[d][2] = ( *this )[0][d];
-   //       _result_vec[d][3] = ( *this )[0][d];
-   //    }
-   //    auto xpow = x;
-   //    for ( uint_t i = 1; i < n_coeff; ++i )
-   //    {
-   //       for ( uint_t d = 0; d < n_stencil; ++d )
-   //       {
-   //          _result_vec[d][0] += ( *this )[i][d] * xpow[0];
-   //          _result_vec[d][1] += ( *this )[i][d] * xpow[1];
-   //          _result_vec[d][2] += ( *this )[i][d] * xpow[2];
-   //          _result_vec[d][3] += ( *this )[i][d] * xpow[3];
-   //       }
-   //       xpow[0] *= x[0];
-   //       xpow[1] *= x[1];
-   //       xpow[2] *= x[2];
-   //       xpow[3] *= x[3];
-   //    }
-   // }
-
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
    Stencil<> eval_naive( const Point3D& x ) const
    {
@@ -260,11 +230,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       return result;
    }
 };
-
-// Base case for _restriction
-template < uint8_t DIM_domain, uint8_t DEGREE >
-class Polynomial< DIM_domain, 0, DEGREE >
-{};
 
 } // namespace surrogate
 } // namespace stencil
