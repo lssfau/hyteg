@@ -30,9 +30,8 @@
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "operators/P1ElementwiseDiffusion.hpp"
-#include "operators/P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
+#include "operators/P1ElementwiseDivKGrad_cubes_const_vect_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab.hpp"
-#include "operators/P1ElementwiseDiffusion_cubes_const_vect_vect512_fused_quadloops_tab.hpp"
 #include "operators/P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab.hpp"
 
 using walberla::real_t;
@@ -72,7 +71,7 @@ std::array< uint_t, DIM > compute_domain_size( uint_t n_procs )
 
 
 template < class Operator, bool OperatorNeedsForm, bool OperatorNeedsCoeff, bool SurrogateOperator, class Form>
-void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Form& form, const std::function<real_t (const Point3D& )>& coeff, const char* opName, const bool verbose, const bool printTimingTree, const bool sphericalShell = false)
+void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Form& form, const std::function<real_t (const Point3D& )>& coeff, const char* opName, const bool verbose, const bool printTimingTree)
 {
    auto n_procs = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
@@ -90,15 +89,7 @@ void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Fo
    {
       auto n = compute_domain_size< 3 >( n_procs );
       MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), n[0], n[1], n[2] );
-      if (sphericalShell)
-      {
-         meshInfo = MeshInfo::meshSphericalShell( 2, 2, 0.5, 1.0 );
-      }
       SetupPrimitiveStorage setupStorage( meshInfo, n_procs );
-      if (sphericalShell)
-      {
-         IcosahedralShellMap::setMap( setupStorage );
-      }
       loadbalancing::roundRobin( setupStorage );
       storage = std::make_shared< PrimitiveStorage >( setupStorage );
    }
@@ -112,14 +103,6 @@ void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Fo
    auto   n_dof = u.getNumberOfGlobalDoFs( level );
    if (verbose)
    {
-      if (sphericalShell)
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "domain: spherical shell" );
-      }
-      else
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "domain: cuboid" );
-      }
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%dd, level=%d", dim, level ) );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "number elements: %d, global DoF: %1.1f M", n_el, n_dof*1e-6 ) );
    }
@@ -133,7 +116,7 @@ void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Fo
    std::shared_ptr<Operator> A;
    if constexpr (SurrogateOperator)
    {
-      A = std::make_shared<Operator>(storage, level, level, form, 0);
+      A = std::make_shared<Operator>(storage, level, level, form, 0, "svd");
    }
    else if constexpr (OperatorNeedsForm)
    {
@@ -175,6 +158,29 @@ void benchmark(const uint_t dim, const uint_t level, const uint_t iter, const Fo
    }
 }
 
+template <uint_t q>
+void precompute_SVDs(uint_t lvl, uint_t dim)
+{
+   std::shared_ptr< PrimitiveStorage > storage;
+   if (dim == 2)
+   {
+      MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, 1 );
+      // loadbalancing::roundRobin( setupStorage );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   }
+   else // dim == 3
+   {
+      MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 1,1,1 );
+      SetupPrimitiveStorage setupStorage( meshInfo, 1 );
+      // loadbalancing::roundRobin( setupStorage );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   }
+
+   P1SurrogateBlendingLaplaceOperator<q> op(storage, lvl, lvl, 0);
+   op.store_svd("svd");
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -184,26 +190,40 @@ int main( int argc, char* argv[] )
    uint_t            lvl2  = 10;
    uint_t            lvl3  = 7;
    uint_t            iter  = 100;
-   constexpr uint8_t q_max = 6;
 
-   // setup pde coefficient k ∈ P_(q+2)
-   hyteg::surrogate::polynomial::Polynomial< real_t, 3, q_max + 2 > k_poly;
-   for ( auto& c : k_poly )
+   // precompute SVDs
+   WALBERLA_LOG_INFO_ON_ROOT( "precompute SVDs" );
+   WALBERLA_ROOT_SECTION()
    {
-      c = walberla::math::realRandom();
+      std::filesystem::create_directory( "svd" );
    }
-   auto k = [&]( const hyteg::Point3D& x ) { return k_poly.eval_naive( x ); };
+   for (uint_t d : {2,3})
+   {
+      const auto lvl = (d==2)? lvl2 : lvl3;
+      precompute_SVDs<0>(lvl, d);
+      precompute_SVDs<1>(lvl, d);
+      precompute_SVDs<2>(lvl, d);
+      precompute_SVDs<3>(lvl, d);
+      precompute_SVDs<4>(lvl, d);
+      precompute_SVDs<5>(lvl, d);
+      precompute_SVDs<6>(lvl, d);
+      precompute_SVDs<7>(lvl, d);
+      precompute_SVDs<8>(lvl, d);
+      precompute_SVDs<9>(lvl, d);
+      precompute_SVDs<10>(lvl, d);
+   }
+
+   auto k = [&]( const hyteg::Point3D& x ) { return sin(30*x[0])*cos(40*x[1])*cos(20*x[2]); };
 
    // run benchmarks
-   // cuboid
    for (int d : {2,3})
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       forms::p1_div_k_grad_affine_q3   form( k, k );
       auto lvl = (d==2)? lvl2 : lvl3;
       benchmark<P1ConstantLaplaceOperator, false, false, false>(d, lvl, iter, form, k, "const. stencil", true, true);
-      benchmark<operatorgeneration::P1ElementwiseDiffusion, false, false, false>(d, lvl, iter, form, k, "const. elwise", false, true);
-      benchmark<operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab, false, false, false>(d, lvl, iter, form, k, "const. elwise opt.", false, true);
+      benchmark<operatorgeneration::P1ElementwiseDiffusion_cubes_const_vect_fused_quadloops_tab, false, false, false>(d, lvl, iter, form, k, "const. elwise.", false, true);
+      benchmark<operatorgeneration::P1ElementwiseDivKGrad_cubes_const_vect_fused_quadloops_tab, false, true, false>(d, lvl, iter, form, k, "DivKGrad elwise.", false, true);
       benchmark<P1SurrogateAffineDivKGradOperator<0>, true, false, true>(d, lvl, iter, form, k, "surrogate q=0", false, true);
       benchmark<P1SurrogateAffineDivKGradOperator<1>, true, false, true>(d, lvl, iter, form, k, "surrogate q=1", false, true);
       benchmark<P1SurrogateAffineDivKGradOperator<2>, true, false, true>(d, lvl, iter, form, k, "surrogate q=2", false, true);
@@ -211,21 +231,15 @@ int main( int argc, char* argv[] )
       benchmark<P1SurrogateAffineDivKGradOperator<4>, true, false, true>(d, lvl, iter, form, k, "surrogate q=4", false, true);
       benchmark<P1SurrogateAffineDivKGradOperator<5>, true, false, true>(d, lvl, iter, form, k, "surrogate q=5", false, true);
       benchmark<P1SurrogateAffineDivKGradOperator<6>, true, false, true>(d, lvl, iter, form, k, "surrogate q=6", false, true);
+      benchmark<P1SurrogateAffineDivKGradOperator<7>, true, false, true>(d, lvl, iter, form, k, "surrogate q=7", false, true);
+      benchmark<P1SurrogateAffineDivKGradOperator<8>, true, false, true>(d, lvl, iter, form, k, "surrogate q=8", false, true);
+      benchmark<P1SurrogateAffineDivKGradOperator<9>, true, false, true>(d, lvl, iter, form, k, "surrogate q=9", false, true);
+      benchmark<P1SurrogateAffineDivKGradOperator<10>, true, false, true>(d, lvl, iter, form, k, "surrogate q=10", false, true);
    }
 
-   // spherical shell
+   WALBERLA_ROOT_SECTION()
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "" );
-      forms::p1_div_k_grad_blending_q3 form( k, k );
-      benchmark<operatorgeneration::P1ElementwiseDiffusion_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab, false, false, false>(3, lvl3, iter, form, k, "blending laplace", true, true, true);
-      benchmark<operatorgeneration::P1ElementwiseDivKGrad_IcosahedralShellMap_cubes_const_vect_fused_quadloops_tab, false, true, false>(3, lvl3, iter, form, k, "blending divKgrad", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<0>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=0", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<1>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=1", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<2>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=2", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<3>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=3", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<4>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=4", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<5>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=5", false, true, true);
-      benchmark<P1SurrogateBlendingDivKGradOperator<6>, true, false, true>(3, lvl3, iter, form, k, "surrogate q=6", false, true, true);
+      std::filesystem::remove_all( "svd" );
    }
 
    return 0;
