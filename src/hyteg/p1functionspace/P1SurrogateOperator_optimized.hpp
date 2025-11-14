@@ -356,6 +356,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
  private:
    void init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries )
    {
+      this->startTiming( "Init" );
       uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
       if ( dim == 3 )
@@ -364,15 +365,19 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             The offsets are invariant wrt. level, hence it is sufficient to compute
             them for some fixed level.
          */
+        this->timingTree_->start( "compute_face_offsets" );
          compute_offsets_for_face_stencil_3d( 2 );
+        this->timingTree_->stop( "compute_face_offsets" );
       }
 
       /* precompute and store stencils
          * irregular stencils are precomputed for all levels
          * regular stencils are precomputed for levels 1-3
       */
+      this->timingTree_->start( "precompute_stencils" );
       for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
       {
+        this->timingTree_->start( "level " + std::to_string(level) );
          if ( dim == 2 )
          {
             precompute_stencil_vtx_2d( level );
@@ -398,11 +403,16 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                precompute_stencil_cell_3d( level );
             }
          }
+         this->timingTree_->stop( "level " + std::to_string(level) );
       }
+      this->timingTree_->stop( "precompute_stencils" );
 
       // approximate regular stencils for level 4+ by polynomials
+      this->timingTree_->start( "fitting_surrogates" );
       for ( uint_t level = std::max( minLevel_, min_lvl_for_surrogate ); level <= maxLevel_; ++level )
       {
+         this->timingTree_->start( "level " + std::to_string(level) );
+
          // initialize least squares approximation
          if ( lsq_volume_[level] == nullptr || downsampling_ != downsampling )
          {
@@ -429,7 +439,10 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             compute_surrogates_face_3d( level );
             compute_surrogates_cell_3d( level );
          }
+
+         this->timingTree_->stop( "level " + std::to_string(level) );
       }
+      this->timingTree_->stop( "fitting_surrogates" );
 
       if ( needsInverseDiagEntries )
       {
@@ -437,6 +450,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
       }
 
       is_initialized_ = true;
+
+      this->stopTiming( "Init" );
    }
 
    std::map< PrimitiveID, real_t > computeSurrogateError2D( uint_t level ) const
@@ -2011,6 +2026,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
             }
 
             this->timingTree_->stop( "inner-loop" );
+
          }
       }
    }
@@ -2333,7 +2349,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 template < uint8_t DEGREE >
 using P1SurrogateBlendingMassOperator = P1SurrogateOperator< forms::p1_mass_blending_q4, DEGREE >;
 template < uint8_t DEGREE >
-using P1SurrogateBlendingLaplaceOperator = P1SurrogateOperator< forms::p1_diffusion_blending_q2, DEGREE >;
+using P1SurrogateBlendingLaplaceOperator = P1SurrogateOperator< forms::p1_diffusion_blending_q3, DEGREE >;
 template < uint8_t DEGREE >
 using P1SurrogateAffineDivKGradOperator = P1SurrogateOperator< forms::p1_div_k_grad_affine_q3, DEGREE >;
 template < uint8_t DEGREE >
