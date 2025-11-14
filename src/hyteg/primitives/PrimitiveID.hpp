@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Benjamin Mann, Marcus Mohr
+ * Copyright (c) 2017-2025 Dominik Thoennes, Benjamin Mann, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,6 +41,8 @@ using walberla::uint_t;
 using walberla::blockforest::uintToBitString;
 using walberla::math::UINT_BYTES;
 using walberla::math::uintMSBPosition;
+
+struct PrimitiveIDFormatter;
 
 /// \brief Implementation of the PrimitiveID (unique identifiers for primitives).
 ///
@@ -111,6 +113,8 @@ using walberla::math::uintMSBPosition;
 class PrimitiveID
 {
  private:
+   friend struct PrimitiveIDFormatter;
+
    /// Total number of bits used to encode the id !MUST BE A MULTIPLE OF 64!
    static constexpr uint_t BITS_TOTAL = 128;
 
@@ -135,8 +139,8 @@ class PrimitiveID
    template < typename UINT = uint64_t >
    inline const std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) > asIntArray() const
    {
-      std::array<UINT, BITS_TOTAL / (sizeof(UINT) * 8)> result;
-      std::memcpy(&result, &id_, sizeof(result));
+      std::array< UINT, BITS_TOTAL / ( sizeof( UINT ) * 8 ) > result;
+      std::memcpy( &result, &id_, sizeof( result ) );
       return result;
    }
    ///@}
@@ -233,12 +237,6 @@ class PrimitiveID
    IDType id_;
 };
 
-inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
-{
-   os << id_;
-   return os;
-}
-
 inline std::ostream& operator<<( std::ostream& os, const PrimitiveID& id )
 {
    id.toStream( os );
@@ -257,6 +255,82 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer )
 {
    for ( auto& byte : asIntArray< uint8_t >() )
       buffer >> byte;
+}
+
+/// Enum for changing output conversion of PrimitiveID objects
+enum class PrimitiveIDFormat
+{
+   FULL,           ///< output complete bit-pattern of ID
+   TRIM,           ///< output complete bit-pattern w/o leading turned-off bits and MSB
+   COARSE_ID,      ///< output only COARSE_ID as integer value
+   ID_LIST         ///< output the ID as list of integers showing the parent - child relations
+};
+
+/// Class for handling output conversion of PrimitiveID objects
+struct PrimitiveIDFormatter
+{
+   static void              set( PrimitiveIDFormat format ) { currentFormat_ = format; }
+   static PrimitiveIDFormat get() { return currentFormat_; }
+   static std::ostream&     toStream( std::ostream& os, const PrimitiveID& pid )
+   {
+      switch ( currentFormat_ )
+      {
+      case PrimitiveIDFormat::FULL: {
+         os << pid.id_;
+         break;
+      }
+      case PrimitiveIDFormat::TRIM: {
+         std::string pattern = pid.id_.to_string();
+         os << pattern.substr( PrimitiveID::BITS_TOTAL - pid.msbPosition() + 1 );
+         break;
+      }
+      case PrimitiveIDFormat::COARSE_ID: {
+         PrimitiveID::IDType aux = pid.id_;
+         uint_t              msb = pid.msbPosition(); // one-based
+
+         aux.reset( msb - 1 );
+         aux >>= ( pid.numAncestors() * PrimitiveID::BITS_REFINEMENT );
+
+         os << aux.to_ullong();
+         break;
+      }
+      case PrimitiveIDFormat::ID_LIST: {
+         uint_t msb                = pid.msbPosition(); // one-based
+         uint_t numRefinementSteps = pid.numAncestors();
+
+         PrimitiveID::IDType aux = pid.id_;
+         aux.reset( msb - 1 );
+         aux >>= ( numRefinementSteps * PrimitiveID::BITS_REFINEMENT );
+         os << aux.to_ullong();
+
+         for ( int k = 1; k <= numRefinementSteps; ++k )
+         {
+            aux = pid.id_;
+            aux >>= ( ( pid.numAncestors() - k ) * PrimitiveID::BITS_REFINEMENT );
+            aux <<= ( PrimitiveID::BITS_TOTAL - PrimitiveID::BITS_REFINEMENT );
+            aux >>= ( PrimitiveID::BITS_TOTAL - PrimitiveID::BITS_REFINEMENT );
+            os << " <- " << aux.to_ullong();
+         }
+         break;
+      }
+      }
+
+      return os;
+   }
+
+ private:
+   static inline PrimitiveIDFormat currentFormat_ = PrimitiveIDFormat::FULL;
+};
+
+inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
+{
+   return PrimitiveIDFormatter::toStream( os, *this );
+}
+
+inline std::ostream& operator<<( std::ostream& os, const PrimitiveIDFormat& format )
+{
+   PrimitiveIDFormatter::set( format );
+   return os;
 }
 
 } // namespace hyteg
