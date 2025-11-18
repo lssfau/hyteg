@@ -642,6 +642,11 @@ class PrimitiveStorage : private walberla::NonCopyable
       refinementAndCoarseningHanging( volumePIDsRefine, {} );
    }
 
+   /// Returns the primitive type of a primitive which is local or in the direct neighborhood
+   ///
+   /// Returns PrimitiveTypeEnum::INVALID if the primitive is not locally availably.
+   PrimitiveTypeEnum getPrimitiveType( const PrimitiveID& primitiveID ) const;
+
  private:
    void getDirectNeighbourPrimitiveIDs( const std::vector< PrimitiveID >& vertices,
                                         const std::vector< PrimitiveID >& edges,
@@ -672,10 +677,6 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Especially needed for some external libraries (e.g. PETSc).
    ///
    void splitCommunicatorByPrimitiveDistribution();
-
-   /// Returns the primitive type of a local primitive.
-   /// Returns invalid if the primitive is not locally availably.
-   PrimitiveTypeEnum getPrimitiveType( const PrimitiveID& primitiveID ) const;
 
    /// \brief Given (volume-)PrimitiveIDs of local primitives that shall be refined or coarsened,
    ///        this method returns the local (volume-) primitives that are actually refined or coarsened in a subsequent step.
@@ -919,6 +920,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// cell-primitives globally, i.e. on at least one process, not necessarily the local one
    bool hasGlobalCells_;
 
+   /// MPI communicator for processes with and without primitives
+   ///
    /// This comm is identical for
    /// - all processes that own primitives locally
    /// - all processes that do not own any primitives locally.
