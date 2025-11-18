@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -84,6 +84,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::init()
    attributeList_["plateVelocityScaling"]           = TN.simulationParameters.plateVelocityScaling;
    attributeList_["plateSmoothingDistance"]         = TN.simulationParameters.plateSmoothingDistance;
    attributeList_["compressible"]                   = TN.simulationParameters.compressible;
+   attributeList_["pdaForm"]                        = TN.simulationParameters.pdaForm;
    attributeList_["shearHeating"]                   = TN.simulationParameters.shearHeating;
    attributeList_["internalHeating"]                = TN.simulationParameters.internalHeating;
    attributeList_["boundaryCond"]                   = TN.simulationParameters.boundaryCond;
@@ -100,6 +101,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::init()
    attributeList_["specificHeatCapacity"] = TN.physicalParameters.specificHeatCapacity;
    attributeList_["internalHeatingRate"]  = TN.physicalParameters.internalHeatingRate;
    attributeList_["referenceDensity"]     = TN.physicalParameters.referenceDensity;
+   attributeList_["referenceHydDensity"]  = TN.physicalParameters.referenceHydDensity;
    attributeList_["surfaceDensity"]       = TN.physicalParameters.surfaceDensity;
    attributeList_["referenceViscosity"]   = TN.physicalParameters.referenceViscosity;
    attributeList_["viscosity"]            = TN.physicalParameters.viscosity;
@@ -363,10 +365,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
 
    std::shared_ptr< P2VectorFunction_T >& normalsFE = p2VectorFunctionContainer.at( "NormalsFS" );
 
-   std::shared_ptr< P2ScalarFunction_T >& viscosityP2       = p2ScalarFunctionContainer.at( "ViscosityFE" );
-   std::shared_ptr< P2ScalarFunction_T >& temperatureP2     = p2ScalarFunctionContainer.at( "TemperatureFE" );
-   std::shared_ptr< P2ScalarFunction_T >& temperaturePrevP2 = p2ScalarFunctionContainer.at( "TemperaturePrev" );
-   std::shared_ptr< P2ScalarFunction_T >& densityFE         = p2ScalarFunctionContainer.at( "DensityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& viscosityP2          = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2        = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >& temperaturePrevP2    = p2ScalarFunctionContainer.at( "TemperaturePrev" );
+   std::shared_ptr< P2ScalarFunction_T >& densityFE            = p2ScalarFunctionContainer.at( "DensityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityFE         = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
+   std::shared_ptr< P2ScalarFunction_T >& dimHydDensityFE      = p2ScalarFunctionContainer.at( "dimHydrostaticDensityPTFE" );
 
    std::shared_ptr< P1ScalarFunction_T >& temperatureP1     = p1ScalarFunctionContainer.at( "TemperatureFEP1" );
    std::shared_ptr< P1ScalarFunction_T >& temperaturePrevP1 = p1ScalarFunctionContainer.at( "TemperatureFEPrevP1" );
@@ -405,6 +409,12 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    velocityPressureRHS->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
    velocityPressureTemp->uvw().interpolate( 0.0, TN.domainParameters.maxLevel, All );
    // }
+
+   if ( TN.simulationParameters.pdaForm )
+   {
+      hydDensityFE->interpolate(  0.0 , TN.domainParameters.maxLevel, All );
+      dimHydDensityFE->interpolate(  0.0 , TN.domainParameters.maxLevel, All );
+   }
 
    auto temperatureRadialProfile            = computeRadialProfile( *( temperatureP2 ),
                                                          TN.domainParameters.rMin,
@@ -472,8 +482,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
    std::shared_ptr< P2VectorFunction_T >& normalsFE = p2VectorFunctionContainer.at( "NormalsFS" );
 
    std::shared_ptr< P2ScalarFunction_T >& densityP2      = p2ScalarFunctionContainer.at( "DensityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2   = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
    std::shared_ptr< P2ScalarFunction_T >& viscosityP2    = p2ScalarFunctionContainer.at( "ViscosityFE" );
    std::shared_ptr< P2ScalarFunction_T >& viscosityP2Inv = p2ScalarFunctionContainer.at( "ViscosityFEInv" );
+
+   std::shared_ptr< P1ScalarFunction_T >& timeDerivativeHydDensityCoeff = p1ScalarFunctionContainer.at( "P1timeDerivativeHydDensityCoeff" );
 
    std::shared_ptr< P0ScalarFunction_T >& viscosityP0 = p0ScalarFunctionContainer.at( "ViscosityFEP0" );
 
@@ -492,59 +505,121 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
 
    if constexpr ( std::is_same_v< ViscosityFunction_T, P1Function< real_t > > )
    {
-      stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
-                                                              TN.domainParameters.minLevel,
-                                                              TN.domainParameters.maxLevel,
-                                                              viscosityP2->getVertexDoFFunction(),
-                                                              viscosityP2Inv->getVertexDoFFunction(),
-                                                              *projectionOperator_,
-                                                              bcVelocity,
-                                                              *( densityP2 ),
-                                                              false,
-                                                              nullptr,
-                                                              nullptr,
-                                                              nullptr );
+      if ( TN.simulationParameters.pdaForm )
+      {
+         stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                                 TN.domainParameters.minLevel,
+                                                                 TN.domainParameters.maxLevel,
+                                                                 viscosityP2->getVertexDoFFunction(),
+                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                 *projectionOperator_,
+                                                                 bcVelocity,
+                                                                 *( hydDensityP2 ),
+                                                                 false,
+                                                                 nullptr,
+                                                                 nullptr,
+                                                                 nullptr );
 
-      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
-                                                                              TN.domainParameters.minLevel,
-                                                                              TN.domainParameters.maxLevel,
-                                                                              viscosityP2->getVertexDoFFunction(),
-                                                                              viscosityP2Inv->getVertexDoFFunction(),
-                                                                              *rotationOperator_,
-                                                                              bcVelocity,
-                                                                              *( densityP2 ),
-                                                                              false,
-                                                                              nullptr,
-                                                                              nullptr,
-                                                                              nullptr );
+         stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                                 TN.domainParameters.minLevel,
+                                                                                 TN.domainParameters.maxLevel,
+                                                                                 viscosityP2->getVertexDoFFunction(),
+                                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                                 *rotationOperator_,
+                                                                                 bcVelocity,
+                                                                                 *( hydDensityP2 ),
+                                                                                 false,
+                                                                                 nullptr,
+                                                                                 nullptr,
+                                                                                 nullptr );
+      }
+      else
+      {
+         stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                                 TN.domainParameters.minLevel,
+                                                                 TN.domainParameters.maxLevel,
+                                                                 viscosityP2->getVertexDoFFunction(),
+                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                 *projectionOperator_,
+                                                                 bcVelocity,
+                                                                 *( densityP2 ),
+                                                                 false,
+                                                                 nullptr,
+                                                                 nullptr,
+                                                                 nullptr );
+
+         stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                                 TN.domainParameters.minLevel,
+                                                                                 TN.domainParameters.maxLevel,
+                                                                                 viscosityP2->getVertexDoFFunction(),
+                                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                                 *rotationOperator_,
+                                                                                 bcVelocity,
+                                                                                 *( densityP2 ),
+                                                                                 false,
+                                                                                 nullptr,
+                                                                                 nullptr,
+                                                                                 nullptr );
+      }
    }
    else if constexpr ( std::is_same_v< ViscosityFunction_T, P0Function< real_t > > )
    {
-      stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
-                                                              TN.domainParameters.minLevel,
-                                                              TN.domainParameters.maxLevel,
-                                                              *( viscosityP0 ),
-                                                              viscosityP2Inv->getVertexDoFFunction(),
-                                                              *projectionOperator_,
-                                                              bcVelocity,
-                                                              *( densityP2 ),
-                                                              false,
-                                                              nullptr,
-                                                              nullptr,
-                                                              nullptr );
+      if ( TN.simulationParameters.pdaForm )
+      {
+         stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                               TN.domainParameters.minLevel,
+                                                               TN.domainParameters.maxLevel,
+                                                               *( viscosityP0 ),
+                                                               viscosityP2Inv->getVertexDoFFunction(),
+                                                               *projectionOperator_,
+                                                               bcVelocity,
+                                                               *( hydDensityP2 ),
+                                                               false,
+                                                               nullptr,
+                                                               nullptr,
+                                                               nullptr );
 
-      stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
-                                                                              TN.domainParameters.minLevel,
-                                                                              TN.domainParameters.maxLevel,
-                                                                              *( viscosityP0 ),
-                                                                              viscosityP2Inv->getVertexDoFFunction(),
-                                                                              *rotationOperator_,
-                                                                              bcVelocity,
-                                                                              *( densityP2 ),
-                                                                              false,
-                                                                              nullptr,
-                                                                              nullptr,
-                                                                              nullptr );
+         stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                                 TN.domainParameters.minLevel,
+                                                                                 TN.domainParameters.maxLevel,
+                                                                                 *( viscosityP0 ),
+                                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                                 *rotationOperator_,
+                                                                                 bcVelocity,
+                                                                                 *( hydDensityP2 ),
+                                                                                 false,
+                                                                                 nullptr,
+                                                                                 nullptr,
+                                                                                 nullptr );
+      }
+      else
+      {
+         stokesOperator_ = std::make_shared< StokesOperator_T >( storage,
+                                                               TN.domainParameters.minLevel,
+                                                               TN.domainParameters.maxLevel,
+                                                               *( viscosityP0 ),
+                                                               viscosityP2Inv->getVertexDoFFunction(),
+                                                               *projectionOperator_,
+                                                               bcVelocity,
+                                                               *( densityP2 ),
+                                                               false,
+                                                               nullptr,
+                                                               nullptr,
+                                                               nullptr );
+
+         stokesOperatorRotation_ = std::make_shared< StokesOperatorRotation_T >( storage,
+                                                                                 TN.domainParameters.minLevel,
+                                                                                 TN.domainParameters.maxLevel,
+                                                                                 *( viscosityP0 ),
+                                                                                 viscosityP2Inv->getVertexDoFFunction(),
+                                                                                 *rotationOperator_,
+                                                                                 bcVelocity,
+                                                                                 *( densityP2 ),
+                                                                                 false,
+                                                                                 nullptr,
+                                                                                 nullptr,
+                                                                                 nullptr );
+      }   
    }
    else
    {
@@ -617,6 +692,22 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSo
 
    frozenVelocityRHS_ = std::make_shared< FrozenVelocityFullOperator_T >(
        storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( densityP2 ) );
+
+   if ( TN.simulationParameters.pdaForm )
+   {
+      frozenVelocityPDA = std::make_shared< FrozenVelocityFullOperator_T >(
+         storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( hydDensityP2 ) );
+      // frozenVelocityPDA = std::make_shared< FrozenVelocityHydDensityOperator_T >(
+      //    storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( hydDensityP2 ) );
+
+      P1frozenVelocityPDA = std::make_shared< P1FrozenVelocityFullOperator_T >(
+         storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, hydDensityP2->getVertexDoFFunction() );
+      // P1frozenVelocityPDA = std::make_shared< P1FrozenVelocityHydDensityOperator_T >(
+      //    storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, hydDensityP2->getVertexDoFFunction() );
+      
+      P1timeDerivativePDA = std::make_shared< P1TimeDerivativeHydDensityOperator_T >(
+         storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( timeDerivativeHydDensityCoeff ) );
+   }
 
    ////////////////////////
    // Diffusion Operator //

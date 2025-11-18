@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2024 Eugenio D'Ascoli, Andreas Burkhart,
- * Nils Kohl, Hamish Brown, Ponsuganth Ilangovan, Marcus Mohr.
+ * Nils Kohl, Hamish Brown, Ponsuganth Ilangovan, Marcus Mohr, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -46,6 +46,7 @@
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticInjection.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"//
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticVectorRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
@@ -83,9 +84,11 @@
 #include "hyteg_operators/operators/k_mass/P1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/k_mass/P2ToP1ElementwiseKMassIcosahedralShellMap.hpp"
 #include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap.hpp"
+#include "hyteg_operators/operators/terraneo/P2VectorToP1ElementwiseFrozenVelocityP1DensityIcosahedralShellMap.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesEpsilonOperator.hpp"
 #include "hyteg_operators_composites/stokes/P2P1StokesFullOperator.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockLaplaceOperator.hpp"
+//#include "hyteg_operators/operators/mass/P1ToP2ElementwiseMassIcosahedralShellMap.hpp"
 // Particle transport
 #include "convection_particles/vtk/ParticleVtkOutput.h"
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
@@ -133,7 +136,10 @@ class ConvectionSimulation
    void step();
 
    void                        outputTimingTree();
+   void                        updateNonDimParameters( const Point3D& x);
+   void                        updateRayleighNumber();
    real_t                      densityFunction( const Point3D& x );
+   real_t                      hydrostaticPressureFunction( const Point3D& x );
    real_t                      diffPreFactorFunction( const Point3D& x );
    real_t                      calculateStokesResidual( uint_t level );
    real_t                      calculateEnergyResidual( uint_t level );
@@ -164,6 +170,9 @@ class ConvectionSimulation
                                                P2P1StokesFullIcosahedralShellMapOperatorWithRotation > >;
 
    using FrozenVelocityFullOperator_T = hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityIcosahedralShellMap;
+   using P1FrozenVelocityFullOperator_T = hyteg::operatorgeneration::P2VectorToP1ElementwiseFrozenVelocityP1DensityIcosahedralShellMap;
+
+   using P1TimeDerivativeHydDensityOperator_T = hyteg::operatorgeneration::P1ElementwiseKMassIcosahedralShellMap;
 
    using ProjectionOperator_T = P2ProjectNormalOperator;
    using RotationOperator_T   = P2RotationOperator;
@@ -182,13 +191,18 @@ class ConvectionSimulation
 
    void setupOutput();
    void setupStokesRHS();
+   void setupStokesRHS_PDA();
    void setupEnergyRHS();
    void updateViscosity();
+   void updatePDARHSOperators();
    void updatePlateVelocities( P2P1StokesFunction_T& );
+   void updateThermodynamicParams( hyteg::DoFType flag );
+   void updateSpecificHeatCapacity( hyteg::DoFType flag );
    void solveStokes();
    void solveEnergy();
    void calculateHeatflow( const std::shared_ptr< RadialProfile >& );
    void calculateHeatflowIntegral( const std::shared_ptr< RadialProfile >& );
+   //real_t getTableValue( std::vector< std::vector< real_t > >&, real_t& , real_t& );
    void dataOutput();
    void outputCheckpoint();
    void initTimingDB();
@@ -272,6 +286,9 @@ class ConvectionSimulation
        { "Viscosity[Pas]", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
        { "EnergyRHSWeak", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
        { "DensityFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
+       { "dimHydrostaticDensityPTFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       //{ "dimSpecificHeatCapacityIsobarPTFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
+       { "nondimHydrostaticDensityPTFE", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::TEMPERATURE_BC },
        { "ShearHeatingTermCoeff", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
        { "ShearHeatingTermCoeffDebug", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
        { "VelocityMagnitudeSquared", Level_T::MINLEVEL, Level_T::MAXLEVEL, BCs_T::NO_BC },
@@ -287,6 +304,9 @@ class ConvectionSimulation
        { "ShearHeatingTermCoeffP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::NO_BC },
        { "TemperatureFEP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
        { "TemperatureFEPrevP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
+       { "P1nondimHydrostaticDensityPTFEPrev", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
+       { "P1nondimHydrostaticDensityPTFEPrev2", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC },
+       { "P1timeDerivativeHydDensityCoeff", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::NO_BC },
        { "EnergyRHSP1", Level_T::MINLEVEL, Level_T::MAXLEVELPLUSONE, BCs_T::TEMPERATURE_BC } };
    std::map< std::string, std::shared_ptr< P1ScalarFunction_T > > p1ScalarFunctionContainer;
 
@@ -327,6 +347,10 @@ class ConvectionSimulation
    std::shared_ptr< P2P1StokesToP2P1StokesProlongation > p2p1ProlongationOperator_;
    std::shared_ptr< P2toP2QuadraticInjection >           p2InjectionOperator_;
    std::shared_ptr< FrozenVelocityFullOperator_T >       frozenVelocityRHS_;
+
+   std::shared_ptr< FrozenVelocityFullOperator_T > frozenVelocityPDA;
+   std::shared_ptr< P1FrozenVelocityFullOperator_T > P1frozenVelocityPDA;
+   std::shared_ptr< P1TimeDerivativeHydDensityOperator_T > P1timeDerivativePDA;
 
    bool outputDirectoriesCreated = false;
 

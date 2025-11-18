@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -124,6 +124,11 @@ struct SolverParameters
    real_t gmresApproximationToleranceTransport = real_c( 1e-5 );
 
    real_t rotFactor = 0.0;
+
+   // Nonlinear system parameters (only needed for Picard iterations)
+   //real_t nonlinearCombinedAbsoluteResidualTolerance = 1e-5;
+   //real_t nonlinearCombinedRelativeResidualTolerance = 1e-5;
+   //uint_t maxNonLinearIterations                     = 100;
 };
 // Output parameters
 struct OutputParameters
@@ -163,6 +168,7 @@ struct OutputParameters
    bool OutputVelocity    = true;
    bool OutputViscosity   = true;
    bool OutputDensity     = true;
+   bool OutputPDA         = true;
    bool OutputTemperature = true;
    bool OutputVerbose     = false;
    bool OutputDimensional = false;
@@ -216,6 +222,7 @@ struct SimulationParameters
    real_t      minTimestepSize            = real_c( 0.01 );
    real_t      avrgTemperatureVol         = real_c( 0 );
    real_t      modelTime                  = real_c( 0 );
+   real_t      dtPrev2                    = real_c( 0 );
    real_t      dtPrev                     = real_c( 0 );
    real_t      dt                         = real_c( 0 );
    real_t      dtMax                      = real_c( 1 );
@@ -243,6 +250,7 @@ struct SimulationParameters
    real_t      plateVelocityScaling        = real_c( 1 );
    real_t      plateSmoothingDistance      = real_c( 110 );
    bool        compressible                = true;  // default: Compressible formulation + adiabatic heating
+   bool        pdaForm                     = false; // default: TALA foŕmulation
    bool        frozenVelocity              = false; // default: Non-frozen
    bool        shearHeating                = true;  //default: include shear heating
    bool        internalHeating             = true;  //default: include internal heating
@@ -250,12 +258,14 @@ struct SimulationParameters
    bool        boundaryCondFreeSlip        = false;
    bool        verbose                     = false;
    bool        haveTemperatureProfile      = false;
+   bool        havePressureProfile         = false;
    bool        haveViscosityProfile        = false;
    bool        haveThermalExpProfile       = false;
    bool        haveSpecificHeatCapProfile  = false;
    bool        haveDensityProfile          = false;
    bool        predictorCorrector          = false;
    std::string fileTemperatureInputProfile = std::string( "TemperatureInputProfile.json" );
+   std::string filePressureProfile         = std::string( "PressureProfile.json" );
    std::string fileViscosityProfile        = std::string( "ViscosityProfile.json" );
    std::string fileThermalExpProfile       = std::string( "ThermalExpProfile.json" );
    std::string fileSpecificHeatCap         = std::string( "SpecificHeatCapProfile.json" );
@@ -283,6 +293,23 @@ struct SimulationParameters
    real_t particleLocationRadius    = real_c( 1e-2 );
    bool   projectPointsBackToDomain = false;
    bool   cautionedEvaluate         = false;
+   
+   // thermodynamic table parameters 
+   bool        havePressureTemperatureTable       = false;
+   std::string filePressureTemperatureTable;
+   bool        updateThermodynamicReferenceValues = false;
+   
+   uint_t      numPsteps                          = 1401;
+   uint_t      numTsteps                          = 1001;
+   uint_t      numHl                              = 2;
+   
+   // thermodynamic table search function params
+   uint_t      iTS;
+   uint_t      iTS_min;
+   uint_t      iTS_max;
+   uint_t      iP;
+   uint_t      iP_min;
+   uint_t      iP_max;
 };
 
 enum class INITIAL_TEMPERATURE_DEVIATION_METHOD : uint_t
@@ -317,6 +344,7 @@ struct PhysicalParameters
    std::vector< real_t > radiusCp;
    std::vector< real_t > radiusAlpha;
    std::vector< real_t > radiusDensity;
+   std::vector< real_t > radiusPressure;
    std::vector< real_t > temperatureProfile;
    std::vector< real_t > velocityProfile;
    std::vector< real_t > viscosityProfile;
@@ -324,6 +352,7 @@ struct PhysicalParameters
    std::vector< real_t > thermalExpansivityProfile;
    std::vector< real_t > specificHeatCapacityProfile;
    std::vector< real_t > densityProfile;
+   std::vector< real_t > pressureProfile;
 
    //temperature
    //physical versions used to calculate non-D numbers, others used in simulation
@@ -340,6 +369,7 @@ struct PhysicalParameters
    real_t internalHeatingRate        = real_c( 1e-12 );
    real_t density                    = real_c( 0 );
    real_t referenceDensity           = real_c( 4500 );
+   real_t referenceHydDensity        = real_c( 4500 );
    real_t surfaceDensity             = real_c( 3300 );
    real_t referenceViscosity         = real_c( 1e22 );
    real_t viscosity                  = real_c( 1e22 );
@@ -358,6 +388,7 @@ struct PhysicalParameters
 
    real_t mantleThickness        = real_c( 2900000 );
    real_t thermalDiffusivity     = thermalConductivity / ( referenceDensity * specificHeatCapacity );
+   real_t thermalDiffusivityPDA  = thermalConductivity / ( referenceHydDensity * specificHeatCapacity );
    real_t characteristicVelocity = thermalConductivity / ( referenceDensity * specificHeatCapacity * mantleThickness );
 
    //non-D numbers derived from other parameters
@@ -365,10 +396,18 @@ struct PhysicalParameters
    real_t rayleighNumber = ( referenceDensity * gravity * thermalExpansivity * mantleThickness * mantleThickness *
                              mantleThickness * ( cmbTemp - surfaceTemp ) ) /
                            ( referenceViscosity * thermalDiffusivity );
+   real_t rayleighNumberPDA = ( referenceHydDensity * gravity * mantleThickness * mantleThickness * mantleThickness ) /
+                              ( referenceViscosity * thermalDiffusivity );                        
    real_t pecletNumber      = ( characteristicVelocity * mantleThickness ) / thermalDiffusivity;
    real_t dissipationNumber = ( thermalExpansivity * gravity * mantleThickness ) / specificHeatCapacity;
    real_t hNumber =
        ( internalHeatingRate * mantleThickness ) / ( specificHeatCapacity * characteristicVelocity * ( cmbTemp - surfaceTemp ) );
+
+   // // Used in reading in parameters from thermodynamic tables (partially obsolete - revisit after clean up and optimisation)
+   std::vector< std::vector< real_t > > pressureTemperatureTable;
+   std::vector< std::vector< real_t > > pressureRangePT;
+   std::vector< std::vector< real_t > > temperatureRangePT;
+   std::vector< std::vector< real_t > > materialDensityPT;
 };
 
 struct TerraNeoParameters

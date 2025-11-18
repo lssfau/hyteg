@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -66,6 +66,50 @@ real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::densi
       }
    }
    retVal = rho / TN.physicalParameters.referenceDensity;
+
+   return retVal;
+}
+
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::hydrostaticPressureFunction( const Point3D& x )
+{
+   auto   radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
+   real_t retVal;
+   real_t rho_PDA;
+   real_t hydrostaticPressure;
+   
+   // Adiabatic reference density
+   if ( TN.simulationParameters.havePressureProfile )
+   {
+      hydrostaticPressure = interpolateDataValues( x,
+                                      TN.physicalParameters.radiusPressure,
+                                      TN.physicalParameters.pressureProfile,
+                                      TN.domainParameters.rMin,
+                                      TN.domainParameters.rMax );
+   }
+   else
+   {
+      if ( TN.simulationParameters.haveDensityProfile )
+      {
+         rho_PDA = interpolateDataValues( x,
+                                       TN.physicalParameters.radiusDensity,
+                                       TN.physicalParameters.densityProfile,
+                                       TN.domainParameters.rMin,
+                                       TN.domainParameters.rMax );
+      }
+      else
+      {
+         rho_PDA = TN.physicalParameters.surfaceDensity *
+                  std::exp( TN.physicalParameters.dissipationNumber * ( TN.domainParameters.rMax - radius ) / TN.physicalParameters.grueneisenParameter );
+       
+      } 
+
+      // Hydrostatic pressure
+      hydrostaticPressure = rho_PDA * TN.physicalParameters.gravity * ( ( TN.domainParameters.rMax - radius ) * TN.physicalParameters.mantleThickness ) ;
+   }
+
+   //non-dimensionalise
+   retVal = hydrostaticPressure * ( TN.physicalParameters.mantleThickness / (TN.physicalParameters.referenceViscosity * TN.physicalParameters.characteristicVelocity) );
 
    return retVal;
 }
@@ -233,11 +277,27 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updateV
    {
       // Update reference viscosity with new min Viscosity value
       TN.physicalParameters.referenceViscosity = minRefViscosity;
-      TN.physicalParameters.rayleighNumber =
-          ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
-            std::pow( TN.physicalParameters.mantleThickness, 3 ) *
-            ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+      // TN.physicalParameters.rayleighNumber = ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
+      // std::pow( TN.physicalParameters.mantleThickness, 3 ) *
+      // ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+      // ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
+
+      if ( TN.simulationParameters.pdaForm == true )
+      {
+         TN.physicalParameters.rayleighNumberPDA =
+          ( TN.physicalParameters.referenceHydDensity * TN.physicalParameters.gravity * 
+            std::pow( TN.physicalParameters.mantleThickness, 3 ) ) /
           ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
+
+      }
+      else
+      {
+         TN.physicalParameters.rayleighNumber =
+             ( TN.physicalParameters.referenceDensity * TN.physicalParameters.gravity * TN.physicalParameters.thermalExpansivity *
+               std::pow( TN.physicalParameters.mantleThickness, 3 ) *
+               ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) ) /
+             ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
+      }
    }
 
    for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
@@ -440,6 +500,214 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::calcula
 std::function< real_t( const Point3D&, const std::vector< real_t >& ) > DoFCounter( real_t threshold )
 {
    return [threshold]( const Point3D&, const std::vector< real_t >& values ) { return ( values[0] < threshold ) ? 1.0 : 0.0; };
+}
+   
+//template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+//real_t ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::getTableValue( std::vector< std::vector< real_t > >& paramPTS , real_t& fullPressure , real_t& fullTemp )
+real_t getTableValue( std::vector< std::vector< real_t > >& paramPTS , real_t& fullPressure , real_t& fullTemp )
+{
+   // Search for values in the pressure and temperature vectors that are closest to the given P,T pair, 
+   // return the corresponding indices iP and iTS, respectively, and retrieve the associated parameter value
+
+   uint_t searchParam = 50;
+   uint_t nTsteps = TN.simulationParameters.numTsteps / searchParam;
+   uint_t nPsteps = TN.simulationParameters.numPsteps / searchParam;
+   real_t retVal = 0;
+
+   // Ensuring that values remain within the bounds of the thermodynamic table
+   if ( uint_t( fullTemp ) > TN.physicalParameters.temperatureRangePT[0][TN.simulationParameters.numTsteps - 1] )
+   {
+      fullTemp = TN.physicalParameters.temperatureRangePT[0][TN.simulationParameters.numTsteps - 1];
+   }
+   if ( uint_t( fullTemp ) < TN.physicalParameters.temperatureRangePT[0][0] )
+   {
+      fullTemp = TN.physicalParameters.temperatureRangePT[0][0];
+   }
+   
+   for ( uint_t i = 0; i < nPsteps; i++ )
+   {      
+      uint_t n_ = i * searchParam;
+      uint_t n = ( i + 1 ) * searchParam;
+
+      if ( TN.physicalParameters.pressureRangePT[n][0] >= fullPressure )
+      {
+         for ( uint_t k = n_; k <= n; k++ )
+         {
+            if ( TN.physicalParameters.pressureRangePT[k][0] >= fullPressure )
+            {
+               if ( k != 0 )
+               {
+                  TN.simulationParameters.iP_min = k - 1;
+                  TN.simulationParameters.iP_max = k;
+               }
+               else
+               {
+                  TN.simulationParameters.iP_min = k;
+                  TN.simulationParameters.iP_max = k + 1;
+               }               
+               real_t diffP_max = std::abs( TN.physicalParameters.pressureRangePT[TN.simulationParameters.iP_max][0] - fullPressure );
+               real_t diffP_min = std::abs( TN.physicalParameters.pressureRangePT[TN.simulationParameters.iP_min][0] - fullPressure );
+                           
+               if ( diffP_max <= diffP_min )
+               {
+                  TN.simulationParameters.iP = TN.simulationParameters.iP_max;
+               }
+               else
+               {
+                  TN.simulationParameters.iP = TN.simulationParameters.iP_min;
+               }
+
+               for ( uint_t j = 0; j < nTsteps; j++ )
+               {
+                  uint_t m_ = j * searchParam;
+                  uint_t m = ( j + 1 ) * searchParam;
+
+                  if ( TN.physicalParameters.temperatureRangePT[0][m] >= fullTemp )
+                  { 
+                     for ( uint_t o = m_; o <= m; o++ )
+                     {                        
+                        if ( TN.physicalParameters.temperatureRangePT[0][o] >= fullTemp )
+                        {      
+                           if ( o != 0 )
+                           {
+                              TN.simulationParameters.iTS_min = o - 1;
+                              TN.simulationParameters.iTS_max = o;
+                           }
+                           else
+                           {
+                              TN.simulationParameters.iTS_min = o;
+                              TN.simulationParameters.iTS_max = o + 1;
+                           } 
+                           real_t diffTS_max = std::abs( TN.physicalParameters.temperatureRangePT[0][TN.simulationParameters.iTS_max] - fullTemp );
+                           real_t diffTS_min = std::abs( TN.physicalParameters.temperatureRangePT[0][TN.simulationParameters.iTS_min] - fullTemp );
+                           
+                           if ( diffTS_max <= diffTS_min )
+                           {
+                              TN.simulationParameters.iTS = TN.simulationParameters.iTS_max;
+                           }
+                           else
+                           {
+                              TN.simulationParameters.iTS = TN.simulationParameters.iTS_min;
+                           }
+                           retVal = paramPTS[TN.simulationParameters.iP][TN.simulationParameters.iTS];
+                           break; 
+                        }
+                     }
+                     break;
+                  }
+               }
+               break; 
+            }
+         }
+         break;
+      }
+   }
+   return retVal;
+}
+
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::updatePDARHSOperators()
+{
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2                  = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
+   std::shared_ptr< P1ScalarFunction_T >& hydDensityP1Prev              = p1ScalarFunctionContainer.at( "P1nondimHydrostaticDensityPTFEPrev" );
+   std::shared_ptr< P1ScalarFunction_T >& hydDensityP1Prev2             = p1ScalarFunctionContainer.at( "P1nondimHydrostaticDensityPTFEPrev2" );
+   std::shared_ptr< P1ScalarFunction_T >& hydDensityCoeffTimDerivative  = p1ScalarFunctionContainer.at( "P1timeDerivativeHydDensityCoeff" );
+
+   updateThermodynamicParams( All );
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > getTimeDerivativeHydDensityBDF2 = 
+      [=]( const Point3D& , const std::vector< real_t >& HydrostaticDensityFE ) {
+         real_t timeDerivativeHydDensity = ( ( ( 
+            ( real_c( 2 ) * TN.simulationParameters.dt + TN.simulationParameters.dtPrev ) * HydrostaticDensityFE[0] / ( TN.simulationParameters.dt + TN.simulationParameters.dtPrev ) ) 
+            - ( ( TN.simulationParameters.dt + TN.simulationParameters.dtPrev ) * HydrostaticDensityFE[1] / ( TN.simulationParameters.dtPrev ) ) 
+            + ( ( TN.simulationParameters.dt * TN.simulationParameters.dt ) * HydrostaticDensityFE[2] / ( TN.simulationParameters.dtPrev * ( TN.simulationParameters.dt + TN.simulationParameters.dtPrev ) ) ) ) 
+            / ( TN.simulationParameters.dt * HydrostaticDensityFE[0] ) );
+         return timeDerivativeHydDensity;
+      };
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > getTimeDerivativeHydDensity = 
+      [=]( const Point3D& , const std::vector< real_t >& HydrostaticDensityFE ) {
+         real_t timeDerivativeHydDensity = ( ( HydrostaticDensityFE[0] - HydrostaticDensityFE[1] ) / ( TN.simulationParameters.dt * HydrostaticDensityFE[0] ) );
+         return timeDerivativeHydDensity;
+      };
+
+   if ( TN.simulationParameters.timeStep > 1 )
+   {
+      hydDensityCoeffTimDerivative->interpolate( getTimeDerivativeHydDensityBDF2, { hydDensityP2->getVertexDoFFunction(),
+                                                   *( hydDensityP1Prev ),
+                                                   *( hydDensityP1Prev2 ) },
+                                                   TN.domainParameters.maxLevel, All );
+   }
+   else
+   {
+      hydDensityCoeffTimDerivative->interpolate( getTimeDerivativeHydDensity, { hydDensityP2->getVertexDoFFunction(), *( hydDensityP1Prev ) }, TN.domainParameters.maxLevel, All );
+   }
+
+   P1frozenVelocityPDA = std::make_shared< P1FrozenVelocityFullOperator_T >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, hydDensityP2->getVertexDoFFunction() );
+   P1timeDerivativePDA = std::make_shared< P1TimeDerivativeHydDensityOperator_T >(
+       storage, TN.domainParameters.minLevel, TN.domainParameters.maxLevel, *( hydDensityCoeffTimDerivative ) );
+}
+
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::ConvectionSimulation::updateThermodynamicParams( hyteg::DoFType flag )
+{
+
+   std::shared_ptr< P2ScalarFunction_T >& temperatureP2             = p2ScalarFunctionContainer.at( "TemperatureFE" );
+   std::shared_ptr< P2ScalarFunction_T >& dimHydDensityP2           = p2ScalarFunctionContainer.at( "dimHydrostaticDensityPTFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2              = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
+
+   // Hydrostatic pressure (non-dimensionalised value)
+   std::function<real_t( const Point3D& ) > getHydrostaticPressure = [&](const Point3D& x )
+   {
+      real_t retVal =  hydrostaticPressureFunction( x );
+      return retVal;
+   };
+
+   // Hydrostatic density 
+   std::function<real_t( const Point3D&, const std::vector< real_t >& ) > getHydrostaticDensity = [&](const Point3D& x, const std::vector< real_t >& Temperature )
+   {
+      // Redimensionalising temperature and (full) pressure for the thermodynamic table search
+      real_t fullHydrostaticPressure = TN.physicalParameters.referenceViscosity * TN.physicalParameters.characteristicVelocity * hydrostaticPressureFunction( x ) / TN.physicalParameters.mantleThickness;
+      real_t retVal;
+
+      // Getting parameter from thermodynamic table in dimensional form
+      real_t fullTemp = ( ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) * Temperature[0] );
+      retVal = getTableValue( TN.physicalParameters.materialDensityPT, fullHydrostaticPressure, fullTemp );
+      
+      return retVal;
+   };
+
+   // Obtaining finite element fields for relevant thermodynamic parameters for the current (updated) temperature and pressure fields
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
+   {
+      // Dimensional parameter FE fields
+      // Dimensional thermodynamic parameters (P,T)
+      dimHydDensityP2->interpolate( getHydrostaticDensity, { *( temperatureP2 ) }, l, flag );
+   }
+   for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
+   {
+      // Non-dimensional parameter FE fields
+      // Non-dimensionalsed thermodynamic parameters (P,T) - P2
+      hydDensityP2->assign( { real_c( 1 ) / TN.physicalParameters.referenceHydDensity }, {*( dimHydDensityP2 )}, l, flag );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Updated thermodynamic parameters" );
+   
+   if ( TN.simulationParameters.updateThermodynamicReferenceValues == true )
+   {
+      // Updating reference values for thermodynamic parameters
+      TN.physicalParameters.referenceHydDensity = dimHydDensityP2->getMinDoFValue( TN.domainParameters.maxLevel );
+      
+      // Updating the relevant non-dimensional numbers and 'helper quantities' with the updated reference values 
+      TN.physicalParameters.rayleighNumberPDA =
+         ( TN.physicalParameters.referenceHydDensity * TN.physicalParameters.gravity *  std::pow( TN.physicalParameters.mantleThickness, 3 ) ) /
+         ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.thermalDiffusivity );
+
+      //WALBERLA_LOG_INFO_ON_ROOT( "Thermodynamic reference values and non-dimensional numbers updated" );
+      WALBERLA_LOG_INFO_ON_ROOT( "PDA Rayleigh number           : " << TN.physicalParameters.rayleighNumberPDA );
+      WALBERLA_LOG_INFO_ON_ROOT( "Hydrostatic density reference : " << TN.physicalParameters.referenceHydDensity );
+   };
 }
 
 } // namespace terraneo

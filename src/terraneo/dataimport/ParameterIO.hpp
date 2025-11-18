@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -128,6 +128,62 @@ inline void loadRadialProfile( const walberla::Config::BlockHandle& mainConf,
 
       haveProfileFlag = true;
    }
+}
+
+inline bool readDataFile( const std::string& filename, std::vector< std::vector< real_t > >& data_vector, uint_t num_columns )
+{
+   std::string           line;
+   std::ifstream         myfile( filename );
+   uint_t                counter = 0;
+   real_t                tmp_var;
+   std::vector< real_t > tmp_vec;
+   tmp_vec.reserve( num_columns );
+
+   if ( myfile.is_open() )
+   {
+      bool gotData = false;
+
+      while ( getline( myfile, line ) )
+      {
+         tmp_vec.clear();
+         std::stringstream sstream( line );
+
+         // File is in .txt format
+         // Cycle through columns and read values into tmp_var
+         for ( uint_t i = 0; i < num_columns; ++i )
+         {
+            if ( sstream.eof() )
+            {
+               if ( i < num_columns - 1 )
+               {
+                  WALBERLA_LOG_WARNING_ON_ROOT( "Not enough elements in row " << counter << " of file " << filename );
+                  return gotData;
+               }
+               else
+               {
+                  break; // Skip the warning if it's the last column in the row
+               }
+            }
+
+            sstream >> tmp_var;
+            tmp_vec.push_back( tmp_var );
+         }
+      
+         // Append row to vector
+         data_vector.push_back( tmp_vec );
+         gotData = true;
+         // Move to next row
+         counter++;
+      }
+      myfile.close();
+   }
+   else
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Unable to open file " << filename );
+      return false;
+   }
+
+   return true;
 }
 
 /**
@@ -281,6 +337,80 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
                                                   physicalParam.mantleThickness );
    }
 
+   simulationParam.pdaForm = mainConf.getParameter< bool >( "pdaForm" );
+
+   // Profile for hydrostatic pressure
+   if ( mainConf.isDefined( "pressureProfile" ) && simulationParam.pdaForm )
+   {
+      simulationParam.filePressureProfile = mainConf.getParameter< std::string >( "pressureProfile" );
+      const std::string profileKey        = "pressureProfile";
+      
+      loadRadialProfile< std::vector< real_t > >( mainConf,
+                                                  profileKey,
+                                                  physicalParam.radiusPressure,
+                                                  physicalParam.pressureProfile,
+                                                  simulationParam.havePressureProfile,
+                                                  physicalParam.mantleThickness );
+   }
+   else if ( !mainConf.isDefined( "pressureProfile" ) && simulationParam.pdaForm )
+   {
+      WALBERLA_ABORT( "Pressure profile needs to be specified when using PDA" );
+   }
+
+   // Simulation params (thermodynamic tables)
+   simulationParam.numPsteps = mainConf.getParameter< uint_t >( "numPsteps" );
+   simulationParam.numTsteps = mainConf.getParameter< uint_t >( "numTsteps" );
+   simulationParam.numHl     = mainConf.getParameter< uint_t >( "numHl" );
+
+   // Read in parameters from the P-T thermodynamic table (dimensional values)
+   if ( mainConf.isDefined( "pressureTemperatureTable" ) && simulationParam.pdaForm )
+   {
+      simulationParam.filePressureTemperatureTable = mainConf.getParameter< std::string >( "pressureTemperatureTable" );
+
+      WALBERLA_LOG_INFO_ON_ROOT( " Reading in P-T thermodynamic table" );
+      //if ( readDataFile( simulationParam.filePressureTemperatureTable, physicalParam.pressureTemperatureTable, 18 ) )
+      // Modify accordingly, if the number of columns differs in the given thermodynamic table 
+      if ( readDataFile( simulationParam.filePressureTemperatureTable, physicalParam.pressureTemperatureTable, 6 ) )
+      {
+         simulationParam.havePressureTemperatureTable = true;
+
+         uint_t PTsize = simulationParam.numTsteps * simulationParam.numPsteps + simulationParam.numHl;
+         uint_t PTsize_ = physicalParam.pressureTemperatureTable.size();
+
+         WALBERLA_LOG_INFO_ON_ROOT( " Table dimensions (P-T): " << simulationParam.numPsteps << "- " << simulationParam.numTsteps );
+
+         if ( PTsize == PTsize_ )
+         {
+            for ( uint_t i = 0; i < simulationParam.numPsteps; ++i )
+            {
+               std::vector< real_t > subvecPressure;
+               std::vector< real_t > subvecTemperature;
+               std::vector< real_t > subvecDensity;
+
+               for ( uint_t j = 0; j < simulationParam.numTsteps; ++j )
+               {
+                  subvecPressure.push_back( physicalParam.pressureTemperatureTable[i*simulationParam.numTsteps+j+simulationParam.numHl][0] );
+                  subvecTemperature.push_back( physicalParam.pressureTemperatureTable[i*simulationParam.numTsteps+j+simulationParam.numHl][1] );
+                  subvecDensity.push_back( physicalParam.pressureTemperatureTable[i*simulationParam.numTsteps+j+simulationParam.numHl][2] );
+               }
+               physicalParam.pressureRangePT.push_back( subvecPressure );
+               physicalParam.temperatureRangePT.push_back( subvecTemperature );
+               physicalParam.materialDensityPT.push_back( subvecDensity );
+            }
+         }
+         else
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( " Given number of pressure and temperature step does not agree with the provided thermodynamic table (p,T)." );
+            WALBERLA_LOG_WARNING_ON_ROOT( " Thermodynamic parameter variables cannot be assigned. Please check the parameter file for consistency.   " );
+         }
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( " Read in p,T thermodynamic table" );
+   }
+   else if ( !mainConf.isDefined( "pressureTemperatureTable" ) && simulationParam.pdaForm )
+   {
+      WALBERLA_ABORT( "A thermodynamic table needs to be provided when using PDA" );
+   }
+
    physicalParam.cmbTemp                = mainConf.getParameter< real_t >( "cmbTemp" );
    physicalParam.surfaceTemp            = mainConf.getParameter< real_t >( "surfaceTemp" );
    physicalParam.thermalExpansivity     = mainConf.getParameter< real_t >( "thermalExpansivity" );
@@ -291,6 +421,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    physicalParam.characteristicVelocity = mainConf.getParameter< real_t >( "characteristicVelocity" );
    physicalParam.surfaceDensity         = mainConf.getParameter< real_t >( "surfaceDensity" );
    physicalParam.referenceDensity       = mainConf.getParameter< real_t >( "referenceDensity" );
+   physicalParam.referenceHydDensity    = mainConf.getParameter< real_t >( "referenceHydDensity" );
    physicalParam.viscosity              = mainConf.getParameter< real_t >( "viscosity" );
    physicalParam.referenceViscosity     = physicalParam.viscosity;
 
@@ -303,6 +434,8 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    //used to calculate non-D numbers
    physicalParam.thermalDiffusivity =
        physicalParam.thermalConductivity / ( physicalParam.referenceDensity * physicalParam.specificHeatCapacity );
+   physicalParam.thermalDiffusivityPDA =
+       physicalParam.thermalConductivity / ( physicalParam.referenceHydDensity * physicalParam.specificHeatCapacity );
 
    //calculating non-D numbers
 
@@ -310,6 +443,9 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
        ( physicalParam.referenceDensity * physicalParam.gravity * physicalParam.thermalExpansivity *
          std::pow( physicalParam.mantleThickness, 3 ) * ( physicalParam.cmbTemp - physicalParam.surfaceTemp ) ) /
        ( physicalParam.referenceViscosity * physicalParam.thermalDiffusivity );
+   physicalParam.rayleighNumberPDA =
+       ( physicalParam.referenceHydDensity * physicalParam.gravity * std::pow( physicalParam.mantleThickness, 3 )  ) /
+       ( physicalParam.referenceViscosity * physicalParam.thermalDiffusivityPDA );
 
    physicalParam.pecletNumber =
        ( physicalParam.characteristicVelocity * physicalParam.mantleThickness ) / physicalParam.thermalDiffusivity;
@@ -371,7 +507,13 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
       physicalParam.viscosityUpperBound          = mainConf.getParameter< real_t >( "viscosityUpperBound" );
    }
 
+   if ( simulationParam.pdaForm )
+   {
+      simulationParam.updateThermodynamicReferenceValues = mainConf.getParameter< bool >( "updateThermodynamicReferenceValues" );
+   }
+
    simulationParam.finalPlateAge = mainConf.getParameter< real_t >( "finalPlateAge" );
+   
    //simulation parameters for circulation models only:
    if ( simulationParam.simulationType == "CirculationModel" )
    {
@@ -541,6 +683,10 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    solverParam.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverParam.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
+   // solverParam.maxNonLinearIterations                     = mainConf.getParameter< uint_t >( "maxNonLinearIterations" );
+   // solverParam.nonlinearCombinedRelativeResidualTolerance = mainConf.getParameter< real_t >( "nonlinearCombinedRelativeResidualTolerance" );
+   // solverParam.nonlinearCombinedAbsoluteResidualTolerance = mainConf.getParameter< real_t >( "nonlinearCombinedAbsoluteResidualTolerance" );
+
    solverParam.stokesUzawaCoarseGridIter       = mainConf.getParameter< uint_t >( "stokesUzawaCoarseGridIter" );
    solverParam.stokesUzawaCoarseGridTol        = mainConf.getParameter< real_t >( "stokesUzawaCoarseGridTol" );
    solverParam.stokesSmoothIncrementCoarseGrid = mainConf.getParameter< uint_t >( "stokesSmoothIncrementCoarseGrid" );
@@ -553,6 +699,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    outputParam.OutputVelocity    = mainConf.getParameter< bool >( "OutputVelocity" );
    outputParam.OutputTemperature = mainConf.getParameter< bool >( "OutputTemperature" );
+   outputParam.OutputPDA         = mainConf.getParameter< bool >( "OutputPDA" );
    outputParam.OutputInterval    = mainConf.getParameter< uint_t >( "OutputInterval" );
    outputParam.outputVertexDoFs  = mainConf.getParameter< bool >( "OutputVertexDoFs" );
 
@@ -711,6 +858,8 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
       WALBERLA_LOG_INFO_ON_ROOT( "Reference density            : " << physicalParam.referenceDensity );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Reference hydrostatic Density: " << physicalParam.referenceHydDensity );
+
    if ( simulationParam.haveViscosityProfile || simulationParam.tempDependentViscosity )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Viscosity lower bound        : " << physicalParam.viscosityLowerBound );
@@ -728,10 +877,14 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "----    Non-dimensial Numbers    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "Rayleigh Number   : " << physicalParam.rayleighNumber );
-   WALBERLA_LOG_INFO_ON_ROOT( "Peclet Number     : " << physicalParam.pecletNumber );
-   WALBERLA_LOG_INFO_ON_ROOT( "Dissipation Number: " << physicalParam.dissipationNumber );
-   WALBERLA_LOG_INFO_ON_ROOT( "hNumber           : " << physicalParam.hNumber );
+   WALBERLA_LOG_INFO_ON_ROOT( "Rayleigh Number     : " << physicalParam.rayleighNumber );
+   if ( simulationParam.pdaForm )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Rayleigh Number PDA : " << physicalParam.rayleighNumberPDA );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "Peclet Number       : " << physicalParam.pecletNumber );
+   WALBERLA_LOG_INFO_ON_ROOT( "Dissipation Number  : " << physicalParam.dissipationNumber );
+   WALBERLA_LOG_INFO_ON_ROOT( "hNumber             : " << physicalParam.hNumber );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "----    Init Parameters   ----" )
@@ -765,47 +918,47 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "----    Simulation Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
-   WALBERLA_LOG_INFO_ON_ROOT( "Simulation type         : " << simulationParam.simulationType );
-   WALBERLA_LOG_INFO_ON_ROOT( "Boundary condition      : " << simulationParam.boundaryCond );
-   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns temperature    : " << simulationParam.unknownsTemperature );
-   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns Stokes         : " << simulationParam.unknownsStokes );
-   WALBERLA_LOG_INFO_ON_ROOT( "hMin                    : " << simulationParam.hMin );
-   WALBERLA_LOG_INFO_ON_ROOT( "hMax                    : " << simulationParam.hMax );
-   WALBERLA_LOG_INFO_ON_ROOT( "Fixed timestep          : " << ( simulationParam.fixedTimestep ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Simulation type                    : " << simulationParam.simulationType );
+   WALBERLA_LOG_INFO_ON_ROOT( "Boundary condition                 : " << simulationParam.boundaryCond );
+   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns temperature               : " << simulationParam.unknownsTemperature );
+   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns Stokes                    : " << simulationParam.unknownsStokes );
+   WALBERLA_LOG_INFO_ON_ROOT( "hMin                               : " << simulationParam.hMin );
+   WALBERLA_LOG_INFO_ON_ROOT( "hMax                               : " << simulationParam.hMax );
+   WALBERLA_LOG_INFO_ON_ROOT( "Fixed timestep                     : " << ( simulationParam.fixedTimestep ? "true" : "false" ) );
    if ( simulationParam.fixedTimestep )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "dtConstant              : " << simulationParam.dtConstant );
+      WALBERLA_LOG_INFO_ON_ROOT( "dtConstant                          : " << simulationParam.dtConstant );
    }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "cflMax                  : " << simulationParam.cflMax );
-   WALBERLA_LOG_INFO_ON_ROOT( "MaxNumTimesteps         : " << simulationParam.maxNumTimesteps );
+   WALBERLA_LOG_INFO_ON_ROOT( "cflMax                             : " << simulationParam.cflMax );
+   WALBERLA_LOG_INFO_ON_ROOT( "MaxNumTimesteps                    : " << simulationParam.maxNumTimesteps );
    if ( simulationParam.simulationType == "ConvectionModel" )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "MaxModelAge             : " << simulationParam.maxModelAge );
+      WALBERLA_LOG_INFO_ON_ROOT( "MaxModelAge                        : " << simulationParam.maxModelAge );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "Compressible            : " << ( simulationParam.compressible ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Shear heating           : " << ( simulationParam.shearHeating ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Compressible                       : " << ( simulationParam.compressible ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "PdaForm                            : " << ( simulationParam.pdaForm ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "updateThermodynamicReferenceValues : " << (simulationParam.updateThermodynamicReferenceValues ? "true" : "false" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "Shear heating                      : " << ( simulationParam.shearHeating ? "true" : "false" ) );
    if ( simulationParam.shearHeating )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor : " << simulationParam.lithosphereShearHeatingScaling );
-      WALBERLA_LOG_INFO_ON_ROOT( "Lithosphere thickness [km]   : " << simulationParam.lithosphereThickness );
+      WALBERLA_LOG_INFO_ON_ROOT( "Shear heating scaling factor       : " << simulationParam.lithosphereShearHeatingScaling );
+      WALBERLA_LOG_INFO_ON_ROOT( "Lithosphere thickness [km]         : " << simulationParam.lithosphereThickness );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Internal heating        : " << ( simulationParam.internalHeating ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "Frozen velocity         : " << ( simulationParam.frozenVelocity ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "T-dependent viscosity   : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.      : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "volumetric avrg Ref Temp.      : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Internal heating                   : " << ( simulationParam.internalHeating ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "Frozen velocity                    : " << ( simulationParam.frozenVelocity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "T-dependent viscosity              : " << ( simulationParam.tempDependentViscosity ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.                 : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "volumetric avrg Ref Temp.          : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
 
    if ( simulationParam.simulationType == "CirculationModel" )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Filename topologies     : " << simulationParam.fnameTopologies );
-      WALBERLA_LOG_INFO_ON_ROOT( "Filename reconstructions: " << simulationParam.fnameReconstructions );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initital plage age      : " << simulationParam.initialPlateAge );
-      WALBERLA_LOG_INFO_ON_ROOT( "Final plate age         : " << simulationParam.finalPlateAge );
-      WALBERLA_LOG_INFO_ON_ROOT( "Plate velocity scaling  : " << simulationParam.plateVelocityScaling );
-      WALBERLA_LOG_INFO_ON_ROOT( "Plate smoothing distance: " << simulationParam.plateSmoothingDistance );
+      WALBERLA_LOG_INFO_ON_ROOT( "Filename topologies              : " << simulationParam.fnameTopologies );
+      WALBERLA_LOG_INFO_ON_ROOT( "Filename reconstructions         : " << simulationParam.fnameReconstructions );
+      WALBERLA_LOG_INFO_ON_ROOT( "Initital plage age               : " << simulationParam.initialPlateAge );
+      WALBERLA_LOG_INFO_ON_ROOT( "Final plate age                  : " << simulationParam.finalPlateAge );
+      WALBERLA_LOG_INFO_ON_ROOT( "Plate velocity scaling           : " << simulationParam.plateVelocityScaling );
+      WALBERLA_LOG_INFO_ON_ROOT( "Plate smoothing distance         : " << simulationParam.plateSmoothingDistance );
    }
    WALBERLA_LOG_INFO_ON_ROOT( " " );
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
@@ -844,6 +997,10 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "----    Solver Parameters    ----" )
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( " " );
+   WALBERLA_LOG_INFO_ON_ROOT( "uzawaIterations                        : " << solverParam.uzawaIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "uzawaOmega                             : " << solverParam.uzawaOmega );
+   WALBERLA_LOG_INFO_ON_ROOT( "ABlockMGPreSmooth                      : " << solverParam.ABlockMGPreSmooth );
+   WALBERLA_LOG_INFO_ON_ROOT( "ABlockMGPostSmooth                     : " << solverParam.ABlockMGPostSmooth );
    if ( solverParam.solverPETSc == 1u )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Use PETSc solver for coarse grid       : "

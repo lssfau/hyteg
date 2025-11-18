@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -49,11 +49,15 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    std::shared_ptr< P2ScalarFunction_T >& temperaturePrevP2        = p2ScalarFunctionContainer.at( "TemperaturePrev" );
    std::shared_ptr< P2ScalarFunction_T >& velocityMagnitudeSquared = p2ScalarFunctionContainer.at( "VelocityMagnitudeSquared" );
    std::shared_ptr< P2ScalarFunction_T >& viscosityFE              = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2             = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
 
    std::shared_ptr< P1VectorFunction_T >& velocityPressureFEP1     = p1VectorFunctionContainer.at( "VelocityFEP1" );
    std::shared_ptr< P1VectorFunction_T >& velocityPressurePrevFEP1 = p1VectorFunctionContainer.at( "VelocityFEPrevP1" );
 
    std::shared_ptr< P1ScalarFunction_T >& temperatureP1 = p1ScalarFunctionContainer.at( "TemperatureFEP1" );
+   
+   std::shared_ptr< P1ScalarFunction_T >& hydDensityPrevP1  = p1ScalarFunctionContainer.at( "P1nondimHydrostaticDensityPTFEPrev" );
+   std::shared_ptr< P1ScalarFunction_T >& hydDensityPrev2P1 = p1ScalarFunctionContainer.at( "P1nondimHydrostaticDensityPTFEPrev2" );
 
    if ( !TN.simulationParameters.simulationInitialised )
    {
@@ -175,6 +179,13 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       ++TN.simulationParameters.timeStep;
       velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
       temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
+
+      // Update thermodynamic parameters (e.g.heat capacity, thermal expansivity, hydrostatic density, ...) for all DoFs
+      // if ( TN.simulationParameters.pdaForm )
+      // {
+      //    updateThermodynamicParams( All );
+      // }
+
    } //end timestep0 stokes
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -210,6 +221,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                           -3.0 + ( TN.simulationParameters.timeStep - TN.simulationParameters.timeStep0 - 1 ) *
                                      ( 2.0 / ( TN.simulationParameters.initialNStepsForTimestepIncrease - 1 ) ) );
             TN.simulationParameters.dt *= stepSizeFactor;
+            WALBERLA_LOG_INFO_ON_ROOT( "Initial timestep reduction to " << TN.simulationParameters.dt );
          }
       }
 
@@ -374,6 +386,18 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    //                  STOKES EQUATIONS                    //
    //######################################################//
 
+   // // update velocity field storing the velocity field of the Prev timestep
+   velocityPressurePrevFE->assign( { real_c( 1 ) }, { *( velocityPressureFE ) }, TN.domainParameters.maxLevel, All );
+
+   if ( TN.simulationParameters.pdaForm == true )
+   {
+      if ( TN.simulationParameters.timeStep > 1 )
+      {
+         hydDensityPrev2P1->assign( { real_c( 1 ) }, { *( hydDensityPrevP1 ) }, TN.domainParameters.maxLevel, All );
+      }
+      hydDensityPrevP1->assign( { real_c( 1 ) }, { hydDensityP2->getVertexDoFFunction() }, TN.domainParameters.maxLevel, All );
+   }
+
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
       //update plate velocity boundary condition prior to stokes solve
@@ -402,6 +426,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    calculateHeatflowIntegral( temperatureProfiles );
 
    solveStokes();
+
+   // if ( TN.simulationParameters.pdaForm == true )
+   // {
+   //       updateThermodynamicParams( All );
+   // }
 
    // Compute rms velocity radially
    velocityProfiles                      = std::make_shared< RadialProfile >( computeRadialProfile( velocityPressureFE->uvw(),
@@ -529,6 +558,11 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       TN.physicalParameters.temperatureProfile = temperatureProfiles->mean;
 
       solveStokes();
+
+      // if ( TN.simulationParameters.pdaForm == true )
+      // {
+      //    updateThermodynamicParams( All );
+      // }
 
       // update viscosity Profiles for logging
       if ( TN.simulationParameters.tempDependentViscosity )
@@ -703,9 +737,6 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveEn
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupStokesRHS()
 {
-   // for ( uint_t l = TN.domainParameters.minLevel; l <= TN.domainParameters.maxLevel; l++ )
-   // {
-
    uint_t l = TN.domainParameters.maxLevel;
 
    std::shared_ptr< P2P1StokesFunction_T >& velocityPressureFE = p2p1StokesFunctionContainer.at( "VelocityFE" );
@@ -822,6 +853,93 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupSt
 }
 
 template < typename TemperatureFunction_T, typename ViscosityFunction_T >
+void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupStokesRHS_PDA()
+{  
+   uint_t l = TN.domainParameters.maxLevel;
+
+   std::shared_ptr< P2P1StokesFunction_T >& velocityPressureFE = p2p1StokesFunctionContainer.at( "VelocityFE" );
+
+   std::shared_ptr< P2P1StokesFunction_T >& stokesRHS  = p2p1StokesFunctionContainer.at( "StokesRHS" );
+   std::shared_ptr< P2P1StokesFunction_T >& stokesTmp1 = p2p1StokesFunctionContainer.at( "StokesTmp1" );
+
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2 = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
+      
+   ////////////////////
+   //    Momentum    //
+   ////////////////////
+
+   // Multiply hydrostatic density with mass matrix (of velocity space -- P2) to get the weak form 
+   p2ScalarMassOperator_->apply( *( hydDensityP2 ), stokesRHS->uvw()[0], l, All );
+   p2ScalarMassOperator_->apply( *( hydDensityP2 ), stokesRHS->uvw()[1], l, All );
+   p2ScalarMassOperator_->apply( *( hydDensityP2 ), stokesRHS->uvw()[2], l, All );
+
+   // Multiply current RHS (i.e. hydrostatic density) with non-dimensionalised numbers
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > momentumFactorsPDA =
+       [&]( const Point3D&, const std::vector< real_t >& FEHydDensity ) {
+          return ( ( TN.physicalParameters.rayleighNumberPDA / TN.physicalParameters.pecletNumber ) * FEHydDensity[0] );
+       };
+
+   // Interpolate functions to RHS
+   stokesRHS->uvw()[0].interpolate( momentumFactorsPDA, { stokesRHS->uvw()[0] }, l, All );
+   stokesRHS->uvw()[1].interpolate( momentumFactorsPDA, { stokesRHS->uvw()[1] }, l, All );
+   stokesRHS->uvw()[2].interpolate( momentumFactorsPDA, { stokesRHS->uvw()[2] }, l, All );
+
+   // multply with outward normal (for gravity)
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalX =
+       []( const Point3D& x, const std::vector< real_t >& vals ) {
+          real_t xNorm = x[0] / x.norm();
+          return -xNorm * vals[0];
+       };
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalY =
+       []( const Point3D& x, const std::vector< real_t >& vals ) {
+          real_t xNorm = x[1] / x.norm();
+          return -xNorm * vals[0];
+       };
+
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > multiplyWithInwardNormalZ =
+       []( const Point3D& x, const std::vector< real_t >& vals ) {
+          real_t xNorm = x[2] / x.norm();
+          return -xNorm * vals[0];
+       };
+
+   stokesTmp1->uvw().assign(
+       { 1.0 }, { stokesRHS->uvw() }, l, All );
+
+   // multply with inward normal (for gravity)
+   stokesRHS->uvw().component( 0u ).interpolate(
+       multiplyWithInwardNormalX, { stokesTmp1->uvw().component( 0u ) }, l, All );
+
+   stokesRHS->uvw().component( 1u ).interpolate(
+       multiplyWithInwardNormalY, { stokesTmp1->uvw().component( 1u ) }, l, All );
+
+   stokesRHS->uvw().component( 2u ).interpolate(
+       multiplyWithInwardNormalZ, { stokesTmp1->uvw().component( 2u ) }, l, All );
+
+   /////////////////
+   //    Mass    //
+   ////////////////
+
+   stokesRHS->p().interpolate( real_c( 0 ), l, All );
+
+   // Set up frozen velocity term using hydrostatic density to RHS
+   if ( TN.simulationParameters.frozenVelocity )
+   {
+      frozenVelocityPDA->apply( velocityPressureFE->uvw(), stokesRHS->p(), l, All );
+   }
+
+   // Add scaled time derivative of hydrostatic density for mass RHS
+   if ( TN.simulationParameters.timeStep > 0 )
+   {
+      P1timeDerivativePDA->apply( stokesTmp1->uvw().component(0u).getVertexDoFFunction(), stokesRHS->p(), l, All, Add );
+   }
+
+   // Change sign of both RHS terms
+   stokesRHS->p().assign( { -1.0 }, { stokesRHS->p() }, l, All );   
+}
+
+
+template < typename TemperatureFunction_T, typename ViscosityFunction_T >
 void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveStokes()
 {
    walberla::WcTimer localTimer;
@@ -838,10 +956,31 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
       stokesOperator_->getA().computeInverseDiagonalOperatorValues();
       stokesOperatorRotation_->getA().computeInverseDiagonalOperatorValues();
    }
+   
+   if ( TN.simulationParameters.pdaForm == false )
+   {
+      localTimer.start();
+      setupStokesRHS();
+      localTimer.end();
+      WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "------ Setup Stokes RHS ------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "------------------------------" );
+   }
+   else
+   {
+      updatePDARHSOperators();
+      localTimer.start();
+      setupStokesRHS_PDA();
+      localTimer.end();
+      WALBERLA_LOG_INFO_ON_ROOT( "----------------------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "------ Setup Stokes RHS PDA------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "----------------------------------" );
+   }
+   
+   // localTimer.start();
+   // setupStokesRHS();
+   // localTimer.end();
 
-   localTimer.start();
-   setupStokesRHS();
-   localTimer.end();
    real_t setupStokesTimer = localTimer.last();
 
    if ( !TN.simulationParameters.simulationInitialised )
@@ -919,7 +1058,14 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
 
    if ( TN.solverParameters.useRotationWrapper )
    {
-      setupStokesRHS();
+      if ( TN.simulationParameters.pdaForm )
+      {
+         setupStokesRHS_PDA();
+      }
+      else
+      {
+         setupStokesRHS();
+      }
    }
 
    stokesResidual   = calculateStokesResidual( TN.domainParameters.maxLevel );
