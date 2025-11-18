@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl.
+ * Copyright (c) 2024 Eugenio D'Ascoli, Ponsuganth Ilangovan, Nils Kohl, Isabel Papanagnou.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,6 +41,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupOu
    std::shared_ptr< P2ScalarFunction_T >& temperatureDev           = p2ScalarFunctionContainer.at( "TemperatureDev" );
    std::shared_ptr< P2ScalarFunction_T >& velocityMagnitudeSquared = p2ScalarFunctionContainer.at( "VelocityMagnitudeSquared" );
    std::shared_ptr< P2ScalarFunction_T >& densityP2                = p2ScalarFunctionContainer.at( "DensityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2             = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
 
    std::shared_ptr< P2ScalarFunction_T >& shearHeatingCoeff = p2ScalarFunctionContainer.at( "ShearHeatingTermCoeff" );
 
@@ -175,6 +176,18 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::setupOu
          }
       }
 
+      if ( TN.outputParameters.OutputPDA )
+      {
+         if ( TN.outputParameters.outputVertexDoFs )
+         {
+            output->add( hydDensityP2->getVertexDoFFunction() );
+         }
+         else
+         {
+            output->add( *hydDensityP2 );
+         }
+      }
+
       if ( TN.outputParameters.OutputVerbose )
       {
          if ( TN.outputParameters.outputVertexDoFs )
@@ -228,6 +241,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
    std::shared_ptr< P2ScalarFunction_T >& temperatureK   = p2ScalarFunctionContainer.at( "Temperature[K]" );
    std::shared_ptr< P2ScalarFunction_T >& viscosityPas   = p2ScalarFunctionContainer.at( "Viscosity[Pas]" );
    std::shared_ptr< P2ScalarFunction_T >& viscosityP2    = p2ScalarFunctionContainer.at( "ViscosityFE" );
+   std::shared_ptr< P2ScalarFunction_T >& hydDensityP2   = p2ScalarFunctionContainer.at( "nondimHydrostaticDensityPTFE" );
 
    const std::string& modelBaseName = TN.outputParameters.modelBaseName;
 
@@ -246,9 +260,17 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
           { ( TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
    }
 
+   if ( TN.outputParameters.OutputPDA && TN.outputParameters.OutputDimensional )
+   {
+      hydDensityP2->assign( { ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.characteristicVelocity / TN.physicalParameters.mantleThickness ) },
+                             { *hydDensityP2 },
+                             TN.domainParameters.maxLevel,
+                             All );
+   }
+
    uint_t      outputTime = 0u;
    std::string outputTimeStr;
-
+   
    //For circulation model, output with plate age in filename
    if ( TN.simulationParameters.simulationType == "CirculationModel" )
    {
@@ -348,6 +370,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
       }
    }
 
+   // if ( TN.outputParameters.OutputTemperature && !TN.outputParameters.OutputDimensional )
    if ( TN.outputParameters.OutputTemperature && TN.outputParameters.OutputDimensional )
    {
       temperatureP2->assign( { real_c( 1.0 ) / ( TN.physicalParameters.cmbTemp - TN.physicalParameters.surfaceTemp ) },
@@ -356,11 +379,21 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
                              All );
    }
 
+   // if ( TN.simulationParameters.tempDependentViscosity && TN.outputParameters.OutputViscosity &&
+   //      !TN.outputParameters.OutputDimensional )
    if ( TN.simulationParameters.tempDependentViscosity && TN.outputParameters.OutputViscosity &&
         TN.outputParameters.OutputDimensional )
    {
       viscosityP2->assign(
           { ( real_c( 1.0 ) / TN.physicalParameters.referenceViscosity ) }, { *viscosityP2 }, TN.domainParameters.maxLevel, All );
+   }
+
+   if ( TN.outputParameters.OutputPDA && TN.outputParameters.OutputDimensional )
+   {
+      hydDensityP2->assign( { ( TN.physicalParameters.mantleThickness / ( TN.physicalParameters.referenceViscosity * TN.physicalParameters.characteristicVelocity ) ) },
+                             { *hydDensityP2 },
+                             TN.domainParameters.maxLevel,
+                             All );
    }
 }
 

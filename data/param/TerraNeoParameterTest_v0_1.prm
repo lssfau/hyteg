@@ -94,6 +94,7 @@ Parameters
    specificHeatCapacity 1260;
    internalHeatingRate 6e-12;
    referenceDensity 4448;
+   referenceHydDensity 3041;
    viscosity 1e22;
 
    // Adiabatic reference state parameters
@@ -130,6 +131,13 @@ Parameters
 
    //setup solvers again due to changing spectral bounds of stokes operator
 
+   ///////////////////////////////////////////////////////////
+   //  Thermodynamic table parameters ( p,T space )  //
+   ///////////////////////////////////////////////////////////
+
+   // Table data files
+   pressureTemperatureTable ../../../../../../data/terraneo/therm_tables/SLB24_NCFMASCr_thermodynamic_parameter_table_P1401T1001.dat;
+
    /////////////////////////
    //  Model parameters   //
    /////////////////////////
@@ -143,6 +151,7 @@ Parameters
    // thermalExpansivityProfile ../../../data/terraneo/radialProfiles/alpha_radial.json;
    // specificHeatCapacityProfile ../../../data/terraneo/radialProfiles/cp_radial.json;
    // densityProfile ../../../data/terraneo/radialProfiles/density_radial.json;
+   // pressureProfile ../../../data/terraneo/radialProfiles/hydrostaticPressure_radial.json;
 
    characteristicVelocity 1e-9;
 
@@ -172,8 +181,17 @@ Parameters
    compressible true;
    shearHeating true;
    internalHeating true;
+   pdaForm false;
 
    frozenVelocity false;
+
+   // Number of steps - defined by spacing and value range - in p,T space (2801,2001) in the thermodynamic tables
+   numPsteps 1401;
+   numTsteps 1001;
+   numHl 2;
+
+   // Update thermodynamic reference values used for non-dimensionalisation after each solve
+   updateThermodynamicReferenceValues false;
 
    // Define Lithosphere thickness [km] and shear heating scaling factor
    // for scaling the shear heating contribution within the Lithosphere
@@ -297,6 +315,7 @@ Parameters
 
    OutputVelocity true;
    OutputTemperature true;
+   OutputPDA true;
    OutputInterval 10;
    OutputVertexDoFs false;
 
