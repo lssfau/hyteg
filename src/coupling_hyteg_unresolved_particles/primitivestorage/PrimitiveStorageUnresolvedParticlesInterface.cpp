@@ -22,6 +22,7 @@
 
 #include <algorithm>
 
+#include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 
 #include "unresolved_particles/data/DataTypes.h"
@@ -42,52 +43,25 @@ bool PrimitiveStorageUnresolvedParticlesInterface::isContainedInProcessSubdomain
 int PrimitiveStorageUnresolvedParticlesInterface::findContainingProcessRank( const Vec3& pt ) const
 {
    std::set< int > containingProcessRanks;
+
+   const Point3D                            pointOfInterest( pt[0], pt[1], pt[2] );
+   std::tuple< bool, PrimitiveID, Point3D > target{};
    if ( !primitiveStorage_->hasGlobalCells() )
    {
-      auto allFaces      = primitiveStorage_->getFaces();
-      auto neighborFaces = primitiveStorage_->getNeighborFaces();
-      allFaces.insert( neighborFaces.begin(), neighborFaces.end() );
-
-      for ( const auto& faceIt : allFaces )
-      {
-         auto faceID = faceIt.first;
-         auto face   = faceIt.second;
-
-         Point2D pointOfInterest( pt[0], pt[1] );
-
-         if ( circleTriangleIntersection( pointOfInterest,
-                                          1e-05,
-                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
-                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
-                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
-         {
-            containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( faceID ) ) );
-         }
-      }
+      target = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
    }
    else
    {
-      auto allCells      = primitiveStorage_->getCells();
-      auto neighborCells = primitiveStorage_->getNeighborCells();
-      allCells.insert( neighborCells.begin(), neighborCells.end() );
+      target = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, 0, 0, false, true );
+   }
 
-      for ( const auto& cellIt : allCells )
-      {
-         auto cellID = cellIt.first;
-         auto cell   = cellIt.second;
+   const auto [coordExists, id, computationalCoords] = target;
 
-         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
+   WALBERLA_UNUSED( computationalCoords );
 
-         if ( sphereTetrahedronIntersection( pointOfInterest,
-                                             1e-05,
-                                             cell->getCoordinates().at( 0 ),
-                                             cell->getCoordinates().at( 1 ),
-                                             cell->getCoordinates().at( 2 ),
-                                             cell->getCoordinates().at( 3 ) ) )
-         {
-            containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( cellID ) ) );
-         }
-      }
+   if ( coordExists )
+   {
+      containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( id ) ) );
    }
 
    if ( containingProcessRanks.empty() )
@@ -123,43 +97,29 @@ bool PrimitiveStorageUnresolvedParticlesInterface::intersectsWithProcessSubdomai
       return false;
    }
 
+   const Point3D                            pointOfInterest( pt[0], pt[1], pt[2] );
+   std::tuple< bool, PrimitiveID, Point3D > target{};
+
    if ( !primitiveStorage_->hasGlobalCells() )
    {
-      for ( const auto& faceIt : primitiveStorage_->getFaces() )
-      {
-         auto face = faceIt.second;
-
-         Point2D pointOfInterest( pt[0], pt[1] );
-
-         if ( circleTriangleIntersection( pointOfInterest,
-                                          radius,
-                                          Point2D( face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] ),
-                                          Point2D( face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] ),
-                                          Point2D( face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] ) ) )
-         {
-            return true;
-         }
-      }
+      target = mapFromPhysicalToComputationalDomain2D( primitiveStorage_, pointOfInterest, radius );
    }
    else
    {
-      for ( const auto& cellIt : primitiveStorage_->getCells() )
-      {
-         auto cell = cellIt.second;
-
-         Point3D pointOfInterest( pt[0], pt[1], pt[2] );
-
-         if ( sphereTetrahedronIntersection( pointOfInterest,
-                                             radius,
-                                             cell->getCoordinates().at( 0 ),
-                                             cell->getCoordinates().at( 1 ),
-                                             cell->getCoordinates().at( 2 ),
-                                             cell->getCoordinates().at( 3 ) ) )
-         {
-            return true;
-         }
-      }
+      target = mapFromPhysicalToComputationalDomain3D( primitiveStorage_, pointOfInterest, radius );
    }
+
+   const auto [coordExists, id, computationalCoords] = target;
+
+   if ( !primitiveStorage_->hasGlobalCells() )
+   {
+      return coordExists && primitiveStorage_->faceExistsLocally( id );
+   }
+   else
+   {
+      return coordExists && primitiveStorage_->cellExistsLocally( id );
+   }
+
    return false;
 }
 
