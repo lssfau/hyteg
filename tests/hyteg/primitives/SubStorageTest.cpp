@@ -451,19 +451,21 @@ void runSphericalTest( bool vtkOutput = false )
       writeDomainPartitioningVTK( subStorage, outputDirectory, "ThinShell_partitioning" );
    }
 
-#if 0
-   uint_t level = 2;
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing application of manifold mass operator on thin sphere" );
 
-   P2Function< real_t >              vecOfOnes( "one", subStorage, level, level );
-   P2Function< real_t >              aux( "aux", subStorage, level, level );
-   P2ElementwiseBlendingMassOperator massOp( subStorage, level, level );
+   uint_t               level = 2;
+   P1Function< real_t > vecOfOnes( "one", subStorage, level, level );
+   P1Function< real_t > aux( "aux", subStorage, level, level );
+
+   P1ElementwiseManifoldBlendingMassOperator massOp( subStorage, level, level );
+
    vecOfOnes.interpolate( real_c( 1 ), level, All );
    massOp.apply( vecOfOnes, aux, level, All, Replace );
+
    real_t measure = vecOfOnes.dotGlobal( aux, level );
    real_t ctrl    = real_c( 4.0 * std::numbers::pi ) * rSphere * rSphere;
-   WALBERLA_CHECK_FLOAT_EQUAL( measure, ctrl );
-#endif
 
+   WALBERLA_CHECK_FLOAT_EQUAL( measure, ctrl );
 }
 
 // ======

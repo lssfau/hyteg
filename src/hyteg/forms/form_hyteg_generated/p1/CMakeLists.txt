@@ -25,6 +25,8 @@ target_sources( hyteg
     p1_diffusion_blending_q3.cpp
     p1_epsiloncc_blending_q2.cpp
     p1_divt_blending_q1.cpp
+    p1_manifold_mass_blending_q3.cpp
+    p1_manifold_mass_blending_q3.hpp
     p1_mass_blending_q4.cpp
     p1_epsiloncc_affine_q2.cpp
     p1_pspg_affine_q2.cpp
