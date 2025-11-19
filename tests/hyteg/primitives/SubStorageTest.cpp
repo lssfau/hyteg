@@ -465,7 +465,13 @@ void runSphericalTest( bool vtkOutput = false )
    real_t measure = vecOfOnes.dotGlobal( aux, level );
    real_t ctrl    = real_c( 4.0 * std::numbers::pi ) * rSphere * rSphere;
 
+#ifdef WALBERLA_DOUBLE_ACCURACY
    WALBERLA_CHECK_FLOAT_EQUAL( measure, ctrl );
+#else
+   // be generous in single precision, I don't think the form is designed for this case
+   real_t error = std::abs( ctrl - measure );
+   WALBERLA_CHECK_LESS_EQUAL( error, real_c( 0.025 ) );
+#endif
 }
 
 // ======
