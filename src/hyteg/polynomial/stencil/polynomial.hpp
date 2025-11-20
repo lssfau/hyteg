@@ -21,6 +21,7 @@
 #pragma once
 #include <hyteg/p1functionspace/globalIndices.hpp>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
+#include <simd/SIMD.h>
 
 namespace hyteg {
 namespace p1 {
@@ -39,33 +40,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    inline Polynomial()
    : std::array< Stencil<>, n_coeff >{}
    {}
-
-   /**
-    * @brief Sets the coefficients of the polynomial.
-    *
-    * @param all_coeffs A stencil of vectors containing the coefficients.
-    *          Must provide functions `size()` and `operator[]`
-    */
-   template < typename CoeffVector >
-   inline void set_coefficients( const Stencil< CoeffVector >& all_coeffs )
-   {
-      for ( auto& coeffs : all_coeffs )
-      {
-         if ( uint_t( coeffs.size() ) != n_coeff )
-         {
-            WALBERLA_ABORT( "Number of coefficients must match dimension of polynomial space" );
-         }
-      }
-      using coeff_idx_t = decltype( all_coeffs[0].size() );
-
-      for ( uint_t i = 0; i < n_coeff; ++i ) // polynomial coefficients
-      {
-         for ( uint_t d = 0; d < n_stencil; ++d ) // stencil direction
-         {
-            ( *this )[i][d] = static_cast< real_t >( all_coeffs[d][static_cast< coeff_idx_t >( i )] );
-         }
-      }
-   }
 
    template < typename CoeffVector >
    inline void set_coefficients( p1::stencil::Dir d, CoeffVector& coeffs )
@@ -102,11 +76,9 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    inline Stencil<> eval( const real_t x ) const
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
-      Stencil<> result;
-      for ( uint_t d = 0; d < n_stencil; ++d )
-      {
-         result[d] = ( *this )[0][d];
-      }
+
+      Stencil<> result = (*this)[0];
+
       auto xpow = x;
       for ( uint_t i = 1; i <= DEGREE; ++i )
       {
@@ -116,8 +88,54 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
          }
          xpow *= x;
       }
+
       return result;
    }
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+// #ifdef WALBERLA_CXX_COMPILER_IS_GNU
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wignored-attributes"
+// #endif
+
+   /** @brief Evaluate the 1d polynomial at x
+    * @param x The x-coordinates.
+    */
+   inline StencilData<DIM_domain, walberla::simd::double4_t> eval_vec( const std::array<real_t, 4>& x ) const
+   {
+
+      static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
+
+      StencilData<DIM_domain, walberla::simd::double4_t> result;
+      for ( uint_t d = 0; d < n_stencil; ++d )
+      {
+         // result[d] = _mm256_set1_pd((*this)[0][d]);
+         result[d] = walberla::simd::make_double4((*this)[0][d]);
+      }
+
+      // const __m256d vx = _mm256_loadu_pd(x.data());
+      // __m256d xpow = vx;
+      const auto vx = walberla::simd::load_unaligned(x.data());
+      auto xpow = vx;
+      for ( uint_t i = 1; i <= DEGREE; ++i )
+      {
+         for ( uint_t d = 0; d < n_stencil; ++d )
+         {
+            // const __m256d ci = _mm256_set1_pd((*this)[i][d]);
+            // result[d] = _mm256_fmadd_pd(ci, xpow, result[d]);
+            const auto ci = walberla::simd::make_double4((*this)[i][d]);
+            result[d] = result[d] + ci * xpow;
+         }
+         // _mm256_mul_pd(xpow, vx);
+         xpow = xpow * vx;
+      }
+
+      return result;
+   }
+// #ifdef WALBERLA_CXX_COMPILER_IS_GNU
+// #pragma GCC diagnostic pop
+// #endif
+#endif
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
    Stencil<> eval_naive( const Point3D& x ) const
