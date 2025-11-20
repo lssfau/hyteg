@@ -483,6 +483,76 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Face > >&                              srcFaces,
+                                  std::shared_ptr< Face >&                                                   dstFace,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( srcIds.size(), srcFaces.size(), "Number of src functions must match number of src faces!" )
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
+
+   auto dstData = dstFace->getData( dstId )->getPointer( level );
+
+   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+   {
+      auto tmpHorizontal = static_cast< ValueType >( 0.0 );
+      auto tmpVertical   = static_cast< ValueType >( 0.0 );
+      auto tmpDiagonal   = static_cast< ValueType >( 0.0 );
+
+      const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( level, it.x(), it.y() );
+      const uint_t idxVertical   = edgedof::macroface::verticalIndex( level, it.x(), it.y() );
+      const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( level, it.x(), it.y() );
+
+      for ( uint_t i = 0; i < scalars.size(); i++ )
+      {
+         WALBERLA_ASSERT_EQUAL( dstFace->getID(), srcFaces[i]->getID() )
+
+         const ValueType scalar  = scalars[i];
+         const auto      srcData = srcFaces[i]->getData( srcIds[i] )->getPointer( level );
+
+         // Do not update horizontal DoFs at bottom
+         if ( it.y() != 0 )
+         {
+            tmpHorizontal += scalar * srcData[idxHorizontal];
+         }
+
+         // Do not update vertical DoFs at left border
+         if ( it.x() != 0 )
+         {
+            tmpVertical += scalar * srcData[idxVertical];
+         }
+
+         // Do not update diagonal DoFs at diagonal border
+         if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+         {
+            tmpDiagonal += scalar * srcData[idxDiagonal];
+         }
+      }
+
+      // Do not update horizontal DoFs at bottom
+      if ( it.y() != 0 )
+      {
+         dstData[idxHorizontal] = tmpHorizontal;
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.x() != 0 )
+      {
+         dstData[idxVertical] = tmpVertical;
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.x() + it.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+         dstData[idxDiagonal] = tmpDiagonal;
+      }
+   }
+}
+
+template < concepts::value_type ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              Face&                                                                      face,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -60,18 +60,27 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo& meshInfo, const ui
    }
 }
 
-SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap& vertices,
-                                              const EdgeMap&   edges,
-                                              const FaceMap&   faces,
-                                              const CellMap&   cells,
-                                              const uint_t&    numberOfProcesses )
+SetupPrimitiveStorage::SetupPrimitiveStorage( const VertexMap&                                   vertices,
+                                              const EdgeMap&                                     edges,
+                                              const FaceMap&                                     faces,
+                                              const CellMap&                                     cells,
+                                              const uint_t&                                      numberOfProcesses,
+                                              std::shared_ptr< std::map< PrimitiveID, uint_t > > rankMap )
 : numberOfProcesses_( numberOfProcesses )
 , vertices_( vertices )
 , edges_( edges )
 , faces_( faces )
 , cells_( cells )
 {
-   loadbalancing::roundRobin( *this );
+   if ( rankMap )
+   {
+      // primitiveIDToTargetRankMap_.insert( rankMap->begin(), rankMap->end() );
+      primitiveIDToTargetRankMap_ = *rankMap;
+   }
+   else
+   {
+      loadbalancing::roundRobin( *this );
+   }
 }
 
 void SetupPrimitiveStorage::initialize( const MeshInfo& meshInfo )

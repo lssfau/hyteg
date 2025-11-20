@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,16 +24,20 @@
 
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/types/Concepts.hpp"
 #include "hyteg/types/PointND.hpp"
 #include "hyteg/types/types.hpp"
 
 namespace hyteg {
+
+class SubStorage;
 
 class Cell : public Primitive
 {
  public:
    friend class SetupPrimitiveStorage;
    friend class PrimitiveStorage;
+   friend class SubStorage;
    template < class K_Simplex >
    friend class adaptiveRefinement::K_Mesh;
 

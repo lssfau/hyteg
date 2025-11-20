@@ -435,6 +435,76 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Cell > >&                              srcCells,
+                                  std::shared_ptr< Cell >&                                                   dstCell,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+   WALBERLA_ASSERT_EQUAL( srcIds.size(), srcCells.size(), "Number of src functions must match number of src cells!" )
+   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
+
+   auto dstData = dstCell->getData( dstId )->getPointer( level );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      auto tmpX  = static_cast< ValueType >( 0.0 );
+      auto tmpY  = static_cast< ValueType >( 0.0 );
+      auto tmpZ  = static_cast< ValueType >( 0.0 );
+      auto tmpXY = static_cast< ValueType >( 0.0 );
+      auto tmpXZ = static_cast< ValueType >( 0.0 );
+      auto tmpYZ = static_cast< ValueType >( 0.0 );
+
+      const uint_t idxX  = edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() );
+      const uint_t idxY  = edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() );
+      const uint_t idxZ  = edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() );
+      const uint_t idxXY = edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() );
+      const uint_t idxXZ = edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() );
+      const uint_t idxYZ = edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() );
+
+      for ( uint_t i = 0; i < scalars.size(); i++ )
+      {
+         WALBERLA_ASSERT_EQUAL( dstCell->getID(), srcCells[i]->getID() )
+
+         const ValueType scalar  = scalars[i];
+         const auto      srcData = srcCells[i]->getData( srcIds[i] )->getPointer( level );
+
+         tmpX += scalar * srcData[idxX];
+         tmpY += scalar * srcData[idxY];
+         tmpZ += scalar * srcData[idxZ];
+         tmpXY += scalar * srcData[idxXY];
+         tmpXZ += scalar * srcData[idxXZ];
+         tmpYZ += scalar * srcData[idxYZ];
+      }
+
+      dstData[idxX]  = tmpX;
+      dstData[idxY]  = tmpY;
+      dstData[idxZ]  = tmpZ;
+      dstData[idxXY] = tmpXY;
+      dstData[idxXZ] = tmpXZ;
+      dstData[idxYZ] = tmpYZ;
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      auto         tmpXYZ = static_cast< ValueType >( 0.0 );
+      const uint_t idxXYZ = edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() );
+
+      for ( uint_t i = 0; i < scalars.size(); i++ )
+      {
+         const ValueType scalar  = scalars[i];
+         const auto      srcData = srcCells[i]->getData( srcIds[i] )->getPointer( level );
+
+         tmpXYZ += scalar * srcData[idxXYZ];
+      }
+
+      dstData[idxXYZ] = tmpXYZ;
+   }
+}
+
+template < typename ValueType >
 inline void add( const uint_t&                                                              Level,
                  Cell&                                                                      cell,
                  const std::vector< ValueType >&                                            scalars,

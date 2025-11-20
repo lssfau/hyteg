@@ -402,6 +402,40 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Cell > >&                              srcCells,
+                                  std::shared_ptr< Cell >&                                                   dstCell,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size() )
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcCells.size() )
+
+   ValueType* dst = dstCell->getData( dstId )->getPointer( level );
+
+   std::vector< ValueType* > srcPtr;
+   for ( size_t i = 1; i < srcIds.size(); ++i )
+   {
+      WALBERLA_ASSERT_EQUAL( dstCell->getID(), srcCells[0]->getID() )
+      srcPtr.push_back( srcCells[i]->getData( srcIds[i] )->getPointer( level ) );
+   }
+
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   {
+      const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+
+      ValueType tmp = scalars[0] * srcPtr[0][idx];
+
+      for ( uint_t k = 1; k < srcIds.size(); ++k )
+      {
+         tmp += scalars[k] * srcPtr[k][idx];
+      }
+      dst[idx] = tmp;
+   }
+}
+
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               level,
                  const Cell&                                                 cell,
                  const ValueType&                                            scalar,

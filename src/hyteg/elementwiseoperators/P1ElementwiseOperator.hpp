@@ -29,6 +29,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_centroid_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_manifold_mass_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_pspg_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/p1_neighbour_form.hpp"
@@ -361,12 +362,14 @@ typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
 
-typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >   P1ElementwiseKMassOperator;
+typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
 
 typedef P1ElementwiseOperator< forms::p1_k_mass_centroid_blending_q4 > P1ElementwiseBlendingKMassOperator_Centroid;
 
 typedef P1ElementwiseOperator< forms::p1_pspg_blending_q2 > P1ElementwiseBlendingPSPGOperator;
 
 typedef P1ElementwiseOperator< forms::p1_neighbour_form > P1ElementwiseNeighbourOperator;
+
+typedef P1ElementwiseOperator< forms::p1_manifold_mass_blending_q3 > P1ElementwiseManifoldBlendingMassOperator;
 
 } // namespace hyteg

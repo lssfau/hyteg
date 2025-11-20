@@ -391,6 +391,45 @@ inline void assign( const uint_t&                                               
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Face > >&                              srcFaces,
+                                  std::shared_ptr< Face >&                                                   dstFace,
+                                  const std::vector< ValueType >&                                            scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstId,
+                                  uint_t                                                                     level )
+{
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size() )
+   WALBERLA_ASSERT_EQUAL( scalars.size(), srcFaces.size() )
+
+   uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+   uint_t inner_rowsize = rowsize;
+
+   ValueType*                dst = dstFace->getData( dstId )->getPointer( level );
+   std::vector< ValueType* > srcPtr;
+
+   for ( size_t i = 0; i < srcIds.size(); ++i )
+   {
+     WALBERLA_ASSERT_EQUAL( dstFace->getID(), srcFaces[0]->getID() )
+     srcPtr.push_back( srcFaces[i]->getData( srcIds[i] )->getPointer( level ) );
+   }
+
+   for ( uint_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      {
+         ValueType tmp = scalars[0] * srcPtr[0][vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )];
+
+         for ( uint_t k = 1; k < srcIds.size(); ++k )
+         {
+            tmp += scalars[k] * srcPtr[k][vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )];
+         }
+         dst[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] = tmp;
+      }
+      --inner_rowsize;
+   }
+}
+
+template < concepts::value_type ValueType >
 inline void add( const uint_t&                                               level,
                  const Face&                                                 face,
                  const ValueType&                                            scalar,

@@ -95,6 +95,27 @@ inline void assign( Vertex&                                                     
 }
 
 template < concepts::value_type ValueType >
+inline void assignAcrossStorages( const std::vector< std::shared_ptr< Vertex > >&                              srcVertices,
+                                  std::shared_ptr< Vertex >&                                                   dstVertex,
+                                  const std::vector< ValueType >&                                              scalars,
+                                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
+                                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                dstId,
+                                  uint_t                                                                       level )
+{
+   WALBERLA_ASSERT_EQUAL( dstVertex->getID(), srcVertices[0]->getID() )
+
+   ValueType tmp = scalars[0] * srcVertices[0]->getData( srcIds[0] )->getPointer( level )[0];
+
+   for ( size_t i = 1; i < srcIds.size(); ++i )
+   {
+      WALBERLA_ASSERT_EQUAL( dstVertex->getID(), srcVertices[i]->getID() )
+      tmp += scalars[i] * srcVertices[i]->getData( srcIds[i] )->getPointer( level )[0];
+   }
+
+   dstVertex->getData( dstId )->getPointer( level )[0] = tmp;
+}
+
+template < concepts::value_type ValueType >
 inline void add( const Vertex&                                                 vertex,
                  const ValueType&                                              scalar,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
