@@ -2491,7 +2491,17 @@ std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfAllVolumes() con
 std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
 {
    std::set< uint_t > neighboringRanks;
-   getNeighboringRanks( neighboringRanks );
+   if ( keepAllRanksAsNeighborRanks_ )
+   {
+      for ( uint_t i = 0; i < walberla::mpi::MPIManager::instance()->numProcesses(); i++ )
+      {
+         neighboringRanks.insert( i );
+      }
+   }
+   else
+   {
+      getNeighboringRanks( neighboringRanks );
+   }
    return neighboringRanks;
 }
 
@@ -3922,6 +3932,8 @@ void PrimitiveStorage::keepAllPrimitivesAsNeighbors( const SetupPrimitiveStorage
          neighborRanks_[0][neighborCellID] = setupStorage.getTargetRank( neighborCellID );
       }
    }
+
+   keepAllRanksAsNeighborRanks_ = true;
 }
 
 } // namespace hyteg

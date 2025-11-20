@@ -72,7 +72,7 @@ class MeshTransferWithParticles
 
       /// Find where the particles belong on the src macro mesh
       findSrcMacroWithParticle( *storageSrc, particleStorage_, 0.1 * MeshQuality::getMinimalEdgeLength( storageSrc, levelSrc ) );
-
+      
       /// Move the particles to the process where they belong so they can be evaluated
       SNN( particleStorage_, *storageSrc );
 
@@ -160,16 +160,27 @@ class MeshTransferWithParticles
       const std::shared_ptr< PrimitiveStorage >& storageDst = dst.getStorage();
 
       const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-
+      
+      std::vector< PrimitiveID > selfPIDs;
       std::vector< PrimitiveID > neighborPIDs;
-      storageSrc->getNeighboringPrimitiveIDs( neighborPIDs );
+
+      if(storageSrc->hasGlobalCells())
+      {
+         storageSrc->getCellIDs( selfPIDs );
+         storageSrc->getNeighboringCellIDs( neighborPIDs );
+      }
+      else
+      {
+         storageSrc->getFaceIDs( selfPIDs );
+         storageSrc->getNeighboringFaceIDs( neighborPIDs );
+      }
 
       if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
       {
+         const PrimitiveID somePid = neighborPIDs.size() != 0u ? neighborPIDs[0] : selfPIDs[0];
+
          for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( dst.getVertexDoFFunction(), levelDst ) )
          {
-            const PrimitiveID somePid = neighborPIDs[0];
-
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
             primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
@@ -193,8 +204,6 @@ class MeshTransferWithParticles
 
          for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( dst.getEdgeDoFFunction(), levelDst ) )
          {
-            const PrimitiveID somePid = neighborPIDs[0];
-
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
             primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
@@ -218,10 +227,10 @@ class MeshTransferWithParticles
       }
       else if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
       {
+         const PrimitiveID somePid = neighborPIDs.size() != 0u ? neighborPIDs[0] : selfPIDs[0];
+
          for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( dst, levelDst ) )
          {
-            const PrimitiveID somePid = neighborPIDs[0];
-
             Point3D physicalLocation;
             auto    primitive = storageDst->getPrimitive( it.primitiveID() );
             primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
