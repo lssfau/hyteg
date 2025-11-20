@@ -53,22 +53,22 @@ class SubStorage
                          const std::shared_ptr< const Edge >&   edge,
                          const std::shared_ptr< const Face >&   face,
                          const std::shared_ptr< const Cell >&   cell ) {
-                  {
-                     oracle( vertex )
-                     } -> std::same_as< bool >;
+         {
+            oracle( vertex )
+         } -> std::same_as< bool >;
 
-                  {
-                     oracle( edge )
-                     } -> std::same_as< bool >;
+         {
+            oracle( edge )
+         } -> std::same_as< bool >;
 
-                  {
-                     oracle( face )
-                     } -> std::same_as< bool >;
+         {
+            oracle( face )
+         } -> std::same_as< bool >;
 
-                  {
-                     oracle( cell )
-                     } -> std::same_as< bool >;
-               }
+         {
+            oracle( cell )
+         } -> std::same_as< bool >;
+      }
    static std::shared_ptr< SetupPrimitiveStorage > extractSubsetFromSetupStorage( const SetupPrimitiveStorage& setupStore,
                                                                                   T&&                          oracle )
    {
@@ -237,7 +237,7 @@ class SubStorage
                                      uint_t                                                                        level,
                                      DoFType                                                                       flag = All )
    {
-      WALBERLA_ASSERT_EQUAL( scalars.size(), srcFunctions.size() )
+      WALBERLA_CHECK_EQUAL( scalars.size(), srcFunctions.size() )
 
       // Collect all source IDs in a vector
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -272,6 +272,7 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Vertex > dstVertex = dstFunction.getStorage()->getSharedPointerToVertex( pid );
+         WALBERLA_ASSERT_NOT_NULLPTR( dstVertex );
 
          // assemble list of vertices from which we will obtain the rhs data
          srcVertices.clear();
@@ -300,7 +301,6 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Edge > dstEdge = dstFunction.getStorage()->getSharedPointerToEdge( pid );
-
          WALBERLA_ASSERT_NOT_NULLPTR( dstEdge );
 
          // assemble list of edge from which we will obtain the rhs data
@@ -329,6 +329,7 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Face > dstFace = dstFunction.getStorage()->getSharedPointerToFace( pid );
+         WALBERLA_ASSERT_NOT_NULLPTR( dstFace );
 
          // assemble list of edge from which we will obtain the rhs data
          srcFaces.clear();
@@ -356,6 +357,7 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Cell > dstCell = dstFunction.getStorage()->getSharedPointerToCell( pid );
+         WALBERLA_ASSERT_NOT_NULLPTR( dstCell );
 
          // assemble list of edge from which we will obtain the rhs data
          srcCells.clear();
@@ -386,7 +388,7 @@ class SubStorage
                              uint_t                                                                             level,
                              DoFType                                                                            flag = All )
    {
-      WALBERLA_ASSERT_EQUAL( scalars.size(), srcFunctions.size() )
+      WALBERLA_CHECK_EQUAL( scalars.size(), srcFunctions.size() )
 
       // Collect all source IDs in a vector
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
@@ -417,7 +419,6 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Edge > dstEdge = dstFunction.getStorage()->getSharedPointerToEdge( pid );
-
          WALBERLA_ASSERT_NOT_NULLPTR( dstEdge );
 
          // assemble list of edge from which we will obtain the rhs data
@@ -446,6 +447,7 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Face > dstFace = dstFunction.getStorage()->getSharedPointerToFace( pid );
+         WALBERLA_ASSERT_NOT_NULLPTR( dstFace );
 
          // assemble list of edge from which we will obtain the rhs data
          srcFaces.clear();
@@ -473,6 +475,7 @@ class SubStorage
          // PrimitiveStorage that belongs to the dstFunction! This might be different from
          // item.second!
          std::shared_ptr< Cell > dstCell = dstFunction.getStorage()->getSharedPointerToCell( pid );
+         WALBERLA_ASSERT_NOT_NULLPTR( dstCell );
 
          // assemble list of edge from which we will obtain the rhs data
          srcCells.clear();
