@@ -18,6 +18,7 @@ target_sources( hyteg
     P1Petsc.hpp
     P1SurrogateOperator.hpp
     P1SurrogateOperator_optimized.hpp
+    P1SurrogateOperator_optimized.cpp
     VertexDoFMacroFace.hpp
     P1VectorFunction.hpp
     P1ProjectNormalOperator.cpp
