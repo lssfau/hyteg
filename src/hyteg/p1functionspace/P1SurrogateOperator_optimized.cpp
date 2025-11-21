@@ -19,14 +19,7 @@
  */
 
 #include <waLBerlaDefinitions.h>
-#ifdef WALBERLA_CXX_COMPILER_IS_GNU
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wignored-attributes"
-#endif
 #include "P1SurrogateOperator_optimized.hpp"
-#ifdef WALBERLA_CXX_COMPILER_IS_GNU
-#pragma GCC diagnostic pop
-#endif
 
 namespace hyteg {
 
@@ -195,9 +188,6 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
    template < class P1Form, uint8_t DEGREE >
    void P1SurrogateOperator<P1Form, DEGREE>::init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries )
    {
-      #ifdef WALBERLA_CXX_COMPILER_IS_GNU
-      WALBERLA_LOG_INFO_ON_ROOT("using gnu compiler");
-      #endif
       this->startTiming( "Init" );
       uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
@@ -1686,7 +1676,43 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
       const PolyDomain           X( lvl );
 
       // loop over inner vertices on the macro edge
-      for ( uint_t i = 1; i < n - 1; ++i )
+      uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+      // vectorized loop over the row
+      for ( ; i+3 < n - 1; i+=4 )
+      {
+         // evaluate polynomial
+         const std::array<real_t, 4> x{X[i], X[i+1], X[i+2], X[i+3]};
+         const auto stencil_vec = surrogate.eval_vec( x );
+
+         // initialize lhs
+         const auto dstIdx = dofIdx[p1::stencil::C];
+         walberla::simd::double4_t dstVec;
+         if ( updateType == Replace )
+         {
+            dstVec = walberla::simd::make_zero();
+         }
+         else // updateType == Add
+         {
+            dstVec = walberla::simd::load_unaligned( dstData + dstIdx );
+         }
+
+         // apply stencil
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            const auto srcVec = walberla::simd::load_unaligned( srcData + dofIdx[d] );
+            dstVec = dstVec + stencil_vec[d] * srcVec;
+            dofIdx[d] += 4;
+         }
+         // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+         // since walberla::simd only provides aligned store, we must use this auxiliary memory
+         alignas(32) real_t aux[4];
+         walberla::simd::store_aligned(aux, dstVec);
+         std::memcpy(dstData + dstIdx, aux, sizeof(aux));
+      }
+#endif
+      // remainder
+      for ( ; i < n - 1; ++i )
       {
          // evaluate polynomial
          const auto x = X[i];
@@ -1735,7 +1761,43 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
          const auto y = X[j];
          const auto surrogate1 = surrogate.fix_y( y );
 
-         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+         // vectorized loop over the row
+         for ( ; i+3 < n - 1 - j; i+=4 )
+         {
+            // evaluate polynomial
+            const std::array<real_t, 4> x{X[i], X[i+1], X[i+2], X[i+3]};
+            const auto stencil_vec = surrogate1.eval_vec( x );
+
+            // initialize lhs
+            const auto dstIdx = dofIdx[p1::stencil::C];
+            walberla::simd::double4_t dstVec;
+            if ( updateType == Replace )
+            {
+               dstVec = walberla::simd::make_zero();
+            }
+            else // updateType == Add
+            {
+               dstVec = walberla::simd::load_unaligned( dstData + dstIdx );
+            }
+
+            // apply stencil
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               const auto srcVec = walberla::simd::load_unaligned( srcData + dofIdx[d] );
+               dstVec = dstVec + stencil_vec[d] * srcVec;
+               dofIdx[d] += 4;
+            }
+            // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+            // since walberla::simd only provides aligned store, we must use this auxiliary memory
+            alignas(32) real_t aux[4];
+            walberla::simd::store_aligned(aux, dstVec);
+            std::memcpy(dstData + dstIdx, aux, sizeof(aux));
+         }
+#endif
+         // remainder
+         for ( ; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
@@ -1798,7 +1860,43 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
          const auto y = X[j];
          const auto surrogate1 = surrogate.fix_y( y );
 
-         for ( uint_t i = 1; i < n - 1 - j; ++i )
+         uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+         // vectorized loop over the row
+         for ( ; i+3 < n - 1 - j; i+=4 )
+         {
+            // evaluate polynomial
+            const std::array<real_t, 4> x{X[i], X[i+1], X[i+2], X[i+3]};
+            const auto stencil_vec = surrogate1.eval_vec( x );
+
+            // initialize lhs
+            const auto dstIdx = dofIdx[p1::stencil::C];
+            walberla::simd::double4_t dstVec;
+            if ( updateType == Replace )
+            {
+               dstVec = walberla::simd::make_zero();
+            }
+            else // updateType == Add
+            {
+               dstVec = walberla::simd::load_unaligned( dstData + dstIdx );
+            }
+
+            // apply stencil
+            for ( int d = 0; d < stencilSize; ++d )
+            {
+               const auto srcVec = walberla::simd::load_unaligned( srcData + dofIdx[d] );
+               dstVec = dstVec + stencil_vec[d] * srcVec;
+               dofIdx[d] += 4;
+            }
+            // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+            // since walberla::simd only provides aligned store, we must use this auxiliary memory
+            alignas(32) real_t aux[4];
+            walberla::simd::store_aligned(aux, dstVec);
+            std::memcpy(dstData + dstIdx, aux, sizeof(aux));
+         }
+#endif
+         // remainder
+         for ( ; i < n - 1 - j; ++i )
          {
             // evaluate polynomial
             const auto x = X[i];
@@ -2209,39 +2307,33 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
       }
    }
 
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,0>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,1>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,2>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,3>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,4>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,5>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,6>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,7>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,8>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,9>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,10>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,11>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,12>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,13>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,14>;
-// template class P1SurrogateOperator< forms::p1_mass_blending_q4,15>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,0>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,1>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,2>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,3>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,4>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,5>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,6>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,7>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,8>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,9>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,10>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,11>;
+template class P1SurrogateOperator< forms::p1_mass_blending_q4,12>;
 
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,0>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,1>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,2>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,3>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,4>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,5>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,6>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,7>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,8>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,9>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,10>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,11>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,12>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,13>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,14>;
-// template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,15>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,0>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,1>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,2>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,3>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,4>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,5>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,6>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,7>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,8>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,9>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,10>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,11>;
+template class P1SurrogateOperator< forms::p1_diffusion_blending_q3,12>;
 
 template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,0>;
 template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,1>;
@@ -2255,27 +2347,20 @@ template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,8>;
 template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,9>;
 template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,10>;
 template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,11>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,12>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,13>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,14>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,15>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_affine_q3,12>;
 
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,0>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,1>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,2>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,3>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,4>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,5>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,6>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,7>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,8>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,9>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,10>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,11>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,12>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,13>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,14>;
-// template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,15>;
-
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,0>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,1>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,2>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,3>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,4>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,5>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,6>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,7>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,8>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,9>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,10>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,11>;
+template class P1SurrogateOperator< forms::p1_div_k_grad_blending_q3,12>;
 
 } // namespace hyteg
