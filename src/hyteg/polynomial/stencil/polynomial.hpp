@@ -94,8 +94,8 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
 #ifdef WALBERLA_DOUBLE_ACCURACY
 // #ifdef WALBERLA_CXX_COMPILER_IS_GNU
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wignored-attributes"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
 // #endif
 
    /** @brief Evaluate the 1d polynomial at x
@@ -109,31 +109,25 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       StencilData<DIM_domain, walberla::simd::double4_t> result;
       for ( uint_t d = 0; d < n_stencil; ++d )
       {
-         // result[d] = _mm256_set1_pd((*this)[0][d]);
          result[d] = walberla::simd::make_double4((*this)[0][d]);
       }
 
-      // const __m256d vx = _mm256_loadu_pd(x.data());
-      // __m256d xpow = vx;
       const auto vx = walberla::simd::load_unaligned(x.data());
       auto xpow = vx;
       for ( uint_t i = 1; i <= DEGREE; ++i )
       {
          for ( uint_t d = 0; d < n_stencil; ++d )
          {
-            // const __m256d ci = _mm256_set1_pd((*this)[i][d]);
-            // result[d] = _mm256_fmadd_pd(ci, xpow, result[d]);
             const auto ci = walberla::simd::make_double4((*this)[i][d]);
             result[d] = result[d] + ci * xpow;
          }
-         // _mm256_mul_pd(xpow, vx);
          xpow = xpow * vx;
       }
 
       return result;
    }
 // #ifdef WALBERLA_CXX_COMPILER_IS_GNU
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 // #endif
 #endif
 
