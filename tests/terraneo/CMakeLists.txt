@@ -17,6 +17,8 @@ waLBerla_compile_test(FILES radialoutput/RadialOutputTest.cpp DEPENDS terraneo h
 waLBerla_execute_test(NAME RadialOutputTest)
 
 waLBerla_compile_test(FILES utils/MeshTransferWithParticlesTest.cpp DEPENDS terraneo hyteg core convection_particles opgen-mass)
-waLBerla_execute_test(NAME MeshTransferWithParticlesTest1 COMMAND $<TARGET_FILE:MeshTransferWithParticlesTest> PROCESSES 4)
+waLBerla_execute_test(NAME MeshTransferWithParticlesTest1 COMMAND $<TARGET_FILE:MeshTransferWithParticlesTest>)
+waLBerla_execute_test(NAME MeshTransferWithParticlesTest4 COMMAND $<TARGET_FILE:MeshTransferWithParticlesTest> PROCESSES 4)
+waLBerla_execute_test(NAME MeshTransferWithParticlesTest12 COMMAND $<TARGET_FILE:MeshTransferWithParticlesTest> PROCESSES 12)
 
 add_subdirectory( solvers )

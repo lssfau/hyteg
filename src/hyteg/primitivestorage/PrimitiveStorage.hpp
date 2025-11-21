@@ -948,6 +948,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    uint_t additionalHaloDepth_{ 0u };
 
    std::shared_ptr< micromesh::MicroMesh > microMesh_;
+
+   bool keepAllRanksAsNeighborRanks_ = false;
 };
 
 ////////////////////////////////////////////////

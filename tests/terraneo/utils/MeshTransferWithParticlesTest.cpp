@@ -88,8 +88,11 @@ void testMeshTransfer( MeshInfo meshInfoSrc, MeshInfo meshInfoDst, uint_t levelS
    // WALBERLA_LOG_INFO_ON_ROOT( "testSum = " << testSum );
    // WALBERLA_LOG_INFO_ON_ROOT( "testNewSum = " << testNewSum );
    // WALBERLA_LOG_INFO_ON_ROOT( "difference = " << std::abs( testSum - testNewSum ) );
-
-   WALBERLA_CHECK_LESS( difference, errorAllowed );
+   
+   WALBERLA_ROOT_SECTION()
+   {
+    WALBERLA_CHECK_LESS( difference, errorAllowed );
+   }
 }
 
 int main( int argc, char* argv[] )
@@ -97,7 +100,7 @@ int main( int argc, char* argv[] )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo meshInfoSquareSrc = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 4u, 4u );
+   MeshInfo meshInfoSquareSrc = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1u, 1u );
    MeshInfo meshInfoSquareDst = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 8u, 8u );
 
    testMeshTransfer< P1Function< real_t >, IdentityMap, operatorgeneration::P1ElementwiseMass >(
