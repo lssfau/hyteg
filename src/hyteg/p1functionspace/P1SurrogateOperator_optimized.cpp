@@ -1707,7 +1707,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply_edge_surrogate_2d( std::shared
          dstVec            = dstVec + stencil_vec[d] * srcVec;
          dofIdx[d] += 4;
       }
-      // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+      // We use walberla::simd instead of explicit avx-instructions, to keep the code platform independent.
       // since walberla::simd only provides aligned store, we must use this auxiliary memory
       alignas( 32 ) real_t aux[4];
       walberla::simd::store_aligned( aux, dstVec );
@@ -1792,7 +1792,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply_face_surrogate_2d( std::shared
             dstVec            = dstVec + stencil_vec[d] * srcVec;
             dofIdx[d] += 4;
          }
-         // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+         // We use walberla::simd instead of explicit avx-instructions, to keep the code platform independent.
          // since walberla::simd only provides aligned store, we must use this auxiliary memory
          alignas( 32 ) real_t aux[4];
          walberla::simd::store_aligned( aux, dstVec );
@@ -1891,7 +1891,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply_face_surrogate_3d( std::shared
             dstVec            = dstVec + stencil_vec[d] * srcVec;
             dofIdx[d] += 4;
          }
-         // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+         // We use walberla::simd instead of explicit avx-instructions, to keep the code platform independent.
          // since walberla::simd only provides aligned store, we must use this auxiliary memory
          alignas( 32 ) real_t aux[4];
          walberla::simd::store_aligned( aux, dstVec );
@@ -1983,7 +1983,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply_cell_surrogate_3d( std::shared
                dstVec            = dstVec + stencil_vec[d] * srcVec;
                dofIdx[d] += 4;
             }
-            // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+            // We use walberla::simd instead of explicit avx-instructions, to keep the code platform independent.
             // since walberla::simd only provides aligned store, we must use this auxiliary memory
             alignas( 32 ) real_t aux[4];
             walberla::simd::store_aligned( aux, dstVec );
