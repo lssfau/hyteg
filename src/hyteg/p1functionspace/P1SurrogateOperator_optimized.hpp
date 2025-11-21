@@ -291,7 +291,6 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                                  real_t* RESTRICT               dstData,
                                  UpdateType                     updateType ) const;
 
-
    void computeDiagonalOperatorValues( bool invert );
 
    void assemble_diagonalOperator_edge_precomputed_2d( std::shared_ptr< hyteg::Edge > edge, uint_t lvl, real_t* diagData );

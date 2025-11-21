@@ -77,7 +77,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
 
-      Stencil<> result = (*this)[0];
+      Stencil<> result = ( *this )[0];
 
       auto xpow = x;
       for ( uint_t i = 1; i <= DEGREE; ++i )
@@ -96,30 +96,29 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 // #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
-// #endif
+   // #endif
 
    /** @brief Evaluate the 1d polynomial at x
     * @param x The x-coordinates.
     */
-   inline StencilData<DIM_domain, walberla::simd::double4_t> eval_vec( const std::array<real_t, 4>& x ) const
+   inline StencilData< DIM_domain, walberla::simd::double4_t > eval_vec( const std::array< real_t, 4 >& x ) const
    {
-
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
 
-      StencilData<DIM_domain, walberla::simd::double4_t> result;
+      StencilData< DIM_domain, walberla::simd::double4_t > result;
       for ( uint_t d = 0; d < n_stencil; ++d )
       {
-         result[d] = walberla::simd::make_double4((*this)[0][d]);
+         result[d] = walberla::simd::make_double4( ( *this )[0][d] );
       }
 
-      const auto vx = walberla::simd::load_unaligned(x.data());
-      auto xpow = vx;
+      const auto vx   = walberla::simd::load_unaligned( x.data() );
+      auto       xpow = vx;
       for ( uint_t i = 1; i <= DEGREE; ++i )
       {
          for ( uint_t d = 0; d < n_stencil; ++d )
          {
-            const auto ci = walberla::simd::make_double4((*this)[i][d]);
-            result[d] = result[d] + ci * xpow;
+            const auto ci = walberla::simd::make_double4( ( *this )[i][d] );
+            result[d]     = result[d] + ci * xpow;
          }
          xpow = xpow * vx;
       }
