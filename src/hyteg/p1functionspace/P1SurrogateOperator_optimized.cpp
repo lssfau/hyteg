@@ -195,6 +195,9 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
    template < class P1Form, uint8_t DEGREE >
    void P1SurrogateOperator<P1Form, DEGREE>::init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries )
    {
+      #ifdef WALBERLA_CXX_COMPILER_IS_GNU
+      WALBERLA_LOG_INFO_ON_ROOT("using gnu compiler");
+      #endif
       this->startTiming( "Init" );
       uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
@@ -1879,7 +1882,11 @@ void P1SurrogateOperator<P1Form, DEGREE>::smooth_sor( const P1Function< real_t >
                   dstVec = dstVec + stencil_vec[d] * srcVec;
                   dofIdx[d] += 4;
                }
-               walberla::simd::store_aligned( dstData + dstIdx, dstVec );
+               // We use walberla::simd explicit avx-instructions, to keep the code platform independent.
+               // since walberla::simd only provides aligned store, we must use this auxiliary memory
+               alignas(32) real_t aux[4];
+               walberla::simd::store_aligned(aux, dstVec);
+               std::memcpy(dstData + dstIdx, aux, sizeof(aux));
             }
 #endif
             // remainder
