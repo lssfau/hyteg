@@ -352,4 +352,76 @@ inline std::string valueTypeToString()
    return typeMarker;
 }
 
+inline auto enumerateFaces( const std::shared_ptr< const PrimitiveStorage >& storage )
+{
+   // figure out some MPI runtime info
+   uint_t myRank   = uint_c( walberla::MPIManager::instance()->rank() );
+   uint_t commSize = uint_c( walberla::MPIManager::instance()->numProcesses() );
+
+   // global communication to get face counts
+   uint_t                numberOfLocalFaces = storage->getNumberOfLocalFaces();
+   std::vector< uint_t > facesPerRank       = walberla::mpi::allGather( numberOfLocalFaces );
+
+   // we enumerate w.r.t. MPI rank and local face counts
+   uint_t offset = 0u;
+   for ( uint_t i = 0; i < myRank; ++i )
+   {
+      offset += facesPerRank[i];
+   }
+
+   // enumerate local faces
+   std::map< PrimitiveID, uint_t > localIndices;
+   uint_t                          localCount = 0u;
+   for ( const auto& item : storage->getFaces() )
+   {
+      localIndices[item.first] = offset + localCount;
+      localCount++;
+   }
+
+   // figure out global number of faces
+   uint_t globalNumberOfFaces = offset;
+   for ( uint_t i = myRank; i < commSize; ++i )
+   {
+      globalNumberOfFaces += facesPerRank[i];
+   }
+
+   return std::make_pair( localIndices, globalNumberOfFaces );
+}
+
+inline auto enumerateCells( const std::shared_ptr< const PrimitiveStorage >& storage )
+{
+   // figure out some MPI runtime info
+   uint_t myRank   = uint_c( walberla::MPIManager::instance()->rank() );
+   uint_t commSize = uint_c( walberla::MPIManager::instance()->numProcesses() );
+
+   // global communication to get cell counts
+   uint_t                numberOfLocalCells = storage->getNumberOfLocalCells();
+   std::vector< uint_t > cellsPerRank       = walberla::mpi::allGather( numberOfLocalCells );
+
+   // we enumerate w.r.t. MPI rank and local face counts
+   uint_t offset = 0u;
+   for ( uint_t i = 0; i < myRank; ++i )
+   {
+      offset += cellsPerRank[i];
+   }
+
+   // enumerate local cells
+   std::map< PrimitiveID, uint_t > localIndices;
+   uint_t                          localCount = 0u;
+   for ( const auto& item : storage->getCells() )
+   {
+      localIndices[item.first] = offset + localCount;
+      localCount++;
+   }
+
+   // figure out global number of faces
+   uint_t globalNumberOfCells = offset;
+   for ( uint_t i = myRank; i < commSize; ++i )
+   {
+      globalNumberOfCells += cellsPerRank[i];
+   }
+
+   return std::make_pair( localIndices, globalNumberOfCells );
+}
+
 } // namespace hyteg::adiosCheckpointHelpers

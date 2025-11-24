@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -28,6 +28,7 @@
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using namespace hyteg;
 
@@ -135,13 +136,88 @@ void storeCheckpoint( std::string filePath, std::string fileName )
    checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
 }
 
+void testPrimitiveEnumeration( bool beVerbose = false )
+{
+   uint_t commSize = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   if ( commSize != 1u && commSize != 3u && commSize != 4u && commSize != 6u && commSize != 12u )
+   {
+      WALBERLA_ABORT( "testPrimitiveEnumeration() only works with 1, 3, 4, 6, or 12 MPI processes!" );
+   }
+
+   // ==================
+   //  Face Enumeration
+   // ==================
+   WALBERLA_LOG_INFO_ON_ROOT( "--> 2D testing of face enumeration with bfs_12el.msh" );
+
+   std::string           meshFileName{ prependHyTeGMeshDir( "2D/bfs_12el.msh" ) };
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
+   SetupPrimitiveStorage setupStorage( mesh, commSize );
+   loadbalancing::roundRobin( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   auto [localFaceIndices, numGlobalFaces] = adiosCheckpointHelpers::enumerateFaces( storage );
+
+   // perform some basic counting checks
+   WALBERLA_CHECK_EQUAL( numGlobalFaces, 12 );
+   uint_t numLocalFaces = numGlobalFaces / commSize;
+   WALBERLA_CHECK_EQUAL( numLocalFaces, localFaceIndices.size() );
+
+   std::stringstream sstr;
+   sstr << "Global number of faces = " << numGlobalFaces << "\nThis process holds face(s) with number(s): ";
+
+   uint_t myStartingIndex = ( 12 / commSize ) * walberla::MPIManager::instance()->rank();
+   uint_t idx             = 0;
+   for ( const auto& item : storage->getFaces() )
+   {
+      sstr << localFaceIndices[item.first] << " ";
+      WALBERLA_CHECK_EQUAL( localFaceIndices[item.first], myStartingIndex + idx );
+      ++idx;
+   }
+   WALBERLA_LOG_INFO( "" << sstr.str() );
+
+   // ==================
+   //  Cell Enumeration
+   // ==================
+   WALBERLA_LOG_INFO_ON_ROOT( "--> 3D testing of cell enumeration with cube_24el.msh" );
+
+   meshFileName = prependHyTeGMeshDir( "3D/cube_24el.msh" );
+   mesh         = MeshInfo::fromGmshFile( meshFileName );
+   setupStorage = SetupPrimitiveStorage( mesh, commSize );
+   loadbalancing::roundRobin( setupStorage );
+   storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   auto [localCellIndices, numGlobalCells] = adiosCheckpointHelpers::enumerateCells( storage );
+
+   // perform some basic counting checks
+   WALBERLA_CHECK_EQUAL( numGlobalCells, 24 );
+   uint_t numLocalCells = numGlobalCells / commSize;
+   WALBERLA_CHECK_EQUAL( numLocalCells, localCellIndices.size() );
+
+   sstr.str( std::string() );
+   sstr << "Global number of cells = " << numGlobalCells << "\nThis process holds cell(s) with number(s): ";
+
+   myStartingIndex = ( 24 / commSize ) * walberla::MPIManager::instance()->rank();
+   idx             = 0u;
+   for ( const auto& item : storage->getCells() )
+   {
+      sstr << localCellIndices[item.first] << " ";
+      WALBERLA_CHECK_EQUAL( localCellIndices[item.first], myStartingIndex + idx );
+      ++idx;
+   }
+   WALBERLA_LOG_INFO( "" << sstr.str() );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::INFO );
    walberla::MPIManager::instance()->useWorldComm();
 
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Enumerating Faces and/or Cells ***" );
+   testPrimitiveEnumeration( true );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 ***" );
    storeCheckpoint( ".", "CheckpointingTest.bp" );
 }

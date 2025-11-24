@@ -42,7 +42,12 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
   endif()
 
   waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME CheckpointingTest)
+  if( HYTEG_BUILD_WITH_MPI )
+    waLBerla_execute_test(NAME CheckpointingTest1 COMMAND $<TARGET_FILE:CheckpointingTest>)
+    waLBerla_execute_test(NAME CheckpointingTest4 COMMAND $<TARGET_FILE:CheckpointingTest> PROCESSES 4)
+  else()
+    waLBerla_execute_test(NAME CheckpointingTest)
+  endif ()
 
   waLBerla_compile_test(FILES FileWritingVectorAndConsistentEnumerationTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME FileWritingVectorAndConsistentEnumerationTest)
