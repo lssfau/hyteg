@@ -18,3 +18,10 @@ waLBerla_add_executable( NAME BH.03_Indexing
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BH.03_Indexing )
 endif()
+
+waLBerla_add_executable( NAME BH.04_LocalPrimitives+Neighborhood
+        FILES BH.04_LocalPrimitives+Neighborhood.cpp
+        DEPENDS hyteg )
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+   waLBerla_execute_test( NO_MODULE_LABEL NAME BH.04_LocalPrimitives+Neighborhood )
+endif()
