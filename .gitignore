@@ -9,4 +9,4 @@ data/terraneo/plates/*
 cmake-build-*
 .vs/
 build/*
-
+.cache
