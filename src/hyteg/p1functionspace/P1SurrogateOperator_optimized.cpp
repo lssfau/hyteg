@@ -20,8 +20,6 @@
 
 #include "P1SurrogateOperator_optimized.hpp"
 
-#include <waLBerlaDefinitions.h>
-
 namespace hyteg {
 
 template < class P1Form, uint8_t DEGREE >

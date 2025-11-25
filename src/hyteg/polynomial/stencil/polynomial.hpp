@@ -22,6 +22,7 @@
 #include <hyteg/p1functionspace/globalIndices.hpp>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
 #include <simd/SIMD.h>
+#include <waLBerlaDefinitions.h>
 
 namespace hyteg {
 namespace p1 {
@@ -93,10 +94,10 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    }
 
 #ifdef WALBERLA_DOUBLE_ACCURACY
-// #ifdef WALBERLA_CXX_COMPILER_IS_GNU
+#ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
-   // #endif
+#endif
 
    /** @brief Evaluate the 1d polynomial at x
     * @param x The x-coordinates.
@@ -125,9 +126,9 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
       return result;
    }
-// #ifdef WALBERLA_CXX_COMPILER_IS_GNU
+#ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic pop
-// #endif
+#endif
 #endif
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing

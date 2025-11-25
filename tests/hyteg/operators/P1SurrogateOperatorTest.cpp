@@ -21,7 +21,6 @@
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 
 #include "core/DataTypes.h"
-#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
