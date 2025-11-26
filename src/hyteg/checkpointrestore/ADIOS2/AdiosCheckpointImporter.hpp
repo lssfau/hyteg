@@ -290,7 +290,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    {
       // create the reader for the import
       io_ = adios_.DeclareIO( "AdiosCheckpointImport" );
-      io_.SetEngine( AdiosCheckpointExporter::engineType_ );
+      io_.SetEngine( "BPFile" );
 
       // create the engine for the import
       //

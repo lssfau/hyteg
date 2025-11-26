@@ -244,12 +244,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
           filePath, fileName, userDefinedAttributes, "AdiosCheckpointContinuous", true, finalCall, true, time );
    };
 
-   /// type of engine to be used for export
-   ///
-   /// We will use the BP format, but instead of "BP5" use "BP4", because of unclear
-   /// stability issues; see https://github.com/ornladios/ADIOS2/discussions/3822#discussioncomment-7187267
-   /// for details
-   inline static const std::string engineType_{ ADIOS2_BP_FORMAT };
+   /// Type of engine to be used for export
+   inline static const std::string engineType_{ ADIOS2_CHECKPOINT_FORMAT };
 
  private:
    /// object that remembers the functions we should export
