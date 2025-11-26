@@ -50,7 +50,7 @@
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
-#include "terraneo/operators/P2TransportTALAOperator.hpp"
+#include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 
 /**
@@ -379,7 +379,7 @@ class TALASimulation
       params.gmresIter = mainConf.getParameter< uint_t >( "transportGmresIter" );
       params.gmresTol  = mainConf.getParameter< real_t >( "transportGmresTol" );
 
-      normalsFS = [=]( const Point3D& x, Point3D& nx ) {
+      normalsFS = [this]( const Point3D& x, Point3D& nx ) {
          if ( rightMarker( x ) )
          {
             nx[0] = 1.0;
@@ -406,7 +406,7 @@ class TALASimulation
          }
       };
 
-      tempDevBC = [=]( const Point3D& x ) {
+      tempDevBC = [this]( const Point3D& x ) {
          if ( topMarker( x ) )
          {
             return 0.0;
@@ -419,12 +419,12 @@ class TALASimulation
       };
 
       /// [TemperatureInitialization]
-      tempIni = [=]( const Point3D& x ) {
+      tempIni = [this]( const Point3D& x ) {
          return ( 1 - x[1] ) + params.AiniPerturb * std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
       };
       /// [TemperatureInitialization]
 
-      TRefFunc = [=]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
+      TRefFunc = [this]( const Point3D& x ) { return params.T0 * std::exp( ( 1 - x[1] ) * params.Di ) - params.T0; };
 
       BoundaryCondition bcTemp, bcVelocity, bcVelocityX, bcVelocityY;
 
@@ -491,16 +491,16 @@ class TALASimulation
 
       if ( params.compressible )
       {
-         rhoFunc = [=]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
+         rhoFunc = [this]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
          gradRhoByRhoP2->component( 1U ).interpolate( params.alpha / params.Di, maxLevel_, All );
       }
       else
       {
-         rhoFunc = [=]( const Point3D& ) { return 1.0; };
+         rhoFunc = [this]( const Point3D& ) { return 1.0; };
          gradRhoByRhoP2->component( 1U ).interpolate( 0.0, maxLevel_, All );
       }
 
-      rhoInvFunc = [=]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
+      rhoInvFunc = [this]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
 
       gradRhoByRhoX =
           std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 0U ) );
@@ -522,6 +522,17 @@ class TALASimulation
       rhoP2->interpolate( rhoFunc, maxLevel_, All );
       rhoInvP2->interpolate( rhoInvFunc, maxLevel_, All );
 
+      diffusivityCoeffFunc = [this]( const Point3D& x ) { return params.k_ / ( params.cpbar * rhoFunc( x ) ); };
+
+      adiabaticCoeffFunc = [this]( const Point3D& ) { return params.alphabar * params.Di / params.cpbar; };
+
+      constEnergyCoeffFunc = [this]( const Point3D& ) { return 0.0; };
+
+      surfTempCoeffFunc = [this]( const Point3D& ) { return 0.0; };
+
+      invGravityX = [this]( const Point3D& ) { return 0.0; };
+      invGravityY = [this]( const Point3D& ) { return 1.0; };
+
       diffusionTermCoeff->interpolate( params.k_ / params.cpbar, maxLevel_, All );
       diffusionTermCoeff->multElementwise( { *diffusionTermCoeff, *rhoInvP2 }, maxLevel_, All );
 
@@ -535,17 +546,20 @@ class TALASimulation
 
       TRef->interpolate( TRefFunc, maxLevel_, All );
 
-      invGravityField->component( 0U ).interpolate( 0.0, maxLevel_, All );
-      invGravityField->component( 1U ).interpolate( 1.0, maxLevel_, All );
+      invGravityField->component( 0u ).interpolate( 0.0, maxLevel_, All );
+      invGravityField->component( 1u ).interpolate( 1.0, maxLevel_, All );
 
-      transportTALAOp->setInvGravity( invGravityField );
-
-      transportTALAOp->setDiffusivityCoeff( diffusionTermCoeff );
-      transportTALAOp->setAdiabaticCoeff( adiabaticTermCoeff );
+      transportTALAOp->setInvGravity( { std::make_shared< std::function< real_t( const Point3D& ) > >( invGravityX ),
+                                        std::make_shared< std::function< real_t( const Point3D& ) > >( invGravityY ) } );
       transportTALAOp->setShearHeatingCoeff( shearHeatingTermCoeff );
-      transportTALAOp->setConstEnergyCoeff( constEnergyCoeff );
-      transportTALAOp->setSurfTempCoeff( surfTempCoeff );
-      transportTALAOp->setReferenceTemperature( TRef );
+
+      transportTALAOp->setDiffusivityCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( diffusivityCoeffFunc ) );
+      transportTALAOp->setAdiabaticCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( adiabaticCoeffFunc ) );
+      transportTALAOp->setConstEnergyCoeff(
+          std::make_shared< std::function< real_t( const Point3D& ) > >( constEnergyCoeffFunc ) );
+      transportTALAOp->setSurfTempCoeff( std::make_shared< std::function< real_t( const Point3D& ) > >( surfTempCoeffFunc ) );
+      transportTALAOp->setReferenceTemperature( std::make_shared< std::function< real_t( const Point3D& ) > >( TRefFunc ) );
 
       transportTALAOp->setTALADict( {
           { terraneo::TransportOperatorTermKey::ADVECTION_TERM_WITH_APPLY, !params.MMOC },
@@ -577,11 +591,11 @@ class TALASimulation
 #endif
 
       transportGmresSolver = std::make_shared< GMRESSolver< P2TransportTimesteppingOperator > >(
-          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
+          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresTol, params.gmresTol );
       transportGmresSolver->setPrintInfo( params.verbose );
 
       transportTALAGmresSolver = std::make_shared< GMRESSolver< P2TransportTALAOperator > >(
-          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresIter, params.gmresTol, params.gmresTol );
+          storage_, minLevel_, maxLevel_, params.gmresIter, params.gmresTol, params.gmresTol );
       transportTALAGmresSolver->setPrintInfo( true );
 
       std::string outputFilename = mainConf.getParameter< std::string >( "outputFilename" );
@@ -677,6 +691,15 @@ class TALASimulation
    real_t simulationTime = 0.0, endTime = 1.0;
 
    std::function< real_t( const Point3D& ) > tempIni, tempDevBC, rhoFunc, rhoInvFunc, TRefFunc;
+
+   std::function< real_t( const Point3D& ) > diffusivityCoeffFunc;
+   std::function< real_t( const Point3D& ) > adiabaticCoeffFunc;
+   std::function< real_t( const Point3D& ) > shearHeatingCoeffFunc;
+   std::function< real_t( const Point3D& ) > constEnergyCoeffFunc;
+   std::function< real_t( const Point3D& ) > surfTempCoeffFunc;
+
+   std::function< real_t( const Point3D& ) > invGravityX;
+   std::function< real_t( const Point3D& ) > invGravityY;
 
    std::function< void( const Point3D&, Point3D& ) > normalsFS;
 
@@ -832,7 +855,7 @@ void TALASimulation::solve()
 
       if ( iTimeStep % params.nsCalcFreq == 0 )
       {
-         real_t deltaT           = TRefDev->getMaxValue( maxLevel ) - TRefDev->getMinValue( maxLevel );
+         real_t deltaT           = TRefDev->getMaxDoFValue( maxLevel ) - TRefDev->getMinDoFValue( maxLevel );
          real_t nusseltNumberTop = nusseltcalc::calculateNusseltNumber2D( *TDev, maxLevel, 0.01, 1e-6, 101 );
          real_t velocityRMSValue = nusseltcalc::velocityRMS( *u, *uTemp, massOperator, 1, 1, maxLevel );
 
