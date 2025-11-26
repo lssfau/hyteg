@@ -67,7 +67,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       }
 
       // create sub-objects for ADIOS
-      setupImporter( filePath, fileName );
+      version_ = setupImporter( filePath, fileName );
    }
 
 #else
@@ -89,7 +89,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       }
 
       // create sub-objects for ADIOS
-      setupImporter( filePath, fileName );
+      version_ = setupImporter( filePath, fileName );
    }
 
 #endif
@@ -112,10 +112,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    /// - string describing its data-type (aka value-type), such as e.g. "double"
    /// - the minimum refinement level for which data are present in the checkpoint
    /// - the maximum refinement level for which data are present in the checkpoint
-   const std::vector< FunctionDescription >& getFunctionDetails() const
-   {
-      return funcDescr_;
-   }
+   const std::vector< FunctionDescription >& getFunctionDetails() const { return funcDescr_; }
 
    /// On the root process print information on the checkoint file (format, contents, ...) to standard output
    void printCheckpointInfo()
@@ -289,7 +286,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
    }
 
    /// auxilliary function to avoid code-duplication in c'tors
-   void setupImporter( const std::string& filePath, const std::string& fileName )
+   std::string setupImporter( const std::string& filePath, const std::string& fileName )
    {
       // create the reader for the import
       io_ = adios_.DeclareIO( "AdiosCheckpointImport" );
@@ -302,8 +299,40 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       std::string cpFileName = filePath + "/" + fileName;
       engine_                = io_.Open( cpFileName, adios2::Mode::ReadRandomAccess );
 
+      // obtain checkpoint version information and verify format
+      adios2::Attribute< std::string > attrFormat = readAttribute< std::string >( "CheckpointFormat" );
+      std::string                      formatType{ attrFormat.Data()[0] };
+      std::string                      formatVersion{ attrFormat.Data()[1] };
+
+      WALBERLA_CHECK_EQUAL( formatType, std::string( "HyTeG Checkpoint" ) );
+
+      bool canImport = false;
+      for ( const auto& version : supportedVersions_ )
+      {
+         if ( formatVersion == version )
+         {
+            canImport = true;
+            break;
+         }
+      }
+
+      if ( !canImport )
+      {
+         std::stringstream msg;
+         msg << "Your checkpoint file has version '" << formatVersion << "'. But this importer only supports version(s) ";
+         msg << "'" << supportedVersions_[0] << "'";
+         for ( uint_t k = 1; k < supportedVersions_.size(); ++k )
+         {
+            msg << ", '" << supportedVersions_[k] << "'";
+         }
+         msg << ".";
+         WALBERLA_ABORT( "" << msg.str() );
+      }
+
       // obtain FE function meta-info
       readFunctionDetailsFromCheckpoint();
+
+      return formatVersion;
    }
 
    void readFunctionDetailsFromCheckpoint()
@@ -401,6 +430,12 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       WALBERLA_LOG_WARNING_ON_ROOT( "Restoring function '" << functionName << "' not possible; " << msg.str() );
       return false;
    }
+
+   /// Version of the current HyTeG Checkpoint (currently supported is only "0.2")
+   std::string version_;
+
+   /// List of supported checkpoint version supported by the importer implementation
+   const std::array< std::string, 1 > supportedVersions_ = { "0.2" };
 };
 
 } // namespace hyteg
