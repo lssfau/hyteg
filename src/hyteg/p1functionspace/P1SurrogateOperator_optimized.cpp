@@ -185,6 +185,37 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
 }
 
 template < class P1Form, uint8_t DEGREE >
+std::map< p1::stencil::Dir, std::string > P1SurrogateOperator< P1Form, DEGREE >::show_polynomials( const PrimitiveID& id,
+                                                                                                   const uint_t       lvl ) const
+{
+   std::map< p1::stencil::Dir, std::string > surrogates;
+
+   if ( lvl < min_lvl_for_surrogate || lvl < minLevel_ || lvl > maxLevel_ )
+   {
+      return surrogates;
+   }
+
+   auto fill_stencil = [&]( const auto& map ) {
+      if ( map.count( id ) )
+      {
+         const auto& poly = map.at( id )[lvl];
+         for ( uint_t k = 0; k < poly.n_stencil; ++k )
+         {
+            auto d        = static_cast< p1::stencil::Dir >( k );
+            surrogates[d] = poly.to_string( d );
+         }
+      }
+   };
+
+   fill_stencil( surrogate_cell_3d_ );
+   fill_stencil( surrogate_face_3d_ );
+   fill_stencil( surrogate_face_2d_ );
+   fill_stencil( surrogate_edge_2d_ );
+
+   return surrogates;
+}
+
+template < class P1Form, uint8_t DEGREE >
 void P1SurrogateOperator< P1Form, DEGREE >::init( size_t             downsampling,
                                                   const std::string& path_to_svd,
                                                   bool               needsInverseDiagEntries )

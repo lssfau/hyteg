@@ -33,6 +33,8 @@
 #include <hyteg/polynomial/stencil/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
 
+#include "hyteg/primitives/PrimitiveID.hpp"
+
 #define RESTRICT WALBERLA_RESTRICT
 
 namespace hyteg {
@@ -204,6 +206,15 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
           "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
       return inverseDiagonalValues_;
    };
+
+   /**
+    * @brief Returns string representation of the surrogate stencils for the given primitive and level.
+    *
+    * @param id The primitive ID for which to show polynomials.
+    * @param lvl The level at which to retrieve the polynomial surrogates.
+    * @return std::map<p1::stencil::Dir, std::string> Map from stencil direction to polynomial string.
+    */
+   std::map< p1::stencil::Dir, std::string > show_polynomials( const PrimitiveID& id, const uint_t lvl ) const;
 
  private:
    void init( size_t downsampling, const std::string& path_to_svd, bool needsInverseDiagEntries );
