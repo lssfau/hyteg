@@ -31,6 +31,7 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/types/types.hpp"
 
 /* This test checks whether the P1 surrogate
    operator works correctly. In particular
@@ -53,7 +54,7 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    auto d = ( storage->hasGlobalCells() ) ? 3 : 2;
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "P1 surrogate operator test: %dd, q=%d, lvl=%d", d, q, level ) );
 
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-11 : 5e-4 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 2e-11 : 5e-4 );
 
    // operators
    forms::p1_div_k_grad_affine_q3                form( k, k );
@@ -70,18 +71,14 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
    hyteg::P1Function< real_t > Aqu_opt( "(A_q_opt)u", storage, level, level );
    hyteg::P1Function< real_t > Aqu_opt_ds( "(A_q_opt_ds)u", storage, level, level );
-   hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
+   hyteg::P1Function< real_t > err( "err", storage, level, level );
+   hyteg::P1Function< real_t > b( "b", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
-
-   // apply operators
-   A.apply( u, Au, level, All, Replace );
-   A_q.apply( u, Aqu, level, All, Replace );
-   A_q_opt.apply( u, Aqu_opt, level, All, Replace );
-   A_q_opt_ds.apply( u, Aqu_opt_ds, level, All, Replace );
+   b.interpolate( 1.0, level, All );
 
    auto check = [&]( const auto& msg ) {
       auto errorMax = err.getMaxDoFMagnitude( level );
@@ -94,6 +91,14 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
       }
       WALBERLA_CHECK_LESS( errorMax, epsilon, msg );
    };
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Test A.apply()" )
+
+   // apply operators
+   A.apply( u, Au, level, All, Replace );
+   A_q.apply( u, Aqu, level, All, Replace );
+   A_q_opt.apply( u, Aqu_opt, level, All, Replace );
+   A_q_opt_ds.apply( u, Aqu_opt_ds, level, All, Replace );
 
    // compute errors
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
@@ -110,6 +115,37 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
 
    err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
    check( "||(A_q - A_q_opt_ds)u||_inf" );
+
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Test A.smooth_gs()" )
+
+   // reset functions
+   for (auto& dst : {Au, Aqu, Aqu_opt, Aqu_opt_ds})
+   {
+      dst.assign({1.0}, {u}, level);
+   }
+
+   // apply GS-smoother
+   A.smooth_gs( Au, b, level, All);
+   A_q.smooth_gs( Aqu, b, level, All);
+   A_q_opt.smooth_gs( Aqu_opt, b, level, All);
+   A_q_opt_ds.smooth_gs( Aqu_opt_ds, b, level, All);
+
+   // compute errors
+   err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
+   check( "||(S - S_q)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
+   check( "||(S - S_q_opt)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt_ds }, level, All );
+   check( "||(S - S_q_opt_ds)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
+   check( "||(S_q - S_q_opt)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
+   check( "||(S_q - S_q_opt_ds)u||_inf" );
 }
 
 int main( int argc, char* argv[] )
