@@ -206,7 +206,7 @@ static const StencilData< 3, indexing::Index > offset = {
     indexing::Index{ 0, 1, -1 }   // BN
 };
 
-static constexpr StencilData< 3, std::string > dirName =
+static const StencilData< 3, std::string > dirName =
     { "C", "W", "E", "S", "SE", "NW", "N", "TC", "TW", "TS", "TSE", "BC", "BE", "BNW", "BN" };
 
 // get global indices of adjacent vertices
