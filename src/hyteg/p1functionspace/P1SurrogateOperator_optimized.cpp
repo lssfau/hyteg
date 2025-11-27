@@ -180,8 +180,154 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
                                                         size_t                      level,
                                                         DoFType                     flag ) const
 {
-   // todo
-   WALBERLA_ABORT( "P1SurrogateOperator::smooth_sor not implemented!" );
+   WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( rhs ), std::addressof( dst ) );
+
+   this->startTiming( "SOR" );
+
+   dst.template communicate< Vertex, Edge >( level );
+   dst.template communicate< Edge, Face >( level );
+   dst.template communicate< Face, Cell >( level );
+
+   dst.template communicate< Cell, Face >( level );
+   dst.template communicate< Face, Edge >( level );
+   dst.template communicate< Edge, Vertex >( level );
+
+   const int dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
+
+   this->timingTree_->start( "Macro-Vertex" );
+
+   for ( const auto& [vtxId, vtx] : storage_->getVertices() )
+   {
+      const auto bc = dst.getBoundaryCondition().getBoundaryType( vtx->getMeshBoundaryFlag() );
+
+      if ( testFlag( bc, flag ) )
+      {
+         auto        rhsData = vtx->getData( rhs.getVertexDataID() )->getPointer( level );
+         auto        dstData = vtx->getData( dst.getVertexDataID() )->getPointer( level );
+         const auto& stencil = stencil_vtx_.at( vtxId )[level];
+
+         // apply stencil
+         auto tmp = rhsData[0];
+         for ( int d = 1; d < stencil.size(); ++d )
+         {
+            tmp -= stencil[d] * dstData[d];
+         }
+         tmp *= relax / stencil[0];
+         dstData[0] = ( 1.0 - relax ) * dstData[0] + tmp;
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Vertex" );
+
+   dst.template communicate< Vertex, Edge >( level );
+
+   this->timingTree_->start( "Macro-Edge" );
+
+   if ( level >= 1 )
+   {
+      for ( const auto& [edgeId, edge] : storage_->getEdges() )
+      {
+         const auto bc = dst.getBoundaryCondition().getBoundaryType( edge->getMeshBoundaryFlag() );
+
+         if ( testFlag( bc, flag ) )
+         {
+            auto rhsData = edge->getData( rhs.getEdgeDataID() )->getPointer( level );
+            auto dstData = edge->getData( dst.getEdgeDataID() )->getPointer( level );
+
+            if ( dim == 2 )
+            {
+               if ( level < min_lvl_for_surrogate )
+               {
+                  smooth_sor_edge_precomputed_2d( edge, level, rhsData, dstData, relax );
+               }
+               else
+               {
+                  smooth_sor_edge_surrogate_2d( edge, level, rhsData, dstData, relax );
+               }
+            }
+            else // dim == 3
+            {
+               smooth_sor_edge_precomputed_3d( edge, level, rhsData, dstData, relax );
+            }
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Edge" );
+
+   dst.template communicate< Edge, Face >( level );
+
+   this->timingTree_->start( "Macro-Face" );
+
+   if ( level >= 2 )
+   {
+      for ( const auto& [faceId, face] : storage_->getFaces() )
+      {
+         const auto bc = dst.getBoundaryCondition().getBoundaryType( face->getMeshBoundaryFlag() );
+
+         if ( testFlag( bc, flag ) )
+         {
+            auto rhsData = face->getData( rhs.getFaceDataID() )->getPointer( level );
+            auto dstData = face->getData( dst.getFaceDataID() )->getPointer( level );
+
+            if ( dim == 2 )
+            {
+               if ( level < min_lvl_for_surrogate )
+               {
+                  smooth_sor_face_precomputed_2d( face, level, rhsData, dstData, relax );
+               }
+               else
+               {
+                  smooth_sor_face_surrogate_2d( face, level, rhsData, dstData, relax );
+               }
+            }
+            else // dim == 3
+            {
+               if ( level < min_lvl_for_surrogate )
+               {
+                  smooth_sor_face_precomputed_3d( face, level, rhsData, dstData, relax );
+               }
+               else
+               {
+                  smooth_sor_face_surrogate_3d( face, level, rhsData, dstData, relax );
+               }
+            }
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Face" );
+
+   dst.template communicate< Face, Cell >( level );
+
+   this->timingTree_->start( "Macro-Cell" );
+
+   if ( level >= 2 )
+   {
+      for ( const auto& [cellId, cell] : storage_->getCells() )
+      {
+         const auto bc = dst.getBoundaryCondition().getBoundaryType( cell->getMeshBoundaryFlag() );
+
+         if ( testFlag( bc, flag ) )
+         {
+            auto rhsData = cell->getData( rhs.getCellDataID() )->getPointer( level );
+            auto dstData = cell->getData( dst.getCellDataID() )->getPointer( level );
+
+            if ( level < min_lvl_for_surrogate )
+            {
+               smooth_sor_cell_precomputed_3d( cell, level, rhsData, dstData, relax );
+            }
+            else
+            {
+               smooth_sor_cell_surrogate_3d( cell, level, rhsData, dstData, relax );
+            }
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Cell" );
+
+   this->stopTiming( "SOR" );
 }
 
 template < class P1Form, uint8_t DEGREE >
