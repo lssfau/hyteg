@@ -99,9 +99,9 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    , stencil_face_2d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 2 )
    , stencil_face_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 2 )
    , stencil_cell_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 3 )
-   , surrogate_edge_2d_( storage, maxLevel, 1 )
-   , surrogate_face_2d_( storage, maxLevel, 2 )
-   , surrogate_face_3d_( storage, maxLevel, 2 )
+   , surrogate_edge_2d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 99 : 1 ) // don't initialize if 3D
+   , surrogate_face_2d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 99 : 2 ) // don't initialize if 3D
+   , surrogate_face_3d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 2 : 99 ) // don't initialize if 2D
    , surrogate_cell_3d_( storage, maxLevel, 3 )
    {
       init( downsampling, path_to_svd, needsInverseDiagEntries );
