@@ -23,7 +23,6 @@
 #include <core/DataTypes.h>
 #include <hyteg/indexing/Common.hpp>
 #include <hyteg/types/PointND.hpp>
-#include <vector>
 
 namespace hyteg {
 namespace surrogate {

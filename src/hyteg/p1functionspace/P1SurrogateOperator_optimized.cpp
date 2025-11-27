@@ -2044,6 +2044,473 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply_cell_surrogate_3d( std::shared
 }
 
 template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_precomputed_2d( std::shared_ptr< hyteg::Edge > edge,
+                                                                            uint_t                         lvl,
+                                                                            const real_t* RESTRICT const   rhsData,
+                                                                            real_t* RESTRICT               dstData,
+                                                                            real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+   const auto n_nbr_faces = edge->getNumNeighborFaces();
+   const auto stencilSize = 3 + 2 * n_nbr_faces;
+
+   // indices of neighboring DoF
+   DofIdx dofIdx{};
+   for ( int d = 0; d < stencilSize; ++d )
+   {
+      dofIdx[d] = vertexdof::macroedge::indexFromVertex( lvl, 1, p1::stencil::backConversion[d] );
+   }
+
+   const auto& stencils = stencil_edge_2d_.at( edge->getID() )[lvl];
+
+   // loop over inner vertices on the macro edge
+   for ( uint_t i = 1; i < n - 1; ++i )
+   {
+      const auto& stencil = stencils[i - 1];
+      const auto  dstIdx  = dofIdx[p1::stencil::C];
+
+      // apply stencil
+      auto tmp = rhsData[dstIdx];
+      for ( int d = 1; d < stencilSize; ++d )
+      {
+         tmp -= stencil[d] * dstData[dofIdx[d]];
+         ++dofIdx[d];
+      }
+      tmp *= relax / stencil[p1::stencil::C];
+      dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_precomputed_3d( std::shared_ptr< hyteg::Edge > edge,
+                                                                            uint_t                         lvl,
+                                                                            const real_t* RESTRICT const   rhsData,
+                                                                            real_t* RESTRICT               dstData,
+                                                                            real_t                         relax ) const
+{
+   const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+   const auto n_nbr_faces = edge->getNumNeighborFaces();
+   const auto n_nbr_cells = edge->getNumNeighborCells();
+   const auto stencilSize = hyteg::vertexDoFMacroEdgeStencilMemorySize( lvl, *edge );
+
+   constexpr auto C = stencilDirection::VERTEX_C;
+   constexpr auto W = stencilDirection::VERTEX_W;
+   constexpr auto E = stencilDirection::VERTEX_E;
+
+   // indices of neighboring DoF
+   std::vector< walberla::uint_t > dofIdx( stencilSize );
+   // for simplicity, we keep the old ordering for 3D edges, hence the center is not associated with stencil[0].
+   uint_t centerIdx = vertexdof::macroedge::stencilIndexOnEdge( C );
+   for ( auto& sd : { C, W, E } )
+   {
+      dofIdx[vertexdof::macroedge::stencilIndexOnEdge( sd )] = //
+          vertexdof::macroedge::indexFromVertex( lvl, 1, sd );
+   }
+   for ( uint_t faceIdx = 0; faceIdx < n_nbr_faces; ++faceIdx )
+   {
+      for ( auto& sd : { W, E } )
+      {
+         dofIdx[vertexdof::macroedge::stencilIndexOnNeighborFace( sd, faceIdx )] =
+             vertexdof::macroedge::indexFromVertexOnNeighborFace( lvl, 1, faceIdx, sd );
+      }
+   }
+   for ( uint_t cellIdx = 0; cellIdx < n_nbr_cells; ++cellIdx )
+   {
+      dofIdx[vertexdof::macroedge::stencilIndexOnNeighborCell( cellIdx, n_nbr_faces )] =
+          vertexdof::macroedge::indexFromVertexOnNeighborCell( lvl, 1, cellIdx, n_nbr_faces );
+   }
+
+   const auto& stencils = stencil_edge_3d_.at( edge->getID() )[lvl];
+
+   // loop over inner vertices on the macro edge
+   for ( uint_t i = 1; i < n - 1; ++i )
+   {
+      const auto& stencil = stencils[i - 1];
+      const auto  dstIdx  = dofIdx[centerIdx];
+
+      // apply stencil
+      auto tmp = rhsData[dstIdx];
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         if ( d != centerIdx )
+         {
+            tmp -= stencil[d] * dstData[dofIdx[d]];
+         }
+         ++dofIdx[d];
+      }
+      tmp *= relax / stencil[p1::stencil::C];
+      dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_precomputed_2d( std::shared_ptr< hyteg::Face > face,
+                                                                            uint_t                         lvl,
+                                                                            const real_t* RESTRICT const   rhsData,
+                                                                            real_t* RESTRICT               dstData,
+                                                                            real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+   constexpr auto stencilSize = 7;
+
+   const auto& stencils = stencil_face_2d_.at( face->getID() )[lvl];
+
+   // loop over inner vertices on the macro face
+   uint_t dof = 0;
+   for ( uint_t j = 1; j < n - 2; ++j )
+   {
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
+      }
+
+      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      {
+         const auto& stencil = stencils[dof];
+         const auto  dstIdx  = dofIdx[p1::stencil::C];
+
+         // apply stencil
+         auto tmp = rhsData[dstIdx];
+         for ( int d = 1; d < stencilSize; ++d )
+         {
+            tmp -= stencil[d] * dstData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+         tmp *= relax / stencil[p1::stencil::C];
+         dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+
+         ++dof;
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_precomputed_3d( std::shared_ptr< hyteg::Face > face,
+                                                                            uint_t                         lvl,
+                                                                            const real_t* RESTRICT const   rhsData,
+                                                                            real_t* RESTRICT               dstData,
+                                                                            real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto  n           = levelinfo::num_microvertices_per_edge( lvl );
+   const auto  n_nbr_cells = face->getNumNeighborCells();
+   const auto  stencilSize = 7 + 4 * n_nbr_cells;
+   const auto& offsets     = offsets_face_3d_.at( face->getID() );
+
+   const auto& stencils = stencil_face_3d_.at( face->getID() )[lvl];
+
+   // loop over inner vertices on the macro face
+   uint_t dof = 0;
+   for ( uint_t j = 1; j < n - 2; ++j )
+   {
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < 7; ++d )
+      {
+         // neighbors on face
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y() );
+      }
+      for ( int d = 7; d < 11; ++d )
+      {
+         // neighbors on first nbr cell
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 0 );
+      }
+      for ( int d = 11; d < stencilSize; ++d )
+      {
+         // neighbors on second nbr cell
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 1 );
+      }
+
+      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      {
+         const auto& stencil = stencils[dof];
+         const auto  dstIdx  = dofIdx[p1::stencil::C];
+
+         // apply stencil
+         auto tmp = rhsData[dstIdx];
+         for ( int d = 1; d < stencilSize; ++d )
+         {
+            tmp -= stencil[d] * dstData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+         tmp *= relax / stencil[p1::stencil::C];
+         dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+
+         ++dof;
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_cell_precomputed_3d( std::shared_ptr< hyteg::Cell > cell,
+                                                                            uint_t                         lvl,
+                                                                            const real_t* RESTRICT const   rhsData,
+                                                                            real_t* RESTRICT               dstData,
+                                                                            real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+   constexpr auto stencilSize = 15;
+
+   const auto& stencils = stencil_cell_3d_.at( cell->getID() )[lvl];
+
+   // loop over inner vertices on the macro cell
+   uint_t dof = 0;
+   for ( uint_t k = 1; k < n - 3; ++k )
+   {
+      for ( uint_t j = 1; j < n - 2 - k; ++j )
+      {
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] = vertexdof::macrocell::indexFromVertex( lvl, 1, j, k, p1::stencil::backConversion[d] );
+         }
+
+         for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+         {
+            const auto& stencil = stencils[dof];
+            const auto  dstIdx  = dofIdx[p1::stencil::C];
+
+            // apply stencil
+            auto tmp = rhsData[dstIdx];
+            for ( int d = 1; d < stencilSize; ++d )
+            {
+               tmp -= stencil[d] * dstData[dofIdx[d]];
+               ++dofIdx[d];
+            }
+            tmp *= relax / stencil[p1::stencil::C];
+            dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+
+            ++dof;
+         }
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge,
+                                                                          uint_t                         lvl,
+                                                                          const real_t* RESTRICT const   rhsData,
+                                                                          real_t* RESTRICT               dstData,
+                                                                          real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto n           = levelinfo::num_microvertices_per_edge( lvl );
+   const auto n_nbr_faces = edge->getNumNeighborFaces();
+   const auto stencilSize = 3 + 2 * n_nbr_faces;
+
+   // indices of neighboring DoF
+   DofIdx dofIdx{};
+   for ( int d = 0; d < stencilSize; ++d )
+   {
+      dofIdx[d] = vertexdof::macroedge::indexFromVertex( lvl, 1, p1::stencil::backConversion[d] );
+   }
+
+   const PolyStencil< 2, 1 > surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
+   const PolyDomain          X( lvl );
+
+   // loop over inner vertices on the macro edge
+   for ( uint_t i = 1; i < n - 1; ++i )
+   {
+      // evaluate polynomial
+      const auto x       = X[i];
+      const auto stencil = surrogate.eval( x );
+
+      const auto dstIdx = dofIdx[p1::stencil::C];
+
+      // apply stencil
+      auto tmp = rhsData[dstIdx];
+      for ( int d = 1; d < stencilSize; ++d )
+      {
+         tmp -= stencil[d] * dstData[dofIdx[d]];
+         ++dofIdx[d];
+      }
+      tmp *= relax / stencil[p1::stencil::C];
+      dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_2d( std::shared_ptr< hyteg::Face > face,
+                                                                          uint_t                         lvl,
+                                                                          const real_t* RESTRICT const   rhsData,
+                                                                          real_t* RESTRICT               dstData,
+                                                                          real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+   constexpr auto stencilSize = 7;
+
+   const PolyStencil< 2, 2 > surrogate = surrogate_face_2d_.at( face->getID() )[lvl];
+   const PolyDomain          X( lvl );
+
+   // loop over inner vertices on the macro face
+   for ( uint_t j = 1; j < n - 2; ++j )
+   {
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         dofIdx[d] = vertexdof::macroface::indexFromVertex( lvl, 1, j, p1::stencil::backConversion[d] );
+      }
+
+      // restrict polynomial to 1D
+      const auto y          = X[j];
+      const auto surrogate1 = surrogate.fix_y( y );
+
+      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      {
+         // evaluate polynomial
+         const auto x       = X[i];
+         const auto stencil = surrogate1.eval( x );
+
+         const auto dstIdx = dofIdx[p1::stencil::C];
+
+         // apply stencil
+         auto tmp = rhsData[dstIdx];
+         for ( int d = 1; d < stencilSize; ++d )
+         {
+            tmp -= stencil[d] * dstData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+         tmp *= relax / stencil[p1::stencil::C];
+         dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_3d( std::shared_ptr< hyteg::Face > face,
+                                                                          uint_t                         lvl,
+                                                                          const real_t* RESTRICT const   rhsData,
+                                                                          real_t* RESTRICT               dstData,
+                                                                          real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto  n           = levelinfo::num_microvertices_per_edge( lvl );
+   const auto  n_nbr_cells = face->getNumNeighborCells();
+   const auto  stencilSize = 7 + 4 * n_nbr_cells;
+   const auto& offsets     = offsets_face_3d_.at( face->getID() );
+
+   const PolyStencil< 3, 2 > surrogate = surrogate_face_3d_.at( face->getID() )[lvl];
+   const PolyDomain          X( lvl );
+
+   // loop over inner vertices on the macro face
+   for ( uint_t j = 1; j < n - 2; ++j )
+   {
+      // indices of neighboring DoF
+      DofIdx dofIdx{};
+      for ( int d = 0; d < 7; ++d )
+      {
+         // neighbors on face
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y() );
+      }
+      for ( int d = 7; d < 11; ++d )
+      {
+         // neighbors on first nbr cell
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 0 );
+      }
+      for ( int d = 11; d < stencilSize; ++d )
+      {
+         // neighbors on second nbr cell
+         dofIdx[d] = vertexdof::macroface::index( lvl, 1 + offsets[d].x(), j + offsets[d].y(), 1 );
+      }
+
+      // restrict polynomial to 1D
+      const auto y          = X[j];
+      const auto surrogate1 = surrogate.fix_y( y );
+
+      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      {
+         // evaluate polynomial
+         const auto x       = X[i];
+         const auto stencil = surrogate1.eval( x );
+
+         const auto dstIdx = dofIdx[p1::stencil::C];
+
+         // apply stencil
+         auto tmp = rhsData[dstIdx];
+         for ( int d = 1; d < stencilSize; ++d )
+         {
+            tmp -= stencil[d] * dstData[dofIdx[d]];
+            ++dofIdx[d];
+         }
+         tmp *= relax / stencil[p1::stencil::C];
+         dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
+void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell,
+                                                                          uint_t                         lvl,
+                                                                          const real_t* RESTRICT const   rhsData,
+                                                                          real_t* RESTRICT               dstData,
+                                                                          real_t                         relax ) const
+{
+   static_assert( p1::stencil::C == 0, "SOR-update assumes stencil[0] is the center weight!" );
+
+   const auto     n           = levelinfo::num_microvertices_per_edge( lvl );
+   constexpr auto stencilSize = 15;
+
+   const PolyStencil< 3, 3 > surrogate = surrogate_cell_3d_.at( cell->getID() )[lvl];
+   const PolyDomain          X( lvl );
+
+   // loop over inner vertices on the macro cell
+   for ( uint_t k = 1; k < n - 3; ++k )
+   {
+      // restrict polynomial to 2D
+      const auto z          = X[k];
+      const auto surrogate2 = surrogate.fix_z( z );
+
+      for ( uint_t j = 1; j < n - 2 - k; ++j )
+      {
+         // indices of neighboring DoF
+         DofIdx dofIdx{};
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] = vertexdof::macrocell::indexFromVertex( lvl, 1, j, k, p1::stencil::backConversion[d] );
+         };
+
+         // restrict polynomial to 1D
+         const auto y          = X[j];
+         const auto surrogate1 = surrogate2.fix_y( y );
+
+         for ( uint_t i = 1; i < n - 1 - j - k; ++i )
+         {
+            // evaluate polynomial
+            const auto x       = X[i];
+            const auto stencil = surrogate1.eval( x );
+
+            const auto dstIdx = dofIdx[p1::stencil::C];
+
+            // apply stencil
+            auto tmp = rhsData[dstIdx];
+            for ( int d = 1; d < stencilSize; ++d )
+            {
+               tmp -= stencil[d] * dstData[dofIdx[d]];
+               ++dofIdx[d];
+            }
+            tmp *= relax / stencil[p1::stencil::C];
+            dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+         }
+      }
+   }
+}
+
+template < class P1Form, uint8_t DEGREE >
 void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool invert )
 {
    auto& diagonal = ( invert ) ? inverseDiagonalValues_ : diagonalValues_;

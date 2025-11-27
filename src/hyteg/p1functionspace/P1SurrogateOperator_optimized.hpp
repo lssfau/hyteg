@@ -221,6 +221,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    std::map< PrimitiveID, real_t > computeSurrogateError2D( uint_t level ) const
    {
+      WALBERLA_ABORT( "Not implemented." );
       std::map< PrimitiveID, real_t > errors;
       // todo
       return errors;
@@ -228,6 +229,7 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
 
    std::map< PrimitiveID, real_t > computeSurrogateError3D( uint_t level ) const
    {
+      WALBERLA_ABORT( "Not implemented." );
       std::map< PrimitiveID, real_t > errors;
       // todo
       return errors;
@@ -301,6 +303,60 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                                  const real_t* RESTRICT const   srcData,
                                  real_t* RESTRICT               dstData,
                                  UpdateType                     updateType ) const;
+
+   void smooth_sor_edge_precomputed_2d( std::shared_ptr< hyteg::Edge > edge,
+                                        uint_t                         lvl,
+                                        const real_t* RESTRICT const   rhsData,
+                                        real_t* RESTRICT               dstData,
+                                        real_t                         relax ) const;
+
+   void smooth_sor_edge_precomputed_3d( std::shared_ptr< hyteg::Edge > edge,
+                                        uint_t                         lvl,
+                                        const real_t* RESTRICT const   rhsData,
+                                        real_t* RESTRICT               dstData,
+                                        real_t                         relax ) const;
+
+   void smooth_sor_face_precomputed_2d( std::shared_ptr< hyteg::Face > face,
+                                        uint_t                         lvl,
+                                        const real_t* RESTRICT const   rhsData,
+                                        real_t* RESTRICT               dstData,
+                                        real_t                         relax ) const;
+
+   void smooth_sor_face_precomputed_3d( std::shared_ptr< hyteg::Face > face,
+                                        uint_t                         lvl,
+                                        const real_t* RESTRICT const   rhsData,
+                                        real_t* RESTRICT               dstData,
+                                        real_t                         relax ) const;
+
+   void smooth_sor_cell_precomputed_3d( std::shared_ptr< hyteg::Cell > cell,
+                                        uint_t                         lvl,
+                                        const real_t* RESTRICT const   rhsData,
+                                        real_t* RESTRICT               dstData,
+                                        real_t                         relax ) const;
+
+   void smooth_sor_edge_surrogate_2d( std::shared_ptr< hyteg::Edge > edge,
+                                      uint_t                         lvl,
+                                      const real_t* RESTRICT const   rhsData,
+                                      real_t* RESTRICT               dstData,
+                                      real_t                         relax ) const;
+
+   void smooth_sor_face_surrogate_2d( std::shared_ptr< hyteg::Face > face,
+                                      uint_t                         lvl,
+                                      const real_t* RESTRICT const   rhsData,
+                                      real_t* RESTRICT               dstData,
+                                      real_t                         relax ) const;
+
+   void smooth_sor_face_surrogate_3d( std::shared_ptr< hyteg::Face > face,
+                                      uint_t                         lvl,
+                                      const real_t* RESTRICT const   rhsData,
+                                      real_t* RESTRICT               dstData,
+                                      real_t                         relax ) const;
+
+   void smooth_sor_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell,
+                                      uint_t                         lvl,
+                                      const real_t* RESTRICT const   rhsData,
+                                      real_t* RESTRICT               dstData,
+                                      real_t                         relax ) const;
 
    void computeDiagonalOperatorValues( bool invert );
 
