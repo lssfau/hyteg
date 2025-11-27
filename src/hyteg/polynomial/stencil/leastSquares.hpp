@@ -86,6 +86,24 @@ class LeastSquares
 
  private:
    /**
+    * @brief Calculates the total number of sample points for the least squares approximation, using
+    * the given downsampling factor and assuming that all d+1 corner points are sampled even if they
+    * aren't part of this downsampling pattern.
+    *
+    * @param dim The dimension of the domain (e.g., 2 for 2D, 3 for 3D).
+    * @param lvl The refinement level of the grid.
+    * @param downsampling The downsampling factor used to reduce the number of points.
+    /// return The total number of sample points as a uint_t.
+    */
+   static const uint_t n_sample_points( uint_t dim, uint_t lvl, uint_t downsampling )
+   {
+      const auto n_vol              = n_primitive( dim, lvl, downsampling );
+      const auto n_x                = n_edge( lvl, 1, dim - 1 );
+      const bool additional_corners = ( n_x - 1 ) % downsampling > 0; // add corner points if not included already
+      return additional_corners ? n_vol + dim : n_vol;
+   }
+
+   /**
     * @class Iterator
     * @brief Iterator class to iterate over sample points
     */
@@ -103,8 +121,9 @@ class LeastSquares
       , _i( idx_t( 1 ) )
       , _j( idx_t( ( dim > 1 ) ? 1 : 0 ) )
       , _k( idx_t( ( dim > 2 ) ? 1 : 0 ) )
+      , _i_max( idx_t( n_edge( lvl, 1, dim - 1 ) + 1 ) )
       , _ijk_max( idx_t( n_edge( lvl, 1 ) + 1 ) )
-      , _n_max( n_primitive( dim, lvl, downsampling ) )
+      , _n_max( n_sample_points( dim, lvl, downsampling ) )
       , _stride( downsampling )
       {}
       /**
@@ -115,14 +134,26 @@ class LeastSquares
       inline Iterator& operator++()
       {
          _i += _stride;
+         if ( _i > _i_max && _i - _stride < _i_max )
+         {
+            _i = _i_max; // add corner point (n,1,1)
+         }
          if ( _i + _j + _k > _ijk_max )
          {
             _i = 1;
             _j += _stride;
+            if ( _j > _i_max && _j - _stride < _i_max )
+            {
+               _i = _i_max; // add corner point (1,n,1)
+            }
             if ( _i + _j + _k > _ijk_max )
             {
                _j = 1;
                _k += _stride;
+               if ( _k > _i_max && _k - _stride < _i_max )
+               {
+                  _i = _i_max; // add corner point (1,1,n)
+               }
             }
          }
          ++_n;
@@ -175,6 +206,7 @@ class LeastSquares
       idx_t _j; // index of y-coordinate
       idx_t _k; // index of z-coordinate
 
+      idx_t  _i_max;   // maximum admissible value for i, j, and k
       idx_t  _ijk_max; // maximum admissible value for i+j+k
       uint_t _n_max;   // number of sample points
       uint_t _stride;  // downsampling factor
@@ -317,7 +349,7 @@ class LeastSquares
    , _q( degree )
    , _lvl( lvl )
    , _downsampling( adjust_downsampling( downsampling ) )
-   , rows( n_primitive( _dim, _lvl, _downsampling ) )
+   , rows( n_sample_points( _dim, _lvl, _downsampling ) )
    , cols( hyteg::surrogate::polynomial::dimP( _dim, _q ) )
    , A( rows, cols )
    , Uh( cols, rows )

@@ -20,6 +20,8 @@
 
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 
+#include <core/logging/Logging.h>
+
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
@@ -154,7 +156,7 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 2D tests
    // -------------------
-   for ( uint_t lvl = 3; lvl <= 4; ++lvl )
+   for ( uint_t lvl = 0; lvl <= 5; ++lvl )
    {
       P1SurrogateOperatorTest< 1 >( storage, k1, lvl );
       P1SurrogateOperatorTest< 2 >( storage, k2, lvl );
@@ -173,7 +175,7 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 3D tests
    // -------------------
-   for ( uint_t lvl = 3; lvl <= 4; ++lvl )
+   for ( uint_t lvl = 0; lvl <= 5; ++lvl )
    {
       P1SurrogateOperatorTest< 1 >( storage3d, k1, lvl );
       P1SurrogateOperatorTest< 2 >( storage3d, k2, lvl );
