@@ -13,6 +13,7 @@ def check():
     with open("doxygen.config") as f:
         s = f.read()
     in_docu = re.findall(r"images/(\S*\.png)", s)
+    in_docu += re.findall(r"images/(\S*\.jpg)", s)
 
     for f in in_docu:
         if f not in in_folder:

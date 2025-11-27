@@ -8,3 +8,6 @@
 
 * \subpage BH.03_Indexing
     - Iterating over simulation data
+
+* \subpage BH.04_Local_Primitives
+    - Understanding and working with process-local primitive information
