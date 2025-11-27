@@ -2219,6 +2219,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_precomputed_2d( std:
 
       // apply stencil
       auto tmp = rhsData[dstIdx];
+      ++dofIdx[0];
       for ( int d = 1; d < stencilSize; ++d )
       {
          tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2286,7 +2287,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_precomputed_3d( std:
          }
          ++dofIdx[d];
       }
-      tmp *= relax / stencil[p1::stencil::C];
+      tmp *= relax / stencil[centerIdx];
       dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
    }
 }
@@ -2323,6 +2324,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_precomputed_2d( std:
 
          // apply stencil
          auto tmp = rhsData[dstIdx];
+         ++dofIdx[0];
          for ( int d = 1; d < stencilSize; ++d )
          {
             tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2381,6 +2383,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_precomputed_3d( std:
 
          // apply stencil
          auto tmp = rhsData[dstIdx];
+         ++dofIdx[0];
          for ( int d = 1; d < stencilSize; ++d )
          {
             tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2428,6 +2431,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_cell_precomputed_3d( std:
 
             // apply stencil
             auto tmp = rhsData[dstIdx];
+            ++dofIdx[0];
             for ( int d = 1; d < stencilSize; ++d )
             {
                tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2476,6 +2480,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_surrogate_2d( std::s
 
       // apply stencil
       auto tmp = rhsData[dstIdx];
+      ++dofIdx[0];
       for ( int d = 1; d < stencilSize; ++d )
       {
          tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2525,6 +2530,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_2d( std::s
 
          // apply stencil
          auto tmp = rhsData[dstIdx];
+         ++dofIdx[0];
          for ( int d = 1; d < stencilSize; ++d )
          {
             tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2588,6 +2594,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_3d( std::s
 
          // apply stencil
          auto tmp = rhsData[dstIdx];
+         ++dofIdx[0];
          for ( int d = 1; d < stencilSize; ++d )
          {
             tmp -= stencil[d] * dstData[dofIdx[d]];
@@ -2644,6 +2651,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_cell_surrogate_3d( std::s
 
             // apply stencil
             auto tmp = rhsData[dstIdx];
+            ++dofIdx[0];
             for ( int d = 1; d < stencilSize; ++d )
             {
                tmp -= stencil[d] * dstData[dofIdx[d]];

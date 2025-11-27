@@ -941,15 +941,18 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Edge" );
 
-      for ( auto& it : storage_->getEdges() )
+      if ( level >= 1 )
       {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-
-         if ( testFlag( edgeBC, flag ) )
+         for ( auto& it : storage_->getEdges() )
          {
-            smooth_sor_edge( edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), level, relax, backwards );
+            Edge& edge = *it.second;
+
+            const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+            if ( testFlag( edgeBC, flag ) )
+            {
+               smooth_sor_edge( edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), level, relax, backwards );
+            }
          }
       }
 
@@ -965,39 +968,41 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Face" );
 
-      for ( auto& it : storage_->getFaces() )
+      if ( level >= 2 )
       {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-
-         if ( testFlag( faceBC, flag ) )
+         for ( auto& it : storage_->getFaces() )
          {
-            if ( storage_->hasGlobalCells() )
+            Face& face = *it.second;
+
+            const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+
+            if ( testFlag( faceBC, flag ) )
             {
-               if ( globalDefines::useGeneratedKernels )
+               if ( storage_->hasGlobalCells() )
                {
-                  smooth_sor_face3D_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  if ( globalDefines::useGeneratedKernels )
+                  {
+                     smooth_sor_face3D_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
+                  else
+                  {
+                     smooth_sor_face3D( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
                }
                else
                {
-                  smooth_sor_face3D( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
-               }
-            }
-            else
-            {
-               if ( globalDefines::useGeneratedKernels )
-               {
-                  smooth_sor_face_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
-               }
-               else
-               {
-                  smooth_sor_face( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  if ( globalDefines::useGeneratedKernels )
+                  {
+                     smooth_sor_face_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
+                  else
+                  {
+                     smooth_sor_face( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
                }
             }
          }
       }
-
       this->timingTree_->stop( "Macro-Face" );
    }
 
@@ -1010,21 +1015,24 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Cell" );
 
-      for ( auto& it : storage_->getCells() )
+      if ( level >= 2 )
       {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-
-         if ( testFlag( cellBC, flag ) )
+         for ( auto& it : storage_->getCells() )
          {
-            if ( globalDefines::useGeneratedKernels )
+            Cell& cell = *it.second;
+
+            const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+
+            if ( testFlag( cellBC, flag ) )
             {
-               smooth_sor_cell_generated( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
-            }
-            else
-            {
-               smooth_sor_cell( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               if ( globalDefines::useGeneratedKernels )
+               {
+                  smooth_sor_cell_generated( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               }
+               else
+               {
+                  smooth_sor_cell( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               }
             }
          }
       }
