@@ -186,9 +186,9 @@ using namespace hyteg;
 using namespace terraneo;
 
 using P2ToP1ElementwiseKMass = operatorgeneration::P2ToP1ElementwiseKMass;
-// using P1ToP2ElementwiseKMass = operatorgeneration::P1ToP2ElementwiseKMass;
-
 using P2TransportTALAOperator = terraneo::P2TransportOperator;
+
+using OutputWriter_T = AdiosWriter;
 
 namespace hyteg {
 
@@ -617,17 +617,14 @@ class TALASimulation
          outputFilename.append( "_noMMOC" );
       }
 
-      vtkOutput = std::make_shared< VTKOutput >( outputPath, outputFilename, storage );
+      vtkOutput = std::make_shared< OutputWriter_T >( outputPath, outputFilename, storage );
 
-      adiosXmlConfig = mainConf.getParameter< std::string >( "adiosXmlConfig" );
-      adios2Output   = std::make_shared< AdiosWriter >( outputPath, outputFilename, adiosXmlConfig, storage );
-
-      adios2Output->add( *u );
-      adios2Output->add( *TDev );
-      adios2Output->add( *TRef );
-      adios2Output->add( *TRefDev );
-      adios2Output->add( *diffusionTermCoeff );
-      adios2Output->add( *rhoP2 );
+      vtkOutput->add( *u );
+      vtkOutput->add( *TDev );
+      vtkOutput->add( *TRef );
+      vtkOutput->add( *TRefDev );
+      vtkOutput->add( *diffusionTermCoeff );
+      vtkOutput->add( *rhoP2 );
 
       storeCheckpoint     = mainConf.getParameter< bool >( "storeCheckpoint" );
       startFromCheckpoint = mainConf.getParameter< bool >( "startFromCheckpoint" );
@@ -644,7 +641,7 @@ class TALASimulation
    void solveT();
    void step();
    void solve();
-   void writeVTK( uint_t timestep = 0 ) { adios2Output->write( maxLevel, timestep ); }
+   void writeVTK( uint_t timestep = 0 ) { vtkOutput->write( maxLevel, timestep ); }
 
  private:
    const walberla::Config::BlockHandle& mainConf;
@@ -707,17 +704,16 @@ class TALASimulation
    std::function< void( const Point3D&, Point3D& ) > normalsFS;
 
    // Output
-
-   std::shared_ptr< VTKOutput > vtkOutput;
-
    uint_t      storeCheckpointFreq = 1000U;
    bool        storeCheckpoint = false, startFromCheckpoint = false;
    std::string cpFilename, cpPath, cpStartFilename, adiosXmlConfig;
 
-   std::shared_ptr< AdiosWriter > adios2Output;
+   std::shared_ptr< OutputWriter_T > vtkOutput;
 
+#ifdef HYTEG_BUILD_WITH_ADIOS2
    std::shared_ptr< AdiosCheckpointExporter > adios2CheckpointExporter;
    std::shared_ptr< AdiosCheckpointImporter > adios2CheckpointImporter;
+#endif
 };
 
 void TALASimulation::solveU()
@@ -818,10 +814,14 @@ void TALASimulation::solve()
    /// [InitialSolveOrCheckpoint]
    if ( startFromCheckpoint )
    {
+#ifdef HYTEG_BUILD_WITH_ADIOS2
       adios2CheckpointImporter = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
 
       adios2CheckpointImporter->restoreFunction( u->uvw() );
       adios2CheckpointImporter->restoreFunction( *TDev );
+#else
+      WALBERLA_ABORT( "ADIOS2 import requested in prm file but ADIOS2 was not compiled!" );
+#endif
    }
    else
    {
@@ -877,6 +877,7 @@ void TALASimulation::solve()
 
       if ( iTimeStep % storeCheckpointFreq == 0 )
       {
+#ifdef HYTEG_BUILD_WITH_ADIOS2
          WALBERLA_LOG_INFO_ON_ROOT( "Storing Checkpoint!" );
 
          adios2CheckpointExporter = std::make_shared< AdiosCheckpointExporter >( adiosXmlConfig );
@@ -885,6 +886,9 @@ void TALASimulation::solve()
          adios2CheckpointExporter->registerFunction( *TDev, minLevel, maxLevel );
 
          adios2CheckpointExporter->storeCheckpoint( cpPath, cpFilename );
+#else 
+         WALBERLA_ABORT( "ADIOS2 Checkpoint output requested in prm file but ADIOS2 was not compiled!" );
+#endif
       }
    }
 }
