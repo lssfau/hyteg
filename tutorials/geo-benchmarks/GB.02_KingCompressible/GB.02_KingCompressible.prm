@@ -64,6 +64,8 @@ Parameters
   cpFilename KingSquare_Checkpoint;
   cpStartFilename KingSquare_Checkpoint;
 
+  useAdios2 true;
+  
   outputPath ./output;
   outputFilename KingSquare;
   vtkWriteFrequency 25;

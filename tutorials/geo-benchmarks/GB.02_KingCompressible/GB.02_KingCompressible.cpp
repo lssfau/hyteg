@@ -50,10 +50,10 @@
 #include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
 
-#ifdef HYTEG_BUILD_WITH_ADIOS2
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#if defined( HYTEG_BUILD_WITH_ADIOS2 )
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #endif
 
 /**
@@ -185,10 +185,8 @@ using namespace hyteg;
 
 using namespace terraneo;
 
-using P2ToP1ElementwiseKMass = operatorgeneration::P2ToP1ElementwiseKMass;
+using P2ToP1ElementwiseKMass  = operatorgeneration::P2ToP1ElementwiseKMass;
 using P2TransportTALAOperator = terraneo::P2TransportOperator;
-
-using OutputWriter_T = AdiosWriter;
 
 namespace hyteg {
 
@@ -339,6 +337,7 @@ class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P
    real_t k_ = 1.0;
 };
 
+template < typename OutputWriter_T >
 class TALASimulation
 {
  public:
@@ -710,13 +709,14 @@ class TALASimulation
 
    std::shared_ptr< OutputWriter_T > vtkOutput;
 
-#ifdef HYTEG_BUILD_WITH_ADIOS2
+#if defined( HYTEG_BUILD_WITH_ADIOS2 )
    std::shared_ptr< AdiosCheckpointExporter > adios2CheckpointExporter;
    std::shared_ptr< AdiosCheckpointImporter > adios2CheckpointImporter;
 #endif
 };
 
-void TALASimulation::solveU()
+template < typename OutputWriter_T >
+void TALASimulation< OutputWriter_T >::solveU()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
 
@@ -760,7 +760,8 @@ void TALASimulation::solveU()
 }
 
 /// [TransportSolverLambdaFunction]
-void TALASimulation::solveT()
+template < typename OutputWriter_T >
+void TALASimulation< OutputWriter_T >::solveT()
 {
    transportTALAOp->calculateTimestep( params.cflMax );
 
@@ -786,7 +787,8 @@ void TALASimulation::solveT()
 }
 /// [TransportSolverLambdaFunction]
 
-void TALASimulation::step()
+template < typename OutputWriter_T >
+void TALASimulation< OutputWriter_T >::step()
 {
    real_t vMax = u->uvw().getMaxComponentMagnitude( maxLevel, All );
    real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
@@ -804,7 +806,8 @@ void TALASimulation::step()
    uPrev->uvw().assign( { 1.0 }, { u->uvw() }, maxLevel, All );
 }
 
-void TALASimulation::solve()
+template < typename OutputWriter_T >
+void TALASimulation< OutputWriter_T >::solve()
 {
    TDev->interpolate( tempIni, maxLevel, Inner | NeumannBoundary );
    TDev->interpolate( tempDevBC, maxLevel, DirichletBoundary );
@@ -814,7 +817,7 @@ void TALASimulation::solve()
    /// [InitialSolveOrCheckpoint]
    if ( startFromCheckpoint )
    {
-#ifdef HYTEG_BUILD_WITH_ADIOS2
+#if defined( HYTEG_BUILD_WITH_ADIOS2 )
       adios2CheckpointImporter = std::make_shared< AdiosCheckpointImporter >( cpPath, cpStartFilename, adiosXmlConfig );
 
       adios2CheckpointImporter->restoreFunction( u->uvw() );
@@ -877,7 +880,7 @@ void TALASimulation::solve()
 
       if ( iTimeStep % storeCheckpointFreq == 0 )
       {
-#ifdef HYTEG_BUILD_WITH_ADIOS2
+#if defined( HYTEG_BUILD_WITH_ADIOS2 )
          WALBERLA_LOG_INFO_ON_ROOT( "Storing Checkpoint!" );
 
          adios2CheckpointExporter = std::make_shared< AdiosCheckpointExporter >( adiosXmlConfig );
@@ -886,7 +889,7 @@ void TALASimulation::solve()
          adios2CheckpointExporter->registerFunction( *TDev, minLevel, maxLevel );
 
          adios2CheckpointExporter->storeCheckpoint( cpPath, cpFilename );
-#else 
+#else
          WALBERLA_ABORT( "ADIOS2 Checkpoint output requested in prm file but ADIOS2 was not compiled!" );
 #endif
       }
@@ -947,9 +950,20 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "\n\nMacroFaces = %d, nMacroPrimitives = %d\n", nMacroFaces, nMacroPrimitives ) );
 
-   TALASimulation simulation( mainConf, storage, minLevel, maxLevel );
-
-   simulation.solve();
+   if ( mainConf.getParameter< bool >( "useAdios2" ) )
+   {
+#if defined( HYTEG_BUILD_WITH_ADIOS2 )
+      TALASimulation< AdiosWriter > simulation( mainConf, storage, minLevel, maxLevel );
+      simulation.solve();
+#else
+      WALBERLA_ABORT( "ADIOS2 output requested in prm file but ADIOS2 was not compiled!" );
+#endif
+   }
+   else
+   {
+      TALASimulation< VTKOutput > simulation( mainConf, storage, minLevel, maxLevel );
+      simulation.solve();
+   }
 
    return 0;
 }
