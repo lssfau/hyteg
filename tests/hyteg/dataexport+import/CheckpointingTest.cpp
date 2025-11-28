@@ -25,7 +25,9 @@
 #include "core/timing/all.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter_v03.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -155,7 +157,7 @@ void testPrimitiveEnumeration( bool beVerbose = false )
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto [localFaceIndices, numGlobalFaces] = adiosCheckpointHelpers::enumerateFaces( storage );
+   auto [localFaceIndices, numGlobalFaces] = adiosCheckpointHelpers_v03::enumerateFaces( storage );
 
    // perform some basic counting checks
    WALBERLA_CHECK_EQUAL( numGlobalFaces, 12 );
@@ -186,7 +188,7 @@ void testPrimitiveEnumeration( bool beVerbose = false )
    loadbalancing::roundRobin( setupStorage );
    storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto [localCellIndices, numGlobalCells] = adiosCheckpointHelpers::enumerateCells( storage );
+   auto [localCellIndices, numGlobalCells] = adiosCheckpointHelpers_v03::enumerateCells( storage );
 
    // perform some basic counting checks
    WALBERLA_CHECK_EQUAL( numGlobalCells, 24 );
@@ -207,6 +209,44 @@ void testPrimitiveEnumeration( bool beVerbose = false )
    WALBERLA_LOG_INFO( "" << sstr.str() );
 }
 
+void storeCheckpoint_v03( std::string filePath, std::string fileName )
+{
+   std::string           meshFileName{ prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) };
+   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = 3;
+
+   P1Function< real_t >  funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
+   P2Function< real_t >  funcP2( "P2_Test_Function", storage, minLevel, maxLevel );
+   P2Function< int64_t > intFunc( "P2_Test_Function<int64>", storage, minLevel, maxLevel );
+
+   P1VectorFunction< real_t > funcP1Vec( "P1_Test_Vector_Function", storage, minLevel, maxLevel );
+   P2VectorFunction< real_t > funcP2Vec( "P2_Test_Vector_Function", storage, minLevel, maxLevel );
+
+   P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes Function", storage, minLevel, maxLevel );
+
+   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   {
+      funcP1Vec.interpolate( { real_c( 1 ), real_c( 2 ), real_c( 3 ) }, lvl );
+   }
+
+   AdiosCheckpointExporter_v03 checkpointer( "" );
+   checkpointer.registerFunction( funcP1, minLevel, maxLevel );
+   checkpointer.registerFunction( funcP2, minLevel, maxLevel );
+   checkpointer.registerFunction( intFunc, maxLevel, maxLevel );
+   checkpointer.registerFunction( funcP1Vec, minLevel, maxLevel );
+   checkpointer.registerFunction( funcP2Vec, minLevel, maxLevel );
+   checkpointer.registerFunction( stokesFunc, maxLevel, maxLevel );
+
+   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = { { "MeshFile", meshFileName } };
+
+   checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
@@ -215,9 +255,18 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::INFO );
    walberla::MPIManager::instance()->useWorldComm();
 
+   WALBERLA_LOG_INFO_ON_ROOT( "**********************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Enumerating Faces and/or Cells ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "**********************************************" );
    testPrimitiveEnumeration( true );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 2) ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
    storeCheckpoint( ".", "CheckpointingTest.bp" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 3) ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
+   storeCheckpoint_v03( ".", "CheckpointingTest_v03.bp" );
 }

@@ -23,9 +23,10 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/checkpointrestore/CheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 #include "hyteg/functions/FEFunctionRegistry.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -46,14 +47,14 @@ using walberla::uint_t;
 /// - P1Function and P1VectorFunction
 /// - P2Function and P2VectorFunction
 /// - P2P1TaylorHoodFunction
-class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExporter >
+class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointExporter_v03 >
 {
  public:
 #ifdef HYTEG_BUILD_WITH_MPI
 
    /// \param configFile        name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
    /// \param comm              MPI Communicator, defaults to the HyTeG standard communicator
-   AdiosCheckpointExporter( std::string configFile, MPI_Comm comm = walberla::MPIManager::instance()->comm() )
+   AdiosCheckpointExporter_v03( std::string configFile, MPI_Comm comm = walberla::MPIManager::instance()->comm() )
    {
       // setup central ADIOS2 interface object
       if ( configFile.empty() )
@@ -69,7 +70,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
 #else
 
    /// \param configFile        name of a file in XML or YAML format with runtime configuration parameters for ADIOS2
-   AdiosCheckpointExporter( std::string configFile )
+   AdiosCheckpointExporter_v03( std::string configFile )
    {
       // setup central ADIOS2 interface object
       if ( configFile.empty() )
@@ -445,26 +446,51 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
          {
             if ( exportType == ExportType::DEFINE_AND_EXPORT || exportType == ExportType::ONLY_DEFINE )
             {
+               // enumerate primitives, if necessary
+               globallyEnumeratePrimitives( function.getStorage() );
+
                // first define the variable
-               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                   io,
-                   engine,
-                   function,
-                   functionMinLevel_[function.getFunctionName()],
-                   functionMaxLevel_[function.getFunctionName()],
-                   adiosCheckpointHelpers::generateVariables< func_t, value_t > );
+               for ( uint_t level = functionMinLevel_[function.getFunctionName()];
+                     level <= functionMaxLevel_[function.getFunctionName()];
+                     ++level )
+               {
+                  uint_t globalNumberOfHighestDimPrimitives = function.getStorage()->hasGlobalCells() ?
+                                                                  numFacesAndCellsGlobally_.second :
+                                                                  numFacesAndCellsGlobally_.first;
+                  WALBERLA_ASSERT( globalNumberOfHighestDimPrimitives != 0u, "Severe problem detected!" );
+                  adiosCheckpointHelpers_v03::generateVariables( io, function, level, globalNumberOfHighestDimPrimitives );
+               }
             }
 
             if ( exportType == ExportType::DEFINE_AND_EXPORT || exportType == ExportType::ONLY_EXPORT )
             {
+               // as we only store data for the highest dimensional primitives we need to make sure
+               // that their halos are up-to-date
+               for ( uint_t level = functionMinLevel_[function.getFunctionName()];
+                     level <= functionMaxLevel_[function.getFunctionName()];
+                     ++level )
+               {
+                  if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                                 std::is_same_v< func_t< value_t >, P2Function< value_t > > )
+                  {
+                     communication::syncFunctionBetweenPrimitives( function, level, communication::syncDirection_t::LOW2HIGH );
+                  }
+                  else
+                  {
+                     communication::syncVectorFunctionBetweenPrimitives( function, level, communication::syncDirection_t::LOW2HIGH );
+                  }
+               }
+
                // now schedule the variable for export
-               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+               adiosCheckpointHelpers_v03::doSomethingForAFunctionOnAllHighestDimensionalPrimitives(
                    io,
                    engine,
                    function,
                    functionMinLevel_[function.getFunctionName()],
                    functionMaxLevel_[function.getFunctionName()],
-                   adiosCheckpointHelpers::exportVariables< func_t, value_t > );
+                   function.getStorage()->hasGlobalCells() ? rowIndicesInGlobalAdiosArrayForCells_ :
+                                                             rowIndicesInGlobalAdiosArrayForFaces_,
+                   adiosCheckpointHelpers_v03::exportVariables< func_t, value_t > );
             }
          }
          else
@@ -474,12 +500,40 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       }
    }
 
-   /// Provide information on version of checkpoint (currently 0.2)
+   inline void globallyEnumeratePrimitives( const std::shared_ptr< const PrimitiveStorage > storage )
+   {
+      if ( storage->hasGlobalCells() && numFacesAndCellsGlobally_.second == 0u )
+      {
+         WALBERLA_LOG_PROGRESS_ON_ROOT( "Performing global cell enumeration" );
+         auto [localCellIndices, numGlobalCells] = adiosCheckpointHelpers_v03::enumerateCells( storage );
+         numFacesAndCellsGlobally_.second        = numGlobalCells;
+         rowIndicesInGlobalAdiosArrayForCells_   = localCellIndices;
+      }
+      else if ( !storage->hasGlobalCells() && numFacesAndCellsGlobally_.first == 0u )
+      {
+         WALBERLA_ABORT( "Test mesh has cells! No need to enumerate faces!" );
+         WALBERLA_LOG_PROGRESS_ON_ROOT( "Performing global face enumeration" );
+         auto [localFaceIndices, numGlobalFaces] = adiosCheckpointHelpers_v03::enumerateFaces( storage );
+         numFacesAndCellsGlobally_.first         = numGlobalFaces;
+         rowIndicesInGlobalAdiosArrayForFaces_   = localFaceIndices;
+      }
+   }
+
+   /// Provide information on version of checkpoint (currently 0.3)
    inline void addVersionInformation( adios2::IO& io )
    {
-      std::vector< std::string > info{ "HyTeG Checkpoint", "0.2" };
+      std::vector< std::string > info{ "HyTeG Checkpoint", "0.3" };
       io.DefineAttribute< std::string >( "CheckpointFormat", info.data(), info.size() );
    }
+
+   /// Global count of faces or cells
+   std::pair< uint_t, uint_t > numFacesAndCellsGlobally_{ 0u, 0u };
+
+   /// Local indices of faces within their global enumeration
+   std::map< PrimitiveID, uint_t > rowIndicesInGlobalAdiosArrayForFaces_;
+
+   /// Local indices of cells within their global enumeration
+   std::map< PrimitiveID, uint_t > rowIndicesInGlobalAdiosArrayForCells_;
 };
 
 } // namespace hyteg
