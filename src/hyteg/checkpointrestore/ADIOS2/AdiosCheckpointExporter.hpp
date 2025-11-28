@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2025 Marcus Mohr, Ponsuganth Ilangovan.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -423,6 +423,12 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
    void
        defineAndOrExportVariables( adios2::IO& io, adios2::Engine& engine, ExportType exportType = ExportType::DEFINE_AND_EXPORT )
    {
+      if ( exportType != ExportType::DEFINE_AND_EXPORT && exportType != ExportType::ONLY_DEFINE &&
+           exportType != ExportType::ONLY_EXPORT )
+      {
+         WALBERLA_ABORT( "Unsupported enumeration value for exportType argument detected!" );
+      }
+
       // extract all functions of given kind and all value types
       const FunctionMultiStore< func_t >& functionList = feFunctionRegistry_.getFunctions< func_t >();
 
@@ -449,7 +455,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
                         std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > ||
                         std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
          {
-            if ( exportType == ExportType::DEFINE_AND_EXPORT )
+            if ( exportType == ExportType::DEFINE_AND_EXPORT || exportType == ExportType::ONLY_DEFINE )
             {
                // first define the variable
                adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
@@ -459,28 +465,9 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
                    functionMinLevel_[function.getFunctionName()],
                    functionMaxLevel_[function.getFunctionName()],
                    adiosCheckpointHelpers::generateVariables< func_t, value_t > );
+            }
 
-               // now schedule the variable for export
-               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                   io,
-                   engine,
-                   function,
-                   functionMinLevel_[function.getFunctionName()],
-                   functionMaxLevel_[function.getFunctionName()],
-                   adiosCheckpointHelpers::exportVariables< func_t, value_t > );
-            }
-            else if ( exportType == ExportType::ONLY_DEFINE )
-            {
-               // first define the variable
-               adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-                   io,
-                   engine,
-                   function,
-                   functionMinLevel_[function.getFunctionName()],
-                   functionMaxLevel_[function.getFunctionName()],
-                   adiosCheckpointHelpers::generateVariables< func_t, value_t > );
-            }
-            else if ( exportType == ExportType::ONLY_EXPORT )
+            if ( exportType == ExportType::DEFINE_AND_EXPORT || exportType == ExportType::ONLY_EXPORT )
             {
                // now schedule the variable for export
                adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
@@ -490,13 +477,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
                    functionMinLevel_[function.getFunctionName()],
                    functionMaxLevel_[function.getFunctionName()],
                    adiosCheckpointHelpers::exportVariables< func_t, value_t > );
-            }
-            else
-            {
-               WALBERLA_ABORT( "Shouldn't be here" );
             }
          }
-
          else
          {
             WALBERLA_ABORT( "Achievement unlocked: 'Detector of the Missing Implementation'!" );
