@@ -237,11 +237,6 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
 
       // add user defined attributes
       adiosHelpers::writeAllAttributes( io, userDefinedAttributes );
-      // WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
-      // for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
-      // {
-      //    io.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
-      // }
 
       // add attributes with meta information on functions in the checkpoint
       io.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
@@ -270,17 +265,34 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
 
    inline void storeCheckpointContinuous( std::string filePath, std::string fileName, real_t time, bool finalCall = false )
    {
-      std::vector< std::string > userAttributeNames;
-      std::vector< std::string > userAttributeValues;
+      std::vector< std::string >               userAttributeNames;
+      std::vector< adiosHelpers::adiostype_t > userAttributeValues;
       storeCheckpointContinuous( filePath, fileName, userAttributeNames, userAttributeValues, time, finalCall );
    }
 
-   inline void storeCheckpointContinuous( std::string                       filePath,
-                                          std::string                       fileName,
-                                          const std::vector< std::string >& userAttributeNames,
-                                          const std::vector< std::string >& userAttributeValues,
-                                          real_t                            time,
-                                          bool                              finalCall = false )
+   inline void storeCheckpointContinuous( std::string                                     filePath,
+                                          std::string                                     fileName,
+                                          const std::vector< std::string >&               userAttributeNames,
+                                          const std::vector< adiosHelpers::adiostype_t >& userAttributeValues,
+                                          real_t                                          time,
+                                          bool                                            finalCall = false )
+   {
+      WALBERLA_CHECK( userAttributeNames.size() == userAttributeValues.size() );
+      std::map< std::string, adiosHelpers::adiostype_t > userDefinedAttributes;
+
+      for ( uint_t k = 0; k < userAttributeNames.size(); k++ )
+      {
+         userDefinedAttributes.emplace( userAttributeNames[k], userAttributeValues[k] );
+      }
+
+      storeCheckpointContinuous( filePath, fileName, userDefinedAttributes, time, finalCall );
+   }
+
+   inline void storeCheckpointContinuous( std::string                                               filePath,
+                                          std::string                                               fileName,
+                                          const std::map< std::string, adiosHelpers::adiostype_t >& userDefinedAttributes,
+                                          real_t                                                    time,
+                                          bool                                                      finalCall = false )
    {
       // create the writer and engine for the export
       std::string cpFileName = filePath + "/" + fileName;
@@ -343,11 +355,7 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       if ( finalCall )
       {
          // add user defined attributes
-         WALBERLA_ASSERT( userAttributeNames.size() == userAttributeValues.size() );
-         for ( uint_t k = 0; k < userAttributeNames.size(); ++k )
-         {
-            io_.DefineAttribute< std::string >( userAttributeNames[k], userAttributeValues[k] );
-         }
+         adiosHelpers::writeAllAttributes( io_, userDefinedAttributes );
 
          // add attributes with meta information on functions in the checkpoint
          io_.DefineAttribute< std::string >( "FunctionNames", allFunctionNames_.data(), allFunctionNames_.size() );
