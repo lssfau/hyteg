@@ -25,10 +25,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
@@ -52,6 +49,12 @@
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/operators/TransportOperatorStd.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
+#endif
 
 /**
  * \page GB.02_KingCompressible Tutorial GB.02 - Compressible Benchmark

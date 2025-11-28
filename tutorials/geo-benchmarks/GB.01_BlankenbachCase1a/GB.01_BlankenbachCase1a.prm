@@ -1,14 +1,14 @@
 Parameters
 {
-    nx 4;
-    ny 4;
+    nx 2;
+    ny 2;
 
     minLevel 4;
     maxLevel 4;
 
-    verbose false;
+    verbose true;
 
-    cflMax 0.25;
+    cflMax 0.75;
     diffusivity 1.0;
 
     RayleighNumber 1e4;
@@ -24,7 +24,7 @@ Parameters
 
     logNsFreq 100;
 
-    useAdios2 true;
+    useAdios2 false;
     adiosXmlConfig ./ADIOS2demo.xml;
 
     outputPath ./output;
