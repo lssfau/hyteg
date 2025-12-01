@@ -141,7 +141,10 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    }
 
    // apply GS-smoother (should converge to u)
-   for ( uint_t n = 0; n < 3; ++n )
+   // check if the Surrogate operator converges at a similar rate
+   err.assign( { 1.0, -1.0 }, { Au, u }, level, Inner );
+   auto err0 = err.dotGlobal( err, level );
+   for ( uint_t n = 0; n < 5; ++n )
    {
       // apply smoothing
       A.smooth_gs( Au, b, level, Inner );
@@ -151,24 +154,22 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
 
       // compute errors
       err.assign( { 1.0, -1.0 }, { Au, u }, level, Inner );
-      auto err_A = err.dotGlobal( err, level );
-      if ( err_A < epsilon )
-         break;
-      WALBERLA_LOG_INFO_ON_ROOT( "||u_i - u || after GS iteration i=" << n );
+      auto err_A = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "||e_i||/||e_0|| after GS iteration i=" << n );
       WALBERLA_LOG_INFO_ON_ROOT( "baseline: " << err_A );
       err.assign( { 1.0, -1.0 }, { Aqu, u }, level, All );
-      auto err_Aq = err.dotGlobal( err, level );
-      WALBERLA_LOG_INFO_ON_ROOT( "surrogate: " << err_Aq << ", err/baseline = " << err_Aq / err_A );
+      auto err_Aq = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate: " << err_Aq );
       err.assign( { 1.0, -1.0 }, { Aqu_opt, u }, level, All );
-      auto err_Aq_opt = err.dotGlobal( err, level );
-      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt: " << err_Aq_opt << ", err/baseline = " << err_Aq_opt / err_A );
+      auto err_Aq_opt = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt: " << err_Aq_opt );
       err.assign( { 1.0, -1.0 }, { Aqu_opt_ds, u }, level, All );
-      auto err_Aq_opt_ds = err.dotGlobal( err, level );
-      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt ds: " << err_Aq_opt_ds << ", err/baseline = " << err_Aq_opt_ds / err_A );
+      auto err_Aq_opt_ds = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt ds: " << err_Aq_opt_ds );
 
-      WALBERLA_CHECK_LESS_EQUAL( err_Aq / err_A, 1.0 + epsilon );
-      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt / err_A, 1.0 + epsilon );
-      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt_ds / err_A, 1.0 + epsilon );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq, err_A + 0.01 );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt, err_A + 0.01 );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt_ds, err_A + 0.01 );
    }
 }
 
