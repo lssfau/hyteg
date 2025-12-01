@@ -304,10 +304,10 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
 
       // our ADIOS2 IO object for this checkpoint export
       std::shared_ptr< adios2::IO > ptrToIO;
-      bool firstWriteDidHappen = false;
+      bool                          firstWriteDidHappen = false;
       if ( runContinuous )
       {
-         ptrToIO = ptrToIO_;
+         ptrToIO             = ptrToIO_;
          firstWriteDidHappen = firstWriteDidHappen_;
       }
 
@@ -326,7 +326,8 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
          adiosHelpers::generateSoftwareMetaData( *ptrToIO );
          addVersionInformation( *ptrToIO );
 
-         ptrToIO->DefineVariable< real_t >( "TIME" );
+         if ( storeTime )
+            ptrToIO->DefineVariable< real_t >( "TIME" );
 
          // generate variables for export
          defineAndOrExportVariables< P1Function, real_t >( *ptrToIO, engine_, ExportType::ONLY_DEFINE );
@@ -368,8 +369,11 @@ class AdiosCheckpointExporter : public CheckpointExporter< AdiosCheckpointExport
       defineAndOrExportVariables< P2VectorFunction, int32_t >( *ptrToIO, engine_, ExportType::ONLY_EXPORT );
       defineAndOrExportVariables< P2VectorFunction, int64_t >( *ptrToIO, engine_, ExportType::ONLY_EXPORT );
 
-      auto varTimeStep = ptrToIO->InquireVariable< real_t >( "TIME" );
-      engine_.Put( varTimeStep, time );
+      if ( storeTime )
+      {
+         auto varTimeStep = ptrToIO->InquireVariable< real_t >( "TIME" );
+         engine_.Put( varTimeStep, time );
+      }
 
       if ( finalCall )
       {
