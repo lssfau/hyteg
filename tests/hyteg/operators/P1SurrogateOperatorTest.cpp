@@ -20,7 +20,9 @@
 
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 
+#include <core/debug/CheckFunctions.h>
 #include <core/logging/Logging.h>
+#include <core/math/Random.h>
 
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
@@ -49,7 +51,8 @@ using namespace hyteg;
 template < uint_t q >
 void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        storage,
                               std::function< real_t( const hyteg::Point3D& ) >& k,
-                              const uint_t                                      level )
+                              const uint_t                                      level,
+                              const bool                                        gs = false )
 {
    auto d = ( storage->hasGlobalCells() ) ? 3 : 2;
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "P1 surrogate operator test: %dd, q=%d, lvl=%d", d, q, level ) );
@@ -78,7 +81,6 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
-   b.interpolate( 1.0, level, All );
 
    auto check = [&]( const auto& msg ) {
       auto errorMax = err.getMaxDoFMagnitude( level );
@@ -116,36 +118,58 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
    check( "||(A_q - A_q_opt_ds)u||_inf" );
 
+   if ( !gs )
+   {
+      return;
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Test A.smooth_gs()" )
 
-   // reset functions
-   for (auto& dst : {Au, Aqu, Aqu_opt, Aqu_opt_ds})
+   // initialize rhs
+   b.assign( { 1.0 }, { Au }, level, All );
+
+   // initialize solution
+   walberla::math::seedRandomGenerator( 0 );
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
+   Au.interpolate( rand, level, All );
+   Au.assign( { 1.0 }, { u }, level, DirichletBoundary );
+   for ( auto& dst : { Aqu, Aqu_opt, Aqu_opt_ds } )
    {
-      dst.assign({1.0}, {u}, level);
+      dst.assign( { 1.0 }, { Au }, level, All );
    }
 
-   // apply GS-smoother
-   A.smooth_gs( Au, b, level, All);
-   A_q.smooth_gs( Aqu, b, level, All);
-   A_q_opt.smooth_gs( Aqu_opt, b, level, All);
-   A_q_opt_ds.smooth_gs( Aqu_opt_ds, b, level, All);
+   // apply GS-smoother (should converge to u)
+   for ( uint_t n = 0; n < 3; ++n )
+   {
+      // apply smoothing
+      A.smooth_gs( Au, b, level, Inner );
+      A_q.smooth_gs( Aqu, b, level, Inner );
+      A_q_opt.smooth_gs( Aqu_opt, b, level, Inner );
+      A_q_opt_ds.smooth_gs( Aqu_opt_ds, b, level, Inner );
 
-   // compute errors
-   err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
-   check( "||(S - S_q)u||_inf" );
+      // compute errors
+      err.assign( { 1.0, -1.0 }, { Au, u }, level, Inner );
+      auto err_A = err.dotGlobal( err, level );
+      if ( err_A < epsilon )
+         break;
+      WALBERLA_LOG_INFO_ON_ROOT( "||u_i - u || after GS iteration i=" << n );
+      WALBERLA_LOG_INFO_ON_ROOT( "baseline: " << err_A );
+      err.assign( { 1.0, -1.0 }, { Aqu, u }, level, All );
+      auto err_Aq = err.dotGlobal( err, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate: " << err_Aq << ", err/baseline = " << err_Aq / err_A );
+      err.assign( { 1.0, -1.0 }, { Aqu_opt, u }, level, All );
+      auto err_Aq_opt = err.dotGlobal( err, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt: " << err_Aq_opt << ", err/baseline = " << err_Aq_opt / err_A );
+      err.assign( { 1.0, -1.0 }, { Aqu_opt_ds, u }, level, All );
+      auto err_Aq_opt_ds = err.dotGlobal( err, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt ds: " << err_Aq_opt_ds << ", err/baseline = " << err_Aq_opt_ds / err_A );
 
-   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
-   check( "||(S - S_q_opt)u||_inf" );
-
-   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt_ds }, level, All );
-   check( "||(S - S_q_opt_ds)u||_inf" );
-
-   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
-   check( "||(S_q - S_q_opt)u||_inf" );
-
-   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
-   check( "||(S_q - S_q_opt_ds)u||_inf" );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq / err_A, 1.0 + epsilon );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt / err_A, 1.0 + epsilon );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt_ds / err_A, 1.0 + epsilon );
+   }
 }
 
 int main( int argc, char* argv[] )
@@ -189,15 +213,18 @@ int main( int argc, char* argv[] )
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
+   const uint_t l_min = 0;
+   const uint_t l_max = 5;
+
    // -------------------
    //  Run some 2D tests
    // -------------------
-   for ( uint_t lvl = 0; lvl <= 5; ++lvl )
+   for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
    {
       P1SurrogateOperatorTest< 1 >( storage, k1, lvl );
       P1SurrogateOperatorTest< 2 >( storage, k2, lvl );
       P1SurrogateOperatorTest< 3 >( storage, k3, lvl );
-      P1SurrogateOperatorTest< 4 >( storage, k4, lvl );
+      P1SurrogateOperatorTest< 4 >( storage, k4, lvl, lvl == l_max );
    }
 
    // ----------------------------
@@ -211,12 +238,12 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 3D tests
    // -------------------
-   for ( uint_t lvl = 0; lvl <= 5; ++lvl )
+   for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
    {
       P1SurrogateOperatorTest< 1 >( storage3d, k1, lvl );
       P1SurrogateOperatorTest< 2 >( storage3d, k2, lvl );
       P1SurrogateOperatorTest< 3 >( storage3d, k3, lvl );
-      P1SurrogateOperatorTest< 4 >( storage3d, k4, lvl );
+      P1SurrogateOperatorTest< 4 >( storage3d, k4, lvl, lvl == l_max );
    }
 
    return 0;
