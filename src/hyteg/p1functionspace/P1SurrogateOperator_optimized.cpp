@@ -98,6 +98,7 @@ static inline void inner_loop_sor( const real_t* RESTRICT const                 
                                    const uint_t                                    i_max )
 {
    constexpr auto stencilSize = std::remove_reference_t< decltype( surrogate1 ) >::n_stencil;
+   const auto use_relaxation = relax < 0.99 || 1.01 < relax;
 
    uint_t i = 1;
 #ifdef WALBERLA_DOUBLE_ACCURACY
@@ -132,13 +133,20 @@ static inline void inner_loop_sor( const real_t* RESTRICT const                 
             const auto dstVec = walberla::simd::load_aligned( aux );
             tmp               = tmp - stencil_vec[d] * dstVec;
          }
-         tmp = tmp * relax_vec / stencil_vec[p1::stencil::C];
-         for ( uint_t v = 0; v < 4; ++v )
+         if ( use_relaxation )
          {
-            aux[v] = dstData[dstIdx + 2 * v + rb];
+            tmp = tmp * relax_vec / stencil_vec[p1::stencil::C];
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = dstData[dstIdx + 2 * v + rb];
+            }
+            const auto dstVec = walberla::simd::load_aligned( aux );
+            tmp               = tmp + one_minus_relax_vec * dstVec;
          }
-         const auto dstVec = walberla::simd::load_aligned( aux );
-         tmp               = tmp + one_minus_relax_vec * dstVec;
+         else
+         {
+            tmp = tmp / stencil_vec[p1::stencil::C];
+         }
          walberla::simd::store_aligned( aux, tmp );
          for ( uint_t v = 0; v < 4; ++v )
          {
@@ -171,8 +179,16 @@ static inline void inner_loop_sor( const real_t* RESTRICT const                 
          tmp -= stencil[d] * dstData[dofIdx[d]];
          ++dofIdx[d];
       }
-      tmp *= relax / stencil[p1::stencil::C];
-      dstData[dstIdx] = ( 1.0 - relax ) * dstData[dstIdx] + tmp;
+      if ( use_relaxation )
+      {
+         tmp *= relax / stencil[p1::stencil::C];
+         tmp += ( 1.0 - relax ) * dstData[dstIdx];
+      }
+      else
+      {
+         tmp /= stencil[p1::stencil::C];
+      }
+      dstData[dstIdx] = tmp;
    }
 }
 
