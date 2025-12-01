@@ -2469,8 +2469,63 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_edge_surrogate_2d( std::s
    const PolyStencil< 2, 1 > surrogate = surrogate_edge_2d_.at( edge->getID() )[lvl];
    const PolyDomain          X( lvl );
 
-   // loop over inner vertices on the macro edge
-   for ( uint_t i = 1; i < n - 1; ++i )
+   uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+   // convert constants to simd-vectors
+   const auto relax_vec           = walberla::simd::make_double4( relax );
+   const auto one_minus_relax_vec = walberla::simd::make_double4( 1.0 - relax );
+   // strided simd-load/store not available, so we need this auxiliary vector
+   alignas( 32 ) real_t aux[4];
+   // vectorized loop over the row using RB-coloring
+   for ( ; i + 7 < n - 1; i += 8 )
+   {
+      const auto stencil_update = [&]( uint_t rb ) {
+         // evaluate polynomial
+         const std::array< real_t, 4 > x{ X[i + rb], X[i + rb + 2], X[i + rb + 4], X[i + rb + 6] };
+         const auto                    stencil_vec = surrogate.eval_vec( x );
+
+         // initialize data
+         const auto dstIdx = dofIdx[p1::stencil::C];
+
+         // apply stencil
+         for ( uint_t v = 0; v < 4; ++v )
+         {
+            aux[v] = rhsData[dstIdx + 2 * v + rb];
+         }
+         auto tmp = walberla::simd::load_aligned( aux );
+         for ( int d = 1; d < stencilSize; ++d )
+         {
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = dstData[dofIdx[d] + 2 * v + rb];
+            }
+            const auto dstVec = walberla::simd::load_aligned( aux );
+            tmp               = tmp - stencil_vec[d] * dstVec;
+         }
+         tmp = tmp * relax_vec / stencil_vec[p1::stencil::C];
+         for ( uint_t v = 0; v < 4; ++v )
+         {
+            aux[v] = dstData[dstIdx + 2 * v + rb];
+         }
+         const auto dstVec = walberla::simd::load_aligned( aux );
+         tmp               = tmp + one_minus_relax_vec * dstVec;
+         walberla::simd::store_aligned( aux, tmp );
+         for ( uint_t v = 0; v < 4; ++v )
+         {
+            dstData[dstIdx + 2 * v + rb] = aux[v];
+         }
+      };
+      stencil_update( 0 ); // red
+      stencil_update( 1 ); // black
+
+      for ( int d = 0; d < stencilSize; ++d )
+      {
+         dofIdx[d] += 8;
+      }
+   }
+#endif
+   // remainder
+   for ( ; i < n - 1; ++i )
    {
       // evaluate polynomial
       const auto x       = X[i];
@@ -2520,7 +2575,63 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_2d( std::s
       const auto y          = X[j];
       const auto surrogate1 = surrogate.fix_y( y );
 
-      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+      // convert constants to simd-vectors
+      const auto relax_vec           = walberla::simd::make_double4( relax );
+      const auto one_minus_relax_vec = walberla::simd::make_double4( 1.0 - relax );
+      // strided simd-load/store not available, so we need this auxiliary vector
+      alignas( 32 ) real_t aux[4];
+      // vectorized loop over the row using RB-coloring
+      for ( ; i + 7 < n - 1 - j; i += 8 )
+      {
+         const auto stencil_update = [&]( uint_t rb ) {
+            // evaluate polynomial
+            const std::array< real_t, 4 > x{ X[i + rb], X[i + rb + 2], X[i + rb + 4], X[i + rb + 6] };
+            const auto                    stencil_vec = surrogate1.eval_vec( x );
+
+            // initialize data
+            const auto dstIdx = dofIdx[p1::stencil::C];
+
+            // apply stencil
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = rhsData[dstIdx + 2 * v + rb];
+            }
+            auto tmp = walberla::simd::load_aligned( aux );
+            for ( int d = 1; d < stencilSize; ++d )
+            {
+               for ( uint_t v = 0; v < 4; ++v )
+               {
+                  aux[v] = dstData[dofIdx[d] + 2 * v + rb];
+               }
+               const auto dstVec = walberla::simd::load_aligned( aux );
+               tmp               = tmp - stencil_vec[d] * dstVec;
+            }
+            tmp = tmp * relax_vec / stencil_vec[p1::stencil::C];
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = dstData[dstIdx + 2 * v + rb];
+            }
+            const auto dstVec = walberla::simd::load_aligned( aux );
+            tmp               = tmp + one_minus_relax_vec * dstVec;
+            walberla::simd::store_aligned( aux, tmp );
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               dstData[dstIdx + 2 * v + rb] = aux[v];
+            }
+         };
+         stencil_update( 0 ); // red
+         stencil_update( 1 ); // black
+
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] += 8;
+         }
+      }
+#endif
+      // remainder
+      for ( ; i < n - 1 - j; ++i )
       {
          // evaluate polynomial
          const auto x       = X[i];
@@ -2584,7 +2695,63 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor_face_surrogate_3d( std::s
       const auto y          = X[j];
       const auto surrogate1 = surrogate.fix_y( y );
 
-      for ( uint_t i = 1; i < n - 1 - j; ++i )
+      uint_t i = 1;
+#ifdef WALBERLA_DOUBLE_ACCURACY
+      // convert constants to simd-vectors
+      const auto relax_vec           = walberla::simd::make_double4( relax );
+      const auto one_minus_relax_vec = walberla::simd::make_double4( 1.0 - relax );
+      // strided simd-load/store not available, so we need this auxiliary vector
+      alignas( 32 ) real_t aux[4];
+      // vectorized loop over the row using RB-coloring
+      for ( ; i + 7 < n - 1 - j; i += 8 )
+      {
+         const auto stencil_update = [&]( uint_t rb ) {
+            // evaluate polynomial
+            const std::array< real_t, 4 > x{ X[i + rb], X[i + rb + 2], X[i + rb + 4], X[i + rb + 6] };
+            const auto                    stencil_vec = surrogate1.eval_vec( x );
+
+            // initialize data
+            const auto dstIdx = dofIdx[p1::stencil::C];
+
+            // apply stencil
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = rhsData[dstIdx + 2 * v + rb];
+            }
+            auto tmp = walberla::simd::load_aligned( aux );
+            for ( int d = 1; d < stencilSize; ++d )
+            {
+               for ( uint_t v = 0; v < 4; ++v )
+               {
+                  aux[v] = dstData[dofIdx[d] + 2 * v + rb];
+               }
+               const auto dstVec = walberla::simd::load_aligned( aux );
+               tmp               = tmp - stencil_vec[d] * dstVec;
+            }
+            tmp = tmp * relax_vec / stencil_vec[p1::stencil::C];
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               aux[v] = dstData[dstIdx + 2 * v + rb];
+            }
+            const auto dstVec = walberla::simd::load_aligned( aux );
+            tmp               = tmp + one_minus_relax_vec * dstVec;
+            walberla::simd::store_aligned( aux, tmp );
+            for ( uint_t v = 0; v < 4; ++v )
+            {
+               dstData[dstIdx + 2 * v + rb] = aux[v];
+            }
+         };
+         stencil_update( 0 ); // red
+         stencil_update( 1 ); // black
+
+         for ( int d = 0; d < stencilSize; ++d )
+         {
+            dofIdx[d] += 8;
+         }
+      }
+#endif
+      // remainder
+      for ( ; i < n - 1 - j; ++i )
       {
          // evaluate polynomial
          const auto x       = X[i];
