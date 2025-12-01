@@ -18,10 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+ // Contains various conversions between local and global node numbering for P1 elements.
+
 #pragma once
 
 #include <hyteg/Levelinfo.hpp>
-#include <hyteg/polynomial/elementwise/data.hpp>
+#include <hyteg/polynomial/new/data.hpp>
 #include <hyteg/volumedofspace/CellDoFIndexing.hpp>
 #include <hyteg/volumedofspace/FaceDoFIndexing.hpp>
 
@@ -109,7 +112,8 @@ static constexpr inline size_t stencilSize( uint8_t dim )
 template < uint8_t DIM, typename dType = real_t >
 using StencilData = std::array< dType, stencilSize( DIM ) >;
 
-// due to the strange ordering of the old stencilDirection enum, it is not used here
+// due to the strange ordering of the old stencilDirection enum, we redefine them in
+// a way s.th. constant sized arrays with 15 (7 in 2D) entries can be used for stencils.
 enum Dir
 {
    C,

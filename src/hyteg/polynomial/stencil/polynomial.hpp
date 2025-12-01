@@ -20,7 +20,7 @@
 
 #pragma once
 #include <hyteg/p1functionspace/globalIndices.hpp>
-#include <hyteg/polynomial/elementwise/polynomial.hpp>
+#include <hyteg/polynomial/new/polynomial.hpp>
 #include <simd/SIMD.h>
 #include <waLBerlaDefinitions.h>
 

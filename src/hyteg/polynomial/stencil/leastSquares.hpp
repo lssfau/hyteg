@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Adaptions of the functionalities from hyteg/polynomial/elementwise/leastSquares.hpp
+/* Adaptions of the functionalities from hyteg/polynomial/new/leastSquares.hpp
    for stencil based operators
 */
 
@@ -31,7 +31,7 @@
 #include <hyteg/indexing/Common.hpp>
 #include <hyteg/indexing/MacroCellIndexing.hpp>
 #include <hyteg/indexing/MacroFaceIndexing.hpp>
-#include <hyteg/polynomial/elementwise/leastSquares.hpp>
+#include <hyteg/polynomial/new/leastSquares.hpp>
 
 namespace hyteg {
 namespace p1 {

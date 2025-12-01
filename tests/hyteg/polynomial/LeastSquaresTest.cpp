@@ -25,7 +25,7 @@
 #include <core/math/Random.h>
 #include <core/timing/Timer.h>
 #include <filesystem>
-#include <hyteg/polynomial/elementwise/leastSquares.hpp>
+#include <hyteg/polynomial/new/leastSquares.hpp>
 
 using hyteg::idx_t;
 using hyteg::real_t;

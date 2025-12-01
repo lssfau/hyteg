@@ -33,9 +33,9 @@
 #include <hyteg/p1functionspace/P1Elements.hpp>
 #include <hyteg/p1functionspace/P1Function.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/polynomial/elementwise/data.hpp>
-#include <hyteg/polynomial/elementwise/leastSquares.hpp>
-#include <hyteg/polynomial/elementwise/polynomial.hpp>
+#include <hyteg/polynomial/new/data.hpp>
+#include <hyteg/polynomial/new/leastSquares.hpp>
+#include <hyteg/polynomial/new/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
 #include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
 #include <hyteg/volumedofspace/CellDoFIndexing.hpp>

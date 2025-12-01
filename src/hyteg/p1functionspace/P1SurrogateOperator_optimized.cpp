@@ -97,8 +97,8 @@ static inline void inner_loop_sor( const real_t* RESTRICT const                 
                                    const real_t                                    relax,
                                    const uint_t                                    i_max )
 {
-   constexpr auto stencilSize = std::remove_reference_t< decltype( surrogate1 ) >::n_stencil;
-   const auto use_relaxation = relax < 0.99 || 1.01 < relax;
+   constexpr auto stencilSize    = std::remove_reference_t< decltype( surrogate1 ) >::n_stencil;
+   const auto     use_relaxation = relax < 0.99 || 1.01 < relax;
 
    uint_t i = 1;
 #ifdef WALBERLA_DOUBLE_ACCURACY
