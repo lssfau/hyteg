@@ -23,6 +23,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/checkpointrestore/CheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"

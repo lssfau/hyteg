@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marcus Mohr.
+ * Copyright (c) 2023-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,7 @@
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/checkpointrestore/CheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosHelperFunctions.hpp"
 
@@ -206,11 +207,42 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
          return handleError( funcName, msg, abortOnError );
       }
 
-      adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
-          io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t >, step );
+      if ( version_ == "0.2" )
+      {
+         adiosCheckpointHelpers::doSomethingForAFunctionOnAllPrimitives(
+             io_, engine_, function, minLevel, maxLevel, adiosCheckpointHelpers::importVariables< func_t, value_t >, step );
 
-      // might be more efficient to do this only after ALL functions were scheduled for restoration!
-      engine_.PerformGets();
+         // might be more efficient to do this only after ALL functions were scheduled for restoration!
+         engine_.PerformGets();
+      }
+      else if ( version_ == "0.3" )
+      {
+         // enumerate primitives, if necessary
+         importPrimitiveToIndexMap( function.getStorage() );
+
+         // import function data for highest dimensional primitives
+         WALBERLA_LOG_PROGRESS( "Calling function to import data for highest dimensional primitives" );
+         adiosCheckpointHelpers_v03::doSomethingForAFunctionOnAllHighestDimensionalPrimitives(
+             io_,
+             engine_,
+             function,
+             minLevel,
+             maxLevel,
+             function.getStorage()->hasGlobalCells() ? rowIndicesInGlobalAdiosArrayForCells_ :
+                                                       rowIndicesInGlobalAdiosArrayForFaces_,
+             adiosCheckpointHelpers_v03::importVariables< func_t, value_t >,
+             step );
+
+         // might be more efficient to do this only after ALL functions were scheduled for restoration!
+         engine_.PerformGets();
+
+         // distribute data from highest to lower dimensional primitives
+         adiosCheckpointHelpers_v03::distributeDoFData( function, minLevel, maxLevel );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Cannot import checkpoint with version '" << version_ << "'" );
+      }
 
       return true;
    }
@@ -298,6 +330,7 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       // and do not deal with different steps
       std::string cpFileName = filePath + "/" + fileName;
       engine_                = io_.Open( cpFileName, adios2::Mode::ReadRandomAccess );
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "Opened '" << cpFileName << "' for import" );
 
       // obtain checkpoint version information and verify format
       adios2::Attribute< std::string > attrFormat = readAttribute< std::string >( "CheckpointFormat" );
@@ -431,11 +464,88 @@ class AdiosCheckpointImporter : public CheckpointImporter< AdiosCheckpointImport
       return false;
    }
 
-   /// Version of the current HyTeG Checkpoint (currently supported is only "0.2")
+   /// Read information in which array row to find data for a certain PrimitiveID from checkpoint
+   inline void importPrimitiveToIndexMap( const std::shared_ptr< const PrimitiveStorage >& storage )
+   {
+      if ( storage->hasGlobalCells() )
+      {
+         adios2::Variable< uint8_t > varMapData = io_.InquireVariable< uint8_t >( "RowIndicesOfCells" );
+
+         // check that data exists
+         if ( !varMapData )
+         {
+            WALBERLA_ABORT( "Checkpoint is missing a RowIndicesOfCells variable!" );
+         }
+
+         // obtain info on data size and perform some checks
+         adios2::Dims shape = varMapData.Shape();
+
+         uint_t mapEntrySizeInBytes = sizeof( PrimitiveID ) + sizeof( uint_t );
+         WALBERLA_CHECK( shape.size() == 2 );
+         WALBERLA_CHECK( shape[1] == mapEntrySizeInBytes );
+         WALBERLA_CHECK( varMapData.ShapeID() == adios2::ShapeID::GlobalArray );
+
+         WALBERLA_LOG_PROGRESS_ON_ROOT( "RowIndicesOfCells has entries for " << shape[0] << " cells" );
+
+         // we want to import the complete array
+         varMapData.SetSelection( { { 0, 0 }, shape } );
+
+         // prepare buffer and import data immediately
+         std::vector< uint8_t > buffer;
+         buffer.resize( shape[0] * shape[1] );
+         engine_.Get( varMapData, buffer.data(), adios2::Mode::Sync );
+
+         // extract map from buffer
+         rowIndicesInGlobalAdiosArrayForCells_ = adiosCheckpointHelpers_v03::deserializePrimitiveMap( buffer, shape );
+      }
+
+      else
+      {
+         adios2::Variable< uint8_t > varMapData = io_.InquireVariable< uint8_t >( "RowIndicesOfFaces" );
+
+         // check that data exists
+         if ( !varMapData )
+         {
+            WALBERLA_ABORT( "Checkpoint is missing a RowIndicesOfFaces variable!" );
+         }
+
+         // obtain info on data size and perform some checks
+         adios2::Dims shape = varMapData.Shape();
+
+         uint_t mapEntrySizeInBytes = sizeof( PrimitiveID ) + sizeof( uint_t );
+         WALBERLA_CHECK( shape.size() == 2 );
+         WALBERLA_CHECK( shape[1] == mapEntrySizeInBytes );
+         WALBERLA_CHECK( varMapData.ShapeID() == adios2::ShapeID::GlobalArray );
+
+         WALBERLA_LOG_PROGRESS_ON_ROOT( "RowIndicesOfFaces has entries for " << shape[0] << " faces" );
+
+         // we want to import the complete array
+         varMapData.SetSelection( { { 0, 0 }, shape } );
+
+         // prepare buffer and import data immediately
+         std::vector< uint8_t > buffer;
+         buffer.resize( shape[0] * shape[1] );
+         engine_.Get( varMapData, buffer.data(), adios2::Mode::Sync );
+
+         // extract map from buffer
+         rowIndicesInGlobalAdiosArrayForFaces_ = adiosCheckpointHelpers_v03::deserializePrimitiveMap( buffer, shape );
+      }
+   }
+
+   /// Version of the current HyTeG Checkpoint
    std::string version_;
 
-   /// List of supported checkpoint version supported by the importer implementation
-   const std::array< std::string, 1 > supportedVersions_ = { "0.2" };
+   /// List of checkpoint versions supported by the importer implementation
+   const std::array< std::string, 2 > supportedVersions_ = { "0.2", "0.3" };
+
+   /// Global count of faces or cells (required for version '0.3' import)
+   std::pair< uint_t, uint_t > numFacesAndCellsGlobally_{ 0u, 0u };
+
+   /// Local indices of faces within their global enumeration (required for version '0.3' import)
+   std::map< PrimitiveID, uint_t > rowIndicesInGlobalAdiosArrayForFaces_;
+
+   /// Local indices of cells within their global enumeration (required for version '0.3' import)
+   std::map< PrimitiveID, uint_t > rowIndicesInGlobalAdiosArrayForCells_;
 };
 
 } // namespace hyteg

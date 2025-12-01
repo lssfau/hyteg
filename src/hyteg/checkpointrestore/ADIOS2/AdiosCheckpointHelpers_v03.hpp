@@ -23,9 +23,14 @@
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -226,7 +231,6 @@ void exportVariableForScalarFunction( adios2::IO&              io,
       WALBERLA_LOG_DETAIL( "Calling SetSelection for variable '" << varName << "' with\nstart .... {" << rowIndexInAdiosArray
                                                                  << ", 0}\n"
                                                                  << "count .... {1, " << size << "}" );
-
       varDoFData.SetSelection( { { rowIndexInAdiosArray, 0 }, { 1, size } } );
 
       // schedule the data for exporting
@@ -244,15 +248,17 @@ void exportVariableForScalarFunction( adios2::IO&              io,
 }
 
 template < template < typename > class func_t, concepts::value_type value_t >
+   requires concepts::fe_function_scalar< func_t< value_t > >
 void importVariableForScalarFunction( adios2::IO&              io,
                                       adios2::Engine&          engine,
                                       const func_t< value_t >& function,
                                       const std::string&       varName,
                                       uint_t                   level,
+                                      uint_t                   rowIndexInAdiosArray,
                                       const Primitive&         primitive,
                                       uint_t                   step = 0U )
 {
-   WALBERLA_ASSERT( function.getDimension() == 1 );
+   WALBERLA_LOG_PROGRESS( "Running importVariableForScalarFunction() for '" << varName << "'" );
 
    // check that associated variable exists in checkpoint
    adios2::Variable< value_t > varDoFData = io.InquireVariable< value_t >( varName );
@@ -260,32 +266,52 @@ void importVariableForScalarFunction( adios2::IO&              io,
    {
       WALBERLA_ABORT( "ADIOS2 variable '" << varName << "' does not exist!" );
    }
-   varDoFData.SetStepSelection( { step, 1U } );
+   varDoFData.SetStepSelection( { step, 1u } );
 
    switch ( primitive.getType() )
    {
-   case Primitive::VERTEX: {
-      const Vertex& vertex = dynamic_cast< const Vertex& >( primitive );
-      engine.Get( varDoFData, vertex.getData( function.getVertexDataID() )->getPointer( level ) );
-      break;
-   }
-   case Primitive::EDGE: {
-      const Edge& edge = dynamic_cast< const Edge& >( primitive );
-      engine.Get( varDoFData, edge.getData( function.getEdgeDataID() )->getPointer( level ) );
-      break;
-   }
    case Primitive::FACE: {
       const Face& face = dynamic_cast< const Face& >( primitive );
+
+      // figure out what the size of our data chunk actually is
+      uint_t size    = face.getData( function.getFaceDataID() )->getSize( level );
+      uint_t maxSize = getMaxDataBlockSize< Face, func_t, value_t >( level );
+      WALBERLA_CHECK_LESS_EQUAL( size, maxSize );
+
+      // now we can set the position for this primitive's data chunk inside the global array
+      WALBERLA_LOG_DETAIL( "Calling SetSelection for variable '" << varName << "' with\nstart .... {" << rowIndexInAdiosArray
+                                                                 << ", 0}\n"
+                                                                 << "count .... {1, " << size << "}" );
+      varDoFData.SetSelection( { { rowIndexInAdiosArray, 0 }, { 1, size } } );
+
+      // schedule the data for import
       engine.Get( varDoFData, face.getData( function.getFaceDataID() )->getPointer( level ) );
       break;
    }
    case Primitive::CELL: {
       const Cell& cell = dynamic_cast< const Cell& >( primitive );
+
+      // figure out what the size of our data chunk actually is
+      uint_t size    = cell.getData( function.getCellDataID() )->getSize( level );
+      uint_t maxSize = getMaxDataBlockSize< Cell, func_t, value_t >( level );
+      WALBERLA_CHECK_LESS_EQUAL( size, maxSize );
+
+      // now we can set the position for this primitive's data chunk inside the global array
+      WALBERLA_LOG_DETAIL( "Calling SetSelection for variable '" << varName << "' with\nstart .... {" << rowIndexInAdiosArray
+                                                                 << ", 0}\n"
+                                                                 << "count .... {1, " << size << "}" );
+      varDoFData.SetSelection( { { rowIndexInAdiosArray, 0 }, { 1, size } } );
+
       engine.Get( varDoFData, cell.getData( function.getCellDataID() )->getPointer( level ) );
       break;
    }
+
+   case Primitive::VERTEX:
+      [[fallthrough]];
+   case Primitive::EDGE:
+      [[fallthrough]];
    case Primitive::INVALID:
-      WALBERLA_ABORT( "Primitive type is INVALID!" );
+      WALBERLA_ABORT( "Primitive type can only be FACE or CELL!" );
    }
 }
 
@@ -322,7 +348,6 @@ void generateVariables( adios2::IO&              io,
 
 template < template < typename > class func_t, concepts::value_type value_t >
    requires concepts::fe_function_scalar< func_t< value_t > > || concepts::fe_function_vectorial< func_t< value_t > >
-
 void exportVariables( adios2::IO&              io,
                       adios2::Engine&          engine,
                       const func_t< value_t >& function,
@@ -357,12 +382,13 @@ void exportVariables( adios2::IO&              io,
    }
 }
 
-#if 0
 template < template < typename > class func_t, concepts::value_type value_t >
+   requires concepts::fe_function_scalar< func_t< value_t > > || concepts::fe_function_vectorial< func_t< value_t > >
 void importVariables( adios2::IO&              io,
                       adios2::Engine&          engine,
                       const func_t< value_t >& function,
                       uint_t                   level,
+                      uint_t                   rowIndex,
                       const Primitive&         primitive,
                       uint_t                   step = 0U )
 {
@@ -371,8 +397,9 @@ void importVariables( adios2::IO&              io,
    {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         std::string varName = generateVariableName( function[k].getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k], varName, level, primitive, step );
+         std::string varName = generateVariableName( function[k].getFunctionName(), level );
+         WALBERLA_LOG_PROGRESS( "Triggering import for '" << varName << "'" );
+         importVariableForScalarFunction( io, engine, function[k], varName, level, rowIndex, primitive, step );
       }
    }
 
@@ -381,21 +408,20 @@ void importVariables( adios2::IO&              io,
    {
       for ( uint_t k = 0; k < function.getDimension(); ++k )
       {
-         std::string varName =
-             generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k].getVertexDoFFunction(), varName, level, primitive, step );
+         std::string varName = generateVariableName( function[k].getVertexDoFFunction().getFunctionName(), level );
+         importVariableForScalarFunction(
+             io, engine, function[k].getVertexDoFFunction(), varName, level, rowIndex, primitive, step );
 
-         varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), primitive.getID(), level );
-         importVariableForScalarFunction( io, engine, function[k].getEdgeDoFFunction(), varName, level, primitive, step );
+         varName = generateVariableName( function[k].getEdgeDoFFunction().getFunctionName(), level );
+         importVariableForScalarFunction(
+             io, engine, function[k].getEdgeDoFFunction(), varName, level, rowIndex, primitive, step );
       }
    }
-
    else
    {
       WALBERLA_ABORT( "importVariables() called with unsupported function type!" );
    }
 }
-#endif
 
 template < concepts::value_type value_t >
 inline std::string valueTypeToString()
@@ -494,6 +520,196 @@ inline auto enumerateCells( const std::shared_ptr< const PrimitiveStorage >& sto
    }
 
    return std::make_pair( localIndices, globalNumberOfCells );
+}
+
+inline std::map< PrimitiveID, uint_t > deserializePrimitiveMap( const std::vector< uint8_t >& buffer, const adios2::Dims& shape )
+{
+   std::map< PrimitiveID, uint_t > primitiveMap;
+
+   uint_t sizeOfKey   = sizeof( PrimitiveID );
+   uint_t sizeOfValue = sizeof( uint_t );
+   uint_t sizeOfPair  = sizeOfKey + sizeOfValue;
+
+   // check that buffer size and number of pairs matches what we expect
+   uint_t numPairs = buffer.size() / ( sizeOfKey + sizeOfValue );
+   WALBERLA_CHECK( numPairs == shape[0] );
+   WALBERLA_CHECK( ( sizeOfKey + sizeOfValue ) == shape[1] );
+
+   const uint8_t* data = buffer.data();
+
+   PrimitiveID       key;
+   uint_t            value;
+   std::stringstream byteBuffer;
+   for ( uint_t idx = 0; idx < numPairs; ++idx )
+   {
+      byteBuffer.str( std::string() );
+      for ( uint_t k = 0; k < sizeOfKey; ++k )
+      {
+         byteBuffer << data[idx * sizeOfPair + k];
+      }
+      key.fromBuffer( byteBuffer );
+
+      value = *( reinterpret_cast< const uint_t* >( data + ( idx * sizeOfPair + sizeOfKey ) ) );
+
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "Inserting pair into map:\n" << key << "\n" << value );
+
+      primitiveMap[key] = value;
+   }
+
+   return primitiveMap;
+}
+
+template < concepts::value_type value_t >
+void distributeVertexDoFData( const P1Function< value_t >& function, uint_t minLevel, uint_t maxLevel )
+{
+   if constexpr ( std::is_integral_v< value_t > )
+   {
+      WALBERLA_ABORT( "The current implementation of distributeVertexDoFData() does not support DoF data of integral type!" );
+   }
+
+   const auto& storage = function.getStorage();
+
+   if ( storage->hasGlobalCells() )
+   {
+      for ( uint_t level = minLevel; level <= maxLevel; ++level )
+      {
+         function.template communicateAdditively< Cell, Face >( level );
+         function.template communicateAdditively< Cell, Edge >( level );
+         function.template communicateAdditively< Cell, Vertex >( level );
+      }
+   }
+   else
+   {
+      for ( uint_t level = minLevel; level <= maxLevel; ++level )
+      {
+         function.template communicateAdditively< Face, Edge >( level, true );
+         function.template communicateAdditively< Face, Vertex >( level, true );
+      }
+   }
+
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
+   {
+      if ( storage->hasGlobalCells() )
+      {
+         const auto& faceDataID = function.getFaceDataID();
+
+         for ( const auto& item : storage->getFaces() )
+         {
+            Face& face = *( item.second );
+
+            value_t factor = static_cast< value_t >( 1.0 / face.getNumNeighborCells() );
+            vertexdof::macroface::assign( level, face, { factor }, { faceDataID }, faceDataID );
+         }
+      }
+
+      const auto& edgeDataID   = function.getEdgeDataID();
+      const auto& vertexDataID = function.getVertexDataID();
+
+      for ( const auto& item : storage->getEdges() )
+      {
+         Edge& edge = *( item.second );
+
+         value_t factor = static_cast< value_t >(
+             1.0 / ( storage->hasGlobalCells() ? edge.getNumNeighborCells() : edge.getNumNeighborFaces() ) );
+         vertexdof::macroedge::assign( level, edge, { factor }, { edgeDataID }, edgeDataID );
+      }
+
+      for ( const auto& item : storage->getVertices() )
+      {
+         Vertex& vertex = *( item.second );
+
+         value_t factor = static_cast< value_t >(
+             1.0 / ( storage->hasGlobalCells() ? vertex.getNumNeighborCells() : vertex.getNumNeighborFaces() ) );
+         vertexdof::macrovertex::assign( vertex, { factor }, { vertexDataID }, vertexDataID, level );
+      }
+   }
+}
+
+template < concepts::value_type value_t >
+void distributeEdgeDoFData( const EdgeDoFFunction< value_t >& function, uint_t minLevel, uint_t maxLevel )
+{
+   if constexpr ( std::is_integral_v< value_t > )
+   {
+      WALBERLA_ABORT( "The current implementation of distributeEdgeDoFData() does not support DoF data of integral type!" );
+   }
+
+   const auto& storage = function.getStorage();
+
+   if ( storage->hasGlobalCells() )
+   {
+      for ( uint_t level = minLevel; level <= maxLevel; ++level )
+      {
+         function.template communicateAdditively< Cell, Face >( level );
+         function.template communicateAdditively< Cell, Edge >( level );
+      }
+   }
+   else
+   {
+      for ( uint_t level = minLevel; level <= maxLevel; ++level )
+      {
+         function.template communicateAdditively< Face, Edge >( level, true );
+      }
+   }
+
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
+   {
+      if ( storage->hasGlobalCells() )
+      {
+         const auto& faceDataID = function.getFaceDataID();
+
+         for ( const auto& item : storage->getFaces() )
+         {
+            Face& face = *( item.second );
+
+            value_t factor = static_cast< value_t >( 1.0 / face.getNumNeighborCells() );
+            edgedof::macroface::assign( level, face, { factor }, { faceDataID }, faceDataID );
+         }
+      }
+
+      const auto& edgeDataID = function.getEdgeDataID();
+
+      for ( const auto& item : storage->getEdges() )
+      {
+         Edge& edge = *( item.second );
+
+         value_t factor = static_cast< value_t >(
+             1.0 / ( storage->hasGlobalCells() ? edge.getNumNeighborCells() : edge.getNumNeighborFaces() ) );
+         edgedof::macroedge::assign( level, edge, { factor }, { edgeDataID }, edgeDataID );
+      }
+   }
+}
+
+template < template < typename > class func_t, concepts::value_type value_t >
+   requires concepts::fe_function< func_t< value_t > >
+void distributeDoFData( const func_t< value_t >& function, uint_t minLevel, uint_t maxLevel )
+{
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Going to distribute DoF data to lower-dimensional primitives!" );
+
+   const auto& storage = function.getStorage();
+
+   if constexpr ( std::is_same_v< func_t< value_t >, P1Function< value_t > > ||
+                  std::is_same_v< func_t< value_t >, P1VectorFunction< value_t > > )
+   {
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         distributeVertexDoFData( function[k], minLevel, maxLevel );
+      }
+   }
+
+   else if constexpr ( std::is_same_v< func_t< value_t >, P2Function< value_t > > ||
+                       std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
+   {
+      for ( uint_t k = 0; k < function.getDimension(); ++k )
+      {
+         distributeVertexDoFData( function[k].getVertexDoFFunction(), minLevel, maxLevel );
+         distributeEdgeDoFData( function[k].getEdgeDoFFunction(), minLevel, maxLevel );
+      }
+   }
+
+   else
+   {
+      WALBERLA_ABORT( "importVariables() called with unsupported function type!" );
+   }
 }
 
 } // namespace hyteg::adiosCheckpointHelpers_v03
