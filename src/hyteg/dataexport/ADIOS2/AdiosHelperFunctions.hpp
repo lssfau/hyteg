@@ -178,70 +178,6 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
       return;
    }
 
-// see issue #273
-#ifdef CPP2020
-   for ( auto const& [key, val] : userDefinedAttributes )
-   {
-      std::visit(
-          [&io, key]( const auto& arg ) {
-             using T = std::decay_t< decltype( arg ) >;
-             if ( isAdiosDataType< T, adiostype_t >::value )
-             {
-                // For Fortran compatibility, cast unsigned integer to signed integers, if ADIOS2_PARAVIEW_INT_TYPE is signed
-                if constexpr ( std::is_same_v< T, uint_t > && std::is_signed_v< intData_t > )
-                   writeAttribute( io, key, static_cast< intData_t >( arg ) );
-                else if constexpr ( std::is_same_v< T, bool > )
-                {
-                   std::string sflag = arg ? "true" : "false";
-                   writeAttribute( io, key, sflag );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< int > > )
-                {
-                   writeAttributeVector< int >( io, key, arg );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< long > > )
-                {
-                   writeAttributeVector< long >( io, key, arg );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< float > > )
-                {
-                   writeAttributeVector< float >( io, key, arg );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< double > > )
-                {
-                   writeAttributeVector< double >( io, key, arg );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< uint_t > > )
-                {
-                   writeAttributeVector< uint_t >( io, key, arg );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< bool > > )
-                {
-                   std::vector< std::string > boolVec;
-                   std::string                sflag;
-
-                   for ( const auto& b : arg )
-                   {
-                      sflag = b ? "true" : "false";
-                      boolVec.push_back( sflag );
-                   }
-                   writeAttributeVector< std::string >( io, key, boolVec );
-                }
-                else if constexpr ( std::is_same_v< T, std::vector< std::string > > )
-                {
-                   writeAttributeVector< std::string >( io, key, arg );
-                }
-                else
-                   writeAttribute( io, key, arg );
-             }
-             else
-             {
-                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
-             }
-          },
-          val );
-   }
-#else
    for ( auto const& entry : userDefinedAttributes )
    {
       std::visit(
@@ -318,7 +254,6 @@ inline void writeAllAttributes( adios2::IO& io, const std::map< std::string, adi
           },
           entry.second );
    }
-#endif
 }
 
 /// function to read user defined attributes, will abort, if attribute is not found
@@ -407,25 +342,6 @@ inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_
       return;
    }
 
-// see issue #273
-#ifdef CPP2020
-   for ( auto& [key, val] : userDefinedAttributes )
-   {
-      std::visit(
-          [&io, key]( const auto& arg ) {
-             using T = std::decay_t< decltype( arg ) >;
-             if ( isAdiosDataType< T, adiostype_t >::value )
-             {
-                entry.second = getUserAttributeValueFromIo< T >( io, key );
-             }
-             else
-             {
-                WALBERLA_LOG_WARNING_ON_ROOT( "The user-defined ADIOS2 attribute " << key << " does not hold a valid datatype" );
-             }
-          },
-          val );
-   }
-#else
    for ( auto& entry : userDefinedAttributes )
    {
       std::visit(
@@ -444,7 +360,6 @@ inline void readAllAttributes( adios2::IO& io, std::map< std::string, adiostype_
           },
           entry.second );
    }
-#endif
 }
 
 } // namespace hyteg::adiosHelpers
