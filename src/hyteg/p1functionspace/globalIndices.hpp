@@ -18,8 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
- // Contains various conversions between local and global node numbering for P1 elements.
+// Contains various conversions between local and global node numbering for P1 elements.
 
 #pragma once
 
@@ -105,7 +104,7 @@ namespace stencil {
 // number of stencil entries
 static constexpr inline size_t stencilSize( uint8_t dim )
 {
-   return ( dim == 2 ) ? 7 : 15;
+   return ( dim == 3 ) ? 15 : ( dim == 2 ) ? 7 : 3;
 }
 
 // container for stencils

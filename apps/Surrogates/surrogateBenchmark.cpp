@@ -21,8 +21,6 @@
 #include <core/DataTypes.h>
 #include <core/math/Random.h>
 #include <core/mpi/MPIManager.h>
-#include <hyteg/elementwiseoperators/P1ElementwiseSurrogateOperator.hpp>
-#include <hyteg/geometry/IcosahedralShellMap.hpp>
 #include <hyteg/p1functionspace/P1SurrogateOperator_optimized.hpp>
 #include <hyteg/primitivestorage/PrimitiveStorage.hpp>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>

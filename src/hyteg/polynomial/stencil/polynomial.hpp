@@ -29,17 +29,16 @@ namespace p1 {
 namespace stencil {
 namespace surrogate {
 
-template < uint8_t DIM_domain, uint8_t DIM_primitive, uint8_t DEGREE >
+template < uint8_t DIM_domain, uint8_t DIM_primitive, uint8_t DEGREE, typename FLOAT = real_t >
 class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE ) >
 {
  public:
    static constexpr uint_t n_coeff   = hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE );
    static constexpr uint_t n_stencil = stencilSize( DIM_domain );
-   template < typename T = real_t >
-   using Stencil = StencilData< DIM_domain, T >;
+   using Stencil                     = StencilData< DIM_domain, FLOAT >;
 
    inline Polynomial()
-   : std::array< Stencil<>, n_coeff >{}
+   : std::array< Stencil, n_coeff >{}
    {}
 
    template < typename CoeffVector >
@@ -53,19 +52,19 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
       for ( uint_t i = 0; i < n_coeff; ++i ) // polynomial coefficients
       {
-         ( *this )[i][d] = static_cast< real_t >( coeffs[static_cast< coeff_idx_t >( i )] );
+         ( *this )[i][d] = static_cast< FLOAT >( coeffs[static_cast< coeff_idx_t >( i )] );
       }
    }
 
    // fix z coordinate s.th. only 2d polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_z( const real_t z ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_z( const FLOAT z ) const
    {
       static_assert( DIM_primitive == 3, "fix_z(z) only available in 3D!" );
       return fix_coord( z );
    }
 
    // fix y coordinate s.th. only 1d polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_y( const real_t y ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_y( const FLOAT y ) const
    {
       static_assert( DIM_primitive == 2, "fix_y(y) only available in 2D!" );
       return fix_coord( y );
@@ -74,11 +73,11 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    /** @brief Evaluate the 1d polynomial at x
     * @param x The x-coordinate.
     */
-   inline Stencil<> eval( const real_t x ) const
+   inline Stencil eval( const FLOAT x ) const
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
 
-      Stencil<> result = ( *this )[0];
+      Stencil result = ( *this )[0];
 
       auto xpow = x;
       for ( uint_t i = 1; i <= DEGREE; ++i )
@@ -102,7 +101,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    /** @brief Evaluate the 1d polynomial at x
     * @param x The x-coordinates.
     */
-   inline StencilData< DIM_domain, walberla::simd::double4_t > eval_vec( const std::array< real_t, 4 >& x ) const
+   inline StencilData< DIM_domain, walberla::simd::double4_t > eval_vec( const std::array< FLOAT, 4 >& x ) const
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
 
@@ -132,12 +131,12 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 #endif
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
-   Stencil<> eval_naive( const Point3D& x ) const
+   Stencil eval_naive( const Point3D& x ) const
    {
       // monomial basis
       constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
 
-      Stencil<> px{};
+      Stencil px{};
       for ( uint_t i = 0; i < n_coeff; ++i ) // polynomial coefficients
       {
          auto phi_i_x = phi[i].eval( x );
@@ -202,13 +201,13 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_coord( const real_t z ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_coord( const FLOAT z ) const
    {
       // monomial basis
       constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
 
       // z^k for k=0,...,q
-      std::array< real_t, DEGREE + 1 > z_pow;
+      std::array< FLOAT, DEGREE + 1 > z_pow;
       z_pow[0] = 1.0;
       for ( uint_t k = 1; k <= DEGREE; ++k )
       {

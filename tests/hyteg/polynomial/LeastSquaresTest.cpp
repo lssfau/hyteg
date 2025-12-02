@@ -26,12 +26,12 @@
 #include <core/timing/Timer.h>
 #include <filesystem>
 #include <hyteg/polynomial/new/leastSquares.hpp>
+#include <hyteg/polynomial/stencil/leastSquares.hpp>
 
 using hyteg::idx_t;
 using hyteg::real_t;
 using hyteg::uint_t;
 using walberla::math::pi;
-using walberla::math::realRandom;
 
 // test accuracy of least squares fit
 template < uint_t D, uint8_t Q >
@@ -41,17 +41,22 @@ double LeastSquaresTest( uint_t lvl, uint_t downsampling, bool use_precomputed )
    /// initialize least squares system
    // ---------------------------------------------------------
    std::unique_ptr< hyteg::surrogate::LeastSquares< real_t > > lsq;
+   std::unique_ptr< hyteg::p1::stencil::surrogate::LeastSquares< real_t > > lsq_sten;
    if ( use_precomputed )
    {
       lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( "svd", D, Q, lvl, downsampling );
+      lsq_sten = std::make_unique< hyteg::p1::stencil::surrogate::LeastSquares< real_t > >( "svd_sten", D, Q, lvl, downsampling );
    }
    else
    {
       lsq = std::make_unique< hyteg::surrogate::LeastSquares< real_t > >( D, Q, lvl, downsampling );
+      lsq_sten = std::make_unique< hyteg::p1::stencil::surrogate::LeastSquares< real_t > >( D, Q, lvl, downsampling );
       // write svd to file to be used when calling the function again with `use_precomputed=true`
       lsq->write_to_file( "svd" );
+      lsq_sten->write_to_file( "svd_sten" );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         n_samples = %d; dim(P) = %d", lsq->rows, lsq->cols ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         elwise:  n_samples = %d; dim(P) = %d", lsq->rows, lsq->cols ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         stencil: n_samples = %d; dim(P) = %d", lsq_sten->rows, lsq_sten->cols ) );
 
    // ---------------------------------------------------------
    /// initialize data
@@ -70,6 +75,13 @@ double LeastSquaresTest( uint_t lvl, uint_t downsampling, bool use_precomputed )
       lsq->setRHS( it(), f( x ) );
       ++it;
    }
+   auto it_sten = lsq_sten->samplingIterator();
+   while ( it_sten != it_sten.end() )
+   {
+      auto x = X( it_sten.ijk() );
+      lsq_sten->setRHS( it_sten(), f( x ) );
+      ++it_sten;
+   }
 
    // ---------------------------------------------------------
    /// polynomial approximation
@@ -78,11 +90,16 @@ double LeastSquaresTest( uint_t lvl, uint_t downsampling, bool use_precomputed )
    // initialize polynomial
    hyteg::surrogate::polynomial::Polynomial< real_t, D, Q > p( coeffs );
 
+   auto& coeffs_sten = lsq_sten->solve();
+   // initialize polynomial
+   hyteg::surrogate::polynomial::Polynomial< real_t, D, Q > p_sten( coeffs );
+
    // ---------------------------------------------------------
    /// evaluate polynomial and compute error
    // ---------------------------------------------------------
    idx_t  len_edge = ( idx_t( 1 ) << lvl );
    double error    = 0.0;
+   double error_sten    = 0.0;
    idx_t  k_max    = ( D == 3 ) ? len_edge : 1;
    idx_t  j_max    = ( D >= 2 ) ? len_edge : 1;
    idx_t  i_max    = len_edge;
@@ -92,6 +109,7 @@ double LeastSquaresTest( uint_t lvl, uint_t downsampling, bool use_precomputed )
       if constexpr ( D == 3 )
       {
          p.fix_z( z );
+         p_sten.fix_z( z);
       }
       for ( idx_t j = 0; j < j_max - k; ++j )
       {
@@ -99,19 +117,24 @@ double LeastSquaresTest( uint_t lvl, uint_t downsampling, bool use_precomputed )
          if constexpr ( D >= 2 )
          {
             p.fix_y( y );
+            p_sten.fix_y( y );
          }
          for ( idx_t i = 0; i < i_max - k - j; ++i )
          {
             auto x = X[i];
             auto e = f( { x, y, z } ) - p.eval( x );
+            auto e_sten = f( { x, y, z } ) - p_sten.eval( x );
             error += e * e;
+            error_sten += e_sten * e_sten;
          }
       }
    }
    auto h  = 1.0 / double( len_edge );
    auto dV = std::pow( h, D );
    error   = std::sqrt( error * dV );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         discrete L2 error: ||f-p|| = %e", error ) );
+   error_sten   = std::sqrt( error_sten * dV );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         elwise:  discrete L2 error: ||f-p|| = %e", error ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "         stencil: discrete L2 error: ||f-p|| = %e", error_sten ) );
 
    return error;
 }
@@ -162,6 +185,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    std::filesystem::create_directory( "svd" );
+   std::filesystem::create_directory( "svd_sten" );
 
    //  Run tests
    WALBERLA_LOG_INFO_ON_ROOT( "LeastSquaresTest 2D" );
@@ -192,6 +216,7 @@ int main( int argc, char* argv[] )
 
    // cleanup
    std::filesystem::remove_all( "svd" );
+   std::filesystem::remove_all( "svd_sten" );
 
    return 0;
 }
