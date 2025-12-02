@@ -445,7 +445,7 @@ int main( int argc, char** argv )
       using R_t = hyteg::P1toP1LinearRestriction<>;
       using P_t = hyteg::P1toP1LinearProlongation<>;
 
-      using A_form = forms::p1_div_k_grad_affine_q1;
+      using A_form = forms::p1_div_k_grad_affine_q3;
       A_form form( k, k );
 
       P1VariableOperator< A_form >  A1( storage, minLevel, maxLevel, form );
