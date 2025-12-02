@@ -464,6 +464,9 @@ class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointEx
 
             if ( exportType == ExportType::DEFINE_AND_EXPORT || exportType == ExportType::ONLY_EXPORT )
             {
+               // export primitive-to-index map, if necessary
+               exportPrimitiveToIndexMap( io, engine, function.getStorage() );
+
                // as we only store data for the highest dimensional primitives we need to make sure
                // that their halos are up-to-date
                for ( uint_t level = functionMinLevel_[function.getFunctionName()];
@@ -477,7 +480,8 @@ class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointEx
                   }
                   else
                   {
-                     communication::syncVectorFunctionBetweenPrimitives( function, level, communication::syncDirection_t::LOW2HIGH );
+                     communication::syncVectorFunctionBetweenPrimitives(
+                         function, level, communication::syncDirection_t::LOW2HIGH );
                   }
                }
 
@@ -500,7 +504,7 @@ class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointEx
       }
    }
 
-   inline void globallyEnumeratePrimitives( const std::shared_ptr< const PrimitiveStorage > storage )
+   inline void globallyEnumeratePrimitives( const std::shared_ptr< const PrimitiveStorage >& storage )
    {
       if ( storage->hasGlobalCells() && numFacesAndCellsGlobally_.second == 0u )
       {
@@ -511,7 +515,6 @@ class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointEx
       }
       else if ( !storage->hasGlobalCells() && numFacesAndCellsGlobally_.first == 0u )
       {
-         WALBERLA_ABORT( "Test mesh has cells! No need to enumerate faces!" );
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Performing global face enumeration" );
          auto [localFaceIndices, numGlobalFaces] = adiosCheckpointHelpers_v03::enumerateFaces( storage );
          numFacesAndCellsGlobally_.first         = numGlobalFaces;
@@ -524,6 +527,76 @@ class AdiosCheckpointExporter_v03 : public CheckpointExporter< AdiosCheckpointEx
    {
       std::vector< std::string > info{ "HyTeG Checkpoint", "0.3" };
       io.DefineAttribute< std::string >( "CheckpointFormat", info.data(), info.size() );
+   }
+
+   /// Store information in which array row to find data for a certain PrimitiveID
+   inline void exportPrimitiveToIndexMap( adios2::IO&                                      io,
+                                          adios2::Engine&                                  engine,
+                                          const std::shared_ptr< const PrimitiveStorage >& storage )
+   {
+      // test whether we need to store a map for faces
+      if ( numFacesAndCellsGlobally_.first > 0u )
+      {
+         if ( !io.InquireVariable< uint8_t >( "RowIndicesOfFaces" ) )
+         {
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "Need to store faceID to rowIndex map!" );
+
+            uint_t mapEntrySizeInBytes = sizeof( PrimitiveID ) + sizeof( uint_t );
+
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "Going to define joined array 'RowIndicesOfFaces' with\nshape .... {"
+                                           << "adios2::JoinedDim, " << mapEntrySizeInBytes << "}\n"
+                                           << "start .... {}\n"
+                                           << "count .... {" << storage->getNumberOfLocalFaces() << ", " << mapEntrySizeInBytes
+                                           << "}" );
+
+            adios2::Variable< uint8_t > varMapData =
+                io.DefineVariable< uint8_t >( "RowIndicesOfFaces",
+                                              { adios2::JoinedDim, mapEntrySizeInBytes },
+                                              {},
+                                              { storage->getNumberOfLocalFaces(), mapEntrySizeInBytes } );
+
+            // serialise map
+            walberla::mpi::SendBuffer buffer;
+            buffer << rowIndicesInGlobalAdiosArrayForFaces_;
+
+            // schedule map data for export
+            std::ptrdiff_t offset = buffer.size() - storage->getNumberOfLocalFaces() * mapEntrySizeInBytes;
+            engine.Put( varMapData, buffer.ptr() + offset );
+         }
+      }
+
+      // test whether we need to store a map for cells
+      if ( numFacesAndCellsGlobally_.second > 0u )
+      {
+         std::string varName = "RowIndicesOfCells";
+         if ( !io.InquireVariable< uint8_t >( varName ) )
+         {
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "Need to store cellID to rowIndex map!" );
+
+            uint_t mapEntrySizeInBytes = sizeof( PrimitiveID ) + sizeof( uint_t );
+
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "Going to define joined array '"
+                                           << varName << "' with\nshape .... {"
+                                           << "adios2::JoinedDim, " << mapEntrySizeInBytes << "}\n"
+                                           << "start .... {}\n"
+                                           << "count .... {" << storage->getNumberOfLocalCells() << ", " << mapEntrySizeInBytes
+                                           << "}" );
+
+            // serialise map
+            walberla::mpi::SendBuffer buffer;
+            buffer << rowIndicesInGlobalAdiosArrayForCells_;
+
+            adios2::Variable< uint8_t > varMapData =
+                io.DefineVariable< uint8_t >( varName,
+                                              { adios2::JoinedDim, mapEntrySizeInBytes },
+                                              {},
+                                              { storage->getNumberOfLocalCells(), mapEntrySizeInBytes } );
+
+            // schedule map data for export
+            std::ptrdiff_t offset = buffer.size() - storage->getNumberOfLocalCells() * mapEntrySizeInBytes;
+            engine.Put( varMapData, buffer.ptr() + offset );
+         }
+      }
    }
 
    /// Global count of faces or cells
