@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.20)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -254,7 +254,7 @@ endforeach ()
 
 # Determine if Gmsh executable is available for testing purposes
 find_program( GMSH_EXECUTABLE gmsh )
-if( GMSH_EXECUTABLE ) 
+if( GMSH_EXECUTABLE )
     message(STATUS "Found Gmsh executable at ${GMSH_EXECUTABLE}" )
 endif()
 
