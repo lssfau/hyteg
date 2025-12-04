@@ -753,7 +753,6 @@ clang_21_mpionly_petsc_trilinos:
     HYTEG_BUILD_WITH_ADIOS2: "OFF"
     HYTEG_BUILD_WITH_PETSC: "ON"
     HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
   tags:
     - docker
 
