@@ -415,9 +415,9 @@ gcc_13_serial:
   tags:
     - docker
 
-gcc_13_mpionly:
+gcc_15_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
   stage: pretest
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -744,9 +744,9 @@ clang_17_mpionly_dbg_petsc-complex_trilinos:
   tags:
     - docker
 
-clang_17_mpionly_petsc_trilinos:
+clang_21_mpionly_petsc_trilinos:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
   stage: pretest
   variables:
     WALBERLA_BUILD_WITH_OPENMP: "OFF"
