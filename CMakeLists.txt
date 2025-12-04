@@ -293,7 +293,7 @@ add_subdirectory( tutorials )
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
 
-  find_package ( Doxygen 1.10.0 OPTIONAL_COMPONENTS dot )
+  find_package ( Doxygen 1.11.0 OPTIONAL_COMPONENTS dot )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -335,11 +335,6 @@ if ( DOXYGEN_FOUND )
 
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
     COMMENT "Generating API documentation with Doxygen" VERBATIM )
-
-  if ( ${DOXYGEN_VERSION} VERSION_LESS "1.11.0" )
-    message( WARNING "Doxygen version is older than 1.11.0 !\nThus, your version does not include a patch for "
-      "issue https://github.com/doxygen/doxygen/issues/10517\nwhich affects some of HyTeG's tutorials" )
-  endif()
 
 else ()
 
