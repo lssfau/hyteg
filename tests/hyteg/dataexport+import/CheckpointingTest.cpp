@@ -25,7 +25,6 @@
 #include "core/timing/all.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter_v03.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -100,7 +99,7 @@ void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
 }
 #endif
 
-void storeCheckpoint( std::string filePath, std::string fileName )
+void storeCheckpoint_v02( std::string filePath, std::string fileName )
 {
    std::string           meshFileName{ prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) };
    MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
@@ -125,7 +124,7 @@ void storeCheckpoint( std::string filePath, std::string fileName )
       funcP1Vec.interpolate( { real_c( 1 ), real_c( 2 ), real_c( 3 ) }, lvl );
    }
 
-   AdiosCheckpointExporter checkpointer( "" );
+   deprecated::AdiosCheckpointExporter checkpointer( "" );
    checkpointer.registerFunction( funcP1, minLevel, maxLevel );
    checkpointer.registerFunction( funcP2, minLevel, maxLevel );
    checkpointer.registerFunction( intFunc, maxLevel, maxLevel );
@@ -263,7 +262,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 2) ***" );
    WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
-   storeCheckpoint( ".", "CheckpointingTest.bp" );
+   storeCheckpoint_v02( ".", "CheckpointingTest_v02.bp" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 3) ***" );

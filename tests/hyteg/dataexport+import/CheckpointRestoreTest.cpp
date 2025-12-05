@@ -26,10 +26,9 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter_v03.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
+// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -85,7 +84,7 @@ auto exportCheckpoint( const std::string&                                       
       feFunc.interpolate( expr, lvl );
    }
 
-   AdiosCheckpointExporter_v03 checkpointer( "" );
+   AdiosCheckpointExporter checkpointer( "" );
    checkpointer.registerFunction( feFunc, minLevel, maxLevel );
    checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
 
@@ -112,7 +111,7 @@ auto exportCheckpointContinuous( const std::string&                         file
    std::string       funcName = "Test_" + FunctionTrait< func_t< value_t > >::getTypeName();
    func_t< value_t > feFunc( funcName, storage, minLevel, maxLevel );
 
-   AdiosCheckpointExporter_v03 checkpointer( "" );
+   AdiosCheckpointExporter checkpointer( "" );
 
    checkpointer.registerFunction( feFunc, minLevel, maxLevel );
 
@@ -619,6 +618,5 @@ int main( int argc, char* argv[] )
 }
 
 // ensure speficied interfaces exist by making compiler explicitely instantiate the CRTP "base" class
-template class hyteg::CheckpointExporter< hyteg::AdiosCheckpointExporter_v03 >;
 template class hyteg::CheckpointExporter< hyteg::AdiosCheckpointExporter >;
 template class hyteg::CheckpointImporter< hyteg::AdiosCheckpointImporter >;
