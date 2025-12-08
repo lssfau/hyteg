@@ -537,23 +537,26 @@ inline std::map< PrimitiveID, uint_t > deserializePrimitiveMap( const std::vecto
 
    const uint8_t* data = buffer.data();
 
-   PrimitiveID       key;
-   uint_t            value;
-   std::stringstream byteBuffer;
+   PrimitiveID key;
+   uint_t      value;
+   uint_t      bufferPos = 0u;
    for ( uint_t idx = 0; idx < numPairs; ++idx )
    {
-      byteBuffer.str( std::string() );
-      for ( uint_t k = 0; k < sizeOfKey; ++k )
-      {
-         byteBuffer << data[idx * sizeOfPair + k];
-      }
-      key.fromBuffer( byteBuffer );
+      // extract key
+      key.fromBuffer( buffer, bufferPos );
+      bufferPos += sizeOfPair;
 
+      // extract value
       value = *( reinterpret_cast< const uint_t* >( data + ( idx * sizeOfPair + sizeOfKey ) ) );
 
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Inserting pair into map:\n" << key << "\n" << value );
 
-      primitiveMap[key] = value;
+      // try insertion
+      const auto [iterator, success] = primitiveMap.insert( { key, value } );
+      if ( !success )
+      {
+         WALBERLA_ABORT( "Insertion of pair into map failed:\n" << key << "\n" << value );
+      }
    }
 
    return primitiveMap;

@@ -233,6 +233,16 @@ class PrimitiveID
    template < typename Buffer_T >
    void fromBuffer( Buffer_T& buffer );
 
+   /// Set PrimitiveID from a chunk inside of a std::vector
+   ///
+   /// bufferPos marks the index of the first byte of the chunk
+   void fromBuffer( const std::vector< uint8_t >& buffer, uint_t start ) {
+     uint_t pos = start;
+     for ( auto& byte : asIntArray< uint8_t >() ) {
+       byte = buffer.at( pos++ );
+     }
+   }
+
  private:
    IDType id_;
 };
@@ -260,10 +270,10 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer )
 /// Enum for changing output conversion of PrimitiveID objects
 enum class PrimitiveIDFormat
 {
-   FULL,           ///< output complete bit-pattern of ID
-   TRIM,           ///< output complete bit-pattern w/o leading turned-off bits and MSB
-   COARSE_ID,      ///< output only COARSE_ID as integer value
-   ID_LIST         ///< output the ID as list of integers showing the parent - child relations
+   FULL,      ///< output complete bit-pattern of ID
+   TRIM,      ///< output complete bit-pattern w/o leading turned-off bits and MSB
+   COARSE_ID, ///< output only COARSE_ID as integer value
+   ID_LIST    ///< output the ID as list of integers showing the parent - child relations
 };
 
 /// Class for handling output conversion of PrimitiveID objects
