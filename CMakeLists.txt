@@ -102,12 +102,21 @@ if ( HYTEG_BUILD_WITH_MPFR )
     # Extends cmake module path - so that FindMPFR.cmake in the current directory is found
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EIGEN_DIR}/cmake)
 
+    find_package(GMP REQUIRED)
+    add_library(GMP::GMP INTERFACE IMPORTED)
+    set_target_properties(GMP::GMP PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDES}"
+            INTERFACE_LINK_LIBRARIES "${GMP_LIBRARIES}"
+    )
+
     find_package(MPFR REQUIRED)
     add_library(MPFR::MPFR INTERFACE IMPORTED)
     set_target_properties(MPFR::MPFR PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${MPFR_INCLUDES}"
             INTERFACE_LINK_LIBRARIES "${MPFR_LIBRARIES}"
     )
+    target_link_libraries(MPFR::MPFR INTERFACE GMP::GMP)
+
     # add the path of the mpfr-wrapper to the include path
     include_directories(SYSTEM extern/mpfr-wrapper)
 endif ()
