@@ -56,15 +56,19 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
     ${CMAKE_CURRENT_SOURCE_DIR}/CheckpointRestoreTest.prm
     ${CMAKE_CURRENT_BINARY_DIR}/CheckpointRestoreTest.prm )
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-    ${CMAKE_CURRENT_SOURCE_DIR}/Checkpoint-v02-np4.bp
-    ${CMAKE_CURRENT_BINARY_DIR}/Checkpoint-v02-np4.bp )
+  if( WALBERLA_DOUBLE_ACCURACY )
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/Checkpoint-v02-np4.bp
+      ${CMAKE_CURRENT_BINARY_DIR}/Checkpoint-v02-np4.bp )
+  endif ()
 
   waLBerla_compile_test(FILES CheckpointRestoreTest.cpp DEPENDS hyteg core)
 
   waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 1)
 
-  waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential-Import-Only-v02 COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=Checkpoint-v02-np4.bp PROCESSES 1)
+  if( WALBERLA_DOUBLE_ACCURACY )
+    waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential-Import-Only-v02 COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=Checkpoint-v02-np4.bp PROCESSES 1)
+  endif ()
 
   if( HYTEG_BUILD_WITH_MPI )
     waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Same-Communicator COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 3)
@@ -75,7 +79,10 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
     waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential-Import-Only COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=CheckpointRestoreTest-np3.bp PROCESSES 1)
     waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Import-Only1 COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=CheckpointRestoreTest-np3.bp PROCESSES 3)
     waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Import-Only2 COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=CheckpointRestoreTest-np1.bp PROCESSES 3)
+
+  if( WALBERLA_DOUBLE_ACCURACY )
     waLBerla_execute_test(NAME CheckpointRestoreTest-Parallel-Import-Only-v02 COMMAND $<TARGET_FILE:CheckpointRestoreTest> CheckpointRestoreTest.prm -Parameters.onlyImport=true -Parameters.restoreFromFileWithName=Checkpoint-v02-np4.bp PROCESSES 3)
+  endif ()
 
     set_tests_properties( CheckpointRestoreTest-Sequential-Import-Only PROPERTIES FIXTURES_REQUIRED CheckPointRestore )
     set_tests_properties( CheckpointRestoreTest-Parallel-Import-Only1  PROPERTIES FIXTURES_REQUIRED CheckPointRestore )
