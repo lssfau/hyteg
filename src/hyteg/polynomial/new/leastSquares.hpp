@@ -171,7 +171,7 @@ class LeastSquares
        */
       inline constexpr idx_t operator()() const { return _n; }
       /**
-       * @brief end of this iterator. Useage:
+       * @brief end of this iterator. Usage:
        * while ( it != it.end() ) { ... }
        *
        * @return uint_t end of iterator.
