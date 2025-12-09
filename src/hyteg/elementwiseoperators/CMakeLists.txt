@@ -22,9 +22,3 @@ target_sources( hyteg
     P1ElementwiseSurrogateOperator.hpp
     P1ElementwiseSurrogateOperator.cpp
 )
-
-set_source_files_properties(
-    P1ElementwiseSurrogateOperator.hpp
-    P1ElementwiseSurrogateOperator.cpp
-    PROPERTIES COMPILE_OPTIONS ${HYTEG_COMPILER_NATIVE_FLAGS}
-)
