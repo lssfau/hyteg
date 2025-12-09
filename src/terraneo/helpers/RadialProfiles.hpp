@@ -28,8 +28,9 @@
 #include <vector>
 
 #include "core/DataTypes.h"
-#include "core/Format.hpp"
 #include "core/debug/CheckFunctions.h"
+
+#include "hyteg/Format.hpp"
 
 using namespace hyteg;
 

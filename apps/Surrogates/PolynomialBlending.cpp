@@ -25,8 +25,7 @@
 #include <core/config/Create.h>
 #include <core/timing/Timer.h>
 
-#include "core/Format.hpp"
-
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
@@ -51,8 +50,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
-#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 // #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 
@@ -243,11 +242,11 @@ void solveTmpl( std::shared_ptr< PrimitiveStorage > storage,
    u.interpolate( boundary, maxLevel, hyteg::DirichletBoundary );
 
    // define solver
-   auto coarseGridSolver =
-       std::make_shared< hyteg::CGSolver< typename FE::Laplace > >( storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
+   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< typename FE::Laplace > >(
+       storage, minLevel, minLevel, max_cg_iter, real_c( 0 ), coarse_tolerance );
    // auto coarseGridSolver = std::make_shared<hyteg::CGSolver<P1AffineDivkGradOperator_new>>(storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance);
    auto coarseGridSolver_elwise = std::make_shared< hyteg::CGSolver< P1ElementwiseBlendingLaplaceOperator > >(
-       storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
+       storage, minLevel, minLevel, max_cg_iter, real_c( 0 ), coarse_tolerance );
    auto restrictionOperator  = std::make_shared< typename FE::Restriction >();
    auto prolongationOperator = std::make_shared< typename FE::Prolongation >();
    auto smoother             = std::make_shared< hyteg::GaussSeidelSmoother< typename FE::Laplace > >();
@@ -538,7 +537,7 @@ int main( int argc, char* argv[] )
    c_function rhs      = []( const hyteg::Point3D& x ) { return 2 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ); };
    c_function coeff    = []( const hyteg::Point3D& ) { return 0.; };
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, nX, nY );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, nX, nY );
 
    /// case cube
    if ( nZ > 0 )
@@ -547,7 +546,7 @@ int main( int argc, char* argv[] )
       rhs   = []( const hyteg::Point3D& x ) { return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
 
       // boundary = exact;
-      meshInfo = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), nX, nY, nZ );
+      meshInfo = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), nX, nY, nZ );
    }
 
    /// case annulus

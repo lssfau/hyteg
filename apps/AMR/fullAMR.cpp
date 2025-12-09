@@ -21,13 +21,13 @@
 // example app where both adaptive refinement and coarsening are used to keep the number of elements approximately constant
 
 #include <core/Environment.h>
-#include <core/Format.hpp>
 #include <core/config/Create.h>
 #include <core/math/Constants.h>
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 #include <iomanip>
 
+#include "hyteg/Format.hpp"
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -215,7 +215,7 @@ adaptiveRefinement::ErrorVector solve( std::shared_ptr< hyteg::PrimitiveStorage 
    // auto   smoother = std::make_shared< WeightedJacobiSmoother< Laplace > >( storage, l_min, l_max, 0.66 );
    // coarse grid solver
    auto cgIter = std::max( uint_t( 50 ), 2 * n_dof_coarse );
-   auto cgs    = std::make_shared< CGSolver< Laplace > >( storage, l_min, l_min, cgIter, real_c(0), cg_tol );
+   auto cgs    = std::make_shared< CGSolver< Laplace > >( storage, l_min, l_min, cgIter, real_c( 0 ), cg_tol );
 
    // error indicator
    t_error_indicator = 0.0;

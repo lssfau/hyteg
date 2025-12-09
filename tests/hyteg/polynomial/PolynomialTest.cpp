@@ -19,7 +19,6 @@
  */
 
 #include <core/Environment.h>
-#include <core/Format.hpp>
 #include <core/config/Create.h>
 #include <core/logging/Logging.h>
 #include <core/math/Constants.h>
@@ -27,6 +26,8 @@
 #include <core/timing/Timer.h>
 #include <filesystem>
 #include <hyteg/polynomial/elementwise/polynomial.hpp>
+
+#include "hyteg/Format.hpp"
 
 using hyteg::idx_t;
 using hyteg::real_t;

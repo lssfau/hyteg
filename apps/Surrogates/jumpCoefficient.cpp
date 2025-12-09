@@ -26,8 +26,7 @@
 #include <core/config/Create.h>
 #include <core/timing/Timer.h>
 
-#include "core/Format.hpp"
-
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -47,8 +46,8 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
-#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -60,8 +59,8 @@ using function = std::function< real_t( const hyteg::Point3D& ) >;
 
 enum OpType
 {
-   VARIABLE         = 0,
-   SURROGATE        = 1,
+   VARIABLE  = 0,
+   SURROGATE = 1,
 };
 
 // print stencils for all points
@@ -199,7 +198,7 @@ FE_t solve( const OpType                        opType,
    u.interpolate( []( const hyteg::Point3D& ) { return 0.0; }, l_max, hyteg::Inner );
 
    // define solver
-   auto cg           = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_min, cg_iter, real_c(0), cg_tol );
+   auto cg           = std::make_shared< hyteg::CGSolver< A_t > >( storage, l_min, l_min, cg_iter, real_c( 0 ), cg_tol );
    auto restriction  = std::make_shared< R_t >();
    auto prolongation = std::make_shared< P_t >();
    auto smoother     = std::make_shared< hyteg::GaussSeidelSmoother< A_t > >();

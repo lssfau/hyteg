@@ -20,13 +20,14 @@
 
 #pragma once
 
-#include <core/Format.hpp>
 #include <core/logging/Logging.h>
 #include <filesystem>
 #include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
 #include <hyteg/indexing/MacroCellIndexing.hpp>
 #include <hyteg/indexing/MacroFaceIndexing.hpp>
+
+#include "hyteg/Format.hpp"
 
 #include "polynomial.hpp"
 

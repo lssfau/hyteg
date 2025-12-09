@@ -18,10 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/config/Config.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -35,8 +35,8 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
-#include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
+#include "constant_stencil_operator/P2ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -71,9 +71,9 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
-   hyteg::P1Function< real_t >  r_p1( "r_p1", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t >  f_p1( "f_p1", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t >  u_p1( "u_p1", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > r_p1( "r_p1", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > f_p1( "f_p1", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > u_p1( "u_p1", storage, minLevel, maxLevel );
 
    hyteg::P2Function< real_t > r_p2( "r_p2", storage, maxLevel, maxLevel );
    hyteg::P2Function< real_t > f_p2( "f_p2", storage, maxLevel, maxLevel );
@@ -110,7 +110,7 @@ int main( int argc, char* argv[] )
 
    auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
-       storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
+       storage, minLevel, minLevel, max_cg_iter, real_c( 0 ), coarse_tolerance );
    auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction<> >();
    auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation<> >();
 
@@ -124,35 +124,36 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    L_p2.apply( u_p2, Lu_p2, maxLevel, hyteg::Inner );
-   r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hyteg::Inner );
+   r_p2.assign( { 1.0, -1.0 }, { f_p2, Lu_p2 }, maxLevel, hyteg::Inner );
 
    real_t begin_res   = std::sqrt( r_p2.dotGlobal( r_p2, maxLevel, hyteg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err_p2.assign( {1.0, -1.0}, {u_p2, u_exact_p2}, maxLevel );
+   err_p2.assign( { 1.0, -1.0 }, { u_p2, u_exact_p2 }, maxLevel );
    real_t discr_l2_err = std::sqrt( err_p2.dotGlobal( err_p2, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       solveTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
    const uint_t convergenceStartIter   = 3;
 
    uint_t i = 0;
-   for( ; i < max_outer_iter; ++i )
+   for ( ; i < max_outer_iter; ++i )
    {
       start = walberla::timing::getWcTime();
 
       // pre-smooth
-      for( size_t nu = 0; nu < nuPre; ++nu )
+      for ( size_t nu = 0; nu < nuPre; ++nu )
       {
          L_p2.smooth_gs( u_p2, f_p2, maxLevel, hyteg::Inner );
       }
 
       // compute residuum
       L_p2.apply( u_p2, Lu_p2, maxLevel, hyteg::Inner );
-      r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hyteg::Inner );
+      r_p2.assign( { 1.0, -1.0 }, { f_p2, Lu_p2 }, maxLevel, hyteg::Inner );
 
       // restrict
       r_p2.restrictP2ToP1( f_p1, maxLevel, hyteg::Inner );
@@ -160,15 +161,15 @@ int main( int argc, char* argv[] )
       u_p1.interpolate( zero, maxLevel );
 
       // Apply P1 geometric multigrid solver
-      gmgSolver.solve(L_p1, u_p1, f_p1, maxLevel );
+      gmgSolver.solve( L_p1, u_p1, f_p1, maxLevel );
 
       // prolongate
-      tmp_p2.assign( {1.0}, {u_p2}, maxLevel, hyteg::Inner );
+      tmp_p2.assign( { 1.0 }, { u_p2 }, maxLevel, hyteg::Inner );
       u_p2.prolongateP1ToP2( u_p1, maxLevel, hyteg::Inner );
-      u_p2.add( {1.0}, {tmp_p2}, maxLevel, hyteg::Inner );
+      u_p2.add( { 1.0 }, { tmp_p2 }, maxLevel, hyteg::Inner );
 
       // post-smooth
-      for( size_t nu = 0; nu < nuPost; ++nu )
+      for ( size_t nu = 0; nu < nuPost; ++nu )
       {
          L_p2.smooth_gs( u_p2, f_p2, maxLevel, hyteg::Inner );
       }
@@ -176,10 +177,10 @@ int main( int argc, char* argv[] )
       end = walberla::timing::getWcTime();
 
       L_p2.apply( u_p2, Lu_p2, maxLevel, hyteg::Inner );
-      r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hyteg::Inner );
+      r_p2.assign( { 1.0, -1.0 }, { f_p2, Lu_p2 }, maxLevel, hyteg::Inner );
       real_t abs_res = std::sqrt( r_p2.dotGlobal( r_p2, maxLevel, hyteg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err_p2.assign( {1.0, -1.0}, {u_p2, u_exact_p2}, maxLevel );
+      err_p2.assign( { 1.0, -1.0 }, { u_p2, u_exact_p2 }, maxLevel );
       discr_l2_err = std::sqrt( err_p2.dotGlobal( err_p2, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
@@ -187,14 +188,14 @@ int main( int argc, char* argv[] )
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old, discr_l2_err, end - start ) )
       solveTime += end - start;
 
-      if( i >= convergenceStartIter )
+      if ( i >= convergenceStartIter )
       {
          averageConvergenceRate += abs_res / abs_res_old;
       }
 
       abs_res_old = abs_res;
 
-      if( rel_res < mg_tolerance )
+      if ( rel_res < mg_tolerance )
       {
          break;
       }
@@ -210,9 +211,9 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( discr_l2_err, 9e-08 );
 
-   if( parameters.getParameter< bool >( "vtkOutput" ) )
+   if ( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput("../output", "gmg_P2", storage);
+      VTKOutput vtkOutput( "../output", "gmg_P2", storage );
       vtkOutput.add( u_p2 );
       vtkOutput.add( u_exact_p2 );
       vtkOutput.add( f_p2 );
@@ -222,7 +223,7 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   if( parameters.getParameter< bool >( "printTiming" ) )
+   if ( parameters.getParameter< bool >( "printTiming" ) )
    {
       walberla::WcTimingTree tt = timingTree->getReduced();
       WALBERLA_LOG_INFO_ON_ROOT( tt );

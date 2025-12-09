@@ -18,10 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -37,7 +37,7 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
-template< typename P2LaplaceOperator_T >
+template < typename P2LaplaceOperator_T >
 void jacobiTest()
 {
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
@@ -62,10 +62,10 @@ void jacobiTest()
    hyteg::P2Function< real_t > helperFun( "helperFun", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > exactFunction = []( const hyteg::Point3D& x ) {
-     return sin( x[0] ) * sinh( x[1] );
+      return sin( x[0] ) * sinh( x[1] );
    };
 
-   std::function< real_t( const hyteg::Point3D& ) > ones   = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
    p2function.interpolate( exactFunction, level, hyteg::DirichletBoundary );
    helperFun.interpolate( exactFunction, level, hyteg::DirichletBoundary );
@@ -76,7 +76,7 @@ void jacobiTest()
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv" ) );
 
    L.apply( p2function, Lu, level, hyteg::Inner );
-   residuum.assign( {1.0, -1.0}, {rhs, Lu}, level, hyteg::Inner );
+   residuum.assign( { 1.0, -1.0 }, { rhs, Lu }, level, hyteg::Inner );
    begin_res   = std::sqrt( residuum.dotGlobal( residuum, level, hyteg::Inner ) );
    abs_res_old = begin_res;
 
@@ -84,10 +84,10 @@ void jacobiTest()
    walberla::WcTimer timer;
    for ( uint_t i = 0; i < maxiter; ++i )
    {
-      helperFun.assign( {1.0}, {p2function}, level, hyteg::Inner );
+      helperFun.assign( { 1.0 }, { p2function }, level, hyteg::Inner );
       L.smooth_jac( p2function, rhs, helperFun, 2.0 / 3.0, level, hyteg::Inner );
       L.apply( p2function, Lu, level, hyteg::Inner );
-      residuum.assign( {1.0, -1.0}, {rhs, Lu}, level, hyteg::Inner );
+      residuum.assign( { 1.0, -1.0 }, { rhs, Lu }, level, hyteg::Inner );
       abs_res = std::sqrt( residuum.dotGlobal( residuum, level, hyteg::Inner ) );
       rel_res = abs_res / begin_res;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old ) )
@@ -109,7 +109,7 @@ void jacobiTest()
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   error.assign( {1.0, -1.0}, {p2function, p2Exact}, level );
+   error.assign( { 1.0, -1.0 }, { p2function, p2Exact }, level );
 
    helperFun.interpolate( ones, level );
    real_t npoints = helperFun.dotGlobal( helperFun, level );
@@ -125,8 +125,7 @@ void jacobiTest()
    }
 
    WALBERLA_CHECK_LESS( discr_l2_err, 2.0e-06 );
-   WALBERLA_CHECK_LESS( abs_res,      8.0e-06 );
-
+   WALBERLA_CHECK_LESS( abs_res, 8.0e-06 );
 }
 
 int main( int argc, char* argv[] )

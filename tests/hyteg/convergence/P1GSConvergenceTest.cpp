@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/config/Config.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

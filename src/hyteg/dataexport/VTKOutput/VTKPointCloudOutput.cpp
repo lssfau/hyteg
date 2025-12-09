@@ -20,9 +20,9 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKPointCloudOutput.hpp"
 
-#include "core/Format.hpp"
 #include "core/mpi/MPITextFile.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
 
 #include "vtk/UtilityFunctions.h"

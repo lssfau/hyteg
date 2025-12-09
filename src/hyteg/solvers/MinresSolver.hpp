@@ -19,9 +19,9 @@
  */
 #pragma once
 
-#include "core/Format.hpp"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/functions/FunctionTools.hpp"
 #include "hyteg/memory/TempFunctionManager.hpp"
 #include "hyteg/solvers/Solver.hpp"

@@ -46,6 +46,7 @@ target_sources(hyteg
       PRIVATE
       Algorithms.hpp
       BuildInfo.in.hpp
+      Format.hpp
       Git.in.hpp
       HytegDefinitions.in.hpp
       Levelinfo.hpp

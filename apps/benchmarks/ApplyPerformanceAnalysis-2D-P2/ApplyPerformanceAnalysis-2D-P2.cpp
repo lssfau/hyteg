@@ -19,12 +19,12 @@
  */
 #include "core/DataTypes.h"
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/config/Config.h"
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -338,13 +338,13 @@ int main( int argc, char* argv[] )
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t              level               = mainConf.getParameter< uint_t >( "level" );
-   const bool                useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
-   const uint_t              startIterations     = mainConf.getParameter< uint_t >( "startIterations" );
-   benchVertexToVertex                           = mainConf.getParameter< bool >( "VertexToVertex" );
-   benchEdgeToVertex                             = mainConf.getParameter< bool >( "EdgeToVertex" );
-   benchEdgeToEdge                               = mainConf.getParameter< bool >( "EdgeToEdge" );
-   benchVertextoEdge                             = mainConf.getParameter< bool >( "VertextoEdge" );
+   const uint_t level               = mainConf.getParameter< uint_t >( "level" );
+   const bool   useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
+   const uint_t startIterations     = mainConf.getParameter< uint_t >( "startIterations" );
+   benchVertexToVertex              = mainConf.getParameter< bool >( "VertexToVertex" );
+   benchEdgeToVertex                = mainConf.getParameter< bool >( "EdgeToVertex" );
+   benchEdgeToEdge                  = mainConf.getParameter< bool >( "EdgeToEdge" );
+   benchVertextoEdge                = mainConf.getParameter< bool >( "VertextoEdge" );
 
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

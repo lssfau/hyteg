@@ -20,9 +20,9 @@
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/logging/Logging.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -36,10 +36,10 @@
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
 
+using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
-using walberla::real_c;
 
 enum class CycleType
 {
@@ -48,62 +48,90 @@ enum class CycleType
 };
 
 template < class O, class F, class CSolver, class RestrictionOperator, class ProlongationOperator >
-void cscycle( size_t    level,
-              size_t    minLevel,
-              CSolver&  csolver,
-              RestrictionOperator restrictionOperator,
+void cscycle( size_t               level,
+              size_t               minLevel,
+              CSolver&             csolver,
+              RestrictionOperator  restrictionOperator,
               ProlongationOperator prolongationOperator,
-              O&        A,
-              F&        x,
-              F&        ax,
-              F&        b,
-              F&        r,
-              F&        tmp,
-              real_t    coarse_tolerance,
-              size_t    coarse_maxiter,
-              size_t    nu_pre,
-              size_t    nu_post,
-              CycleType cycleType = CycleType::VCYCLE )
+              O&                   A,
+              F&                   x,
+              F&                   ax,
+              F&                   b,
+              F&                   r,
+              F&                   tmp,
+              real_t               coarse_tolerance,
+              size_t               coarse_maxiter,
+              size_t               nu_pre,
+              size_t               nu_post,
+              CycleType            cycleType = CycleType::VCYCLE )
 {
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
 
-   if( level == minLevel )
+   if ( level == minLevel )
    {
       csolver.solve( A, x, b, minLevel );
-   } else
+   }
+   else
    {
       // pre-smooth
-      for( size_t i = 0; i < nu_pre; ++i )
+      for ( size_t i = 0; i < nu_pre; ++i )
       {
          A.smooth_gs( x, b, level, hyteg::Inner );
       }
 
       A.apply( x, ax, level, hyteg::Inner );
-      r.assign( {1.0, -1.0}, {b, ax}, level, hyteg::Inner );
+      r.assign( { 1.0, -1.0 }, { b, ax }, level, hyteg::Inner );
 
       // restrict
       restrictionOperator.restrict( r, level, hyteg::Inner | hyteg::NeumannBoundary );
-      b.assign( {1.0}, {r}, level - 1, hyteg::Inner );
+      b.assign( { 1.0 }, { r }, level - 1, hyteg::Inner );
 
       x.interpolate( zero, level - 1 );
 
-      cscycle( level - 1, minLevel, csolver, restrictionOperator, prolongationOperator,
-               A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType );
+      cscycle( level - 1,
+               minLevel,
+               csolver,
+               restrictionOperator,
+               prolongationOperator,
+               A,
+               x,
+               ax,
+               b,
+               r,
+               tmp,
+               coarse_tolerance,
+               coarse_maxiter,
+               nu_pre,
+               nu_post,
+               cycleType );
 
-      if( cycleType == CycleType::WCYCLE )
+      if ( cycleType == CycleType::WCYCLE )
       {
-         cscycle(
-             level - 1, minLevel, csolver, restrictionOperator, prolongationOperator,
-             A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType );
+         cscycle( level - 1,
+                  minLevel,
+                  csolver,
+                  restrictionOperator,
+                  prolongationOperator,
+                  A,
+                  x,
+                  ax,
+                  b,
+                  r,
+                  tmp,
+                  coarse_tolerance,
+                  coarse_maxiter,
+                  nu_pre,
+                  nu_post,
+                  cycleType );
       }
 
       // prolongate
-      tmp.assign( {1.0}, {x}, level, hyteg::Inner );
+      tmp.assign( { 1.0 }, { x }, level, hyteg::Inner );
       prolongationOperator.prolongate( x, level - 1, hyteg::Inner | hyteg::NeumannBoundary );
-      x.add( {1.0}, {tmp}, level, hyteg::Inner );
+      x.add( { 1.0 }, { tmp }, level, hyteg::Inner );
 
       // post-smooth
-      for( size_t i = 0; i < nu_post; ++i )
+      for ( size_t i = 0; i < nu_post; ++i )
       {
          A.smooth_gs( x, b, level, hyteg::Inner );
       }
@@ -119,15 +147,16 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_THREADINIT;
 
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   if( walberlaEnv.config() == nullptr )
+   if ( walberlaEnv.config() == nullptr )
    {
       auto defaultFile = "../../data/param/vCycleTest.prm";
       cfg->readParameterFile( defaultFile );
-      if( !*cfg )
+      if ( !*cfg )
       {
          WALBERLA_ABORT( "could not open default file: " << defaultFile );
       }
-   } else
+   }
+   else
    {
       cfg = walberlaEnv.config();
    }
@@ -137,7 +166,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "HyTeG FMG Test" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
@@ -162,10 +192,12 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
    hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
-   hyteg::P1toP1LinearRestriction restrictionOperator;
-   hyteg::P1toP1LinearProlongation prolongationOperator;
+   hyteg::P1toP1LinearRestriction   restrictionOperator;
+   hyteg::P1toP1LinearProlongation  prolongationOperator;
 
-   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
+      return xx[0] * xx[0] - xx[1] * xx[1];
+   };
    std::function< real_t( const hyteg::Point3D& ) > zeros = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    std::function< real_t( const hyteg::Point3D& ) > rand  = []( const hyteg::Point3D& ) {
@@ -189,15 +221,16 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    A.apply( x, ax, maxLevel, hyteg::Inner );
-   r.assign( {1.0, -1.0}, {b, ax}, maxLevel, hyteg::Inner );
+   r.assign( { 1.0, -1.0 }, { b, ax }, maxLevel, hyteg::Inner );
 
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { x, x_exact }, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       totalTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
@@ -205,7 +238,7 @@ int main( int argc, char* argv[] )
 
    LIKWID_MARKER_START( "Compute" );
    uint_t i = 0;
-   for( ; i < outer; ++i )
+   for ( ; i < outer; ++i )
    {
       auto start = walberla::timing::getWcTime();
       cscycle( maxLevel,
@@ -226,29 +259,29 @@ int main( int argc, char* argv[] )
                CycleType::VCYCLE );
       auto end = walberla::timing::getWcTime();
       A.apply( x, ax, maxLevel, hyteg::Inner );
-      r.assign( {1.0, -1.0}, {b, ax}, maxLevel, hyteg::Inner );
+      r.assign( { 1.0, -1.0 }, { b, ax }, maxLevel, hyteg::Inner );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
+      err.assign( { 1.0, -1.0 }, { x, x_exact }, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
-                                              i + 1,
-                                              begin_res,
-                                              rel_res,
-                                              begin_res / abs_res_old,
-                                              discr_l2_err,
-                                              end - start ) )
+                                                   i + 1,
+                                                   begin_res,
+                                                   rel_res,
+                                                   begin_res / abs_res_old,
+                                                   discr_l2_err,
+                                                   end - start ) )
       totalTime += end - start;
 
-      if( i >= convergenceStartIter )
+      if ( i >= convergenceStartIter )
       {
          averageConvergenceRate += abs_res / abs_res_old;
       }
 
       abs_res_old = abs_res;
 
-      if( rel_res < mg_tolerance )
+      if ( rel_res < mg_tolerance )
       {
          break;
       }

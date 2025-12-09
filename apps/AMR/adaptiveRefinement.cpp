@@ -19,13 +19,13 @@
 */
 
 #include <core/Environment.h>
-#include <core/Format.hpp>
 #include <core/config/Create.h>
 #include <core/math/Constants.h>
 #include <core/mpi/Broadcast.h>
 #include <core/timing/Timer.h>
 #include <iomanip>
 
+#include "hyteg/Format.hpp"
 #include "hyteg/adaptiverefinement/error_estimator.hpp"
 #include "hyteg/adaptiverefinement/mesh.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"

@@ -22,10 +22,10 @@
 #define FP_FAST_FMAL
 
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/config/Create.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
@@ -339,7 +339,7 @@ int main( int argc, char* argv[] )
    c_function rhs_x      = []( const hyteg::Point3D& ) { return 0; };
    c_function rhs_y      = [&]( const hyteg::Point3D& x ) { return T_field( x ); };
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, nX, nY );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, nX, nY );
 
    /// case annulus
    Point3D                                               circleCenter{ { 0, 0, 0 } };

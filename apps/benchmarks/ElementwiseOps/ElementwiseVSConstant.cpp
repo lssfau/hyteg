@@ -19,10 +19,10 @@
  */
 
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
