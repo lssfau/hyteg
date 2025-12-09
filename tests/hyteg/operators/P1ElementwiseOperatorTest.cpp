@@ -45,7 +45,7 @@ void P1ElementwiseOperatorTest( const std::shared_ptr< PrimitiveStorage >& stora
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
-   hyteg::P1Function< real_t > Bu( "(Bu", storage, level, level );
+   hyteg::P1Function< real_t > Bu( "Bu", storage, level, level );
    hyteg::P1Function< real_t > err( "(A-B)u", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
