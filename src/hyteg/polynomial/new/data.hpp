@@ -154,12 +154,33 @@ class LocalMatrixMap
 };
 
 /**
- * @brief container for level wise data on each primitive
+ * @brief container for level-wise data
+ *       usage: LevelWiseData[lvl] = T
+ */
+template < typename T >
+struct LevelWiseData : public std::vector< T >
+{
+   LevelWiseData( uint_t l_min, uint_t l_max )
+   : std::vector< T >( ( l_max >= l_min ) ? l_max - l_min + 1 : 0 )
+   , minLvl_( l_min )
+   , maxLvl_( l_max )
+   {}
+
+   const T& operator[]( uint_t i ) const { return this->data[i - minLvl_]; }
+   T&       operator[]( uint_t i ) { return this->data[i - minLvl_]; }
+
+   const uint_t minLvl_;
+   const uint_t maxLvl_;
+};
+
+/**
+ * @brief container for level-wise data on each primitive
  *       usage: ElementWiseData[primitiveID][lvl] = T
  */
 template < typename T >
-struct ElementWiseData : public std::map< PrimitiveID, std::map< uint_t, T > >
+struct ElementWiseData : public std::map< PrimitiveID, LevelWiseData< T > >
 {
+ public:
    ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage,
                     Primitive::PrimitiveTypeEnum               type,
                     uint_t                                     l_min,
@@ -186,17 +207,7 @@ struct ElementWiseData : public std::map< PrimitiveID, std::map< uint_t, T > >
 
       for ( auto& id : ids )
       {
-         for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
-         {
-            if constexpr ( std::is_constructible< T, uint_t >::value )
-            {
-               ( *this )[id].emplace( lvl, T() );
-            }
-            else
-            {
-               ( *this )[id][lvl];
-            }
-         }
+         ( *this )[id] = LevelWiseData< T >( l_min, l_max );
       }
    }
 
