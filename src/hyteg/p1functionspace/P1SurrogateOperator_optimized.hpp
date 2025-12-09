@@ -33,6 +33,7 @@
 #include <hyteg/polynomial/stencil/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
 
+#include "hyteg/primitives/Primitive.hpp"
 #include "hyteg/primitives/PrimitiveID.hpp"
 
 #define RESTRICT WALBERLA_RESTRICT
@@ -96,16 +97,16 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    , lsq_volume_( maxLevel + 1 )
    , lsq_interface_( maxLevel + 1 )
    , downsampling_( maxLevel + 1 )
-   , stencil_vtx_( storage, 0, minLevel, maxLevel )
-   , stencil_edge_3d_( storage, 1, minLevel, maxLevel )
-   , stencil_edge_2d_( storage, 1, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
-   , stencil_face_2d_( storage, 2, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
-   , stencil_face_3d_( storage, 2, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
-   , stencil_cell_3d_( storage, 3, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
-   , surrogate_edge_2d_( storage, 1, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
-   , surrogate_face_2d_( storage, 2, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
-   , surrogate_face_3d_( storage, 2, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
-   , surrogate_cell_3d_( storage, 3, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
+   , stencil_vtx_( storage, Primitive::VERTEX, minLevel, maxLevel )
+   , stencil_edge_3d_( storage, Primitive::EDGE, minLevel, maxLevel )
+   , stencil_edge_2d_( storage, Primitive::EDGE, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_face_2d_( storage, Primitive::FACE, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_face_3d_( storage, Primitive::FACE, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_cell_3d_( storage, Primitive::CELL, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , surrogate_edge_2d_( storage, Primitive::EDGE, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
+   , surrogate_face_2d_( storage, Primitive::FACE, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
+   , surrogate_face_3d_( storage, Primitive::FACE, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
+   , surrogate_cell_3d_( storage, Primitive::CELL, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
    {
       init( downsampling, path_to_svd, needsInverseDiagEntries );
    }

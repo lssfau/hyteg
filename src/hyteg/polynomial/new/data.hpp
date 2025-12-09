@@ -160,21 +160,24 @@ class LocalMatrixMap
 template < typename T >
 struct ElementWiseData : public std::map< PrimitiveID, std::map< uint_t, T > >
 {
-   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint8_t primitiveType, uint_t l_min, uint_t l_max )
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage,
+                    Primitive::PrimitiveTypeEnum               type,
+                    uint_t                                     l_min,
+                    uint_t                                     l_max )
    {
       std::vector< PrimitiveID > ids;
-      switch ( primitiveType )
+      switch ( type )
       {
-      case 0:
+      case Primitive::VERTEX:
          ids = storage->getVertexIDs();
          break;
-      case 1:
+      case Primitive::EDGE:
          ids = storage->getEdgeIDs();
          break;
-      case 2:
+      case Primitive::FACE:
          ids = storage->getFaceIDs();
          break;
-      case 3:
+      case Primitive::CELL:
          ids = storage->getCellIDs();
          break;
       default:
@@ -198,7 +201,7 @@ struct ElementWiseData : public std::map< PrimitiveID, std::map< uint_t, T > >
    }
 
    ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_min, uint_t l_max )
-   : ElementWiseData( storage, ( storage->hasGlobalCells() ) ? 3 : 2, l_min, l_max )
+   : ElementWiseData( storage, ( storage->hasGlobalCells() ) ? Primitive::CELL : Primitive::FACE, l_min, l_max )
    {}
 };
 
