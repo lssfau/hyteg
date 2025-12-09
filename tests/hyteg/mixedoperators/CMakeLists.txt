@@ -1,9 +1,11 @@
 if( HYTEG_BUILD_WITH_PETSC )
-    waLBerla_compile_test(FILES P1ToDGOperatorTest.cpp DEPENDS hyteg core)
+    waLBerla_add_test_executable( P1ToDGOperatorTest P1ToDGOperatorTest.cpp )
+    target_link_libraries       ( P1ToDGOperatorTest hyteg walberla::core )
     waLBerla_execute_test(NAME P1ToDGOperatorTest)
 endif()
 
 if( WALBERLA_DOUBLE_ACCURACY )
-  waLBerla_compile_test(FILES MixedDG1AndP2PlusBubbleOperatorTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( MixedDG1AndP2PlusBubbleOperatorTest MixedDG1AndP2PlusBubbleOperatorTest.cpp )
+  target_link_libraries       ( MixedDG1AndP2PlusBubbleOperatorTest hyteg walberla::core )
   waLBerla_execute_test(NAME MixedDG1AndP2PlusBubbleOperatorTest)
 endif()

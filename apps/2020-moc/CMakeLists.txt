@@ -9,34 +9,27 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable( NAME MantleConvectionBlendedAnnulus
-        FILES  MantleConvectionBlendedAnnulus.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( MantleConvectionBlendedAnnulus MantleConvectionBlendedAnnulus.cpp )
+target_link_libraries( MantleConvectionBlendedAnnulus hyteg convection_particles walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Benchmark_01_CircularAdvection
-        FILES Benchmark_01_CircularAdvection.cpp Helpers.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Benchmark_01_CircularAdvection Benchmark_01_CircularAdvection.cpp Helpers.cpp )
+target_link_libraries( Benchmark_01_CircularAdvection hyteg convection_particles walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Benchmark_02_SwirlingAdvection
-        FILES Benchmark_02_SwirlingAdvection.cpp Helpers.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Benchmark_02_SwirlingAdvection Benchmark_02_SwirlingAdvection.cpp Helpers.cpp )
+target_link_libraries( Benchmark_02_SwirlingAdvection hyteg convection_particles walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Benchmark_03_BlendedAdvection
-        FILES Benchmark_03_BlendedAdvection.cpp Helpers.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Benchmark_03_BlendedAdvection Benchmark_03_BlendedAdvection.cpp Helpers.cpp )
+target_link_libraries( Benchmark_03_BlendedAdvection hyteg convection_particles walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Benchmark_04_BlendedAdvectionDiffusion
-        FILES Benchmark_04_BlendedAdvectionDiffusion.cpp Helpers.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Benchmark_04_BlendedAdvectionDiffusion Benchmark_04_BlendedAdvectionDiffusion.cpp Helpers.cpp )
+target_link_libraries( Benchmark_04_BlendedAdvectionDiffusion hyteg convection_particles walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Benchmark_05_PipeScaling
-        FILES Benchmark_05_PipeScaling.cpp Helpers.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Benchmark_05_PipeScaling Benchmark_05_PipeScaling.cpp Helpers.cpp )
+target_link_libraries( Benchmark_05_PipeScaling hyteg convection_particles walberla::sqlite mixed_operator )
 
 if ( HYTEG_BUILD_WITH_PETSC AND HYTEG_TERRANEO_MODULE )
-    waLBerla_add_executable( NAME MantleConvection
-            FILES MantleConvection.cpp
-            DEPENDS hyteg convection_particles sqlite terraneo mixed_operator)
+    add_executable       ( MantleConvection MantleConvection.cpp )
+    target_link_libraries( MantleConvection hyteg convection_particles walberla::sqlite terraneo mixed_operator )
 endif()
 
 add_subdirectory(MantleConvectionRunScripts)

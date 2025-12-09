@@ -11,7 +11,6 @@ waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.job )
 waLBerla_link_files_to_builddir( *.sh )
 
-waLBerla_add_executable( NAME Tokamak
-        FILES Tokamak.cpp
-        DEPENDS hyteg sqlite)
+add_executable       ( Tokamak Tokamak.cpp )
+target_link_libraries( Tokamak hyteg walberla::sqlite )
 

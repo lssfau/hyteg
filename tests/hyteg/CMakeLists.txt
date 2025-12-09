@@ -1,16 +1,20 @@
-waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_add_test_executable( vCycleTest vCycleTest.cpp )
+target_link_libraries       ( vCycleTest hyteg walberla::core constant_stencil_operator )
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest>)
 
-waLBerla_compile_test(FILES LevelinfoTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( LevelinfoTest LevelinfoTest.cpp )
+target_link_libraries       ( LevelinfoTest hyteg walberla::core )
 waLBerla_execute_test(NAME LevelinfoTest)
 
-waLBerla_compile_test(FILES PackageBufferSystemTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( PackageBufferSystemTest PackageBufferSystemTest.cpp )
+target_link_libraries       ( PackageBufferSystemTest hyteg walberla::core )
 waLBerla_execute_test(NAME PackageBufferSystemTest1 COMMAND $<TARGET_FILE:PackageBufferSystemTest>)
 waLBerla_execute_test(NAME PackageBufferSystemTest2 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 2)
 waLBerla_execute_test(NAME PackageBufferSystemTest3 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 3)
 waLBerla_execute_test(NAME PackageBufferSystemTest4 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 4)
 
-waLBerla_compile_test(FILES PrintInfoTest.cpp)
+waLBerla_add_test_executable( PrintInfoTest PrintInfoTest.cpp )
+target_link_libraries       ( PrintInfoTest hyteg walberla::core )
 waLBerla_execute_test(NAME PrintInfoTest)
 
 add_subdirectory( numerictools )

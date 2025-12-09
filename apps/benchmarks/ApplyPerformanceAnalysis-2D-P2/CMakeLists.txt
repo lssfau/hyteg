@@ -5,6 +5,5 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable( NAME ApplyPerformanceAnalysis-2D-P2
-        FILES ApplyPerformanceAnalysis-2D-P2.cpp AbstractApply.cpp
-        DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( ApplyPerformanceAnalysis-2D-P2 ApplyPerformanceAnalysis-2D-P2.cpp AbstractApply.cpp )
+target_link_libraries( ApplyPerformanceAnalysis-2D-P2 hyteg walberla::core constant_stencil_operator )

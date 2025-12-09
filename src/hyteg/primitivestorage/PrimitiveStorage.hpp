@@ -113,7 +113,7 @@ inline std::ostream& operator<<( std::ostream& os, const MigrationInfo& migratio
    return os;
 }
 
-class PrimitiveStorage : private walberla::NonCopyable
+class PrimitiveStorage
 {
  public:
    typedef std::map< PrimitiveID, std::shared_ptr< Primitive > > PrimitiveMap;
@@ -148,6 +148,9 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///
    /// Please refer to the documentation of the corresponding method in the SetupPrimitiveStorage.
    explicit PrimitiveStorage( const std::string& file, uint_t additionalHaloDepth = 0u, bool adios2 = false );
+
+   PrimitiveStorage( const PrimitiveStorage& )            = delete;
+   PrimitiveStorage& operator=( const PrimitiveStorage& ) = delete;
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );

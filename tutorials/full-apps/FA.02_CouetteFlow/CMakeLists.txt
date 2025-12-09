@@ -8,9 +8,8 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_link_files_to_builddir( *.sh )
 
-waLBerla_add_executable( NAME FA.02_CouetteFlow2D
-        FILES  FA.02_CouetteFlow2D.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( FA.02_CouetteFlow2D FA.02_CouetteFlow2D.cpp )
+target_link_libraries( FA.02_CouetteFlow2D hyteg mixed_operator )
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     waLBerla_execute_test( NO_MODULE_LABEL NAME FA.02_CouetteFlow2D COMMAND $<TARGET_FILE:FA.02_CouetteFlow2D>

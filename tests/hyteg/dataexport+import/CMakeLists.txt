@@ -1,12 +1,14 @@
 if( HYTEG_BUILD_WITH_ADIOS2 )
-  waLBerla_compile_test(FILES BasicADIOSTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( BasicADIOSTest BasicADIOSTest.cpp )
+  target_link_libraries       ( BasicADIOSTest hyteg walberla::core )
   waLBerla_execute_test(NAME BasicADIOSTest)
 
   if( NOT EXISTS ./AdiosWriterTest-Output )
     file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/AdiosWriterTest-Output" )
   endif()
 
-  waLBerla_compile_test(FILES AdiosWriterTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( AdiosWriterTest AdiosWriterTest.cpp )
+  target_link_libraries       ( AdiosWriterTest hyteg walberla::core )
   waLBerla_execute_test(NAME AdiosWriterTest-Sequential COMMAND $<TARGET_FILE:AdiosWriterTest> PROCESSES 1)
 
   if( HYTEG_BUILD_WITH_PYTHON3 )
@@ -41,16 +43,19 @@ if( HYTEG_BUILD_WITH_ADIOS2 )
 
   endif()
 
-  waLBerla_compile_test(FILES CheckpointingTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( CheckpointingTest CheckpointingTest.cpp )
+  target_link_libraries       ( CheckpointingTest hyteg walberla::core )
   waLBerla_execute_test(NAME CheckpointingTest)
 
-  waLBerla_compile_test(FILES FileWritingVectorAndConsistentEnumerationTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( FileWritingVectorAndConsistentEnumerationTest FileWritingVectorAndConsistentEnumerationTest.cpp )
+  target_link_libraries       ( FileWritingVectorAndConsistentEnumerationTest hyteg walberla::core )
   waLBerla_execute_test(NAME FileWritingVectorAndConsistentEnumerationTest)
-  
+
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
     ${CMAKE_CURRENT_SOURCE_DIR}/CheckpointRestoreTest.prm
     ${CMAKE_CURRENT_BINARY_DIR}/CheckpointRestoreTest.prm )
-  waLBerla_compile_test(FILES CheckpointRestoreTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( CheckpointRestoreTest CheckpointRestoreTest.cpp )
+  target_link_libraries       ( CheckpointRestoreTest hyteg walberla::core )
 
   waLBerla_execute_test(NAME CheckpointRestoreTest-Sequential COMMAND $<TARGET_FILE:CheckpointRestoreTest> PROCESSES 1)
 
@@ -74,7 +79,8 @@ endif ()
 
 if(WALBERLA_DOUBLE_ACCURACY)
   add_subdirectory( GmshExportTest-Files )
-  waLBerla_compile_test(FILES GmshExportTest.cpp DEPENDS hyteg core)
+  waLBerla_add_test_executable( GmshExportTest GmshExportTest.cpp )
+  target_link_libraries       ( GmshExportTest hyteg walberla::core )
   if( GMSH_EXECUTABLE )
     waLBerla_execute_test(NAME GmshExportTest COMMAND $<TARGET_FILE:GmshExportTest> --verify_with_gmsh )
   else()
@@ -82,7 +88,8 @@ if(WALBERLA_DOUBLE_ACCURACY)
   endif()
 endif()
 
-waLBerla_compile_test(FILES TableTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( TableTest TableTest.cpp )
+target_link_libraries       ( TableTest hyteg walberla::core )
 waLBerla_execute_test(NAME TableTest)
 set_tests_properties(TableTest PROPERTIES FIXTURES_SETUP TableTest)
 
@@ -97,7 +104,8 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
 ADD_TEST(TableTestCheckOutput ${CMAKE_COMMAND} -E compare_files TableTest.dat ${TABLE_REFERENCE_FILE})
 set_tests_properties(TableTestCheckOutput PROPERTIES FIXTURES_REQUIRED TableTest)
 
-waLBerla_compile_test(FILES KeyValueStoreTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( KeyValueStoreTest KeyValueStoreTest.cpp )
+target_link_libraries       ( KeyValueStoreTest hyteg walberla::core )
 waLBerla_execute_test(NAME KeyValueStoreTest)
 set_tests_properties(KeyValueStoreTest PROPERTIES FIXTURES_SETUP KeyValueStoreTest)
 
@@ -107,28 +115,31 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
 ADD_TEST(KeyValueStoreTestCheckOutput ${CMAKE_COMMAND} -E compare_files KeyValueStoreTest.tex KeyValueStoreTest.tex.ref)
 set_tests_properties(KeyValueStoreTestCheckOutput PROPERTIES FIXTURES_REQUIRED KeyValueStoreTest)
 
-waLBerla_compile_test(FILES VTKOutputTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_add_test_executable( VTKOutputTest VTKOutputTest.cpp )
+target_link_libraries       ( VTKOutputTest hyteg walberla::core mixed_operator )
 waLBerla_execute_test(NAME VTKOutputTest)
 
-waLBerla_compile_test(FILES VTKDuplicatePointCountingTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VTKDuplicatePointCountingTest VTKDuplicatePointCountingTest.cpp )
+target_link_libraries       ( VTKDuplicatePointCountingTest hyteg walberla::core )
 waLBerla_execute_test(NAME VTKDuplicatePointCountingTest)
 
 # VTKOutputPictureNorm is momentarily disabled, see issue #297
 
-# waLBerla_compile_test(FILES VTKOutputPictureNormGenerator.cpp DEPENDS hyteg core)
-# 
+# waLBerla_add_test_executable( VTKOutputPictureNormGenerator VTKOutputPictureNormGenerator.cpp )
+# target_link_libraries       ( VTKOutputPictureNormGenerator hyteg walberla::core )
+#
 # execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink
 #         ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest.py
 #         ${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest.py )
-# 
+#
 # execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink
 #         ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest-References
 #         ${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest-References )
-# 
+#
 # if ( NOT EXISTS ./VTKOutputPictureNormTest-Fresh )
 #   file( MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/VTKOutputPictureNormTest-Fresh" )
 # endif ()
-# 
+#
 # if ( HYTEG_BUILD_WITH_PYTHON3 )
 #   waLBerla_execute_test( NAME VTKOutputPictureNormTest
 #           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/VTKOutputPictureNormTest.py --with-xvfb )

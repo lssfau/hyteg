@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.20)
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -69,8 +69,8 @@ add_subdirectory( walberla EXCLUDE_FROM_ALL SYSTEM )
 list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
 
 # mark walberla include as system to prevent warning from walberla code
-target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
-target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
+target_include_directories( walberla_core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
+target_include_directories( walberla_core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
 add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
 if ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )

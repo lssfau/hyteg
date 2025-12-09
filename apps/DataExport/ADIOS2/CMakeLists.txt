@@ -5,10 +5,8 @@ endif()
 waLBerla_link_files_to_builddir( *.xml )
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME ADIOS2demo
-  FILES  ADIOS2demo.cpp
-  DEPENDS hyteg )
+add_executable       ( ADIOS2demo ADIOS2demo.cpp )
+target_link_libraries( ADIOS2demo hyteg )
 
-waLBerla_add_executable( NAME BenchmarkCheckpointRestore
-  FILES  BenchmarkCheckpointRestore.cpp
-  DEPENDS hyteg )
+add_executable       ( BenchmarkCheckpointRestore BenchmarkCheckpointRestore.cpp )
+target_link_libraries( BenchmarkCheckpointRestore hyteg )

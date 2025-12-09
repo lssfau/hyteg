@@ -1,5 +1,5 @@
 add_library( constant_stencil_operator)
-target_link_libraries( constant_stencil_operator PUBLIC hyteg PRIVATE core)
+target_link_libraries( constant_stencil_operator PUBLIC hyteg PRIVATE walberla::core)
 
 target_sources( constant_stencil_operator
       PRIVATE

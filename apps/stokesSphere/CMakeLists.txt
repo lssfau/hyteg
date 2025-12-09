@@ -4,6 +4,5 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME StokesSphere
-        FILES  StokesSphere.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( StokesSphere StokesSphere.cpp )
+target_link_libraries( StokesSphere hyteg mixed_operator )

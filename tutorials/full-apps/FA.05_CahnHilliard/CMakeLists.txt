@@ -1,6 +1,5 @@
-waLBerla_add_executable( NAME FA.05_CahnHilliard
-        FILES FA.05_CahnHilliard.cpp
-        DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( FA.05_CahnHilliard FA.05_CahnHilliard.cpp )
+target_link_libraries( FA.05_CahnHilliard hyteg walberla::core constant_stencil_operator )
 
 waLBerla_link_files_to_builddir( *.prm )
 

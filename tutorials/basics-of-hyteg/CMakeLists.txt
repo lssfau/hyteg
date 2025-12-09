@@ -1,27 +1,23 @@
-waLBerla_add_executable( NAME BH.01_PrimitiveData
-        FILES BH.01_PrimitiveData.cpp
-        DEPENDS hyteg )
+add_executable       ( BH.01_PrimitiveData BH.01_PrimitiveData.cpp )
+target_link_libraries( BH.01_PrimitiveData hyteg )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BH.01_PrimitiveData )
 endif()
 
-waLBerla_add_executable( NAME BH.02_Communication
-        FILES BH.02_Communication.cpp
-        DEPENDS hyteg )
+add_executable       ( BH.02_Communication BH.02_Communication.cpp )
+target_link_libraries( BH.02_Communication hyteg )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BH.02_Communication )
 endif()
 
-waLBerla_add_executable( NAME BH.03_Indexing
-        FILES BH.03_Indexing.cpp
-        DEPENDS hyteg )
+add_executable       ( BH.03_Indexing BH.03_Indexing.cpp )
+target_link_libraries( BH.03_Indexing hyteg )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BH.03_Indexing )
 endif()
 
-waLBerla_add_executable( NAME BH.04_LocalPrimitives+Neighborhood
-        FILES BH.04_LocalPrimitives+Neighborhood.cpp
-        DEPENDS hyteg )
+add_executable       ( BH.04_LocalPrimitives+Neighborhood BH.04_LocalPrimitives+Neighborhood.cpp )
+target_link_libraries( BH.04_LocalPrimitives+Neighborhood hyteg )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BH.04_LocalPrimitives+Neighborhood )
 endif()

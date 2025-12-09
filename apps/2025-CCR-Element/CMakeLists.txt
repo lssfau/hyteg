@@ -4,6 +4,5 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME CCRStokes2D
-        FILES  CCRStokes2D.cpp
-        DEPENDS hyteg core mixed_operator opgen-diffusion manufactured_solutions )
+add_executable       ( CCRStokes2D CCRStokes2D.cpp )
+target_link_libraries( CCRStokes2D hyteg walberla::core mixed_operator opgen-diffusion manufactured_solutions )

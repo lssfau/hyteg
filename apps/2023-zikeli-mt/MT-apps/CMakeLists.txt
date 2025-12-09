@@ -10,37 +10,30 @@ waLBerla_link_files_to_builddir(createResidualTablesFromJSON.py)
 waLBerla_link_files_to_builddir(count-underflow-from-vtu.py)
 
 if (WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT)
-    waLBerla_add_executable( NAME benchmarkHockeySticks-residual-convergence
-            FILES benchmarkHockeySticks-residual-convergence.cpp
-            DEPENDS core hyteg opgen-mt-diffusion )
+    add_executable       ( benchmarkHockeySticks-residual-convergence benchmarkHockeySticks-residual-convergence.cpp )
+    target_link_libraries( benchmarkHockeySticks-residual-convergence walberla::core hyteg opgen-mt-diffusion )
 endif () # WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
 
 if (WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT)
-    waLBerla_add_executable( NAME benchmarkHockeySticks
-            FILES benchmarkHockeySticks.cpp
-            DEPENDS core hyteg opgen-mt-diffusion )
+    add_executable       ( benchmarkHockeySticks benchmarkHockeySticks.cpp )
+    target_link_libraries( benchmarkHockeySticks walberla::core hyteg opgen-mt-diffusion )
 endif () # WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
 
 if (WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT)
-    waLBerla_add_executable( NAME benchmarkHockeySticks-error-threshold
-            FILES benchmarkHockeySticks-error-threshold.cpp
-            DEPENDS core hyteg opgen-mt-diffusion )
+    add_executable       ( benchmarkHockeySticks-error-threshold benchmarkHockeySticks-error-threshold.cpp )
+    target_link_libraries( benchmarkHockeySticks-error-threshold walberla::core hyteg opgen-mt-diffusion )
 endif () # WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
 
-waLBerla_add_executable( NAME benchmarkRuntime
-        FILES benchmarkRuntime.cpp
-        DEPENDS core hyteg opgen-mt-diffusion )
+add_executable       ( benchmarkRuntime benchmarkRuntime.cpp )
+target_link_libraries( benchmarkRuntime walberla::core hyteg opgen-mt-diffusion )
 
-waLBerla_add_executable( NAME benchmarkRuntimeNoVec
-        FILES benchmarkRuntimeNoVec.cpp
-        DEPENDS core hyteg opgen-mt-diffusion )
+add_executable       ( benchmarkRuntimeNoVec benchmarkRuntimeNoVec.cpp )
+target_link_libraries( benchmarkRuntimeNoVec walberla::core hyteg opgen-mt-diffusion )
 
 if (WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT)
-    waLBerla_add_executable( NAME benchmarkFineTuning
-            FILES benchmarkFineTuning.cpp
-            DEPENDS core hyteg opgen-mt-diffusion )
+    add_executable       ( benchmarkFineTuning benchmarkFineTuning.cpp )
+    target_link_libraries( benchmarkFineTuning walberla::core hyteg opgen-mt-diffusion )
 endif () # WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT
 
-waLBerla_add_executable( NAME DoFCounter
-        FILES DoFCounter.cpp
-        DEPENDS core hyteg )
+add_executable       ( DoFCounter DoFCounter.cpp )
+target_link_libraries( DoFCounter walberla::core hyteg )

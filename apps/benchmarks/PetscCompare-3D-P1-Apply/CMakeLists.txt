@@ -5,6 +5,5 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable( NAME PetscCompare-3D-P1-Apply
-        FILES PetscCompare-3D-P1-Apply.cpp
-        DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( PetscCompare-3D-P1-Apply PetscCompare-3D-P1-Apply.cpp )
+target_link_libraries( PetscCompare-3D-P1-Apply hyteg walberla::core constant_stencil_operator )

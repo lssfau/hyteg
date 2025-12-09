@@ -1,67 +1,51 @@
-waLBerla_add_executable( NAME stokes_flow_through_porous_med
-        FILES stokes_flow_through_porous_med.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( stokes_flow_through_porous_med stokes_flow_through_porous_med.cpp )
+target_link_libraries( stokes_flow_through_porous_med hyteg mixed_operator )
 
-waLBerla_add_executable( NAME StokesFlowSolverComparison
-        FILES StokesFlowSolverComparison.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( StokesFlowSolverComparison StokesFlowSolverComparison.cpp )
+target_link_libraries( StokesFlowSolverComparison hyteg mixed_operator )
 
-waLBerla_add_executable( NAME fullmg
-        FILES fullmg.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( fullmg fullmg.cpp )
+target_link_libraries( fullmg hyteg mixed_operator )
 
-waLBerla_add_executable( NAME Chorin
-        FILES Chorin.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( Chorin Chorin.cpp )
+target_link_libraries( Chorin hyteg mixed_operator )
 
-waLBerla_add_executable( NAME p0p1Transport
-        FILES p0p1Transport.cpp
-        DEPENDS hyteg)
+add_executable       ( p0p1Transport p0p1Transport.cpp )
+target_link_libraries( p0p1Transport hyteg )
 
-waLBerla_add_executable( NAME stokes_stab_uzawa
-        FILES stokes_stab_uzawa.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( stokes_stab_uzawa stokes_stab_uzawa.cpp )
+target_link_libraries( stokes_stab_uzawa hyteg mixed_operator )
 
-waLBerla_add_executable( NAME geophysics_plume
-        FILES geophysics_plume.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( geophysics_plume geophysics_plume.cpp )
+target_link_libraries( geophysics_plume hyteg mixed_operator )
 
-waLBerla_add_executable( NAME GeometryBlending
-        FILES GeometryBlending.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( GeometryBlending GeometryBlending.cpp )
+target_link_libraries( GeometryBlending hyteg mixed_operator )
 
-waLBerla_add_executable( NAME show_mesh
-        FILES show_mesh.cpp
-        DEPENDS hyteg)
+add_executable       ( show_mesh show_mesh.cpp )
+target_link_libraries( show_mesh hyteg )
 
-waLBerla_add_executable( NAME PolarLaplacian
-        FILES  PolarLaplacian.cpp
-        DEPENDS hyteg)
+add_executable       ( PolarLaplacian PolarLaplacian.cpp )
+target_link_libraries( PolarLaplacian hyteg )
 
-waLBerla_add_executable( NAME PrimitiveSizes
-        FILES PrimitiveSizes.cpp
-        DEPENDS hyteg)
+add_executable       ( PrimitiveSizes PrimitiveSizes.cpp )
+target_link_libraries( PrimitiveSizes hyteg )
 
-waLBerla_add_executable( NAME refCellCouplingCount
-        FILES refCellCouplingCount.cpp
-        DEPENDS hyteg constant_stencil_operator)
+add_executable       ( refCellCouplingCount refCellCouplingCount.cpp )
+target_link_libraries( refCellCouplingCount hyteg constant_stencil_operator )
 
-waLBerla_add_executable(NAME cg_P1_blending
-      FILES cg_P1_blending.cpp
-      DEPENDS hyteg)
+add_executable       ( cg_P1_blending cg_P1_blending.cpp )
+target_link_libraries( cg_P1_blending hyteg )
 
-waLBerla_add_executable(NAME gmg_blending
-      FILES gmg_blending.cpp
-      DEPENDS hyteg)
+add_executable       ( gmg_blending gmg_blending.cpp )
+target_link_libraries( gmg_blending hyteg )
 
 if( HYTEG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME exportOperatorMatrix
-        FILES exportOperatorMatrix.cpp
-        DEPENDS hyteg mixed_operator opgen-diffusion)
+add_executable       ( exportOperatorMatrix exportOperatorMatrix.cpp )
+target_link_libraries( exportOperatorMatrix hyteg mixed_operator opgen-diffusion )
 
-waLBerla_add_executable( NAME annulus
-        FILES annulus.cpp
-        DEPENDS hyteg)
+add_executable       ( annulus annulus.cpp )
+target_link_libraries( annulus hyteg )
 endif()
 
 add_subdirectory(2020-moc)

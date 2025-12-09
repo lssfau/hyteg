@@ -1,36 +1,31 @@
-waLBerla_add_executable( NAME BA.01_PrimitiveStorage
-        FILES BA.01_PrimitiveStorage.cpp
-        DEPENDS hyteg )
+add_executable       ( BA.01_PrimitiveStorage BA.01_PrimitiveStorage.cpp )
+target_link_libraries( BA.01_PrimitiveStorage hyteg )
 if ( CMAKE_BUILD_TYPE MATCHES "Release" )
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.01_PrimitiveStorage )
 endif ()
 
-waLBerla_add_executable( NAME BA.02_FEFunctions
-        FILES BA.02_FEFunctions.cpp
-        DEPENDS hyteg )
+add_executable       ( BA.02_FEFunctions BA.02_FEFunctions.cpp )
+target_link_libraries( BA.02_FEFunctions hyteg )
 if( CMAKE_BUILD_TYPE MATCHES "Release" )
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.02_FEFunctions )
 endif()
 
-waLBerla_add_executable( NAME BA.03_ExportForVisualisation
-        FILES BA.03_ExportForVisualisation.cpp
-        DEPENDS hyteg )
+add_executable       ( BA.03_ExportForVisualisation BA.03_ExportForVisualisation.cpp )
+target_link_libraries( BA.03_ExportForVisualisation hyteg )
 if( CMAKE_BUILD_TYPE MATCHES "Release" )
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.03_ExportForVisualisation )
 endif()
 
 add_subdirectory( BA.04_BoundaryConditions )
 
-waLBerla_add_executable( NAME BA.05_AMR
-        FILES BA.05_AMR.cpp
-        DEPENDS hyteg )
+add_executable       ( BA.05_AMR BA.05_AMR.cpp )
+target_link_libraries( BA.05_AMR hyteg )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.05_AMR )
 endif()
 
-waLBerla_add_executable( NAME BA.06_ErrorEstimator
-        FILES BA.06_ErrorEstimator.cpp
-        DEPENDS core hyteg opgen-mass constant_stencil_operator )
+add_executable       ( BA.06_ErrorEstimator BA.06_ErrorEstimator.cpp )
+target_link_libraries( BA.06_ErrorEstimator walberla::core hyteg opgen-mass constant_stencil_operator )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.06_ErrorEstimator )
 endif()

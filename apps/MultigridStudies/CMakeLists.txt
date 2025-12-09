@@ -5,9 +5,8 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME MultigridStudies
-        FILES MultigridStudies.cpp
-        DEPENDS hyteg core sqlite mixed_operator)
+add_executable       ( MultigridStudies MultigridStudies.cpp )
+target_link_libraries( MultigridStudies hyteg walberla::core walberla::sqlite mixed_operator )
 
 add_subdirectory(2019_constanta)
 add_subdirectory(2019_tme)

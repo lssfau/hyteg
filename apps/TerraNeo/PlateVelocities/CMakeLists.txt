@@ -4,10 +4,8 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME PlateVelocityDemo
-  FILES PlateVelocityDemo.cpp
-  DEPENDS hyteg terraneo)
+add_executable       ( PlateVelocityDemo PlateVelocityDemo.cpp )
+target_link_libraries( PlateVelocityDemo hyteg terraneo )
 
-waLBerla_add_executable( NAME PlateAveragingPointsAndWeights
-        FILES PlateAveragingPointsAndWeights.cpp
-        DEPENDS hyteg terraneo)
+add_executable       ( PlateAveragingPointsAndWeights PlateAveragingPointsAndWeights.cpp )
+target_link_libraries( PlateAveragingPointsAndWeights hyteg terraneo )

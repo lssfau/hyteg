@@ -4,6 +4,5 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME PoissonWithMixedBC
-        FILES  PoissonWithMixedBC.cpp
-      DEPENDS hyteg mixed_operator)
+add_executable       ( PoissonWithMixedBC PoissonWithMixedBC.cpp )
+target_link_libraries( PoissonWithMixedBC hyteg mixed_operator )

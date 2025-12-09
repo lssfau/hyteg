@@ -1,6 +1,6 @@
 add_library(hyteg)
 target_compile_features(hyteg PUBLIC cxx_std_20)
-target_link_libraries(hyteg PUBLIC core vtk git_version)
+target_link_libraries(hyteg PUBLIC walberla::core walberla::vtk git_version)
 target_include_directories( hyteg PUBLIC ${hyteg_SOURCE_DIR}/src/ ${hyteg_BINARY_DIR}/src/ )
 
 if (HYTEG_BUILD_WITH_PETSC)

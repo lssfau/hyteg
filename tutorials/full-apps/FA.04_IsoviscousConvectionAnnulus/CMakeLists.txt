@@ -1,6 +1,5 @@
-waLBerla_add_executable( NAME FA.04_IsoviscousConvectionAnnulus
-        FILES FA.04_IsoviscousConvectionAnnulus.cpp
-        DEPENDS hyteg core sqlite convection_particles mixed_operator)
+add_executable       ( FA.04_IsoviscousConvectionAnnulus FA.04_IsoviscousConvectionAnnulus.cpp )
+target_link_libraries( FA.04_IsoviscousConvectionAnnulus hyteg walberla::core walberla::sqlite convection_particles mixed_operator )
 
 waLBerla_link_files_to_builddir( *.prm )
 

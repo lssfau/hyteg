@@ -1,5 +1,5 @@
 add_library( elementwise_dof_value_operator)
-target_link_libraries( elementwise_dof_value_operator PUBLIC hyteg PRIVATE core)
+target_link_libraries( elementwise_dof_value_operator PUBLIC hyteg PRIVATE walberla::core)
 
 target_sources( elementwise_dof_value_operator
       PRIVATE

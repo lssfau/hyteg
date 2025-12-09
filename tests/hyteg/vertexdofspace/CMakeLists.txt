@@ -1,24 +1,32 @@
-waLBerla_compile_test(FILES VertexDoFMacroCellPackInfoTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFMacroCellPackInfoTest VertexDoFMacroCellPackInfoTest.cpp )
+target_link_libraries       ( VertexDoFMacroCellPackInfoTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFMacroCellPackInfoTest)
 
-waLBerla_compile_test(FILES VertexDoFMemoryTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFMemoryTest VertexDoFMemoryTest.cpp )
+target_link_libraries       ( VertexDoFMemoryTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFMemoryTest)
 
-waLBerla_compile_test(FILES VertexDoFBasicFunctionsTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFBasicFunctionsTest VertexDoFBasicFunctionsTest.cpp )
+target_link_libraries       ( VertexDoFBasicFunctionsTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFBasicFunctionsTest)
 
-waLBerla_compile_test(FILES VertexDoFStencilAssemblyTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFStencilAssemblyTest VertexDoFStencilAssemblyTest.cpp )
+target_link_libraries       ( VertexDoFStencilAssemblyTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFStencilAssemblyTest)
 
-waLBerla_compile_test(FILES VertexDoFAdditiveCommunicationTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFAdditiveCommunicationTest VertexDoFAdditiveCommunicationTest.cpp )
+target_link_libraries       ( VertexDoFAdditiveCommunicationTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFAdditiveCommunicationTest)
 
-waLBerla_compile_test(FILES VertexDoFLinearProlongation3DTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFLinearProlongation3DTest VertexDoFLinearProlongation3DTest.cpp )
+target_link_libraries       ( VertexDoFLinearProlongation3DTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFLinearProlongation3DTest)
 
-waLBerla_compile_test(FILES VertexDoFQuadraticProlongation3DTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( VertexDoFQuadraticProlongation3DTest VertexDoFQuadraticProlongation3DTest.cpp )
+target_link_libraries       ( VertexDoFQuadraticProlongation3DTest hyteg walberla::core )
 waLBerla_execute_test(NAME VertexDoFQuadraticProlongation3DTest)
 
-waLBerla_compile_test(FILES VertexDoFFunctionTest.cpp DEPENDS hyteg core constant_stencil_operator)
+waLBerla_add_test_executable( VertexDoFFunctionTest VertexDoFFunctionTest.cpp )
+target_link_libraries       ( VertexDoFFunctionTest hyteg walberla::core constant_stencil_operator )
 waLBerla_execute_test(NAME VertexDoFFunctionTest)
 

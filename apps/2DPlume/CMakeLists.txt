@@ -4,6 +4,5 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME 2DPlume
-      FILES 2DPlume.cpp
-      DEPENDS hyteg core mixed_operator convection_particles)
+add_executable       ( 2DPlume 2DPlume.cpp )
+target_link_libraries( 2DPlume hyteg walberla::core mixed_operator convection_particles )
