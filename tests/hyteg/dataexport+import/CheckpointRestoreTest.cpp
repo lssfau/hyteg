@@ -215,7 +215,7 @@ auto importCheckpointContinuous( const std::string&                         file
    // Let's read in reverse, as we need for adjoints!
    for ( uint_t tStep = checkpointSteps; tStep >= 1; tStep-- )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Restoring function '" << feFunc.getFunctionName() << "' at step " << tStep-1 );
+      WALBERLA_LOG_INFO_ON_ROOT( "Restoring function '" << feFunc.getFunctionName() << "' at step " << tStep - 1 );
       restorer.restoreFunction( feFunc, tStep - 1 );
 
       auto func = std::make_shared< func_t< value_t > >(
@@ -612,7 +612,15 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "You need to specify 'restoreFromFileWithName' either in the *.prm file or as CLI override" );
       }
-      runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile3D, minLevel, maxLevel, true );
+
+      if ( fileNameForRestore == "Checkpoint-v02-np4.bp" )
+      {
+        runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile3D, 0u, 3u, true );
+      }
+      else {
+        runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile3D, minLevel, maxLevel, true );
+      }
+
    }
 
    return EXIT_SUCCESS;
