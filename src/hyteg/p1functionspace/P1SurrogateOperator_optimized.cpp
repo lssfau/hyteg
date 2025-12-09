@@ -210,8 +210,6 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply( const P1Function< real_t >& s
    src.template communicate< Face, Edge >( level );
    src.template communicate< Edge, Vertex >( level );
 
-   const int dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
-
    this->timingTree_->start( "Macro-Vertex" );
 
    for ( const auto& [vtxId, vtx] : storage_->getVertices() )
@@ -251,7 +249,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply( const P1Function< real_t >& s
             auto srcData = edge->getData( src.getEdgeDataID() )->getPointer( level );
             auto dstData = edge->getData( dst.getEdgeDataID() )->getPointer( level );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -262,7 +260,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply( const P1Function< real_t >& s
                   apply_edge_surrogate_2d( edge, level, srcData, dstData, updateType );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                apply_edge_precomputed_3d( edge, level, srcData, dstData, updateType );
             }
@@ -285,7 +283,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply( const P1Function< real_t >& s
             auto srcData = face->getData( src.getFaceDataID() )->getPointer( level );
             auto dstData = face->getData( dst.getFaceDataID() )->getPointer( level );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -296,7 +294,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::apply( const P1Function< real_t >& s
                   apply_face_surrogate_2d( face, level, srcData, dstData, updateType );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -362,8 +360,6 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
    dst.template communicate< Face, Edge >( level );
    dst.template communicate< Edge, Vertex >( level );
 
-   const int dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
-
    this->timingTree_->start( "Macro-Vertex" );
 
    for ( const auto& [vtxId, vtx] : storage_->getVertices() )
@@ -404,7 +400,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
             auto rhsData = edge->getData( rhs.getEdgeDataID() )->getPointer( level );
             auto dstData = edge->getData( dst.getEdgeDataID() )->getPointer( level );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -415,7 +411,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
                   smooth_sor_edge_surrogate_2d( edge, level, rhsData, dstData, relax );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                smooth_sor_edge_precomputed_3d( edge, level, rhsData, dstData, relax );
             }
@@ -440,7 +436,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
             auto rhsData = face->getData( rhs.getFaceDataID() )->getPointer( level );
             auto dstData = face->getData( dst.getFaceDataID() )->getPointer( level );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -451,7 +447,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::smooth_sor( const P1Function< real_t
                   smooth_sor_face_surrogate_2d( face, level, rhsData, dstData, relax );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                if ( level < min_lvl_for_surrogate )
                {
@@ -537,9 +533,8 @@ void P1SurrogateOperator< P1Form, DEGREE >::init( size_t             downsamplin
                                                   bool               needsInverseDiagEntries )
 {
    this->startTiming( "Init" );
-   uint_t dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
 
-   if ( dim == 3 )
+   if ( dim_ == 3 )
    {
       /* mapping between logical indices and stencil directions for each face
             The offsets are invariant wrt. level, hence it is sufficient to compute
@@ -558,7 +553,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::init( size_t             downsamplin
    for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
    {
       this->timingTree_->start( "level " + std::to_string( level ) );
-      if ( dim == 2 )
+      if ( dim_ == 2 )
       {
          precompute_stencil_vtx_2d( level );
          if ( 1 <= level && level < min_lvl_for_surrogate )
@@ -598,18 +593,18 @@ void P1SurrogateOperator< P1Form, DEGREE >::init( size_t             downsamplin
       {
          if ( path_to_svd == "" )
          {
-            lsq_volume_[level]    = std::make_shared< LSQ >( dim, DEGREE, level, downsampling );
-            lsq_interface_[level] = std::make_shared< LSQ >( dim - 1, DEGREE, level, downsampling );
+            lsq_volume_[level]    = std::make_shared< LSQ >( dim_, DEGREE, level, downsampling );
+            lsq_interface_[level] = std::make_shared< LSQ >( dim_ - 1, DEGREE, level, downsampling );
          }
          else
          {
-            lsq_volume_[level]    = std::make_shared< LSQ >( path_to_svd, dim, DEGREE, level, downsampling );
-            lsq_interface_[level] = std::make_shared< LSQ >( path_to_svd, dim - 1, DEGREE, level, downsampling );
+            lsq_volume_[level]    = std::make_shared< LSQ >( path_to_svd, dim_, DEGREE, level, downsampling );
+            lsq_interface_[level] = std::make_shared< LSQ >( path_to_svd, dim_ - 1, DEGREE, level, downsampling );
          }
          downsampling_ = downsampling;
       }
 
-      if ( dim == 2 )
+      if ( dim_ == 2 )
       {
          compute_surrogates_edge_2d( level );
          compute_surrogates_face_2d( level );
@@ -2551,8 +2546,6 @@ void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool 
           ( invert ) ? "inverse diagonal entries" : "diagonal entries", storage_, minLevel_, maxLevel_ );
    }
 
-   const int dim = ( storage_->hasGlobalCells() ) ? 3 : 2;
-
    for ( uint_t lvl = minLevel_; lvl <= maxLevel_; ++lvl )
    {
       const auto n = levelinfo::num_microvertices_per_edge( lvl );
@@ -2570,7 +2563,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool 
          {
             auto diagData = edge->getData( diagonal->getEdgeDataID() )->getPointer( lvl );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( lvl < min_lvl_for_surrogate )
                {
@@ -2581,7 +2574,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool 
                   assemble_diagonalOperator_edge_surrogate_2d( edge, lvl, diagData );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                assemble_diagonalOperator_edge_precomputed_3d( edge, lvl, diagData );
             }
@@ -2594,7 +2587,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool 
          {
             auto diagData = face->getData( diagonal->getFaceDataID() )->getPointer( lvl );
 
-            if ( dim == 2 )
+            if ( dim_ == 2 )
             {
                if ( lvl < min_lvl_for_surrogate )
                {
@@ -2605,7 +2598,7 @@ void P1SurrogateOperator< P1Form, DEGREE >::computeDiagonalOperatorValues( bool 
                   assemble_diagonalOperator_face_surrogate_2d( face, lvl, diagData );
                }
             }
-            else // dim == 3
+            else // dim_ == 3
             {
                if ( lvl < min_lvl_for_surrogate )
                {

@@ -158,9 +158,9 @@ class LocalMatrixMap
  *       usage: ElementWiseData[primitiveID][lvl] = T
  */
 template < typename T >
-struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
+struct ElementWiseData : public std::map< PrimitiveID, std::map< uint_t, T > >
 {
-   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max, uint8_t primitiveType )
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint8_t primitiveType, uint_t l_min, uint_t l_max )
    {
       std::vector< PrimitiveID > ids;
       switch ( primitiveType )
@@ -183,12 +183,22 @@ struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
 
       for ( auto& id : ids )
       {
-         ( *this )[id] = std::vector< T >( l_max + 1 );
+         for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+         {
+            if constexpr ( std::is_constructible< T, uint_t >::value )
+            {
+               ( *this )[id].emplace( lvl, T() );
+            }
+            else
+            {
+               ( *this )[id][lvl];
+            }
+         }
       }
    }
 
-   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
-   : ElementWiseData( storage, l_max, ( storage->hasGlobalCells() ) ? 3 : 2 )
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_min, uint_t l_max )
+   : ElementWiseData( storage, ( storage->hasGlobalCells() ) ? 3 : 2, l_min, l_max )
    {}
 };
 

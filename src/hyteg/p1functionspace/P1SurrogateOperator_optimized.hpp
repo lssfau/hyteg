@@ -90,21 +90,22 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
                         const std::string&                         path_to_svd             = "",
                         bool                                       needsInverseDiagEntries = false )
    : Operator< P1Function< real_t >, P1Function< real_t > >( storage, minLevel, maxLevel )
+   , dim_( storage->hasGlobalCells() ? 3 : 2 )
    , form_( form )
    , is_initialized_( false )
    , lsq_volume_( maxLevel + 1 )
    , lsq_interface_( maxLevel + 1 )
    , downsampling_( maxLevel + 1 )
-   , stencil_vtx_( storage, maxLevel, 0 )
-   , stencil_edge_3d_( storage, maxLevel, 1 )
-   , stencil_edge_2d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 1 )
-   , stencil_face_2d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 2 )
-   , stencil_face_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 2 )
-   , stencil_cell_3d_( storage, std::min( maxLevel, min_lvl_for_surrogate - 1u ), 3 )
-   , surrogate_edge_2d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 99 : 1 ) // don't initialize if 3D
-   , surrogate_face_2d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 99 : 2 ) // don't initialize if 3D
-   , surrogate_face_3d_( storage, maxLevel, ( storage->hasGlobalCells() ) ? 2 : 99 ) // don't initialize if 2D
-   , surrogate_cell_3d_( storage, maxLevel, 3 )
+   , stencil_vtx_( storage, 0, minLevel, maxLevel )
+   , stencil_edge_3d_( storage, 1, minLevel, maxLevel )
+   , stencil_edge_2d_( storage, 1, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_face_2d_( storage, 2, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_face_3d_( storage, 2, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , stencil_cell_3d_( storage, 3, minLevel, std::min( maxLevel, min_lvl_for_surrogate - 1u ) )
+   , surrogate_edge_2d_( storage, 1, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
+   , surrogate_face_2d_( storage, 2, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 2 ) ? maxLevel : 0 )
+   , surrogate_face_3d_( storage, 2, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
+   , surrogate_cell_3d_( storage, 3, std::max( minLevel, min_lvl_for_surrogate ), ( dim_ == 3 ) ? maxLevel : 0 )
    {
       init( downsampling, path_to_svd, needsInverseDiagEntries );
    }
@@ -369,6 +370,8 @@ class P1SurrogateOperator : public Operator< P1Function< real_t >, P1Function< r
    void assemble_diagonalOperator_face_surrogate_2d( std::shared_ptr< hyteg::Face > face, uint_t lvl, real_t* diagData );
    void assemble_diagonalOperator_face_surrogate_3d( std::shared_ptr< hyteg::Face > face, uint_t lvl, real_t* diagData );
    void assemble_diagonalOperator_cell_surrogate_3d( std::shared_ptr< hyteg::Cell > cell, uint_t lvl, real_t* diagData );
+
+   const uint_t dim_;
 
    P1Form form_;
 
