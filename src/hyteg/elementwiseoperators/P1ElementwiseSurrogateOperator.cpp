@@ -1318,7 +1318,7 @@ void P1ElementwiseSurrogateOperator< P1Form, DEGREE, Symmetric >::apply_3d( cons
                      */
                   micro.x() = 0;
                   std::array< uint_t, 4 > vertexDoFIndices{};
-                  p1::getGlobalIndices3D( cType, level, micro, vertexDoFIndices );
+                  vertexdof::getVertexDoFDataIndicesFromMicroCell(micro, cType, level, vertexDoFIndices);
 
                   /* constant part of local stiffness matrix
                         For some reason, accessing pij[0] within the x-loop costs performance

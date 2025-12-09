@@ -29,37 +29,6 @@
 
 namespace hyteg {
 namespace p1 {
-// alternative to vertexdof::getVertexDoFDataIndicesFromMicroCell() to improve performance
-static inline void getGlobalIndices3D( const celldof::CellType  cType,
-                                       const uint_t             lvl,
-                                       const indexing::Index&   microElement,
-                                       std::array< uint_t, 4 >& globalDofIndices )
-{
-   // get local indices of micro vertices
-   std::array< indexing::Index, 4 > v = celldof::macrocell::getMicroVerticesFromMicroCell( microElement, cType );
-   // convert to global indexing
-   const auto n = levelinfo::num_microvertices_per_edge( lvl );
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      globalDofIndices[k] = indexing::macroCellIndex( n, v[k].x(), v[k].y(), v[k].z() );
-   }
-}
-
-// alternative to vertexdof::getVertexDoFDataIndicesFromMicroFace() to improve performance
-static inline void getGlobalIndices2D( const facedof::FaceType  fType,
-                                       const uint_t             lvl,
-                                       const indexing::Index&   microElement,
-                                       std::array< uint_t, 3 >& globalDofIndices )
-{
-   // get indices of micro vertices
-   std::array< indexing::Index, 3 > v = facedof::macroface::getMicroVerticesFromMicroFace( microElement, fType );
-   // convert to global indexing
-   const auto n = levelinfo::num_microvertices_per_edge( lvl );
-   for ( uint_t k = 0; k < 3; ++k )
-   {
-      globalDofIndices[k] = indexing::macroFaceIndex( n, v[k].x(), v[k].y() );
-   }
-}
 
 /* convert local tet indices to local cube indices
    indices are encodes as i = x + 2y + 4z = x + y<<1 + z<<2

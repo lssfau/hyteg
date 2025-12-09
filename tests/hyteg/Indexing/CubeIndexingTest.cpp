@@ -24,6 +24,7 @@
 
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/indexing/Common.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/globalIndices.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
@@ -43,7 +44,7 @@ void test()
       for ( auto& ct : celldof::allCellTypes )
       {
          const auto& cts = celldof::CellTypeToStr.at( ct );
-         p1::getGlobalIndices3D( ct, lvl, micro, tetIndices );
+         vertexdof::getVertexDoFDataIndicesFromMicroCell( micro, ct, lvl, tetIndices );
          for ( uint_t i = 0; i < 4; ++i )
          {
             // check if tetIndices is a subset of cubeIndices
