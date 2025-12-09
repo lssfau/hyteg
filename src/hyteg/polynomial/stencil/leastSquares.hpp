@@ -93,7 +93,7 @@ class LeastSquares
     * @param dim The dimension of the domain (e.g., 2 for 2D, 3 for 3D).
     * @param lvl The refinement level of the grid.
     * @param downsampling The downsampling factor used to reduce the number of points.
-    /// return The total number of sample points as a uint_t.
+    * @return The total number of sample points as a uint_t.
     */
    static const uint_t n_sample_points( uint_t dim, uint_t lvl, uint_t downsampling )
    {
