@@ -245,7 +245,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
             {
                auto dofs = u_conforming_->getStorage()
                                ->getFace( faceID )
-                               ->template getData( u_conforming_->component( d ).getFaceDataID() )
+                               ->getData( u_conforming_->component( d ).getFaceDataID() )
                                ->getPointer( level );
 
                for ( auto faceType : facedof::allFaceTypes )
@@ -353,7 +353,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
             {
                auto dofs = u_conforming_->getStorage()
                                ->getCell( cellID )
-                               ->template getData( u_conforming_->component( d ).getCellDataID() )
+                               ->getData( u_conforming_->component( d ).getCellDataID() )
                                ->getPointer( level );
 
                for ( auto cellType : celldof::allCellTypes )
@@ -532,7 +532,7 @@ class EGFunction final : public Function< EGFunction< ValueType > >
       // evaluate DG function
       auto dof_discontinuous =
           u_discontinuous_->getDGFunction()->volumeDoFFunction()->dof( faceID, elementIndex, 0, faceType, level );
-      real_t value_discontinuous = real_c(dof_discontinuous) * (coordinates[componentIdx] - midpoint[componentIdx]);
+      real_t value_discontinuous = real_c( dof_discontinuous ) * ( coordinates[componentIdx] - midpoint[componentIdx] );
 
       value = ValueType( value_conforming + value_discontinuous );
    }
