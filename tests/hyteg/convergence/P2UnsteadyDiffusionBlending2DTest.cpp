@@ -155,7 +155,7 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
        std::make_shared< WeightedJacobiSmoother< P2ElementwiseUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 0.66 );
    auto restriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto prolongation = std::make_shared< P2toP2QuadraticProlongation >();
-   auto gmgSolver       = std::make_shared< GeometricMultigridSolver< P2ElementwiseUnsteadyDiffusionOperator > >(
+   auto gmgSolver    = std::make_shared< GeometricMultigridSolver< P2ElementwiseUnsteadyDiffusionOperator > >(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 6, 6 );
    auto solver = std::make_shared< SolverLoop< P2ElementwiseUnsteadyDiffusionOperator > >( gmgSolver, 4 );
 #endif
@@ -176,12 +176,12 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
    uExact.interpolate( solution, maxLevel, All );
    f.interpolate( rhs, maxLevel, All );
    u.interpolate( solution, maxLevel, DirichletBoundary );
-   error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
-   real_t l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
+   error.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel, All );
+   real_t l2Error    = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
                                real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
    real_t l2Residual = 0.0;
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " timestep | time total | discr. L2 error | discr. L2 residual" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "----------+------------+-----------------+--------------------" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | discr. L2 residual" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+--------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.2e | %15.2e | %15.2e", 0, 0, l2Error, l2Residual ) );
 
    if ( vtk )
@@ -194,8 +194,8 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
       rhs.inc( dt );
       timeTotal += dt;
 
-      uOld.assign( {1.0}, {u}, maxLevel, All );
-      fOld.assign( {1.0}, {f}, maxLevel, All );
+      uOld.assign( { 1.0 }, { u }, maxLevel, All );
+      fOld.assign( { 1.0 }, { f }, maxLevel, All );
 
       uExact.interpolate( solution, maxLevel, All );
       f.interpolate( rhs, maxLevel, All );
@@ -203,7 +203,7 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
 
       diffusionSolver.step( diffusionOperator, L, M, u, uOld, f, fOld, maxLevel, Inner );
 
-      error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
+      error.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel, All );
       l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
                            real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
 
@@ -217,7 +217,6 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.2e | %15.2e | %15.2e", steps, timeTotal, l2Error, l2Residual ) );
 
    WALBERLA_CHECK_LESS( l2Error, discrL2Eps );
-
 }
 
 } // namespace hyteg
