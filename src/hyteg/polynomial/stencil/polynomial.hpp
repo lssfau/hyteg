@@ -30,7 +30,8 @@ namespace stencil {
 namespace surrogate {
 
 template < uint8_t DIM_domain, uint8_t DIM_primitive, uint8_t DEGREE, typename FLOAT = real_t >
-class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE ) >
+class Polynomial
+: public std::array< StencilData< DIM_domain, FLOAT >, hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE ) >
 {
  public:
    static constexpr uint_t n_coeff   = hyteg::surrogate::polynomial::dimP( DIM_primitive, DEGREE );
@@ -41,8 +42,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    : std::array< Stencil, n_coeff >{}
    {}
 
-   template < typename CoeffVector >
-   inline void set_coefficients( p1::stencil::Dir d, CoeffVector& coeffs )
+   inline void set_coefficients( p1::stencil::Dir d, auto& coeffs )
    {
       if ( uint_t( coeffs.size() ) != n_coeff )
       {
@@ -57,14 +57,14 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    }
 
    // fix z coordinate s.th. only 2d polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_z( const FLOAT z ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE, FLOAT > fix_z( const FLOAT z ) const
    {
       static_assert( DIM_primitive == 3, "fix_z(z) only available in 3D!" );
       return fix_coord( z );
    }
 
    // fix y coordinate s.th. only 1d polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_y( const FLOAT y ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE, FLOAT > fix_y( const FLOAT y ) const
    {
       static_assert( DIM_primitive == 2, "fix_y(y) only available in 2D!" );
       return fix_coord( y );
@@ -92,7 +92,6 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       return result;
    }
 
-#ifdef WALBERLA_DOUBLE_ACCURACY
 #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
@@ -104,6 +103,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
    inline StencilData< DIM_domain, walberla::simd::double4_t > eval_vec( const std::array< FLOAT, 4 >& x ) const
    {
       static_assert( DIM_primitive == 1, "eval(x) only available in 1D!" );
+      static_assert( std::is_same< FLOAT, double >::value, "eval_vec only available for double precision!" );
 
       StencilData< DIM_domain, walberla::simd::double4_t > result;
       for ( uint_t d = 0; d < n_stencil; ++d )
@@ -128,10 +128,9 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic pop
 #endif
-#endif
 
    // evaluate polynomial by summing up basis functions, only use for debugging or testing
-   Stencil eval_naive( const Point3D& x ) const
+   Stencil eval_naive( const PointND< FLOAT, 3 >& x ) const
    {
       // monomial basis
       constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
@@ -201,7 +200,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
 
  private:
    // fix coordinate s.th. only lower dimensional polynomial must be evaluated
-   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > fix_coord( const FLOAT z ) const
+   inline Polynomial< DIM_domain, DIM_primitive - 1, DEGREE, FLOAT > fix_coord( const FLOAT z ) const
    {
       // monomial basis
       constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
@@ -215,7 +214,7 @@ class Polynomial : public std::array< StencilData< DIM_domain >, hyteg::surrogat
       }
 
       // lower dimensional polynomial
-      Polynomial< DIM_domain, DIM_primitive - 1, DEGREE > result;
+      Polynomial< DIM_domain, DIM_primitive - 1, DEGREE, FLOAT > result;
 
       // first index where the 3d extension starts
       auto ijk = result.n_coeff;
