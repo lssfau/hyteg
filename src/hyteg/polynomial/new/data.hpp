@@ -166,8 +166,20 @@ struct LevelWiseData : public std::vector< T >
    , maxLvl_( l_max )
    {}
 
-   const T& operator[]( uint_t i ) const { return this->data[i - minLvl_]; }
-   T&       operator[]( uint_t i ) { return this->data[i - minLvl_]; }
+   LevelWiseData( const LevelWiseData& other )
+   : std::vector< T >( other )
+   , minLvl_( other.minLvl_ )
+   , maxLvl_( other.maxLvl_ )
+   {}
+
+   LevelWiseData( )
+   : std::vector< T >()
+   , minLvl_( 0 )
+   , maxLvl_( 0 )
+   {}
+
+   const T& operator[]( uint_t i ) const { return this->data()[i - minLvl_]; }
+   T&       operator[]( uint_t i ) { return this->data()[i - minLvl_]; }
 
    const uint_t minLvl_;
    const uint_t maxLvl_;
@@ -207,7 +219,7 @@ struct ElementWiseData : public std::map< PrimitiveID, LevelWiseData< T > >
 
       for ( auto& id : ids )
       {
-         ( *this )[id] = LevelWiseData< T >( l_min, l_max );
+         this->try_emplace( id, l_min, l_max );
       }
    }
 
