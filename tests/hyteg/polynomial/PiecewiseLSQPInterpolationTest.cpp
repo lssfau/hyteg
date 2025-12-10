@@ -21,7 +21,7 @@
 #include "hyteg/polynomial/PiecewiseLSQPInterpolation.hpp"
 
 #include "core/Environment.h"
-#include "core/mpi/MPIIO.h"
+#include "core/mpi/BufferIO.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -94,11 +94,11 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    SendBuffer sendBuffer;
    kdTree.serialize( sendBuffer );
 
-   walberla::mpi::writeMPIIO( "../../../output/" + fileBaseName + ".buf", sendBuffer );
+   walberla::mpi::writeBufferMPIIO( "../../../output/" + fileBaseName + ".buf", sendBuffer );
 
    RecvBuffer recvBuffer;
 
-   walberla::mpi::readMPIIO( "../../../output/" + fileBaseName + ".buf", recvBuffer );
+   walberla::mpi::readBufferMPIIO( "../../../output/" + fileBaseName + ".buf", recvBuffer );
 
    PiecewiseLSQPPolyKDTree kdTreeRead( aabb, 0 );
    kdTreeRead.deserialize( recvBuffer );
