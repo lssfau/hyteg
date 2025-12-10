@@ -10,4 +10,5 @@ target_sources( hyteg
     PiecewiseLSQPInterpolation.hpp
 )
 
-add_subdirectory(elementwise)
+add_subdirectory(new)
+add_subdirectory(stencil)

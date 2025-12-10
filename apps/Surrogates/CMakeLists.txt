@@ -1,3 +1,5 @@
+add_subdirectory(operators)
+
 waLBerla_add_executable(NAME compareP1Stencils
       FILES compareP1Stencils.cpp
       DEPENDS hyteg constant_stencil_operator)
@@ -17,3 +19,9 @@ waLBerla_add_executable( NAME Stokes2d_Surrogates
 waLBerla_add_executable( NAME jumpCoefficient
       FILES jumpCoefficient.cpp
       DEPENDS hyteg mixed_operator)
+
+if(HYTEG_BUILD_WITH_AVX AND WALBERLA_DOUBLE_ACCURACY)
+      waLBerla_add_executable( NAME surrogateBenchmark
+            FILES surrogateBenchmark.cpp
+            DEPENDS hyteg opgen-mogli-diffusion constant_stencil_operator)
+endif()

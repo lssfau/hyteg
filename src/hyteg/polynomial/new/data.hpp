@@ -21,8 +21,9 @@
 #pragma once
 #include <array>
 #include <hyteg/Levelinfo.hpp>
-#include <hyteg/eigen/EigenWrapper.hpp>
 #include <hyteg/indexing/Common.hpp>
+#include <hyteg/primitivestorage/PrimitiveStorage.hpp>
+#include <hyteg/types/Matrix.hpp>
 #include <hyteg/volumedofspace/CellDoFIndexing.hpp>
 #include <hyteg/volumedofspace/FaceDoFIndexing.hpp>
 
@@ -35,51 +36,44 @@ namespace hyteg {
 namespace surrogate {
 
 /**
- * @class LocalMatrixLike
- * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
+ * @class MatrixLike
+ * @brief T^RxC matrix
  * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
- * @tparam DIM The spatial dimension of the PDE domain
- * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
- * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
+ * @tparam R rows of the matrix
+ * @tparam C columns of the matrix
  */
-template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
-class LocalMatrixLike
+template < typename T, uint_t R, uint_t C >
+struct MatrixLike : public std::array< T, R * C >
 {
- public:
-   static constexpr idx_t R = polynomial::dimP( DIM, DST_DEGREE );
-   static constexpr idx_t C = polynomial::dimP( DIM, SRC_DEGREE );
-
-   LocalMatrixLike()
-   : _data{}
-   {}
-
    // get (i,j) entry of this
-   inline T& operator()( idx_t i, idx_t j ) { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   inline T& operator()( idx_t i, idx_t j ) { return ( *this )[static_cast< uint_t >( i * C + j )]; }
    // get (i,j) entry of this
-   inline const T& operator()( idx_t i, idx_t j ) const { return _data[static_cast< uint_t >( i )][static_cast< uint_t >( j )]; }
+   inline const T& operator()( idx_t i, idx_t j ) const { return ( *this )[static_cast< uint_t >( i * C + j )]; }
 
    inline constexpr idx_t rows() const { return R; }
    inline constexpr idx_t cols() const { return C; }
-
- private:
-   std::array< std::array< T, C >, R > _data;
 };
 
+/**
+ * @class ElementTypeWiseData
+ * @brief A container for storing data associated with element types (white-up, white-down, ... )
+ *
+ * @tparam T The type of the data associated with each element type.
+ * @tparam DIM The spatial dimension of the PDE domain (2 for 2D, 3 for 3D).
+ */
 template < typename T, uint_t DIM >
-class ElementTypeWiseData
+struct ElementTypeWiseData : public std::array< T, ( DIM == 2 ) ? 2 : 6 >
 {
- public:
    using ElementType = typename std::conditional< ( DIM == 2 ), facedof::FaceType, celldof::CellType >::type;
 
-   constexpr ElementTypeWiseData()
-   : _data{}
-   {}
-
-   inline T&       operator[]( const ElementType& eType ) { return _data[static_cast< uint_t >( eType )]; }
-   inline const T& operator[]( const ElementType& eType ) const { return _data[static_cast< uint_t >( eType )]; }
-
- private:
-   std::array< T, ( DIM == 2 ) ? 2 : 6 > _data;
+   inline T& operator[]( const ElementType& eType )
+   {
+      return std::array < T, ( DIM == 2 ) ? 2 : 6 > ::operator[]( static_cast< uint_t >( eType ) );
+   }
+   inline const T& operator[]( const ElementType& eType ) const
+   {
+      return std::array < T, ( DIM == 2 ) ? 2 : 6 > ::operator[]( static_cast< uint_t >( eType ) );
+   }
 };
 
 /**
@@ -160,32 +154,90 @@ class LocalMatrixMap
 };
 
 /**
- * @brief container for level wise data on each primitive
+ * @brief container for level-wise data
+ *       usage: LevelWiseData[lvl] = T
+ */
+template < typename T >
+struct LevelWiseData : public std::vector< T >
+{
+   LevelWiseData( uint_t l_min, uint_t l_max )
+   : std::vector< T >( ( l_max >= l_min ) ? l_max - l_min + 1 : 0 )
+   , minLvl_( l_min )
+   , maxLvl_( l_max )
+   {}
+
+   LevelWiseData( const LevelWiseData& other )
+   : std::vector< T >( other )
+   , minLvl_( other.minLvl_ )
+   , maxLvl_( other.maxLvl_ )
+   {}
+
+   LevelWiseData( )
+   : std::vector< T >()
+   , minLvl_( 0 )
+   , maxLvl_( 0 )
+   {}
+
+   const T& operator[]( uint_t i ) const { return this->data()[i - minLvl_]; }
+   T&       operator[]( uint_t i ) { return this->data()[i - minLvl_]; }
+
+   const uint_t minLvl_;
+   const uint_t maxLvl_;
+};
+
+/**
+ * @brief container for level-wise data on each primitive
  *       usage: ElementWiseData[primitiveID][lvl] = T
  */
 template < typename T >
-struct ElementWiseData : public std::map< PrimitiveID, std::vector< T > >
+struct ElementWiseData : public std::map< PrimitiveID, LevelWiseData< T > >
 {
-   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_max )
+ public:
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage,
+                    Primitive::PrimitiveTypeEnum               type,
+                    uint_t                                     l_min,
+                    uint_t                                     l_max )
    {
-      uint_t dim = ( storage->hasGlobalCells() ) ? 3 : 2;
-      if ( dim == 2 )
+      std::vector< PrimitiveID > ids;
+      switch ( type )
       {
-         for ( auto& id : storage->getFaceIDs() )
-         {
-            ( *this )[id] = std::vector< T >( l_max + 1 );
-         }
+      case Primitive::VERTEX:
+         ids = storage->getVertexIDs();
+         break;
+      case Primitive::EDGE:
+         ids = storage->getEdgeIDs();
+         break;
+      case Primitive::FACE:
+         ids = storage->getFaceIDs();
+         break;
+      case Primitive::CELL:
+         ids = storage->getCellIDs();
+         break;
+      default:
+         break;
       }
-      else
+
+      for ( auto& id : ids )
       {
-         for ( auto& id : storage->getCellIDs() )
-         {
-            ( *this )[id] = std::vector< T >( l_max + 1 );
-         }
+         this->try_emplace( id, l_min, l_max );
       }
    }
+
+   ElementWiseData( const std::shared_ptr< PrimitiveStorage >& storage, uint_t l_min, uint_t l_max )
+   : ElementWiseData( storage, ( storage->hasGlobalCells() ) ? Primitive::CELL : Primitive::FACE, l_min, l_max )
+   {}
 };
 
+/**
+ * @class LocalMatrixLike
+ * @brief T^RxC matrix where R and C are the dimensions of the local element matrices for a given local polynomial degree
+ * @tparam T The type of the elements stored in the matrix (e.g. polynomial::Polynomial).
+ * @tparam DIM The spatial dimension of the PDE domain
+ * @tparam SRC_DEGREE Polynomial degree of the local source space (domain of A_loc).
+ * @tparam DST_DEGREE Polynomial degree of the local destination space (image of A_loc). (defaults to SRC_DEGREE).
+ */
+template < typename T, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+using LocalMatrixLike = MatrixLike< T, polynomial::dimP( DIM, DST_DEGREE ), polynomial::dimP( DIM, SRC_DEGREE ) >;
 // container for RHS vectors for lsq-fit
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM, SRC_DEGREE, DST_DEGREE >;
@@ -193,9 +245,10 @@ using RHS_matrix = LocalMatrixLike< typename LeastSquares< FLOAT >::Vector, DIM,
 template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
 using PrecomputedData = ElementWiseData< LocalMatrixMap< FLOAT, DIM, SRC_DEGREE, DST_DEGREE > >;
 // container for surrogates
-template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE >
+template < typename FLOAT, uint_t DIM, uint_t SRC_DEGREE, uint_t DST_DEGREE, uint8_t SURROGATE_DEGREE >
 using SurrogateData = ElementWiseData<
-    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT >, DIM, SRC_DEGREE, DST_DEGREE >, DIM > >;
+    ElementTypeWiseData< LocalMatrixLike< polynomial::Polynomial< FLOAT, DIM, SURROGATE_DEGREE >, DIM, SRC_DEGREE, DST_DEGREE >,
+                         DIM > >;
 
 } // namespace surrogate
 } // namespace hyteg

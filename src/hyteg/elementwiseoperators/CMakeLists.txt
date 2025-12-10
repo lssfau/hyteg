@@ -22,4 +22,3 @@ target_sources( hyteg
     P1ElementwiseSurrogateOperator.hpp
     P1ElementwiseSurrogateOperator.cpp
 )
-

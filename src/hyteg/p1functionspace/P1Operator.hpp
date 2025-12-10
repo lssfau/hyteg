@@ -759,7 +759,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                         {
                            for ( auto stencilIt : stencilMap[neighborCellID] )
                            {
-                              if ( stencilIt.first == indexing::Index( { 0, 0, 0 } ) )
+                              if ( stencilIt.first == indexing::Index::Zero() )
                               {
                                  centerValue += stencilIt.second;
                               }
@@ -877,7 +877,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                            }
                         }
 
-                        ValueType centerValue = stencilMap[indexing::Index( { 0, 0, 0 } )];
+                        ValueType centerValue = stencilMap[indexing::Index::Zero()];
 
                         targetMemory[vertexdof::macrocell::index( level, i, j, k )] = centerValue;
                      }
@@ -941,15 +941,18 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Edge" );
 
-      for ( auto& it : storage_->getEdges() )
+      if ( level >= 1 )
       {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-
-         if ( testFlag( edgeBC, flag ) )
+         for ( auto& it : storage_->getEdges() )
          {
-            smooth_sor_edge( edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), level, relax, backwards );
+            Edge& edge = *it.second;
+
+            const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+            if ( testFlag( edgeBC, flag ) )
+            {
+               smooth_sor_edge( edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), level, relax, backwards );
+            }
          }
       }
 
@@ -965,39 +968,41 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Face" );
 
-      for ( auto& it : storage_->getFaces() )
+      if ( level >= 2 )
       {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-
-         if ( testFlag( faceBC, flag ) )
+         for ( auto& it : storage_->getFaces() )
          {
-            if ( storage_->hasGlobalCells() )
+            Face& face = *it.second;
+
+            const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+
+            if ( testFlag( faceBC, flag ) )
             {
-               if ( globalDefines::useGeneratedKernels )
+               if ( storage_->hasGlobalCells() )
                {
-                  smooth_sor_face3D_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  if ( globalDefines::useGeneratedKernels )
+                  {
+                     smooth_sor_face3D_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
+                  else
+                  {
+                     smooth_sor_face3D( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
                }
                else
                {
-                  smooth_sor_face3D( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
-               }
-            }
-            else
-            {
-               if ( globalDefines::useGeneratedKernels )
-               {
-                  smooth_sor_face_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
-               }
-               else
-               {
-                  smooth_sor_face( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  if ( globalDefines::useGeneratedKernels )
+                  {
+                     smooth_sor_face_generated( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
+                  else
+                  {
+                     smooth_sor_face( face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards );
+                  }
                }
             }
          }
       }
-
       this->timingTree_->stop( "Macro-Face" );
    }
 
@@ -1010,21 +1015,24 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
    {
       this->timingTree_->start( "Macro-Cell" );
 
-      for ( auto& it : storage_->getCells() )
+      if ( level >= 2 )
       {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-
-         if ( testFlag( cellBC, flag ) )
+         for ( auto& it : storage_->getCells() )
          {
-            if ( globalDefines::useGeneratedKernels )
+            Cell& cell = *it.second;
+
+            const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+
+            if ( testFlag( cellBC, flag ) )
             {
-               smooth_sor_cell_generated( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
-            }
-            else
-            {
-               smooth_sor_cell( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               if ( globalDefines::useGeneratedKernels )
+               {
+                  smooth_sor_cell_generated( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               }
+               else
+               {
+                  smooth_sor_cell( cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards );
+               }
             }
          }
       }
@@ -1286,7 +1294,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
                const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, i, j, k, sd::VERTEX_C );
 
-               tmp = operatorData.at( { 0, 0, 0 } ) * src[centerIdx];
+               tmp = operatorData.at( indexing::Index::Zero() ) * src[centerIdx];
 
                for ( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
                {
@@ -1432,7 +1440,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][{ 0, 0, 0 }] );
+         centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][indexing::Index::Zero()] );
       }
 
       auto invCenterWeight = 1.0 / centerWeight;
@@ -1449,7 +1457,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
             for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
             {
-               centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][{ 0, 0, 0 }] );
+               centerWeight += static_cast< ValueType >( opr_data[neighborCellIdx][indexing::Index::Zero()] );
             }
 
             invCenterWeight = 1.0 / centerWeight;
@@ -1463,7 +1471,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
             for ( auto stencilIt : opr_data[neighborCellIdx] )
             {
-               if ( stencilIt.first == indexing::Index( { 0, 0, 0 } ) )
+               if ( stencilIt.first == indexing::Index::Zero() )
                   continue;
 
                auto weight               = stencilIt.second;
@@ -1587,7 +1595,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
 
       ValueType tmp;
 
-      auto inverseCenterWeight = 1.0 / operatorData[{ 0, 0, 0 }];
+      auto inverseCenterWeight = 1.0 / operatorData[indexing::Index::Zero()];
 
       const idx_t rowsizeZ = static_cast< idx_t >( levelinfo::num_microvertices_per_edge( level ) );
       idx_t       rowsizeY, rowsizeX;
@@ -1613,7 +1621,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
                if ( variableStencil() )
                {
                   assemble_stencil_cell( operatorData, i, j, k );
-                  inverseCenterWeight = 1.0 / operatorData[{ 0, 0, 0 }];
+                  inverseCenterWeight = 1.0 / operatorData[indexing::Index::Zero()];
                }
 
                const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, i, j, k, sd::VERTEX_C );
@@ -1640,7 +1648,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       //    if (variableStencil())
       //    {
       //       assemble_stencil_cell(operatorData, x, y, z);
-      //       inverseCenterWeight = 1.0 / operatorData[ { 0, 0, 0 } ];
+      //       inverseCenterWeight = 1.0 / operatorData[ indexing::Index::Zero() ];
       //    }
 
       //    const uint_t centerIdx = vertexdof::macrocell::indexFromVertex(level, x, y, z, sd::VERTEX_C);
@@ -2078,9 +2086,9 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
          {
             for ( auto& stencilIt : face_stencil[neighborCellID] )
             {
-               if ( !( neighborCellID == 0 && stencilIt.first == indexing::Index( { 0, 0, 0 } ) ) )
+               if ( !( neighborCellID == 0 && stencilIt.first == indexing::Index::Zero() ) )
                {
-                  face_stencil[0][{ 0, 0, 0 }] += stencilIt.second;
+                  face_stencil[0][indexing::Index::Zero()] += stencilIt.second;
                   stencilIt.second = 0;
                }
             }
@@ -2092,7 +2100,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
          {
             for ( auto& stencilIt : face_stencil[neighborCellID] )
             {
-               if ( stencilIt.first != indexing::Index( { 0, 0, 0 } ) )
+               if ( stencilIt.first != indexing::Index::Zero() )
                {
                   stencilIt.second = 0;
                }
@@ -2103,10 +2111,10 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       {
          for ( uint_t neighborCellID = 1; neighborCellID < face_->getNumNeighborCells(); neighborCellID++ )
          {
-            face_stencil[0][{ 0, 0, 0 }] += face_stencil[neighborCellID][{ 0, 0, 0 }];
-            face_stencil[neighborCellID][{ 0, 0, 0 }] = 0;
+            face_stencil[0][indexing::Index::Zero()] += face_stencil[neighborCellID][indexing::Index::Zero()];
+            face_stencil[neighborCellID][indexing::Index::Zero()] = 0;
          }
-         face_stencil[0][{ 0, 0, 0 }] = 1.0 / face_stencil[0][{ 0, 0, 0 }];
+         face_stencil[0][indexing::Index::Zero()] = 1.0 / face_stencil[0][indexing::Index::Zero()];
       }
    }
 
@@ -2134,7 +2142,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       {
          for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
          {
-            cell_stencil[{ 0, 0, 0 }] += cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )];
+            cell_stencil[indexing::Index::Zero()] += cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )];
             cell_stencil[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
          }
       }
@@ -2147,7 +2155,7 @@ class P1Operator : public Operator< P1Function< ValueType >, P1Function< ValueTy
       }
       if constexpr ( InvertDiagonal )
       {
-         cell_stencil[{ 0, 0, 0 }] = 1.0 / cell_stencil[{ 0, 0, 0 }];
+         cell_stencil[indexing::Index::Zero()] = 1.0 / cell_stencil[indexing::Index::Zero()];
       }
    }
 

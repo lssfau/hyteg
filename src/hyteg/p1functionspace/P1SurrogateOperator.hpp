@@ -21,10 +21,7 @@
 #pragma once
 
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/P1Operator.hpp"
@@ -32,6 +29,8 @@
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
 
 namespace hyteg {
+
+namespace deprecated {
 
 template < class P1Form, bool USE_INCREMENTAL_EVAL = true >
 class P1SurrogateOperator : public P1Operator< P1Form >
@@ -84,7 +83,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    P1SurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form )
    : P1Operator< P1Form >( storage, minLevel, maxLevel, form )
    {
-      // todo add polynomials for macro-bounaries
+      // todo add polynomials for macro-boundaries
       auto cellDataHandling =
           std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< StencilPoly_cell >, Cell > >( minLevel_, maxLevel_ );
 
@@ -255,7 +254,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    */
    void interpolate2D( uint_t polyDegree, uint_t maxInterpolationLevel )
    {
-      for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
+      for ( uint_t level = std::max(uint_t(2), minLevel_); level <= maxLevel_; ++level )
       {
          const uint_t interpolationLevel = std::min( level, maxInterpolationLevel );
          const uint_t lvlDiff            = level - interpolationLevel;
@@ -331,12 +330,8 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    */
    void interpolate3D( uint_t polyDegree, uint_t maxInterpolationLevel )
    {
-      for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
+      for ( uint_t level = std::max(uint_t(2), minLevel_); level <= maxLevel_; ++level )
       {
-         // skip level 0 (no interior points)
-         if ( level == 0 )
-            continue;
-
          const uint_t interpolationLevel = std::min( level, maxInterpolationLevel );
          const uint_t lvlDiff            = level - interpolationLevel;
          const uint_t rowsizeZ           = levelinfo::num_microvertices_per_edge( interpolationLevel );
@@ -422,7 +417,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    }
 
    /* Assembly of edge stencil.
-      Will be called before stencil is applied to a particuar edge-DoF.
+      Will be called before stencil is applied to a particular edge-DoF.
    */
    inline void assemble_stencil_edge( real_t* edge_stencil, const uint_t i ) const
    {
@@ -469,7 +464,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    }
 
    /* Assembly of face stencil.
-      Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
+      Will be called before stencil is applied to a particular face-DoF of a 2d domain.
    */
    inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const
    {
@@ -489,7 +484,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    }
 
    /* Assembly of face stencil.
-      Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
+      Will be called before stencil is applied to a particular face-DoF of a 3D domain.
    */
    inline void assemble_stencil_face3D( vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j ) const
    {
@@ -536,7 +531,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
    }
 
    /* Assembly of cell stencil.
-      Will be called before stencil is applied to a particuar cell-DoF.
+      Will be called before stencil is applied to a particular cell-DoF.
    */
    inline void assemble_stencil_cell( vertexdof::macrocell::StencilMap_T& cell_stencil,
                                       const uint_t                        i,
@@ -577,4 +572,5 @@ typedef P1SurrogateOperator< forms::p1_mass_blending_q4 >       P1SurrogateMassO
 typedef P1SurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
 typedef P1SurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1SurrogateAffineDivkGradOperator;
 
+} //namespace deprecated
 } // namespace hyteg

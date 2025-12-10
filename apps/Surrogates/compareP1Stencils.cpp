@@ -307,7 +307,7 @@ int main( int argc, char* argv[] )
    logSectionHeader( "Surrogates Part" );
 
    logMessage( "Preparing P1SurrogateOperator" );
-   P1SurrogateOperator sOp( storage, minLevel, maxLevel, form );
+   deprecated::P1SurrogateOperator sOp( storage, minLevel, maxLevel, form );
 
    logMessage( "Interpolating surrogate polynomials" );
    sOp.interpolateStencils( params.degree, params.lsqLevel );

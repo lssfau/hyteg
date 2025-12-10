@@ -25,7 +25,10 @@
 #include <core/math/Constants.h>
 #include <core/math/Random.h>
 #include <core/timing/Timer.h>
-#include <hyteg/polynomial/new/polynomial.hpp>
+#include <hyteg/polynomial/stencil/polynomial.hpp>
+#include <simd/SSE2.h>
+
+#include "hyteg/polynomial/new/polynomial.hpp"
 
 using hyteg::idx_t;
 using hyteg::real_t;
@@ -38,42 +41,9 @@ void check( const std::string& method, double px_manual, double px )
    double           diff_abs = std::abs( px - px_manual );
    double           px_abs   = std::abs( px_manual );
    WALBERLA_LOG_INFO_ON_ROOT( "   " << method << ":" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "      |px_manual - p(x)|/|px_manual| = %e", diff_abs / px_abs ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "      |px - p(x)|/|px| = %e", diff_abs / px_abs ) );
    WALBERLA_CHECK_LESS( diff_abs, epsilon * px_abs, "accuracy " << method );
 };
-
-// test correctness of basis functions
-void MonomialBasisTest( int i, int j, int k )
-{
-   // ---------------------------------------------------------
-   /// initialize polynomial p(x,y,z) = x^i * y^j * z^k
-   // ---------------------------------------------------------
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Monomial(%d, %d, %d)", i, j, k ) );
-   auto p = hyteg::surrogate::polynomial::Monomial( uint_t( i ), uint_t( j ), uint_t( k ) );
-
-   // ---------------------------------------------------------
-   /// test compression
-   // ---------------------------------------------------------
-   WALBERLA_ASSERT_EQUAL( i, p.i(), "p.i" );
-   WALBERLA_ASSERT_EQUAL( j, p.j(), "p.j" );
-   WALBERLA_ASSERT_EQUAL( k, p.k(), "p.k" );
-   WALBERLA_ASSERT_EQUAL( i, p.expand()[0], "p.expand" );
-   WALBERLA_ASSERT_EQUAL( j, p.expand()[1], "p.expand" );
-   WALBERLA_ASSERT_EQUAL( k, p.expand()[2], "p.expand" );
-   WALBERLA_ASSERT_EQUAL( i + j + k, p.degree(), "p.degree" );
-
-   // ---------------------------------------------------------
-   /// test p.eval
-   // ---------------------------------------------------------
-   // choose random point x in R^3
-   hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
-   // evaluate p manually
-   auto px_manual = std::pow( x[0], i ) * std::pow( x[1], j ) * std::pow( x[2], k );
-   // evaluate p using built-in function
-   auto px = p.eval( x );
-   // check diff
-   check( "Monomial::eval", px_manual, px );
-}
 
 // test different algorithms to evaluate polynomials
 template < uint8_t D, uint8_t Q >
@@ -83,12 +53,18 @@ void PolynomialTest()
    /// initialize
    // ---------------------------------------------------------
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Polynomial(d=%d, q=%d)", D, Q ) );
+
    // choose random element p from P_q(R^d)
-   hyteg::surrogate::polynomial::Polynomial< real_t, D, Q > p;
-   for ( auto& c : p )
+   hyteg::p1::stencil::surrogate::Polynomial< D, D, Q > p;
+   std::array< real_t, p.n_coeff >                      coeffs;
+   for ( uint_t n = 0; n < p.n_coeff; ++n )
    {
-      c = realRandom();
+      coeffs[n] = realRandom();
    }
+   // only initialize last stencil direction
+   constexpr auto dir = hyteg::p1::stencil::Dir( hyteg::p1::stencil::stencilSize( D ) - 1 );
+   p.set_coefficients( dir, coeffs );
+
    // choose random point x from R^3
    hyteg::Point3D x{ realRandom(), realRandom(), realRandom() };
 
@@ -109,44 +85,68 @@ void PolynomialTest()
    }
    // sum up contributions of each basis function φ_n, i.e., p(x) = ∑_n c_n φ_n(x)
    hyteg::surrogate::polynomial::Basis< Q > phi;
-   for ( uint_t n = 0; n < p.size(); ++n )
+   for ( uint_t n = 0; n < hyteg::surrogate::polynomial::dimP( D, Q ); ++n )
    {
       auto [i, j, k] = phi[n].expand(); // φ_n = x^i y^j z^k
-      px_manual += p[n] * x_pow[i] * y_pow[j] * z_pow[k];
+      px_manual += coeffs[n] * x_pow[i] * y_pow[j] * z_pow[k];
    }
 
    // ---------------------------------------------------------
    /// use naive evaluation (should be equivalent to the above)
    // ---------------------------------------------------------
-   real_t px_naive = real_t( 0.0 );
-   if constexpr ( D == 1 )
-   {
-      px_naive = p.eval( x[0] ); // 1D polynomial doesn't provide a function eval_naive()
-   }
-   else
-   {
-      px_naive = p.eval_naive( x );
-   }
+   const auto   stencil_naive = p.eval_naive( x );
+   const real_t px_naive      = stencil_naive[dir];
 
    // ---------------------------------------------------------
-   /// evaluate p(x) using Horner's method
+   /// evaluate p(x) row-wise
    // ---------------------------------------------------------
+   hyteg::p1::stencil::surrogate::Polynomial< D, 1, Q > p1;
+   if constexpr ( D == 1 )
+      p1 = p;
+   hyteg::p1::stencil::surrogate::Polynomial< D, 2, Q > p2;
+   if constexpr ( D == 2 )
+      p2 = p;
+
+   // restrict p to P_q(R^2)
    if constexpr ( D == 3 )
    {
-      p.fix_z( x[2] ); // restrict p to P_q(R^2)
+      p2 = p.fix_z( x[2] );
    }
+   // restrict to P_q(R)
    if constexpr ( D >= 2 )
    {
-      p.fix_y( x[1] ); // restrict to P_q(R)
+      p1 = p2.fix_y( x[1] );
    }
-   // evaluate 1d polynomial by Horner's method
-   real_t px_horner = p.eval( x[0] );
+   // evaluate 1d polynomial
+   const auto stencil_rw  = p1.eval( x[0] );
+   real_t     px_row_wise = stencil_rw[dir];
 
    // ---------------------------------------------------------
    /// compare solutions
    // ---------------------------------------------------------
    check( "Naive evaluation", px_manual, px_naive );
-   check( "Horner's method", px_manual, px_horner );
+   check( "Row-wise", px_manual, px_row_wise );
+
+#ifdef WALBERLA_DOUBLE_ACCURACY
+   // ---------------------------------------------------------
+   /// vectorized evaluation
+   // ---------------------------------------------------------
+   std::array< real_t, 4 >               x_vec;
+   std::array< real_t, 4 >               px_scalar;
+   alignas( 32 ) std::array< real_t, 4 > px_vec;
+   for ( uint_t i = 0; i < 4; ++i )
+   {
+      x_vec[i]           = realRandom();
+      const auto stencil = p1.eval( x_vec[i] );
+      px_scalar[i]       = stencil[dir];
+   }
+   const auto stencil_vec = p1.eval_vec( x_vec );
+   walberla::simd::store_aligned( px_vec.data(), stencil_vec[dir] );
+   for ( uint_t i = 0; i < 4; ++i )
+   {
+      check( "simd eval", px_scalar[i], px_vec[i] );
+   }
+#endif
 }
 
 int main( int argc, char* argv[] )
@@ -155,22 +155,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   walberla::math::seedRandomGenerator( 0 );
+
    // -------------------
    //  Run tests
    // -------------------
-   for ( int i = 0; i < 5; ++i )
-   {
-      for ( int j = 0; j < 5; ++j )
-      {
-         for ( int k = 0; k < 5; ++k )
-         {
-            MonomialBasisTest( i, j, k );
-         }
-      }
-   }
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( "=======================================================" );
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
    PolynomialTest< 1, 0 >();
    PolynomialTest< 1, 1 >();
    PolynomialTest< 1, 2 >();

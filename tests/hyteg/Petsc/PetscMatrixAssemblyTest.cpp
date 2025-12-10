@@ -294,7 +294,7 @@ int main( int argc, char* argv[] )
    printTestHdr( "Testing P1 Operators" );
 
    testAssembly< P1ConstantMassOperator >( storage, level, "P1ConstantOperator" );
-   testAssembly< P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator", false );
+   testAssembly< deprecated::P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator", false );
    testAssembly< P1BlendingMassOperator >( storage, level, "P1VariableOperator", false );
 
    testAssembly< P1ProjectNormalOperator >( level, "P1ProjectNormalOperator", false );
