@@ -380,7 +380,7 @@ inline void assign( const uint_t&                                               
       {
          ValueType tmp = scalars[0] * srcPtr[0][vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-         for ( uint_t k = 1; k < srcIds.size(); ++k )
+         for ( uint_t k = 1; k < scalars.size() && k < srcIds.size(); ++k )
          {
             tmp += scalars[k] * srcPtr[k][vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
          }
@@ -409,8 +409,8 @@ inline void assignAcrossStorages( const std::vector< std::shared_ptr< Face > >& 
 
    for ( size_t i = 0; i < srcIds.size(); ++i )
    {
-     WALBERLA_ASSERT_EQUAL( dstFace->getID(), srcFaces[0]->getID() )
-     srcPtr.push_back( srcFaces[i]->getData( srcIds[i] )->getPointer( level ) );
+      WALBERLA_ASSERT_EQUAL( dstFace->getID(), srcFaces[0]->getID() )
+      srcPtr.push_back( srcFaces[i]->getData( srcIds[i] )->getPointer( level ) );
    }
 
    for ( uint_t j = 1; j < rowsize - 2; ++j )
