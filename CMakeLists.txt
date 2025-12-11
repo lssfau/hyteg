@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.20)
+cmake_minimum_required (VERSION 3.26)
 
 PROJECT ( hyteg )
 enable_testing()
@@ -175,7 +175,10 @@ if( HYTEG_MANTLECONVECTION_APP )
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-    find_package(PETSc REQUIRED)
+    block(SCOPE_FOR POLICIES)
+       cmake_policy(SET CMP0126 OLD)
+       find_package(PETSc REQUIRED)
+    endblock()
     add_library(PETSc::PETSc INTERFACE IMPORTED)
     set_target_properties(PETSc::PETSc PROPERTIES
           INTERFACE_INCLUDE_DIRECTORIES "${PETSC_INCLUDES}"

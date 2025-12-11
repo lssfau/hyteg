@@ -7,10 +7,10 @@
 
 ## About
 
-HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for extreme-scale matrix-free finite element simulations strong 
+HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for extreme-scale matrix-free finite element simulations strong
 focus on geometric multigrid.
 
-For detailed information and references 
+For detailed information and references
 [have a look at the documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Docs").
 
 [TOC]
@@ -23,13 +23,13 @@ To build HyTeG, clone the [GitLab repository](https://i10git.cs.fau.de/hyteg/hyt
 
     $ git clone --recurse-submodules https://i10git.cs.fau.de/hyteg/hyteg.git
 
-The option `--recurse-submodules` is **required** and will automatically initialize and clone 
-[waLBerla](http://walberla.net "waLBerla homepage"), [Eigen](http://eigen.tuxfamily.org) and [hyteg-operators](https://i10git.cs.fau.de/hyteg/hyteg-operators 
+The option `--recurse-submodules` is **required** and will automatically initialize and clone
+[waLBerla](http://walberla.net "waLBerla homepage"), [Eigen](http://eigen.tuxfamily.org) and [hyteg-operators](https://i10git.cs.fau.de/hyteg/hyteg-operators
 "hyteg-operators repository") as git submodules (details below).
 
 Create a build directory and invoke `cmake`:
 
-    $ mkdir hyteg-build 
+    $ mkdir hyteg-build
     $ cd hyteg-build
     $ cmake ../hyteg
 
@@ -48,7 +48,7 @@ CMake will then produce Makefiles for the included tests and applications. To bu
 Required:
 
 * a C++20 compliant compiler (e.g. gcc, clang or Intel)
-* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.20 )
+* [CMake](https://cmake.org/ "CMake homepage") ( version >= 3.26 )
 
 Automatically cloned via git submodules (**NO need to install/download/clone these manually**):
 
@@ -71,7 +71,7 @@ Optional:
 
 ### Configuration options
 
-The builds are configured with standard CMake commands and arguments (starting with `CMAKE_<...>`) and there are 
+The builds are configured with standard CMake commands and arguments (starting with `CMAKE_<...>`) and there are
 several additional configuration options from HyTeG (starting with `HYTEG_<...>`) and inherited from waLBerla
 (starting with `WALBERLA_<...>`).
 
@@ -86,7 +86,7 @@ The most relevant options are listed below, with defaults in parentheses:
 
 * `HYTEG_BUILD_WITH_PETSC` (`no`)
 
-  Attempts to find a PETSc installation and enables fast sparse solvers (mostly relevant for multigrid coarse grid 
+  Attempts to find a PETSc installation and enables fast sparse solvers (mostly relevant for multigrid coarse grid
   solvers) and for debugging.
 
 * `HYTEG_BUILD_WITH_TRILINOS` (`no`)
@@ -104,28 +104,28 @@ The most relevant options are listed below, with defaults in parentheses:
 * `DHYTEG_MANTLECONVECTION_APP` (`no`)
 
   Builds the large-scale mantle convection app as presented in the preprint ([arXiv:2506.04157]( https://arxiv.org/abs/2506.04157)) (currently in review).
-  
+
   Requires the [Boost](https://www.boost.org/) library, which is a header-only library as the app uses the TerraNeo plate provider headers.
 
   In case the tools from `src/terraneo` at a later time switch to not being header only, you also might need to set HYTEG_TERRANEO_MODULE=ON.
 
 * `HYTEG_DOWNLOAD_BOOST` (`no`)
 
-  Downloads the C++ boost (header-only) library which is required for the TerraNeo module for instance and required if 
+  Downloads the C++ boost (header-only) library which is required for the TerraNeo module for instance and required if
   not found automatically.
 
 * `WALBERLA_OPTIMIZE_FOR_LOCALHOST` (`yes`)
 
   Optimizes the build for the present architecture (for instance to enable vector intrinsics if the instruction set is available).
- 
+
 * `WALBERLA_BUILD_WITH_HALF_PRECISION_SUPPORT` (`no`)
 
   Builds the float16 functionalities of HyTeG. Not all compiles and libraries support the use of float16, thus, this option is disabled by default, as it might restrict the user environment.
 
 ### TerraNeo module
 
-TerraNeo is a module of HyTeG that is providing functionality for running mantle convection models from Geodynamics. 
-As this is a specialised application, the module is not built by default. 
+TerraNeo is a module of HyTeG that is providing functionality for running mantle convection models from Geodynamics.
+As this is a specialised application, the module is not built by default.
 In order to compile the corresponding sources, tests and apps (re)run CMake with the following option
 
     -DHYTEG_TERRANEO_MODULE=yes
@@ -138,23 +138,23 @@ CMake will search for installed Boost libraries. Should these not be found, you 
 
 ### HyTeG Operator Generator
 
-The [HyTeG Operator Generator](https://i10git.cs.fau.de/hyteg/hog "HOG repository") (HOG) is a python library for the 
-automated generation of matrix-free C++ compute kernels from a symbolic description of the weak form of a finite element 
+The [HyTeG Operator Generator](https://i10git.cs.fau.de/hyteg/hog "HOG repository") (HOG) is a python library for the
+automated generation of matrix-free C++ compute kernels from a symbolic description of the weak form of a finite element
 operator.
 
-To avoid having users of HyTeG generate (or implement) their required kernels from scratch, many generated 
+To avoid having users of HyTeG generate (or implement) their required kernels from scratch, many generated
 and optimized operators are available under `src/hyteg_operators` and `src/hyteg_operators_composites`.
-`src/hyteg_operators` is a git submodule that is cloned automatically from the 
+`src/hyteg_operators` is a git submodule that is cloned automatically from the
 [hyteg-operators](https://i10git.cs.fau.de/hyteg/hyteg-operators "hyteg-operators") repository.
 
 For specific needs, additional operators can be generated from the scripts therein or directly using the HOG.
-Our preprint ([arXiv:2404.08371](https://arxiv.org/abs/2404.08371)) provides background information on its design and 
+Our preprint ([arXiv:2404.08371](https://arxiv.org/abs/2404.08371)) provides background information on its design and
 performance analysis.
 
 
 ## Documentation
 
-Our [documentation page](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Docs") 
+Our [documentation page](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Docs")
 provides additional documentation beyond this README, such as tutorials, API reference, etc.
 
   _**Consult the tutorial programs under `tutorials/` and the [generated documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/Tutorials.html) to get started with
@@ -166,7 +166,7 @@ For an overview of the TerraNeo project, refer to [the corresponding site](http:
 
 ## Publications
 
-If you are interested in more background information or are looking for a way to cite us, a list of articles is found 
+If you are interested in more background information or are looking for a way to cite us, a list of articles is found
 below. _If in doubt, cite the first article._
 
 Overview:
@@ -178,57 +178,57 @@ Overview:
 
 Finite element data structures:
 
-* Kohl, N., Bauer, D., Böhm, F., & Rüde, U. (2024). 
-  _Fundamental data structures for matrix-free finite elements on hybrid tetrahedral grids_. 
+* Kohl, N., Bauer, D., Böhm, F., & Rüde, U. (2024).
+  _Fundamental data structures for matrix-free finite elements on hybrid tetrahedral grids_.
   International Journal of Parallel, Emergent and Distributed Systems.
   [10.1080/17445760.2023.2266875](https://doi.org/10.1080/17445760.2023.2266875)
 
 Multigrid for Stokes
 
-* Kohl, N., & Rüde, U. (2022). 
-  _Textbook efficiency: massively parallel matrix-free multigrid for the Stokes system_. 
+* Kohl, N., & Rüde, U. (2022).
+  _Textbook efficiency: massively parallel matrix-free multigrid for the Stokes system_.
   SIAM Journal on Scientific Computing.
   [10.1137/20M1376005](https://doi.org/10.1137/20M1376005)
 
 Eulerian-Lagrangian methods
 
-* Kohl, N., Mohr, M., Eibl, S., & Rüde, U. (2022). 
-  _A Massively Parallel Eulerian-Lagrangian Method for Advection-Dominated Transport in Viscous Fluids_. 
+* Kohl, N., Mohr, M., Eibl, S., & Rüde, U. (2022).
+  _A Massively Parallel Eulerian-Lagrangian Method for Advection-Dominated Transport in Viscous Fluids_.
   SIAM Journal on Scientific Computing.
   [10.1137/21M1402510](https://doi.org/10.1137/21M1402510)
 
 Performance engineering ...
 
-* Thönnes, D., & Rüde, U. (2023). 
-  _Model-Based Performance Analysis of the HyTeG Finite Element Framework_. 
+* Thönnes, D., & Rüde, U. (2023).
+  _Model-Based Performance Analysis of the HyTeG Finite Element Framework_.
   In Proceedings of the Platform for Advanced Scientific Computing Conference.
   [10.1145/3592979.3593422](https://doi.org/10.1145/3592979.3593422)
 
 ... and kernel generation
 
-* Böhm, F., Bauer, D., Kohl, N., Alappat, C., Thönnes, D., Mohr, M., Köstler, H. & Rüde, U. (2024). 
-  _Code Generation and Performance Engineering for Matrix-Free Finite Element Methods on Hybrid Tetrahedral Grids_. 
+* Böhm, F., Bauer, D., Kohl, N., Alappat, C., Thönnes, D., Mohr, M., Köstler, H. & Rüde, U. (2024).
+  _Code Generation and Performance Engineering for Matrix-Free Finite Element Methods on Hybrid Tetrahedral Grids_.
   Submitted. arXiv preprint [arXiv:2404.08371](https://arxiv.org/abs/2404.08371).
 
 TerraNeo
 
 * Bauer, S., Bunge, H. P., Drzisga, D., Ghelichkhan, S., Huber, M., Kohl, N., Mohr, M., Rüde, U., Thönnes, D., & Wohlmuth, B. I. (2020).
-  _TerraNeo — Mantle Convection Beyond a Trillion Degrees of Freedom_. 
-  In Software for Exascale Computing-SPPEXA 2016-2019. 
+  _TerraNeo — Mantle Convection Beyond a Trillion Degrees of Freedom_.
+  In Software for Exascale Computing-SPPEXA 2016-2019.
   Springer International Publishing.
   [10.1007/978-3-030-47956-5_19](https://doi.org/10.1007/978-3-030-47956-5_19)
 
 Surrogates
 
-* Drzisga, D., Wagner, A., & Wohlmuth, B. (2023). 
-  _A matrix-free ILU realization based on surrogates_. 
+* Drzisga, D., Wagner, A., & Wohlmuth, B. (2023).
+  _A matrix-free ILU realization based on surrogates_.
   SIAM Journal on Scientific Computing.
   [10.1137/22M1529415](https://doi.org/10.1137/22M1529415)
 
 ## Contributing
 
 To contribute, you need an account for this GitLab instance. Please contact Dominik Thönnes `dominik.thoennes@fau.de`
-for details. 
+for details.
 
 ### Code Style
 
@@ -258,7 +258,7 @@ A merge request (MR) can be in three different states:
 
 Due to the large amount of generated files it can be advisable to activate ccache.
 To do so use the CMake setting
-    
+
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 See also [this StackOverflow answer](https://stackoverflow.com/a/37828605).
