@@ -114,7 +114,7 @@
  * 
  * \snippet{trimleft} this ProjectNormalForFS
  * 
- * This is then inturn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
+ * This is then in turn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
  * to set the normal components to zero.
  * 
  * \snippet{trimleft} this StokesFreeslipOperator
@@ -169,13 +169,10 @@
  * 
  * \section GB01-BlankenbachBenchmark-Results Results
  * 
- * 
  * <img src="GB.01_BlankenbachSquareUpdated.png" width="50%" />
  * 
- * [Blankenbach] BRENNER, Susanne C.; DIEGEL, Amanda E.; SUNG, Li-Yeng.
- *               <a href="https://arxiv.org/pdf/1811.03430.pdf">A robust solver for a mixed finite element method for the Cahn–Hilliard equation</a>.
- *               Journal of Scientific Computing, 2018, 77. Jg., Nr. 2, S. 1234-1249.
- * 
+ * \section GB01-Code Complete Program
+ * \include tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp
  */
 
 using namespace hyteg;
@@ -293,59 +290,24 @@ int main( int argc, char* argv[] )
    const real_t threshold = 1e-6;
 
    std::function< bool( const Point3D& ) > bottomMarker = [threshold]( const Point3D& x ) {
-      if ( std::abs( x[1] ) < threshold )
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
+      return ( std::abs( x[1] ) < threshold );
    };
 
    std::function< bool( const Point3D& ) > rightMarker = [threshold]( const Point3D& x ) {
-      if ( std::abs( x[0] - 1.0 ) < threshold )
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
+      return ( std::abs( x[0] - 1.0 ) < threshold );
    };
 
    std::function< bool( const Point3D& ) > leftMarker = [threshold]( const Point3D& x ) {
-      if ( std::abs( x[0] ) < threshold )
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
+      return ( std::abs( x[0] ) < threshold );
    };
 
    std::function< bool( const Point3D& ) > topMarker = [threshold]( const Point3D& x ) {
-      if ( std::abs( x[1] - 1.0 ) < threshold )
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
+      return ( std::abs( x[1] - 1.0 ) < threshold );
    };
 
    std::function< bool( const Point3D& ) > cornerMarker = [&]( const Point3D& x ) {
-      if ( ( bottomMarker( x ) && rightMarker( x ) ) || ( bottomMarker( x ) && leftMarker( x ) ) ||
-           ( topMarker( x ) && rightMarker( x ) ) || ( topMarker( x ) && leftMarker( x ) ) )
-      {
-         return true;
-      }
-      else
-      {
-         return false;
-      }
+      return ( ( bottomMarker( x ) && rightMarker( x ) ) || ( bottomMarker( x ) && leftMarker( x ) ) ||
+               ( topMarker( x ) && rightMarker( x ) ) || ( topMarker( x ) && leftMarker( x ) ) );
    };
 
    ///[SetupStorageAndMarkings]
@@ -440,7 +402,8 @@ int main( int argc, char* argv[] )
 
    MinResSolver< StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true > > minresSolver(
        storage, minLevel, maxLevel, stokesIter, stokesRelTol );
-   CGSolver< P2TransportTimesteppingOperator > transportSolver( storage, minLevel, maxLevel, transportIter, real_c(0), transportRelTol );
+   CGSolver< P2TransportTimesteppingOperator > transportSolver(
+       storage, minLevel, maxLevel, transportIter, real_c( 0 ), transportRelTol );
 
    minresSolver.setPrintInfo( verbose );
 
