@@ -203,8 +203,11 @@ endif()
 if ( HYTEG_BUILD_WITH_TRILINOS )
    find_package( Trilinos REQUIRED )
    message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
-   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
-   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
+   add_library(Trilinos::Trilinos INTERFACE IMPORTED)
+   set_target_properties(Trilinos::Trilinos PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${Trilinos_INCLUDE_DIRS};${Trilinos_TPL_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${Trilinos_LIBRARIES};${Trilinos_TPL_LIBRARY_DIRS}"
+      )
 endif()
 
 if ( HYTEG_BUILD_WITH_MPI )

@@ -7,6 +7,10 @@ if (HYTEG_BUILD_WITH_PETSC)
    target_link_libraries(hyteg PUBLIC PETSc::PETSc)
 endif ()
 
+if (HYTEG_BUILD_WITH_TRILINOS)
+   target_link_libraries(hyteg PUBLIC Trilinos::Trilinos)
+endif ()
+
 if ( HYTEG_BUILD_WITH_MPI )
    target_link_libraries( hyteg PUBLIC MPI::MPI_CXX )
 endif ()
