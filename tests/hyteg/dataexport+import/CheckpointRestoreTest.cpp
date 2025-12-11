@@ -27,8 +27,6 @@
 #include "core/timing/all.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
-// #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers_v03.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -333,21 +331,6 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
    func_t< value_t > funcRestored =
        importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel, userAttributesToImport );
 
-#if 0
-   WALBERLA_LOG_INFO_ON_ROOT( "Syncing restored function" );
-   for ( uint_t level = minLevel; level <= maxLevel; ++level )
-   {
-      if constexpr ( std::is_base_of_v< CSFVectorFunction< func_t< value_t > >, func_t< value_t > > )
-      {
-         communication::syncVectorFunctionBetweenPrimitives( funcRestored, level );
-      }
-      else
-      {
-         communication::syncFunctionBetweenPrimitives( funcRestored, level );
-      }
-   }
-#endif
-
    // integer datatype for output
    using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
 
@@ -595,6 +578,8 @@ int main( int argc, char* argv[] )
       // runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
 
 #ifdef DOF_DISTRIBUTION_WORKS_FOR_INTEGERS
+      // These test currently will fail, since the new implementation for importing checkpoints in version v0.3 cannot
+      // scale distributed DoFs are reading them, if the DoF type is an integral one. Keeping the calls here as a reminder!
       runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
       runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
 #endif
