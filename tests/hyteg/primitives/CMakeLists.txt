@@ -1,9 +1,9 @@
-waLBerla_add_test_executable( Face Face+CellGeometryTest.cpp )
-target_link_libraries       ( Face hyteg walberla::core )
+waLBerla_add_test_executable( Face+CellGeometryTest Face+CellGeometryTest.cpp )
+target_link_libraries       ( Face+CellGeometryTest hyteg walberla::core )
 waLBerla_execute_test(NAME Face+CellGeometryTest)
 
-waLBerla_add_test_executable( PrimitiveID PrimitiveID+TypeTest.cpp )
-target_link_libraries       ( PrimitiveID hyteg walberla::core )
+waLBerla_add_test_executable( PrimitiveID+TypeTest PrimitiveID+TypeTest.cpp )
+target_link_libraries       ( PrimitiveID+TypeTest hyteg walberla::core )
 waLBerla_execute_test(NAME PrimitiveID+TypeTest)
 
 waLBerla_add_test_executable( PrimitiveDataTest PrimitiveDataTest.cpp )
@@ -45,4 +45,3 @@ if (HYTEG_BUILD_WITH_MPI)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest3 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 3)
     waLBerla_execute_test(NAME PrimitiveStorageParallelSetupTest4 COMMAND $<TARGET_FILE:PrimitiveStorageParallelSetupTest> PROCESSES 4)
 endif()
-

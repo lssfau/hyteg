@@ -16,8 +16,8 @@ waLBerla_add_test_executable( IcosahedralShellMapTest IcosahedralShellMapTest.cp
 target_link_libraries       ( IcosahedralShellMapTest hyteg walberla::core )
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest>)
 
-waLBerla_add_test_executable( InverseBlending InverseBlending+PrimitiveIDFindingTest.cpp )
-target_link_libraries       ( InverseBlending hyteg walberla::core )
+waLBerla_add_test_executable( InverseBlending+PrimitiveIDFindingTest InverseBlending+PrimitiveIDFindingTest.cpp )
+target_link_libraries       ( InverseBlending+PrimitiveIDFindingTest hyteg walberla::core )
 waLBerla_execute_test(NAME InverseBlending+PrimitiveIDFindingTest)
 
 waLBerla_add_test_executable( PolygonDistanceTest PolygonDistanceTest.cpp )
@@ -37,4 +37,3 @@ endif ()
 waLBerla_add_test_executable( EvalDFinvDFTest EvalDFinvDFTest.cpp )
 target_link_libraries       ( EvalDFinvDFTest hyteg walberla::core )
 waLBerla_execute_test(NAME EvalDFinvDFTest)
-
