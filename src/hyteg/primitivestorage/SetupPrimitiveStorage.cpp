@@ -1324,7 +1324,7 @@ void SetupPrimitiveStorage::writeToFile( const std::string& fileName, uint_t add
    else
    {
 #ifdef HYTEG_BUILD_WITH_ADIOS2
-      const std::string engineType_{ ADIOS2_BP_FORMAT };
+      const std::string engineType_{ ADIOS2_CHECKPOINT_FORMAT };
 
       adios2::ADIOS adios_ = adios2::ADIOS();
 

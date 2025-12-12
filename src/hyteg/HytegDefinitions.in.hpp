@@ -57,7 +57,7 @@ constexpr bool useGeneratedKernels = false;
 #define ADIOS2_PARAVIEW_INT_TYPE uint64_t
 #endif
 
-#define ADIOS2_BP_FORMAT "BP4"
+#cmakedefine ADIOS2_CHECKPOINT_FORMAT
 
 #endif
 
