@@ -119,6 +119,19 @@ void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
    this->stopTiming( "Project" );
 }
 
+void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
+                                       const P1Function< real_t >& dst_v,
+                                       size_t                      level,
+                                       DoFType                     flag ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Can only project 3D vector fields on a 3D mesh!" );
+   }
+   // the 3rd argument will not be accessed by project() in this setting
+   project( dst_u, dst_v, dst_u, level, flag );
+}
+
 void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
    if ( storage_->hasGlobalCells() )
@@ -135,8 +148,7 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
       {
          WALBERLA_ABORT( "Refusing to project a non-2D vector field on a 2D mesh!" );
       }
-      // the 3rd argument will not be accessed by project() in this setting
-      project( dst.uvw()[0], dst.uvw()[1], dst.uvw()[0], level, flag );
+      project( dst.uvw()[0], dst.uvw()[1], level, flag );
    }
 }
 
@@ -156,9 +168,22 @@ void P1ProjectNormalOperator::project( const P1VectorFunction< real_t >& dst, si
       {
          WALBERLA_ABORT( "Refusing to project a non-2D vector field on a 2D mesh!" );
       }
-      // the 3rd argument will not be accessed by project() in this setting
-      project( dst[0], dst[1], dst[0], level, flag );
+      project( dst[0], dst[1], level, flag );
    }
+}
+
+void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P1Function< idx_t >&                  numU,
+                                        const P1Function< idx_t >&                  numV,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Refusing to assemble matrix for projecting a 2D field on a 3D mesh" );
+   }
+   // 3rd indexing function will not be accessed for a 2D mesh!
+   toMatrix( mat, numU, numV, numU, level, flag );
 }
 
 void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga.
+ * Copyright (c) 2020-2025 Daniel Drzisga, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,40 +37,40 @@ EdgeDoFProjectNormalOperator::EdgeDoFProjectNormalOperator(
 
 void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst_u,
                                             const EdgeDoFFunction< real_t >& dst_v,
+                                            size_t                           level,
+                                            DoFType                          flag ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+     WALBERLA_ABORT( "Refusing to project 2D field on 3D mesh" );
+   }
+
+   this->startTiming( "Project" );
+
+   this->timingTree_->start( "Macro-Edge" );
+
+   for ( const auto& it : storage_->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = dst_u.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         edgedof::macroedge::projectNormal2D< real_t >(
+             level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Edge" );
+}
+
+void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst_u,
+                                            const EdgeDoFFunction< real_t >& dst_v,
                                             const EdgeDoFFunction< real_t >& dst_w,
                                             size_t                           level,
                                             DoFType                          flag ) const
 {
    this->startTiming( "Project" );
-   // dst_u.communicate< Vertex, Edge >( level );
-   // dst_u.communicate< Edge, Face >( level );
-   // dst_u.communicate< Face, Cell >( level );
-   //
-   // dst_v.communicate< Vertex, Edge >( level );
-   // dst_v.communicate< Edge, Face >( level );
-   // dst_v.communicate< Face, Cell >( level );
-   //
-   // if ( storage_->hasGlobalCells() )
-   // {
-   //    dst_w.communicate< Vertex, Edge >( level );
-   //    dst_w.communicate< Edge, Face >( level );
-   //    dst_w.communicate< Face, Cell >( level );
-   // }
-   //
-   // dst_u.communicate< Cell, Face >( level );
-   // dst_u.communicate< Face, Edge >( level );
-   // dst_u.communicate< Edge, Vertex >( level );
-   //
-   // dst_v.communicate< Cell, Face >( level );
-   // dst_v.communicate< Face, Edge >( level );
-   // dst_v.communicate< Edge, Vertex >( level );
-   //
-   // if ( storage_->hasGlobalCells() )
-   // {
-   //    dst_w.communicate< Cell, Face >( level );
-   //    dst_w.communicate< Face, Edge >( level );
-   //    dst_w.communicate< Edge, Vertex >( level );
-   // }
 
    this->timingTree_->start( "Macro-Edge" );
 
@@ -98,14 +98,14 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
 
    this->timingTree_->start( "Macro-Face" );
 
-   for ( const auto& it : storage_->getFaces() )
+   if ( storage_->hasGlobalCells() )
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst_u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
+      for ( const auto& it : storage_->getFaces() )
       {
-         if ( storage_->hasGlobalCells() )
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst_u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
          {
             edgedof::macroface::projectNormal3D< real_t >(
                 level, face, storage_, normal_function_, dst_u.getFaceDataID(), dst_v.getFaceDataID(), dst_w.getFaceDataID() );
@@ -116,6 +116,20 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
    this->timingTree_->stop( "Macro-Face" );
 
    this->stopTiming( "Project" );
+}
+
+void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const EdgeDoFFunction< idx_t >&             numU,
+                                                        const EdgeDoFFunction< idx_t >&             numV,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+     WALBERLA_ABORT( "Refusing to assemble matrix for projecting a 2D field on a 3D mesh" );
+   }
+   // 3rd indexing function will not be accessed for a 2D mesh!
+   assembleLocalMatrix( mat, numU, numV, numU, level, flag );
 }
 
 void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

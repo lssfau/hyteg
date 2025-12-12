@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -45,6 +45,25 @@ class EdgeDoFProjectNormalOperator final : public Operator< hyteg::EdgeDoFFuncti
                  const EdgeDoFFunction< real_t >& dst_w,
                  uint_t                           level,
                  DoFType                          flag ) const;
+
+   void project( const EdgeDoFFunction< real_t >& dst_u,
+                 const EdgeDoFFunction< real_t >& dst_v,
+                 uint_t                           level,
+                 DoFType                          flag ) const;
+
+   /// Assemble operator as sparse matrix
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  EdgeDoFFunction for determining row indices
+   /// \param numV  EdgeDoFFunction for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   ///
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                             const EdgeDoFFunction< idx_t >&             numU,
+                             const EdgeDoFFunction< idx_t >&             numV,
+                             uint_t                                      level,
+                             DoFType                                     flag ) const;
 
    /// Assemble operator as sparse matrix
    ///
