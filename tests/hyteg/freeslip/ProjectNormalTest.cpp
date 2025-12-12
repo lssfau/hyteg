@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga.
+ * Copyright (c) 2020-2026 Daniel Drzisga, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,6 +21,8 @@
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleProjectNormalOperator.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
@@ -116,15 +118,19 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for P1-P1 in 2D" );
    testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, false >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for P2-P1-TH in 2D" );
    testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, false >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 3D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for CCR in 2D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Note: The warning on DG+Blending can be ignored, as the projection does not involve the bubble." );
+   testProjectNormal< CCRStokesFunction< real_t >, P2PlusBubbleProjectNormalOperator, false >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for P1-P1 in 3D" );
    testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, true >();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 3D" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for P2-P1-TH in 3D" );
    testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, true >();
 }
