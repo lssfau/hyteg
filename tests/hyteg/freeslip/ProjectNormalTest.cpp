@@ -17,8 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
-
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
@@ -28,6 +26,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -37,9 +36,8 @@ using walberla::real_t;
 
 using namespace hyteg;
 
-
 template < typename StokesFunctionType, typename ProjectNormalOperatorType, bool use3D >
-static void testProjectNormal( )
+static void testProjectNormal()
 {
    const int level = use3D ? 2 : 3;
 
@@ -68,15 +66,13 @@ static void testProjectNormal( )
 
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto normalInterpolant = [] ( const Point3D & p ) {
-     real_t norm = p.norm();
-     real_t sign = (norm > 0.75) ? 1.0 : -1.0;
-     return sign/norm * p;
+   auto normalInterpolant = []( const Point3D& p ) {
+      real_t norm = p.norm();
+      real_t sign = ( norm > 0.75 ) ? 1.0 : -1.0;
+      return sign / norm * p;
    };
 
-   auto normalFunction = [=]( const Point3D& p, Point3D& n ) -> void {
-      n = normalInterpolant( p );
-   };
+   auto normalFunction = [=]( const Point3D& p, Point3D& n ) -> void { n = normalInterpolant( p ); };
 
    ProjectNormalOperatorType projectNormalOperator( storage, level, level, normalFunction );
 
@@ -86,7 +82,10 @@ static void testProjectNormal( )
    u.uvw()[0].interpolate( [=]( auto& p ) { return normalInterpolant( p )[0]; }, level );
    u.uvw()[1].interpolate( [=]( auto& p ) { return normalInterpolant( p )[1]; }, level );
    if ( storage->hasGlobalCells() )
+   {
       u.uvw()[2].interpolate( [=]( auto& p ) { return normalInterpolant( p )[2]; }, level );
+   }
+
    WALBERLA_CHECK_GREATER( u.dotGlobal( u, level, FreeslipBoundary ), 1 );
    projectNormalOperator.project( u, level, FreeslipBoundary );
    auto dp = std::is_same< real_t, double >();
@@ -94,16 +93,21 @@ static void testProjectNormal( )
 
    // we check if a tangential function is not changed by the projection operator:
    StokesFunctionType uTan( "uTan", storage, level, level );
-   uTan.uvw()[0].interpolate( [=]( auto& p ) { return -p[1]; }, level );
-   uTan.uvw()[1].interpolate( [=]( auto& p ) { return p[0]; }, level );
+
+   uTan.uvw()[0].interpolate( []( auto& p ) { return -p[1]; }, level );
+   uTan.uvw()[1].interpolate( []( auto& p ) { return p[0]; }, level );
    if ( storage->hasGlobalCells() )
+   {
       uTan.uvw()[2].interpolate( 0, level );
+   }
+
    u.assign( { 1 }, { uTan }, level, All );
    WALBERLA_CHECK_GREATER( u.dotGlobal( u, level, FreeslipBoundary ), 1 );
+
    projectNormalOperator.project( u, level, FreeslipBoundary );
    StokesFunctionType diff( "diff", storage, level, level );
-   diff.assign( {1, -1}, {u, uTan}, level, All );
-   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), dp ? 1e-14 : 9e-13 );
+   diff.assign( { 1, -1 }, { u, uTan }, level, All );
+   WALBERLA_CHECK_LESS( diff.dotGlobal( diff, level, All ), dp ? 1e-14 : 9e-13 );
 }
 
 int main( int argc, char* argv[] )
@@ -112,12 +116,15 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT("normal projection P1-P1 in 2D");
-   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, false >( );
-   WALBERLA_LOG_INFO_ON_ROOT("normal projection P2-P1-TH in 2D");
-   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, false >( );
-   WALBERLA_LOG_INFO_ON_ROOT("normal projection P1-P1 in 3D");
-   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, true >( );
-   WALBERLA_LOG_INFO_ON_ROOT("normal projection P2-P1-TH in 3D");
-   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, true >( );
+   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 2D" );
+   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, false >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 2D" );
+   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, false >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P1-P1 in 3D" );
+   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, true >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "normal projection P2-P1-TH in 3D" );
+   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, true >();
 }
