@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "hyteg/dg1functionspace/DG1Petsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
@@ -79,7 +80,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
       if ( PreProjection && projFlag_ != None )
       {
-         tmp_->assign( {1}, {src}, level, All );
+         tmp_->assign( { 1 }, { src }, level, All );
          projOp_->project( *tmp_, level, projFlag_ );
          op_->apply( *tmp_, dst, level, flag );
       }
