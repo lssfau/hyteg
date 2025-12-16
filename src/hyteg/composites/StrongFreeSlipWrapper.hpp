@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Andreas Wagner
+ * Copyright (c) 2020-2025 Andreas Wagner, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,8 +37,10 @@
 
 namespace hyteg {
 
-/// Concatenates a HyTeG operators with the strong free-slip boundary operator.
-/// This allows us to enforce a strong free-slip boundary condition, without modifying the operators directly.
+/// Concatenates a HyTeG operator with the strong free-slip boundary operator.
+///
+/// Concatenates a HyTeG operator with the strong free-slip boundary operator. This allows us to enforce a strong free-slip
+//  boundary condition, without directly modifying the original operator.
 ///
 /// Usage Example:
 /// \code
@@ -90,17 +92,21 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       }
 
       if ( projFlag_ != None )
+      {
          projOp_->project( dst, level, projFlag_ );
+      }
    }
 
    /// Assemble operator as sparse matrix
    ///
-   /// \param mat   a sparse matrix proxy
-   /// \param numeratorSrc numerator for determining col indices
-   /// \param numeratorDst numerator for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  determines on which primitives this operator is assembled
+   /// \note This function assumes that the operator is of Stokes type, i.e. it is applied
+   /// to functions that are composed of a velocity field and a pressure component
    ///
+   /// \param mat           a sparse matrix proxy
+   /// \param numeratorSrc  numerator for determining col indices
+   /// \param numeratorDst  numerator for determining row indices
+   /// \param level         level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag          determines on which primitives this operator is assembled
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                     mat,
                   const typename OpType::srcType::template FunctionType< idx_t >& numeratorSrc,
                   const typename OpType::dstType::template FunctionType< idx_t >& numeratorDst,
