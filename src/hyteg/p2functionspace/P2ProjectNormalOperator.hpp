@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga
+ * Copyright (c) 2020-2025 Daniel Drzisga, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -47,17 +47,15 @@ class P2ProjectNormalOperator : public Operator< P2VectorFunction< real_t >, P2V
                  size_t                      level,
                  DoFType                     flag ) const;
 
-   void project( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag ) const
-   {
-      uint_t idx = dst.getDimension() == 2 ? 0 : 2;
-      project( dst[0], dst[1], dst[idx], level, flag );
-   }
+   void project( const P2Function< real_t >& dst_u, const P2Function< real_t >& dst_v, size_t level, DoFType flag ) const;
 
+   void project( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag ) const;
+
+   /// This method presumably exists to have an identical method in this operator and the P2RotationWrapper operator
    void manipulate( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag, bool transpose = false ) const
    {
       WALBERLA_UNUSED( transpose );
-      uint_t idx = dst.getDimension() == 2 ? 0 : 2;
-      project( dst[0], dst[1], dst[idx], level, flag );
+      project( dst, level, flag );
    }
 
    void project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;

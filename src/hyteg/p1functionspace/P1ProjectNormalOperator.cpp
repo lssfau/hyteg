@@ -119,200 +119,71 @@ void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
    this->stopTiming( "Project" );
 }
 
+void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
+                                       const P1Function< real_t >& dst_v,
+                                       size_t                      level,
+                                       DoFType                     flag ) const
+{
+   if ( storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "Can only project 3D vector fields on a 3D mesh!" );
+   }
+   // the 3rd argument will not be accessed by project() in this setting
+   project( dst_u, dst_v, dst_u, level, flag );
+}
+
 void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   this->startTiming( "Project" );
-
-   for ( uint_t k = 0; k < dst.uvw().getDimension(); k++ )
+   if ( storage_->hasGlobalCells() )
    {
-      dst.uvw()[k].communicate< Vertex, Edge >( level );
-      dst.uvw()[k].communicate< Edge, Face >( level );
-      dst.uvw()[k].communicate< Face, Cell >( level );
-   }
-
-   for ( uint_t k = 0; k < dst.uvw().getDimension(); k++ )
-   {
-      dst.uvw()[k].communicate< Cell, Face >( level );
-      dst.uvw()[k].communicate< Face, Edge >( level );
-      dst.uvw()[k].communicate< Edge, Vertex >( level );
-   }
-
-   this->timingTree_->start( "Macro-Vertex" );
-
-   for ( const auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.uvw().getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
+      if ( dst.uvw().getDimension() != 3 )
       {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macrovertex::projectNormal3D< real_t >( level,
-                                                               vertex,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst.uvw()[0].getVertexDataID(),
-                                                               dst.uvw()[1].getVertexDataID(),
-                                                               dst.uvw()[2].getVertexDataID() );
-         }
-         else
-         {
-            vertexdof::macrovertex::projectNormal2D< real_t >(
-                level, vertex, storage_, normal_function_, dst.uvw()[0].getVertexDataID(), dst.uvw()[1].getVertexDataID() );
-         }
+         WALBERLA_ABORT( "Can only project 3D vector fields on a 3D mesh!" );
       }
+      project( dst.uvw()[0], dst.uvw()[1], dst.uvw()[2], level, flag );
    }
-
-   this->timingTree_->stop( "Macro-Vertex" );
-
-   this->timingTree_->start( "Macro-Edge" );
-
-   for ( const auto& it : storage_->getEdges() )
+   else
    {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.uvw().getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
+      if ( dst.uvw().getDimension() != 2 )
       {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macroedge::projectNormal3D< real_t >( level,
-                                                             edge,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst.uvw()[0].getEdgeDataID(),
-                                                             dst.uvw()[1].getEdgeDataID(),
-                                                             dst.uvw()[2].getEdgeDataID() );
-         }
-         else
-         {
-            vertexdof::macroedge::projectNormal2D< real_t >(
-                level, edge, storage_, normal_function_, dst.uvw()[0].getEdgeDataID(), dst.uvw()[1].getEdgeDataID() );
-         }
+         WALBERLA_ABORT( "Refusing to project a non-2D vector field on a 2D mesh!" );
       }
+      project( dst.uvw()[0], dst.uvw()[1], level, flag );
    }
- 
-   this->timingTree_->stop( "Macro-Edge" );
-
-   this->timingTree_->start( "Macro-Face" );
-
-   for ( const auto& it : storage_->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.uvw().getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macroface::projectNormal3D< real_t >( level,
-                                                             face,
-                                                             storage_,
-                                                             normal_function_,
-                                                             dst.uvw()[0].getFaceDataID(),
-                                                             dst.uvw()[1].getFaceDataID(),
-                                                             dst.uvw()[2].getFaceDataID() );
-         }
-      }
-   }
-
-   this->timingTree_->stop( "Macro-Face" );
-
-   this->stopTiming( "Project" );
 }
 
 void P1ProjectNormalOperator::project( const P1VectorFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   this->startTiming( "Project" );
-
-   for ( uint_t k = 0; k < dst.getDimension(); k++ )
+   if ( storage_->hasGlobalCells() )
    {
-      dst[k].communicate< Vertex, Edge >( level );
-      dst[k].communicate< Edge, Face >( level );
-      dst[k].communicate< Face, Cell >( level );
-   }
-
-   for ( uint_t k = 0; k < dst.getDimension(); k++ )
-   {
-      dst[k].communicate< Cell, Face >( level );
-      dst[k].communicate< Face, Edge >( level );
-      dst[k].communicate< Edge, Vertex >( level );
-   }
-
-   this->timingTree_->start( "Macro-Vertex" );
-
-   for ( const auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
+      if ( dst.getDimension() != 3 )
       {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macrovertex::projectNormal3D< real_t >( level,
-                                                               vertex,
-                                                               storage_,
-                                                               normal_function_,
-                                                               dst[0].getVertexDataID(),
-                                                               dst[1].getVertexDataID(),
-                                                               dst[2].getVertexDataID() );
-         }
-         else
-         {
-            vertexdof::macrovertex::projectNormal2D< real_t >(
-                level, vertex, storage_, normal_function_, dst[0].getVertexDataID(), dst[1].getVertexDataID() );
-         }
+         WALBERLA_ABORT( "Can only project 3D vector fields on a 3D mesh!" );
       }
+      project( dst[0], dst[1], dst[2], level, flag );
    }
-
-   this->timingTree_->stop( "Macro-Vertex" );
-
-   this->timingTree_->start( "Macro-Edge" );
-
-   for ( const auto& it : storage_->getEdges() )
+   else
    {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
+      if ( dst.getDimension() != 2 )
       {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macroedge::projectNormal3D< real_t >(
-                level, edge, storage_, normal_function_, dst[0].getEdgeDataID(), dst[1].getEdgeDataID(), dst[2].getEdgeDataID() );
-         }
-         else
-         {
-            vertexdof::macroedge::projectNormal2D< real_t >(
-                level, edge, storage_, normal_function_, dst[0].getEdgeDataID(), dst[1].getEdgeDataID() );
-         }
+         WALBERLA_ABORT( "Refusing to project a non-2D vector field on a 2D mesh!" );
       }
+      project( dst[0], dst[1], level, flag );
    }
+}
 
-   this->timingTree_->stop( "Macro-Edge" );
-
-   this->timingTree_->start( "Macro-Face" );
-
-   for ( const auto& it : storage_->getFaces() )
+void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P1Function< idx_t >&                  numU,
+                                        const P1Function< idx_t >&                  numV,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
+{
+   if ( storage_->hasGlobalCells() )
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         if ( storage_->hasGlobalCells() )
-         {
-            vertexdof::macroface::projectNormal3D< real_t >(
-                level, face, storage_, normal_function_, dst[0].getFaceDataID(), dst[1].getFaceDataID(), dst[2].getFaceDataID() );
-         }
-      }
+      WALBERLA_ABORT( "Refusing to assemble matrix for projecting a 2D field on a 3D mesh" );
    }
-
-   this->timingTree_->stop( "Macro-Face" );
-
-   this->stopTiming( "Project" );
+   // 3rd indexing function will not be accessed for a 2D mesh!
+   toMatrix( mat, numU, numV, numU, level, flag );
 }
 
 void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,

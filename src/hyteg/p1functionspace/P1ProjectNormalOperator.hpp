@@ -45,10 +45,20 @@ class P1ProjectNormalOperator : public Operator< P1VectorFunction< real_t >, P1V
                  size_t                      level,
                  DoFType                     flag ) const;
 
+   void project( const P1Function< real_t >& dst_u, const P1Function< real_t >& dst_v, size_t level, DoFType flag ) const;
+
    void project( const P1VectorFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
    void project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
+   /// Assemble operator as sparse matrix (version for 3D fields)
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  P1Function for determining indices
+   /// \param numV  P1Function for determining indices
+   /// \param numW  P1Function for determining indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< idx_t >&                  numU,
                   const P1Function< idx_t >&                  numV,
@@ -56,15 +66,26 @@ class P1ProjectNormalOperator : public Operator< P1VectorFunction< real_t >, P1V
                   uint_t                                      level,
                   DoFType                                     flag ) const;
 
+   /// Assemble operator as sparse matrix (version for 2D fields)
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  P1Function for determining indices
+   /// \param numV  P1Function for determining indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< idx_t >&                  numU,
+                  const P1Function< idx_t >&                  numV,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
+
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
-   /// \param numU  P1Function for determining row indices
-   /// \param numV  P1Function for determining row indices
-   /// \param numW  P1Function for determining row indices
+   /// \param src   P1Function for determining indices
+   /// \param dst   unused
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
-   ///
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1VectorFunction< idx_t >&            src,
                   const P1VectorFunction< idx_t >&            dst,
@@ -72,7 +93,18 @@ class P1ProjectNormalOperator : public Operator< P1VectorFunction< real_t >, P1V
                   DoFType                                     flag ) const override
    {
       WALBERLA_UNUSED( dst );
-      toMatrix( mat, src[0], src[1], src[2], level, flag );
+      if ( src.getDimension() == 3 )
+      {
+         toMatrix( mat, src[0], src[1], src[2], level, flag );
+      }
+      else if ( src.getDimension() == 2 )
+      {
+         toMatrix( mat, src[0], src[1], level, flag );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Encountered unsupported dimension " << src.getDimension() );
+      }
    }
 
  private:
