@@ -65,7 +65,7 @@ class PETScSparseMatrix
    {
       if ( allocated_ )
       {
-         MatDestroy( &mat );
+         MatDestroy( &mat_ );
       }
    }
 
@@ -81,12 +81,12 @@ class PETScSparseMatrix
 
       allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
 
-      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat_ );
 
       op.toMatrix( proxy, numerator, numerator, level, flag );
 
-      MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
-      MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
       assembled_ = true;
    }
 
@@ -103,11 +103,11 @@ class PETScSparseMatrix
 
       allocateSparseMatrix( localRows, localCols, globalRows, globalCols );
 
-      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat_ );
       op.toMatrix( proxy, numeratorSrc, numeratorDst, level, flag );
 
-      MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
-      MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
       assembled_ = true;
    }
 
@@ -146,7 +146,7 @@ class PETScSparseMatrix
          PetscViewerASCIIOpen( petscCommunicator_, name.c_str(), &viewer );
          PetscViewerPushFormat( viewer, format );
       }
-      MatView( mat, viewer );
+      MatView( mat_, viewer );
       PetscViewerDestroy( &viewer );
    }
 
@@ -171,12 +171,12 @@ class PETScSparseMatrix
       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
-      MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+      MatSetOption( mat_, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
+      MatZeroRows( mat_, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
-      MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
-      MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
    }
 
    /// \brief Applies Dirichlet BCs to a linear system without losing symmetry.
@@ -211,16 +211,16 @@ class PETScSparseMatrix
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
-      MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+      MatSetOption( mat_, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns(
-          mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
+          mat_, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
    void multiply( PETScVector< real_t, OperatorType::dstType::template FunctionType >& src,
                   PETScVector< real_t, OperatorType::dstType::template FunctionType >& dst )
    {
-      MatMult( mat, src.get(), dst.get() );
+      MatMult( mat_, src.get(), dst.get() );
    }
 
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
@@ -235,10 +235,10 @@ class PETScSparseMatrix
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
-      MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+      MatSetOption( mat_, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns(
-          mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
+          mat_, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       return bcIndices;
    }
@@ -250,20 +250,20 @@ class PETScSparseMatrix
    {
       if ( allocated_ )
       {
-         MatZeroEntries( mat );
+         MatZeroEntries( mat_ );
       }
    }
 
-   inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) mat, name ); }
+   inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) mat_, name ); }
 
-   inline Mat& get() { return mat; }
+   inline Mat& get() { return mat_; }
 
    bool isSymmetric( real_t tol = real_c( 1e-13 ) )
    {
       Mat       B;
       PetscReal norm;
-      MatTranspose( mat, MAT_INITIAL_MATRIX, &B );
-      MatAYPX( B, -1.0, mat, DIFFERENT_NONZERO_PATTERN );
+      MatTranspose( mat_, MAT_INITIAL_MATRIX, &B );
+      MatAYPX( B, -1.0, mat_, DIFFERENT_NONZERO_PATTERN );
       MatNorm( B, NORM_INFINITY, &norm );
       // WALBERLA_LOG_DEVEL_ON_ROOT( "PETSC_NORM = " << norm );
       MatDestroy( &B );
@@ -278,7 +278,7 @@ class PETScSparseMatrix
       MatCreate( petscCommunicator_, &B );
       MatSetType( B, MATMPIAIJ );
       PetscInt localSize, globalSize;
-      MatGetSize( mat, &localSize, &globalSize );
+      MatGetSize( mat_, &localSize, &globalSize );
       MatSetSizes( B, localSize, localSize, globalSize, globalSize );
       MatSetUp( B );
       MatAssemblyBegin( B, MAT_FINAL_ASSEMBLY );
@@ -287,7 +287,7 @@ class PETScSparseMatrix
       VecSetType( diag, VECMPI );
       VecSetSizes( diag, localSize, globalSize );
       VecSetUp( diag );
-      MatCopy( mat, B, DIFFERENT_NONZERO_PATTERN );
+      MatCopy( mat_, B, DIFFERENT_NONZERO_PATTERN );
       MatGetDiagonal( B, diag );
       VecScale( diag, -1.0 );
       MatDiagonalSet( B, diag, ADD_VALUES );
@@ -305,7 +305,7 @@ class PETScSparseMatrix
          WALBERLA_ABORT( "Matrix assembly must be complete before calling getInfo()!" );
       }
       MatInfo info;
-      MatGetInfo( mat, MAT_GLOBAL_SUM, &info );
+      MatGetInfo( mat_, MAT_GLOBAL_SUM, &info );
       PETScSparseMatrixInfo matInfo( info );
       return matInfo;
    };
@@ -313,7 +313,7 @@ class PETScSparseMatrix
  protected:
    std::string name_;
    MPI_Comm    petscCommunicator_;
-   Mat         mat;
+   Mat         mat_;
    bool        allocated_;
    bool        assembled_;
 
@@ -322,16 +322,16 @@ class PETScSparseMatrix
    {
       if ( !allocated_ )
       {
-         MatCreate( petscCommunicator_, &mat );
-         MatSetType( mat, MATMPIAIJ );
-         MatSetSizes( mat,
+         MatCreate( petscCommunicator_, &mat_ );
+         MatSetType( mat_, MATMPIAIJ );
+         MatSetSizes( mat_,
                       static_cast< PetscInt >( localRows ),
                       static_cast< PetscInt >( localCols ),
                       static_cast< PetscInt >( globalRows ),
                       static_cast< PetscInt >( globalCols ) );
 
          // Roughly overestimate number of non-zero entries for faster assembly of matrix
-         MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
+         MatMPIAIJSetPreallocation( mat_, 500, NULL, 500, NULL );
          setName( name_.c_str() );
          reset();
          allocated_ = true;
