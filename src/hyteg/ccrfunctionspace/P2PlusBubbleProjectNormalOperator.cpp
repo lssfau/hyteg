@@ -72,10 +72,8 @@ void P2PlusBubbleProjectNormalOperator::toMatrix( const std::shared_ptr< SparseM
    }
    else if ( numSrc.getDimension() == 2 )
    {
-      p1Operator_.toMatrix( mat, numSrc[0].getVertexDoFFunction(), numSrc[0].getVertexDoFFunction(), level, flag );
-      p1Operator_.toMatrix( mat, numSrc[1].getVertexDoFFunction(), numSrc[1].getVertexDoFFunction(), level, flag );
-      edgeDoFOperator_.assembleLocalMatrix( mat, numSrc[0].getEdgeDoFFunction(), numSrc[0].getEdgeDoFFunction(), level, flag );
-      edgeDoFOperator_.assembleLocalMatrix( mat, numSrc[1].getEdgeDoFFunction(), numSrc[1].getEdgeDoFFunction(), level, flag );
+      p1Operator_.toMatrix( mat, numSrc[0].getVertexDoFFunction(), numSrc[1].getVertexDoFFunction(), level, flag );
+      edgeDoFOperator_.assembleLocalMatrix( mat, numSrc[0].getEdgeDoFFunction(), numSrc[1].getEdgeDoFFunction(), level, flag );
 
       // The bubble component only lives on faces. IT not affected by the projection, thus, we would need to add an
       // identity matrix for this part. However, we implement this projection operator for use in treating free-slip

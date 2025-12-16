@@ -143,13 +143,17 @@ void run2D( const real_t absErrorTolerance )
 
    L.apply( u_src, u_dst_hyteg, maxLevel, All );
 
-   PETScSparseMatrix< StokesOperatorType > petscMatStokes( "stokes_pure" );
-   petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
-   // petscMatStokes.print( "/tmp/stokes.m" );
-
    PETScSparseMatrix< StokesOperatorFS > petscMatFS( "stokes_fs" );
    petscMatFS.createMatrixFromOperator( L, maxLevel, numerator );
-   // petscMatFS.print( "/tmp/free_slip.m" );
+
+   bool exportMatrices = false;
+   if ( exportMatrices )
+   {
+      PETScSparseMatrix< StokesOperatorType > petscMatStokes( "stokes_pure" );
+      petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
+      petscMatStokes.print( "./matrix-stokes-operator-pure.m" );
+      petscMatFS.print( "./matrix-stokes-operator-freeslip.m" );
+   }
 
    PETScVector< real_t, StokesFunctionType::template FunctionType > srcVectorPetsc( u_src, numerator, maxLevel );
    PETScVector< real_t, StokesFunctionType::template FunctionType > dstVectorPetsc( u_dst_petsc, numerator, maxLevel );
@@ -161,7 +165,7 @@ void run2D( const real_t absErrorTolerance )
    diff.assign( { 1, -1 }, { u_dst_hyteg, u_dst_petsc }, maxLevel, All );
    auto norm = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
 
-   const bool outputVTK = false;
+   const bool outputVTK = true;
 
    if ( outputVTK )
    {
@@ -273,15 +277,15 @@ int main( int argc, char* argv[] )
           P2ProjectNormalOperator           // projection
           >( 1e-13 );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly CCR test 2D" );
-   run2D< CCRStokesFunction< real_t >,      // function type
-          CCRStokesOperator,                // operator
-          P2PlusBubbleProjectNormalOperator // projection
-          >( 1e-13 );
-
    WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test 3D" );
    run3D< P2P1TaylorHoodFunction< real_t >, // function type
           P2P1TaylorHoodStokesOperator,     // operator
           P2ProjectNormalOperator           // projection
+          >( 1e-13 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly CCR test 2D" );
+   run2D< CCRStokesFunction< real_t >,      // function type
+          CCRStokesOperator,                // operator
+          P2PlusBubbleProjectNormalOperator // projection
           >( 1e-13 );
 }
