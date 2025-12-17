@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 
 #include <cmath>
 
@@ -28,12 +28,12 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/math/Constants.h"
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/eigen/EigenSparseDirectSolver.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg_operators/operators/diffusion/P2ElementwiseDiffusion.hpp"
 #include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
@@ -566,8 +566,9 @@ int main( int argc, char* argv[] )
    runMassTests();
 
    // Using Eigen Sparse Solver currently
-   if( walberla::MPIManager::instance()->numProcesses() == 1 ) {
-     runDiffusionTest();
+   if ( walberla::MPIManager::instance()->numProcesses() == 1 )
+   {
+      runDiffusionTest();
    }
 
    runVectorFunctionTest();

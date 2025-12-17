@@ -27,6 +27,7 @@
 #include "core/math/Constants.h"
 #include "core/timing/all.h"
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"
@@ -36,7 +37,6 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"

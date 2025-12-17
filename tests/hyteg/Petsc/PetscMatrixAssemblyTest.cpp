@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,7 +29,7 @@
 #include "mixed_operator/P1P1StokesOperator.hpp"
 
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
-#include "hyteg/composites/CCRStokesOperator.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesOperator.hpp"
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"

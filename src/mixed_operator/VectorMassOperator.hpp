@@ -19,9 +19,9 @@
  */
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg_operators/operators/mass/P2PlusBubbleElementwiseMass.hpp"
 
 #include "VectorToVectorOperator.hpp"

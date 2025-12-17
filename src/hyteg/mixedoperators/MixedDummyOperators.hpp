@@ -19,12 +19,12 @@
  */
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
@@ -39,9 +39,12 @@ class P2ToP1DummyOperator : public Operator< P2Function< real_t >, P1Function< r
    : Operator( storage, minLevel, maxLevel )
    {}
 
-   P2ToP1DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Function< real_t >& p )
+   P2ToP1DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        const P1Function< real_t >&                p )
    : Operator( storage, minLevel, maxLevel )
-   {}   
+   {}
 
    void apply( const P2Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -60,9 +63,12 @@ class P1ToP2DummyOperator : public Operator< P1Function< real_t >, P2Function< r
    : Operator( storage, minLevel, maxLevel )
    {}
 
-   P1ToP2DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Function< real_t >& p)
+   P1ToP2DummyOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                        size_t                                     minLevel,
+                        size_t                                     maxLevel,
+                        const P1Function< real_t >&                p )
    : Operator( storage, minLevel, maxLevel )
-   {}   
+   {}
 
    void apply( const P1Function< real_t >& src,
                const P2Function< real_t >& dst,

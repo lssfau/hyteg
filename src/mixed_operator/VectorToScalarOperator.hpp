@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
@@ -30,7 +31,6 @@
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 #include "P2ToP1ConstantOperator.hpp"
@@ -162,7 +162,7 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ToP1ElementwiseBlendingDivxQFOperator,
                                 P2ToP1ElementwiseBlendingDivyQFOperator,
                                 P2ToP1ElementwiseBlendingDivzQFOperator >
-    P2ToP1ElementwiseBlendingDivQFOperator;    
+    P2ToP1ElementwiseBlendingDivQFOperator;
 
 typedef VectorToScalarOperator< P1VectorFunction,
                                 P1Function,
@@ -189,7 +189,7 @@ typedef VectorToScalarOperator< P2VectorFunction,
                                 P2ToP1ElementwiseDivTxOperator,
                                 P2ToP1ElementwiseDivTyOperator,
                                 P2ToP1ElementwiseDivTzOperator >
-    P2ToP1ElementwiseDivTOperator;    
+    P2ToP1ElementwiseDivTOperator;
 
 typedef VectorToScalarOperator< P2VectorFunction,
                                 P1Function,

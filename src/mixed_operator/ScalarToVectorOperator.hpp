@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
@@ -30,7 +31,6 @@
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 #include "P1ToP2ConstantOperator.hpp"

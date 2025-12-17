@@ -20,11 +20,11 @@
 
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/functions/CSFVectorFunction.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/VectorFunctionTools.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 namespace hyteg {
 
@@ -74,7 +74,8 @@ class P2PlusBubbleVectorFunction final : public CSFVectorFunction< P2PlusBubbleV
       }
    }
 
-   P2PlusBubbleVectorFunction( const std::string name, const std::vector< std::shared_ptr< P2PlusBubbleFunction< ValueType > > >& compFunc )
+   P2PlusBubbleVectorFunction( const std::string                                                          name,
+                               const std::vector< std::shared_ptr< P2PlusBubbleFunction< ValueType > > >& compFunc )
    : CSFVectorFunction< P2PlusBubbleVectorFunction< ValueType > >( name, compFunc )
    {}
 };

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "hyteg/composites/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
 #include "hyteg/mixedoperators/DG1ToP2PlusBubbleOperator.hpp"
 #include "hyteg/mixedoperators/P2PlusBubbleToDG1Operator.hpp"
 
