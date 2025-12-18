@@ -29,6 +29,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -36,7 +37,6 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 
-#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantFullViscousOperator.hpp"
 #include "mixed_operator/P1EpsilonOperator.hpp"
 #include "mixed_operator/VectorLaplaceOperator.hpp"

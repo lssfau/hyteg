@@ -23,6 +23,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
 
 #include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 #include "mixed_operator/P1BlendingStokesOperator.hpp"
@@ -59,7 +60,6 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
-#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 #include "mixed_operator/P2P1UzawaDampingFactorEstimationOperator.hpp"
