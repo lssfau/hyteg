@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Marcus Mohr.
+ * Copyright (c) 2022-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,6 +30,7 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseFullViscousOperator.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -37,7 +38,6 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 
-#include "constant_stencil_operator/P2ConstantFullViscousOperator.hpp"
 #include "mixed_operator/P1EpsilonOperator.hpp"
 #include "mixed_operator/VectorLaplaceOperator.hpp"
 

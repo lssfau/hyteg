@@ -26,6 +26,7 @@
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseFullViscousOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg_operators_composites/viscousblock/P2ViscousBlockEpsilonOperator.hpp"
