@@ -1,7 +1,7 @@
 Parameters
 {
-  nx 12;
-  ny 12;
+  nx 8;
+  ny 8;
 	
   rMin 1.0;
   rMax 2.0;

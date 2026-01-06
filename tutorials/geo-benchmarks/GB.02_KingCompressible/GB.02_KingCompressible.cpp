@@ -70,24 +70,29 @@
  * 
  * \section GB02-KingCompressible-GoverningEquations Model and Equations
  * 
- * The governing equations are basically the Stokes and energy equations,
+ * The governing equations are basically the conservation of mass, momentum (Stokes) and energy,
  * 
  * \f{align*}{
- *  -\nabla\cdot\tau + \nabla p &= \text{Ra}T \\
- *  \nabla\cdot(\rho u) &= 0 \\
+ *  -\nabla\cdot\tau + \nabla p &= \text{Ra} \bar{\rho} T' \\
+ *  \nabla\cdot(\bar{\rho} u) &= 0 \\
  *  \frac{\partial T}{\partial t} + u \cdot \nabla T - \nabla \cdot \left(\frac{\kappa}{\bar{\rho}C_p} 
  *  \nabla T\right) &= \frac{\alpha \text{Di}}{C_p} (u\cdot g) T + \frac{\text{Di}}{\text{Ra}C_p}\tau:\epsilon
  * \f}
  * 
+ * where \f$T'\f$ denotes the temperature deviation w.r.t a reference temperature field,
+ * Ra the Rayleigh number, Di the dissipation number, 
+ * \f$\bar{\rho}\f$ the reference density field, \f$\kappa\f$ thermal diffusivity and
+ * \f$C_p\f$ the specific heat capacity. The two terms on the RHS of the energy equation adds the
+ * adiabatic and shear heating contribution to the system respectively. 
  * The initial conditions for temperature is prescribed as,
  * 
  * \f{equation*}{
  *  T(x, y, t = 0) = (1-y) + A\cos{\pi x}\sin{\pi y}
  * \f}
  * 
- * where $x$ and $y$ are the coordinates of the unit square with origin at bottom-left. 
+ * where \f$x\f$ and \f$y\f$ are the coordinates of the unit square with origin at bottom-left. 
  * Freeslip boundary conditions is imposed on all four walls of the square.
- * For the temperature field, a Dirichlet boundary condition of T = 0 and T = 1 is imposed 
+ * For the temperature field, a Dirichlet boundary condition of \f$T=0\f$ and \f$T=1\f$ is imposed 
  * at the top and bottom and zero flux on the sides. This induces a single convection cell 
  * in the square and eventually reaches a steady state. Once this state is reached, 
  * the Nusselt number values are calculated and verified. 
@@ -119,16 +124,15 @@
  * 
  * \section GB02-KingCompressible-OpStokes Operators -- Stokes
  * 
- * The Stokes operator can be set up similar to previous tutorials, but here, to treat the compressibility constraint, 
- * we expand the mass conservation with chain rule and treat some terms explicitly to 
- * make sure, we have the same symmetric system matrix.
+ * The Stokes operator can be set up similar to previous tutorials.
  * 
  * \snippet{trimleft} this StokesFrozenVelocity
  * 
  * \section GB02-KingCompressible-OpEnergy Operators -- Energy
  * 
- * For treating the advection part of the energy equation, we use the method of modified characteristics (MMOC).
- * Hence this advection operator can be defined with
+ * For treating the advection part of the energy equation, we use the method of modified characteristics (MMOC),
+ * for more information on the method itself, see Kohl et al. 2022.
+ * The advection operator can be defined with
  * 
  * \snippet{trimleft} this MMOCForTransport
  * 
@@ -139,13 +143,15 @@
  * 
  * \section GB02-KingCompressible-SolverStokes Solver -- Stokes
  *  
- * The boundary conditions are set with the correct Dirichlet/Neumann flag to ensure that no-normal flow is applied on the walls. 
- * This then helps in creating a single convection cell in the unit square. We start the model at a Rayleigh number of
- * Ra \f$ = 10^4 \f$, then we store a checkpoint with this solution. This is then used to initialise the model at 
- * Ra \f$ = 10^5 \f$, and then eventually to even higher values for testing. But here we use the values of Ra \f$ = 10^5 \f$
- * and Di \f$ = 0.25 \f$ to calculate the Nusselt numbers for comparison.
+ * The boundary conditions are set with the correct Dirichlet/Neumann flag 
+ * to ensure that no-normal flow is applied on the walls.
+ * Here we have a varying density field (compressible case), 
+ * hence the conservation of mass part is
+ * handled similar to Tan et al. 2011 (Appendix A), by applying chain rule 
+ * and rearranging such that the symmetry of the Stokes system
+ * is maintained similar to an incompressible problem.
  * 
- * Minres or PETSc direct solver can be used to compute the solution to the Stokes system.
+ * The resulting system can be solved with MinRes or PETSc direct solver.
  * 
  * \snippet{trimleft} this StokesSolverLambdaFunction
  * 
@@ -171,8 +177,23 @@
  * MMOC and implicit Euler respectively. With this we compute the temperature field at time \f$ t_1 \f$. Then the Stokes system is
  * solved again to obtain the corresponding velocity field at time \f$ t_1 \f$ and so on.
  * 
+ * We ensure that a single convection cell is formed inside the unit square. At smaller dissipation numbers and
+ * at higher Rayleigh numbers this cannot be ensured easily. For those cases we perform the simulation at a smaller
+ * Rayleigh number and then transfer the temperature solution to be used as an initial state while increasing the
+ * Rayleigh number.
  * 
  * \section GB02-KingCompressible-Results Results
+ *  
+ * The model is started with a Rayleigh number of
+ * Ra \f$ = 10^4 \f$, then we store a checkpoint with this solution. 
+ * This is then used to initialise the model at 
+ * Ra \f$ = 10^5 \f$ and Di \f$ = 0.5 \f$. The simulation is ran till
+ * a statistical steady state is reached which means that the quantities
+ * such as temperature, velocities have converged to a certain value.
+ * After this, we compute the Nusselt number at the top surface of the
+ * domain (y = 1) and teh velocity RMS in the whole domain and compare
+ * these values with previously published values in literature. We found
+ * that the values are in the range reported in King et al. 2010.
  * 
  * <img src="GB.02_KingCompressibleSquare.png" width="50%" />
  * 
@@ -267,7 +288,7 @@ struct ParameterContainer
    real_t rMax = 2.22;
 
    uint_t maxTimeSteps      = 1000;
-   uint_t vtkWriteFrequency = 1U;
+   uint_t vtkWriteFrequency = 1u;
 
    bool MMOC             = true;
    bool SUPG             = false;
@@ -295,10 +316,10 @@ struct ParameterContainer
    real_t minresRelTol = 1e-4;
    real_t minresAbsTol = 1e-8;
    real_t gmresTol     = 1e-5;
-   uint_t minresIter   = 1000U;
-   uint_t gmresIter    = 1000U;
+   uint_t minresIter   = 1000u;
+   uint_t gmresIter    = 1000u;
 
-   uint_t nsCalcFreq = 10U;
+   uint_t nsCalcFreq = 10u;
 };
 
 class P2TransportTimesteppingOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
@@ -479,35 +500,40 @@ class TALASimulation
           std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uRhsStrong", storage_, minLevel_, maxLevel_, bcVelocity );
       uTemp = std::make_shared< P2P1TaylorHoodFunction< real_t > >( "uTemp", storage_, minLevel_, maxLevel_, bcVelocity );
 
-      u->uvw().setBoundaryCondition( bcVelocityX, 0U );
-      u->uvw().setBoundaryCondition( bcVelocityY, 1U );
+      u->uvw().setBoundaryCondition( bcVelocityX, 0u );
+      u->uvw().setBoundaryCondition( bcVelocityY, 1u );
 
-      uRhs->uvw().setBoundaryCondition( bcVelocityX, 0U );
-      uRhs->uvw().setBoundaryCondition( bcVelocityY, 1U );
+      uRhs->uvw().setBoundaryCondition( bcVelocityX, 0u );
+      uRhs->uvw().setBoundaryCondition( bcVelocityY, 1u );
 
       transportOp = std::make_shared< P2TransportTimesteppingOperator >( storage_, minLevel_, maxLevel_, params.diffusivity );
 
       transportTALAOp = std::make_shared< P2TransportTALAOperator >( storage_, minLevel_, maxLevel_ );
 
-      gradRhoByRhoP2->component( 0U ).interpolate( 0.0, maxLevel_, All );
+      gradRhoByRhoP2->component( 0u ).interpolate( 0.0, maxLevel_, All );
 
       if ( params.compressible )
       {
-         rhoFunc = [this]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
-         gradRhoByRhoP2->component( 1U ).interpolate( params.alpha / params.Di, maxLevel_, All );
+         rhoFunc    = [this]( const Point3D& x ) { return params.rho0 * std::exp( ( 1 - x[1] ) * params.alpha / params.Di ); };
+         rhoInvFunc = [this]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
+
+         gradRhoByRhoP2->component( 1u ).interpolate( params.alpha / params.Di, maxLevel_, All );
       }
       else
       {
-         rhoFunc = [this]( const Point3D& ) { return 1.0; };
-         gradRhoByRhoP2->component( 1U ).interpolate( 0.0, maxLevel_, All );
+         rhoFunc    = []( const Point3D& ) { return 1.0; };
+         rhoInvFunc = [this]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
+
+         gradRhoByRhoP2->component( 1u ).interpolate( 0.0, maxLevel_, All );
       }
 
-      rhoInvFunc = [this]( const Point3D& x ) { return 1.0 / rhoFunc( x ); };
+      rhoP2->interpolate( rhoFunc, maxLevel_, All );
+      rhoInvP2->interpolate( rhoInvFunc, maxLevel_, All );
 
       gradRhoByRhoX =
-          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 0U ) );
+          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 0u ) );
       gradRhoByRhoY =
-          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1U ) );
+          std::make_shared< P2ToP1ElementwiseKMass >( storage_, minLevel_, maxLevel_, gradRhoByRhoP2->component( 1u ) );
 
       transportTALAOp->setVelocity( u );
       transportTALAOp->setViscosity( viscP2 );
@@ -521,19 +547,16 @@ class TALASimulation
       constEnergyCoeff      = std::make_shared< P2Function< real_t > >( "constEnergyCoeff", storage_, minLevel_, maxLevel_ );
       surfTempCoeff         = std::make_shared< P2Function< real_t > >( "surfTempCoeff", storage_, minLevel_, maxLevel_ );
 
-      rhoP2->interpolate( rhoFunc, maxLevel_, All );
-      rhoInvP2->interpolate( rhoInvFunc, maxLevel_, All );
-
       diffusivityCoeffFunc = [this]( const Point3D& x ) { return params.k_ / ( params.cpbar * rhoFunc( x ) ); };
 
       adiabaticCoeffFunc = [this]( const Point3D& ) { return params.alphabar * params.Di / params.cpbar; };
 
-      constEnergyCoeffFunc = [this]( const Point3D& ) { return 0.0; };
+      constEnergyCoeffFunc = []( const Point3D& ) { return 0.0; };
 
-      surfTempCoeffFunc = [this]( const Point3D& ) { return 0.0; };
+      surfTempCoeffFunc = []( const Point3D& ) { return 0.0; };
 
-      invGravityX = [this]( const Point3D& ) { return 0.0; };
-      invGravityY = [this]( const Point3D& ) { return 1.0; };
+      invGravityX = []( const Point3D& ) { return 0.0; };
+      invGravityY = []( const Point3D& ) { return 1.0; };
 
       diffusionTermCoeff->interpolate( params.k_ / params.cpbar, maxLevel_, All );
       diffusionTermCoeff->multElementwise( { *diffusionTermCoeff, *rhoInvP2 }, maxLevel_, All );
@@ -685,7 +708,7 @@ class TALASimulation
 
    ParameterContainer params;
 
-   uint_t iTimeStep = 0U;
+   uint_t iTimeStep = 0u;
 
    real_t simulationTime = 0.0, endTime = 1.0;
 
@@ -703,7 +726,7 @@ class TALASimulation
    std::function< void( const Point3D&, Point3D& ) > normalsFS;
 
    // Output
-   uint_t      storeCheckpointFreq = 1000U;
+   uint_t      storeCheckpointFreq = 1000u;
    bool        storeCheckpoint = false, startFromCheckpoint = false;
    std::string cpFilename, cpPath, cpStartFilename, adiosXmlConfig;
 
@@ -720,8 +743,10 @@ void TALASimulation< OutputWriter_T >::solveU()
 {
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
 
-   uRhsStrong->uvw().component( 0U ).interpolate( 0.0, maxLevel, All );
-   uRhsStrong->uvw().component( 1U ).interpolate( params.Ra * params.alphabar, maxLevel, All );
+   uRhsStrong->uvw().component( 0u ).interpolate( 0.0, maxLevel, All );
+   uRhsStrong->uvw().component( 1u ).interpolate( params.Ra * params.alphabar, maxLevel, All );
+
+   uRhsStrong->uvw().component( 1u ).multElementwise( { uRhsStrong->uvw().component( 1u ), *rhoP2 }, maxLevel, All );
 
    TRefDev->assign( { 1.0, -1.0 }, { *TDev, *TRef }, maxLevel, All );
    uRhsStrong->uvw().component( 0 ).multElementwise( { uRhsStrong->uvw().component( 0 ), *TRefDev }, maxLevel, All );
@@ -730,7 +755,7 @@ void TALASimulation< OutputWriter_T >::solveU()
    vecMassOperator.apply( uRhsStrong->uvw(), uRhs->uvw(), maxLevel, All );
 
    /// [StokesFrozenVelocity]
-   gradRhoByRhoY->apply( u->uvw().component( 1U ), uRhs->p(), maxLevel, All );
+   gradRhoByRhoY->apply( u->uvw().component( 1u ), uRhs->p(), maxLevel, All );
    uRhs->p().assign( { -1.0 }, { uRhs->p() }, maxLevel, All );
    /// [StokesFrozenVelocity]
 
@@ -770,7 +795,13 @@ void TALASimulation< OutputWriter_T >::solveT()
    /// [MMOCForTransport]
    if ( params.MMOC )
    {
-      transportTALAOp->stepMMOC( maxLevel );
+      transportTALAOp->mmocTransport_->step( *TDev,
+                                  u->uvw(),
+                                  uPrev->uvw(),
+                                  maxLevel,
+                                  hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
+                                  transportTALAOp->timestep,
+                                  1u );
    }
    /// [MMOCForTransport]
 
