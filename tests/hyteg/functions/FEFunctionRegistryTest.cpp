@@ -25,7 +25,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 
-#include "hyteg/composites/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/egfunctionspace/EGFunction.hpp"

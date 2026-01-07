@@ -19,10 +19,10 @@
  */
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 
 namespace hyteg {
 

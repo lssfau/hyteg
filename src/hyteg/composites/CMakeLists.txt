@@ -1,7 +1,5 @@
 target_sources( hyteg
   PRIVATE
-  CCRStokesFunction.hpp
-  CCRStokesOperator.hpp
   ConcatenatedOperator.hpp
   P0P1HelperFunctions.hpp
   P0P1UpwindOperator.hpp

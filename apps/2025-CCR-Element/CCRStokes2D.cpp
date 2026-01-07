@@ -22,8 +22,8 @@
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/composites/CCRStokesFunction.hpp"
-#include "hyteg/composites/CCRStokesOperator.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"

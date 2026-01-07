@@ -43,7 +43,7 @@
 #include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
 
 // Mixed Operators
-#include "hyteg/composites/CCRStokesOperator.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesOperator.hpp"
 
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 
@@ -241,7 +241,8 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P2PlusBubble elements" );
       using P2PlusBubbleElementwiseDiffusion = hyteg::operatorgeneration::P2PlusBubbleElementwiseDiffusion;
       P2PlusBubbleElementwiseDiffusion opr( storage, level, level );
-      petsc::exportOperator< P2PlusBubbleElementwiseDiffusion >( opr, fileName, matName, format, storage, level, elim, symm, verb );
+      petsc::exportOperator< P2PlusBubbleElementwiseDiffusion >(
+          opr, fileName, matName, format, storage, level, elim, symm, verb );
    }
    break;
 
@@ -256,9 +257,9 @@ int main( int argc, char* argv[] )
    break;
 
    case CCRSTOKES: {
-     WALBERLA_LOG_INFO_ON_ROOT( "Exporting Stokes Operator for Conforming Crouzeix-Raviart element" );
-     hyteg::CCRStokesOperator opr( storage, level, level );
-     petsc::exportOperator< CCRStokesOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting Stokes Operator for Conforming Crouzeix-Raviart element" );
+      hyteg::CCRStokesOperator opr( storage, level, level );
+      petsc::exportOperator< CCRStokesOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
    }
    break;
    }

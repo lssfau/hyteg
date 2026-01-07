@@ -40,7 +40,7 @@
 
 #include "hyteg/operators/Operator.hpp"
 
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 

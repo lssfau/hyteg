@@ -19,7 +19,9 @@
  */
 #pragma once
 
-#include "hyteg/composites/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/composites/P1P0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -32,8 +34,6 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleVectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"

@@ -60,6 +60,7 @@ target_sources(hyteg
 
 add_subdirectory( adaptiverefinement )
 add_subdirectory( boundary )
+add_subdirectory( ccrfunctionspace )
 add_subdirectory( checkpointrestore )
 add_subdirectory( communication )
 add_subdirectory( composites )
