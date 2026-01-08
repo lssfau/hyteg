@@ -402,7 +402,7 @@ class TALASimulation
       params.gmresIter = mainConf.getParameter< uint_t >( "transportGmresIter" );
       params.gmresTol  = mainConf.getParameter< real_t >( "transportGmresTol" );
 
-      normalsFS = [this]( const Point3D& x, Point3D& nx ) {
+      normalsFS = []( const Point3D& x, Point3D& nx ) {
          if ( rightMarker( x ) )
          {
             nx[0] = 1.0;
@@ -429,7 +429,7 @@ class TALASimulation
          }
       };
 
-      tempDevBC = [this]( const Point3D& x ) {
+      tempDevBC = []( const Point3D& x ) {
          if ( topMarker( x ) )
          {
             return 0.0;
