@@ -69,6 +69,7 @@ class P2RotationOperator : public Operator< P2VectorFunction< real_t >, P2Vector
       rotate( dst[0], dst[1], dst[2], level, flag, transpose );
    }
 
+   /// This method presumably exists to have an identical method in this operator and the P2ProjectNormalOperator
    void manipulate( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag, bool transpose = false ) const
    {
       rotate( dst[0], dst[1], dst[2], level, flag, transpose );

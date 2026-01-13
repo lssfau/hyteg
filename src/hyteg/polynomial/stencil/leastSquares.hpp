@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Benjamin Mann.
+ * Copyright (c) 2025 Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,6 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* Adaptions of the functionalities from hyteg/polynomial/new/leastSquares.hpp
+   for stencil based operators
+*/
+
 #pragma once
 
 #include <core/logging/Logging.h>
@@ -26,56 +30,46 @@
 #include <hyteg/indexing/Common.hpp>
 #include <hyteg/indexing/MacroCellIndexing.hpp>
 #include <hyteg/indexing/MacroFaceIndexing.hpp>
+#include <hyteg/polynomial/new/leastSquares.hpp>
 
 #include "hyteg/Format.hpp"
 
-#include "polynomial.hpp"
-
 namespace hyteg {
+namespace p1 {
+namespace stencil {
 namespace surrogate {
 
 using walberla::uint_t;
 
-namespace interpolation {
-
 /**
- * @brief Computes the downsampled number of vertices along an edge on a given level
+ * @brief Computes the number of sample points along an edge
  *
  * @param lvl The level of refinement.
  * @param downsampling The downsampling factor.
- * @return The number of downsampled vertices along the edge.
+ * @param offset Offset from the primitive boundary.
+ * @return The number of sampling points along the edge, i.e., ceil((2^lvl - 1 - offset)/downsampling)
  */
-static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling )
+static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling, uint_t offset = 0 )
 {
-   return ( ( ( 1 << lvl ) - 1 ) / downsampling ) + 1; // ceil(n/d) with n = 2^lvl, d = downsampling
+   WALBERLA_ASSERT_GREATER( 1 << lvl, 2 + offset );
+   return ( ( ( 1 << lvl ) - 2 - offset ) / downsampling ) + 1;
 }
 
 /**
- * @brief Computes the number of vertices in a volume element with given edge length
+ * @brief Computes the number of sample points on a primitive
  *
- * @param d The dimension (2 for 2D, 3 for 3D).
- * @param n The number of vertices along an edge.
- * @return The number of vertices in the volume.
- */
-static constexpr inline uint_t n_volume( uint_t d, uint_t n )
-{
-   return ( d == 2 ) ? indexing::layout::linearMacroFaceSize( n ) : indexing::layout::linearMacroCellSize( n );
-}
-
-/**
- * @brief Computes the downsampled number of vertices in a volume element
- *
- * @param d The dimension (2 for 2D, 3 for 3D).
+ * @param dim Dimension of the primitive.
  * @param lvl The level of refinement.
  * @param downsampling The downsampling factor.
- * @return The number of vertices in the volume.
+ * @return The number of sample points on the primitive
  */
-static constexpr inline uint_t n_volume( uint_t d, uint_t lvl, uint_t downsampling )
+static constexpr inline uint_t n_primitive( uint_t dim, uint_t lvl, uint_t downsampling )
 {
-   return n_volume( d, n_edge( lvl, downsampling ) );
+   const auto n = n_edge( lvl, downsampling, dim - 1 );
+   return ( dim == 1 ) ? n :
+          ( dim == 2 ) ? indexing::layout::linearMacroFaceSize( n ) :
+                         indexing::layout::linearMacroCellSize( n );
 }
-
-} // namespace interpolation
 
 /**
  * @class LeastSquares
@@ -93,6 +87,24 @@ class LeastSquares
 
  private:
    /**
+    * @brief Calculates the total number of sample points for the least squares approximation, using
+    * the given downsampling factor and assuming that all d+1 corner points are sampled even if they
+    * aren't part of this downsampling pattern.
+    *
+    * @param dim The dimension of the domain (e.g., 2 for 2D, 3 for 3D).
+    * @param lvl The refinement level of the grid.
+    * @param downsampling The downsampling factor used to reduce the number of points.
+    * @return The total number of sample points as a uint_t.
+    */
+   static const uint_t n_sample_points( uint_t dim, uint_t lvl, uint_t downsampling )
+   {
+      const auto n_vol              = n_primitive( dim, lvl, downsampling );
+      const auto n_x                = n_edge( lvl, 1, dim - 1 );
+      const bool additional_corners = ( n_x - 1 ) % downsampling > 0; // add corner points if not included already
+      return additional_corners ? n_vol + dim : n_vol;
+   }
+
+   /**
     * @class Iterator
     * @brief Iterator class to iterate over sample points
     */
@@ -105,16 +117,16 @@ class LeastSquares
        * @param lvl The level of refinement.
        * @param downsampling The downsampling factor.
        */
-      inline Iterator( uint_t d, uint_t lvl, uint_t downsampling )
+      inline Iterator( uint_t dim, uint_t lvl, uint_t downsampling )
       : _n( idx_t( 0 ) )
-      , _i( idx_t( 0 ) )
-      , _j( idx_t( 0 ) )
-      , _k( idx_t( 0 ) )
-      , _ijk_max( idx_t( interpolation::n_edge( lvl, 1 ) ) )
-      , _n_max( interpolation::n_volume( d, lvl, downsampling ) )
+      , _i( idx_t( 1 ) )
+      , _j( idx_t( ( dim > 1 ) ? 1 : 0 ) )
+      , _k( idx_t( ( dim > 2 ) ? 1 : 0 ) )
+      , _i_max( idx_t( n_edge( lvl, 1, dim - 1 ) + 1 ) )
+      , _ijk_max( idx_t( n_edge( lvl, 1 ) + 1 ) )
+      , _n_max( n_sample_points( dim, lvl, downsampling ) )
       , _stride( downsampling )
       {}
-
       /**
        * @brief Prefix increment operator.
        *
@@ -123,14 +135,26 @@ class LeastSquares
       inline Iterator& operator++()
       {
          _i += _stride;
-         if ( _i >= _ijk_max - _j - _k )
+         if ( _i > _i_max && _i - _stride < _i_max )
          {
-            _i = 0;
+            _i = _i_max; // add corner point (n,1,1)
+         }
+         if ( _i + _j + _k > _ijk_max )
+         {
+            _i = 1;
             _j += _stride;
-            if ( _j >= _ijk_max - _k )
+            if ( _j > _i_max && _j - _stride < _i_max )
             {
-               _j = 0;
+               _i = _i_max; // add corner point (1,n,1)
+            }
+            if ( _i + _j + _k > _ijk_max )
+            {
+               _j = 1;
                _k += _stride;
+               if ( _k > _i_max && _k - _stride < _i_max )
+               {
+                  _i = _i_max; // add corner point (1,1,n)
+               }
             }
          }
          ++_n;
@@ -168,7 +192,7 @@ class LeastSquares
        */
       inline constexpr idx_t operator()() const { return _n; }
       /**
-       * @brief end of this iterator. Useage:
+       * @brief end of this iterator. Usage:
        * while ( it != it.end() ) { ... }
        *
        * @return uint_t end of iterator.
@@ -183,23 +207,40 @@ class LeastSquares
       idx_t _j; // index of y-coordinate
       idx_t _k; // index of z-coordinate
 
-      idx_t  _ijk_max; // number of microedges along an edge (only coincides with sample points along edge if downsampling=1)
+      idx_t  _i_max;   // maximum admissible value for i, j, and k
+      idx_t  _ijk_max; // maximum admissible value for i+j+k
       uint_t _n_max;   // number of sample points
       uint_t _stride;  // downsampling factor
    };
 
-   // compute downsampling factor s.th. number of sample points exceeds number of coefficients
-   constexpr uint_t compute_automatic_downsampling() const
+   /**
+    * @brief Reduces the given downsampling factor if necessary, such that
+    *          the system is overdetermined.
+    * @param ds downsampling factor.
+    * @return Possibly reduced downsampling factor. If ds=0 or ds>max, the
+    *          result will be the maximum possible downsampling factor where
+    *          the system is still overdetermined.
+    */
+   uint_t adjust_downsampling( uint_t ds = 0 ) const
    {
-      uint_t downsampling = 3;
-      for ( ; downsampling > 1; --downsampling )
+      // ds must be less than N / dimP, where N is the maximum number of inner vertices per row
+      uint_t strict_upper_bound = n_edge( _lvl, _q + 1, _dim - 1 );
+
+      if ( strict_upper_bound <= 1 )
       {
-         if ( interpolation::n_volume( _dim, _lvl, downsampling ) > polynomial::dimP( _dim, _q ) )
-         {
-            break;
-         }
+         // polynomial degree to high to yield an overdetermined system
+         return 1;
       }
-      return downsampling;
+      else if ( 0 < ds && ds < strict_upper_bound )
+      {
+         // system is overdetermined with the chosen downsampling factor
+         return ds;
+      }
+      else
+      {
+         // use the maximum possible downsampling factor
+         return strict_upper_bound - 1;
+      }
    }
 
    template < typename MatrixType >
@@ -260,11 +301,15 @@ class LeastSquares
       }
    }
 
+   template < uint8_t DEGREE >
    void compute_svd()
    {
       // Setup Vandermonde matrix
-      const polynomial::Basis           phi( _q );
-      const polynomial::Domain< FLOAT > X( _lvl );
+
+      // monomial basis
+      constexpr hyteg::surrogate::polynomial::Basis< DEGREE > phi;
+      // conversion from i∈ℕ to x∈ℝ
+      const hyteg::surrogate::polynomial::Domain< FLOAT > X( _lvl );
 
       auto it = samplingIterator();
       while ( it != it.end() )
@@ -304,9 +349,9 @@ class LeastSquares
    : _dim( dim )
    , _q( degree )
    , _lvl( lvl )
-   , _downsampling( ( downsampling == 0 ) ? compute_automatic_downsampling() : downsampling )
-   , rows( interpolation::n_volume( _dim, _lvl, _downsampling ) )
-   , cols( polynomial::dimP( _dim, _q ) )
+   , _downsampling( adjust_downsampling( downsampling ) )
+   , rows( n_sample_points( _dim, _lvl, _downsampling ) )
+   , cols( hyteg::surrogate::polynomial::dimP( _dim, _q ) )
    , A( rows, cols )
    , Uh( cols, rows )
    , Si( cols )
@@ -326,21 +371,64 @@ class LeastSquares
             WALBERLA_LOG_WARNING_ON_ROOT( "Could not load SVD. Compute SVD instead." );
          }
       }
-      compute_svd();
+
+      switch ( degree )
+      {
+      case 0:
+         compute_svd< 0 >();
+         break;
+      case 1:
+         compute_svd< 1 >();
+         break;
+      case 2:
+         compute_svd< 2 >();
+         break;
+      case 3:
+         compute_svd< 3 >();
+         break;
+      case 4:
+         compute_svd< 4 >();
+         break;
+      case 5:
+         compute_svd< 5 >();
+         break;
+      case 6:
+         compute_svd< 6 >();
+         break;
+      case 7:
+         compute_svd< 7 >();
+         break;
+      case 8:
+         compute_svd< 8 >();
+         break;
+      case 9:
+         compute_svd< 9 >();
+         break;
+      case 10:
+         compute_svd< 10 >();
+         break;
+      case 11:
+         compute_svd< 11 >();
+         break;
+      case 12:
+         compute_svd< 12 >();
+         break;
+      case 13:
+         compute_svd< 13 >();
+         break;
+      case 14:
+         compute_svd< 14 >();
+         break;
+      case 15:
+         compute_svd< 15 >();
+         break;
+      default:
+         WALBERLA_ABORT( "Polynomial degree " << degree << " not supported!" );
+         break;
+      }
    }
 
  public:
-   /**
-    * @brief Compute the maximum polynomial degree that should be used for approximation
-    *    when using sample points determined by `level` and `downsampling` factor.
-    *    Using a higher degree leads to an overdetermined system and should be avoided!
-    */
-   static constexpr uint8_t max_degree( uint_t lvl, uint_t downsampling = 1 )
-   {
-      downsampling = ( downsampling == 0 ) ? uint_t( 1 ) : downsampling;
-      return interpolation::n_edge( lvl, downsampling ) - 1;
-   }
-
    /**
     * @brief Constructs a LeastSquares object by setting up the Vandermonde matrix and computing an SVD.
     *
@@ -348,8 +436,10 @@ class LeastSquares
     * @param degree The degree q of the polynomial space P_q(T)
     * @param lvl The level of refinement determining the mapping T→ℝ
     * @param downsampling The downsampling factor determining the number of sample points:
-    *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
-    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim
+    *          `0`: choose automatically, `1`: use all sample points, `n`: only use every n-th point in each direction.
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim.
+    *          If the given downsampling factor is too large, i.e., the resulting system would not be
+    *          overdetermined, it is automatically reduced.
     */
    LeastSquares( uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( dim, degree, lvl, downsampling, false, "" )
@@ -361,10 +451,13 @@ class LeastSquares
     * @param path_to_svd Path to the directory where the files are stored.
     * @param dim The spatial dimension of the domain T
     * @param degree The degree q of the polynomial space P_q(T)
-    * @param lvl The level of refinement determining the mapping T→ℝ
+    * @param lvl The level of refinement determining the mapping T→ℝ, as well as the sampling points.
+    *               Sample points are given by the (0,0)-vertices of all white-up elements on the given level
     * @param downsampling The downsampling factor determining the number of sample points:
-    *          0: choose automatically, 1: use all vertices, n: only use every n-th vertex in each direction
-    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim
+    *          `0`: choose automatically, `1`: use all sample points, `n`: only use every n-th point in each direction.
+    *          ⇒ downsampling reduces the number of sample points by a factor of n^dim.
+    *          If the given downsampling factor is too large, i.e., the resulting system would not be
+    *          overdetermined, it is automatically reduced.
     */
    LeastSquares( const std::string& path_to_svd, uint_t dim, uint_t degree, uint_t lvl, uint_t downsampling = 1 )
    : LeastSquares( dim, degree, lvl, downsampling, true, path_to_svd )
@@ -468,5 +561,6 @@ class LeastSquares
 };
 
 } // namespace surrogate
-
+} // namespace stencil
+} // namespace p1
 } // namespace hyteg

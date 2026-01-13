@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Marcus Mohr.
+ * Copyright (c) 2021-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,13 +23,14 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
 
 #include "constant_stencil_operator/P1EpsilonStokesOperator.hpp"
 #include "mixed_operator/P1BlendingStokesOperator.hpp"
 #include "mixed_operator/P1P1StokesOperator.hpp"
 
 // #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp" < --see issue 159
-#include "hyteg/composites/CCRStokesOperator.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesOperator.hpp"
 #include "hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
@@ -59,7 +60,6 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
-#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
 #include "mixed_operator/P2P1TaylorHoodStokesOperator.hpp"
 #include "mixed_operator/P2P1UzawaDampingFactorEstimationOperator.hpp"
@@ -294,7 +294,7 @@ int main( int argc, char* argv[] )
    printTestHdr( "Testing P1 Operators" );
 
    testAssembly< P1ConstantMassOperator >( storage, level, "P1ConstantOperator" );
-   testAssembly< P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator", false );
+   testAssembly< deprecated::P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator", false );
    testAssembly< P1BlendingMassOperator >( storage, level, "P1VariableOperator", false );
 
    testAssembly< P1ProjectNormalOperator >( level, "P1ProjectNormalOperator", false );

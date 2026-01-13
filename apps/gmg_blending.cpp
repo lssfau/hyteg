@@ -145,9 +145,9 @@ int main( int argc, char* argv[] )
    auto coordX = std::make_shared< hyteg::P1Function< real_t > >( "x", storage, minLevel, maxMemoryLevel );
    auto coordY = std::make_shared< hyteg::P1Function< real_t > >( "y", storage, minLevel, maxMemoryLevel );
 
-   typedef hyteg::P1BlendingMassOperator     MassOperator;
-   typedef hyteg::P1BlendingLaplaceOperator  SolveOperatorNodal;
-   typedef hyteg::P1SurrogateLaplaceOperator SolveOperatorPoly;
+   typedef hyteg::P1BlendingMassOperator                 MassOperator;
+   typedef hyteg::P1BlendingLaplaceOperator              SolveOperatorNodal;
+   typedef hyteg::deprecated::P1SurrogateLaplaceOperator SolveOperatorPoly;
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
    // std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };

@@ -44,6 +44,10 @@ option ( HYTEG_USE_SIGNED_INT_FOR_ADIOS2 "Use int64_t when writing BP files for 
 set ( DOXYGEN_LOOKUP_CACHE_SIZE 0 CACHE STRING "See Doxygen documentation LOOKUP_CACHE_SIZE" )
 mark_as_advanced( DOXYGEN_LOOKUP_CACHE_SIZE )
 
+# Allow setting this value via CMake. Default should be 0, which is Doxygen's default, too.
+set ( ADIOS2_CHECKPOINT_FORMAT BP5 CACHE STRING "Engine Type to be used when exporting checkpoints with ADIOS2" )
+mark_as_advanced( ADIOS2_CHECKPOINT_FORMAT )
+
 if ( HYTEG_BUILD_WITH_MPI )
    set(WALBERLA_BUILD_WITH_MPI ON)
 else ()

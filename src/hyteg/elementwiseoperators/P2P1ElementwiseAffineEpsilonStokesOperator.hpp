@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,11 +20,11 @@
 #pragma once
 
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "mixed_operator/ScalarToVectorOperator.hpp"
 #include "mixed_operator/VectorToScalarOperator.hpp"
 namespace hyteg {
@@ -45,8 +45,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    , viscOp( storage, minLevel, maxLevel, mu )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
-   , energyNormOp( viscOp ),
-   blockPrec( storage, minLevel, maxLevel, mu )
+   , energyNormOp( viscOp )
+   , blockPrec( storage, minLevel, maxLevel, mu )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -85,8 +85,8 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    P2ElementwiseAffineEpsilonOperator viscOp;
    P2ToP1ElementwiseDivOperator       div;
    P1ToP2ElementwiseDivTOperator      divT;
-   EnergyNormOperator_T&               energyNormOp;
-   BlockPreconditioner_T blockPrec;
+   EnergyNormOperator_T&              energyNormOp;
+   BlockPreconditioner_T              blockPrec;
 
    bool hasGlobalCells_;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Andreas Wagner
+ * Copyright (c) 2020-2025 Andreas Wagner, Marcus Mohr
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -24,6 +24,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseFullViscousOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -36,10 +37,9 @@
 #include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 
-#include "constant_stencil_operator/P2ConstantFullViscousOperator.hpp"
+#include "constant_stencil_operator/P1ConstantOperator.hpp"
 #include "mixed_operator/P1EpsilonOperator.hpp"
 #include "mixed_operator/VectorLaplaceOperator.hpp"
-#include "constant_stencil_operator/P1ConstantOperator.hpp"
 
 using walberla::real_t;
 using walberla::math::pi;
@@ -73,7 +73,7 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    bool ssorSmoothable = properties[4];
    bool chebSmoothable = properties[5];
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  -1, -1  ), Point2D(  1., 1.  ), MeshInfo::CRISSCROSS, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( -1, -1 ), Point2D( 1., 1. ), MeshInfo::CRISSCROSS, 2, 2 );
    // MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D( -1, -1, 0 ), Point3D( 1, 1, 2 ), 2, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -126,16 +126,17 @@ void runCheck( const std::array< bool, 6 > properties, std::string opName )
    WALBERLA_CHECK( hasProperty == sorSmoothable );
    WALBERLA_LOG_INFO_ON_ROOT( "* SOR smoothable ...................... " << ( hasProperty ? "yes" : "no" ) );
 
-if (std::is_same<real_t,double>()){
+   if ( std::is_same< real_t, double >() )
+   {
       //There is no backwards Gauss-Seidel for single precision (only a generated version for double)
-   hasProperty = !smootherThrowsException( sgsSmoother, *oper, src, dst, minLevel );
-   WALBERLA_CHECK( hasProperty == sgsSmoothable );
-   WALBERLA_LOG_INFO_ON_ROOT( "* symmetric Gauss-Seidel smoothable ... " << ( hasProperty ? "yes" : "no" ) );
+      hasProperty = !smootherThrowsException( sgsSmoother, *oper, src, dst, minLevel );
+      WALBERLA_CHECK( hasProperty == sgsSmoothable );
+      WALBERLA_LOG_INFO_ON_ROOT( "* symmetric Gauss-Seidel smoothable ... " << ( hasProperty ? "yes" : "no" ) );
 
-   hasProperty = !smootherThrowsException( ssorSmoother, *oper, src, dst, minLevel );
-   WALBERLA_CHECK( hasProperty == ssorSmoothable );
-   WALBERLA_LOG_INFO_ON_ROOT( "* symmetric SOR smoothable ............ " << ( hasProperty ? "yes" : "no" ) );
-}
+      hasProperty = !smootherThrowsException( ssorSmoother, *oper, src, dst, minLevel );
+      WALBERLA_CHECK( hasProperty == ssorSmoothable );
+      WALBERLA_LOG_INFO_ON_ROOT( "* symmetric SOR smoothable ............ " << ( hasProperty ? "yes" : "no" ) );
+   }
 
    hasProperty = !smootherThrowsException( chebSmoother, *oper, src, dst, minLevel );
    WALBERLA_CHECK( hasProperty == chebSmoothable );
@@ -164,7 +165,7 @@ int main( int argc, char** argv )
    runCheck< P1ConstantVectorLaplaceOperator >( { true, true, true, true, true, true }, "P1ConstantVectorLaplaceOperator" );
 
    runCheck< P2ConstantVectorLaplaceOperator, true >( { true, true, true, false, false, true },
-                                                       "P2ConstantVectorLaplaceOperator (in 2D)" );
+                                                      "P2ConstantVectorLaplaceOperator (in 2D)" );
 
    runCheck< P1ElementwiseAffineEpsilonOperator, true, true >( { false, false, false, false, false, true },
                                                                "P1ElementwiseAffineEpsilonOperator" );

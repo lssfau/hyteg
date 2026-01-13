@@ -1,3 +1,5 @@
+add_subdirectory(operators)
+
 add_executable       ( compareP1Stencils compareP1Stencils.cpp )
 target_link_libraries( compareP1Stencils hyteg constant_stencil_operator )
 
@@ -12,3 +14,8 @@ target_link_libraries( Stokes2d_Surrogates hyteg mixed_operator )
 
 add_executable       ( jumpCoefficient jumpCoefficient.cpp )
 target_link_libraries( jumpCoefficient hyteg mixed_operator )
+
+if(HYTEG_BUILD_WITH_AVX AND WALBERLA_DOUBLE_ACCURACY)
+      add_executable       ( surrogateBenchmark surrogateBenchmark.cpp )
+      target_link_libraries( surrogateBenchmark hyteg opgen-mogli-diffusion constant_stencil_operator )
+endif()

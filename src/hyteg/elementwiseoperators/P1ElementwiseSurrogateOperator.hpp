@@ -33,9 +33,9 @@
 #include <hyteg/p1functionspace/P1Elements.hpp>
 #include <hyteg/p1functionspace/P1Function.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/polynomial/elementwise/data.hpp>
-#include <hyteg/polynomial/elementwise/leastSquares.hpp>
-#include <hyteg/polynomial/elementwise/polynomial.hpp>
+#include <hyteg/polynomial/new/data.hpp>
+#include <hyteg/polynomial/new/leastSquares.hpp>
+#include <hyteg/polynomial/new/polynomial.hpp>
 #include <hyteg/solvers/Smoothables.hpp>
 #include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
 #include <hyteg/volumedofspace/CellDoFIndexing.hpp>
@@ -44,7 +44,7 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class P1Form >
+template < class P1Form, uint8_t DEGREE, bool Symmetric = false >
 class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
                                        public WeightedJacobiSmoothable< P1Function< real_t > >,
                                        public OperatorWithInverseDiagonal< P1Function< real_t > >
@@ -55,19 +55,25 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
     */
    static constexpr uint_t min_lvl_for_surrogate = 4;
 
-   /* Single precision LSQ leads to very poor accuracy of the resulting polynomials. Therefore,
+   /* Single precision LSQ may lead to very poor accuracy of the resulting polynomials. Therefore,
       we use real_t for the polynomial evaluation only, while sticking to double precision LSQ.
     */
-   using LSQ        = surrogate::LeastSquares< double >;
-   using Poly       = surrogate::polynomial::Polynomial< real_t >;
+   template < uint8_t DIM >
+   using Poly       = surrogate::polynomial::Polynomial< real_t, DIM, DEGREE >;
    using PolyDomain = surrogate::polynomial::Domain< real_t >;
+   using LSQ        = surrogate::LeastSquares< double >;
 
    template < uint_t DIM >
    using RHS_matrix = surrogate::RHS_matrix< real_t, DIM, 1, 1 >;
    template < uint_t DIM >
    using PrecomputedData = surrogate::PrecomputedData< real_t, DIM, 1, 1 >;
    template < uint_t DIM >
-   using SurrogateData = surrogate::SurrogateData< real_t, DIM, 1, 1 >;
+   using SurrogateData = surrogate::SurrogateData< real_t, DIM, 1, 1, DEGREE >;
+   static constexpr uint_t N_CUBE( uint_t dim ) { return 1 << dim; } // number of DoF per micro-hypercube
+   template < uint_t DIM >
+   using RHS_cube = surrogate::MatrixLike< typename LSQ::Vector, N_CUBE( DIM ), N_CUBE( DIM ) >;
+   template < uint_t DIM >
+   using SurrogateCubeData = surrogate::ElementWiseData< surrogate::MatrixLike< Poly< DIM >, N_CUBE( DIM ), N_CUBE( DIM ) > >;
 
  public:
    P1ElementwiseSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -86,15 +92,13 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    /**
      * @brief Initializes the surrogate polynomials using an lsq-fit
      *
-     * @param poly_degree The polynomial degree to be used.
      * @param downsampling The downsampling factor to be applied. Default is 0 (auto).
      * @param path_to_svd The file path to the SVD data. Default is an empty string (compute SVD on first call).
      * @param needsInverseDiagEntries Flag indicating whether inverse diagonal entries are needed. Default is true.
      */
-   void init( uint8_t            poly_degree,
-              size_t             downsampling            = 0,
-              const std::string& path_to_svd             = "",
-              bool               needsInverseDiagEntries = true );
+   void init( size_t downsampling = 0, const std::string& path_to_svd = "", bool needsInverseDiagEntries = true );
+
+   void store_svd( const std::string& path_to_svd );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -160,31 +164,27 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    ///
    /// \param face           macro face
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param fType          type of micro-face (GRAY or BLUE)
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param alpha          scaling factor that is applied to the local result vector
-   void apply_2d( const Face&             face,
-                  const uint_t            level,
-                  const facedof::FaceType ftype,
-                  const real_t* const     srcVertexData,
-                  real_t* const           dstVertexData,
-                  const real_t&           alpha ) const;
+   void apply_2d( const Face&         face,
+                  const uint_t        level,
+                  const real_t* const srcVertexData,
+                  real_t* const       dstVertexData,
+                  const real_t&       alpha ) const;
 
-   /// compute matrix vector product on all micro cells of given type
+   /// compute matrix vector product on all micro cells
    ///
    /// \param cell           macro cell
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param alpha          scaling factor that is applied to the local result vector
-   void apply_3d( const Cell&             cell,
-                  const uint_t            level,
-                  const celldof::CellType cType,
-                  const real_t* const     srcVertexData,
-                  real_t* const           dstVertexData,
-                  const real_t&           alpha ) const;
+   void apply_3d( const Cell&         cell,
+                  const uint_t        level,
+                  const real_t* const srcVertexData,
+                  real_t* const       dstVertexData,
+                  const real_t&       alpha ) const;
 
    /// compute contributions to diagonal of on all micro faces of given type
    ///
@@ -228,10 +228,7 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
 
    // least squares approximator for each level
    std::vector< std::shared_ptr< LSQ > > lsq_;
-   std::vector< uint_t >                 downsampling_;
-
-   // polynomial degree for each level
-   std::vector< uint8_t > poly_degree_;
+   uint_t                                downsampling_;
 
    // precomputed local stiffness matrices for level 1-3
    PrecomputedData< 2 > a_loc_2d_;
@@ -239,50 +236,31 @@ class P1ElementwiseSurrogateOperator : public Operator< P1Function< real_t >, P1
    // surrogates for level 4+ (one poly matrix for each element type)
    SurrogateData< 2 > surrogate_2d_;
    SurrogateData< 3 > surrogate_3d_;
+   // cube-wise surrogates for level 4+ (one poly matrix for each hypercube)
+   SurrogateCubeData< 2 > surrogate_cube_2d_;
+   SurrogateCubeData< 3 > surrogate_cube_3d_;
 };
 
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateLaplaceOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateBlendingMassOperator = P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4, DEGREE, true >;
 
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogatePolarLaplaceOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateAffineMassOperator = P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4, DEGREE, true >;
 
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateMassOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateBlendingLaplaceOperator =
+    P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3, DEGREE, true >;
 
-typedef P1ElementwiseSurrogateOperator< forms::p1_mass_blending_q4 > P1ElementwiseSurrogateBlendingMassOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateBlendingLaplaceOperatorQ2 =
+    P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2, DEGREE, true >;
 
-typedef P1ElementwiseSurrogateOperator< P1LinearCombinationForm > P1ElementwiseSurrogateLinearCombinationOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateAffineDivKGradOperator =
+    P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3, DEGREE, true >;
 
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogatePSPGOperator;
-
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q3 > P1ElementwiseSurrogateBlendingLaplaceOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_diffusion_blending_q2 > P1ElementwiseSurrogateBlendingLaplaceOperatorQ2;
-
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateDivXOperator;
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >
-    P1ElementwiseSurrogateDivYOperator;
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >
-    P1ElementwiseSurrogateDivZOperator;
-
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >
-    P1ElementwiseSurrogateDivTXOperator;
-typedef P1ElementwiseSurrogateOperator<
-    P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >
-    P1ElementwiseSurrogateDivTYOperator;
-typedef P1ElementwiseSurrogateOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >
-    P1ElementwiseSurrogateDivTZOperator;
-
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseSurrogateAffineDivKGradOperator;
-typedef P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseSurrogateBlendingDivKGradOperator;
-
-typedef P1ElementwiseSurrogateOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseSurrogateKMassOperator;
+template < uint8_t DEGREE >
+using P1ElementwiseSurrogateBlendingDivKGradOperator =
+    P1ElementwiseSurrogateOperator< forms::p1_div_k_grad_blending_q3, DEGREE, true >;
 
 } // namespace hyteg

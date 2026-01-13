@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_plus_bubble_to_dg1/p2_plus_bubble_to_dg1_div_affine_q3.hpp"
@@ -31,7 +32,6 @@
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 
 namespace hyteg {
 

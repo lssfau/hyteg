@@ -21,6 +21,7 @@
 
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/globalIndices.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
@@ -40,18 +41,18 @@ using walberla::real_t;
 ///
 /// \note The src and dst data arrays must not be identical.
 static inline void localMatrixVectorMultiply2D( const uint_t           level,
-                                  const indexing::Index& microFace,
-                                  facedof::FaceType      fType,
-                                  const real_t* const    srcVertexData,
-                                  real_t* const          dstVertexData,
-                                  const Matrix3r&        elMat,
-                                  const real_t&          alpha )
+                                                const indexing::Index& microFace,
+                                                facedof::FaceType      fType,
+                                                const real_t* const    srcVertexData,
+                                                real_t* const          dstVertexData,
+                                                const Matrix3r&        elMat,
+                                                const real_t&          alpha )
 {
    WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
 
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, fType, level, vertexDoFIndices );
+   vertexdof::getVertexDoFDataIndicesFromMicroFace(microFace, fType, level, vertexDoFIndices);
 
    // assemble local element vector
    Point3D elVecOld, elVecNew;
@@ -82,13 +83,15 @@ static inline void localMatrixVectorMultiply2D( const uint_t           level,
 ///
 /// \note The src and dst data arrays must not be identical.
 static inline void localMatrixVectorMultiply3D( const uint_t            level,
-                                  const indexing::Index&  microCell,
-                                  const celldof::CellType cType,
-                                  const real_t* const     srcVertexData,
-                                  real_t* const           dstVertexData,
-                                  const Matrix4r&         elMat,
-                                  const real_t&           alpha )
+                                                const indexing::Index&  microCell,
+                                                const celldof::CellType cType,
+                                                const real_t* const     srcVertexData,
+                                                real_t* const           dstVertexData,
+                                                const Matrix4r&         elMat,
+                                                const real_t&           alpha )
 {
+   WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
+
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
    vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
@@ -100,7 +103,7 @@ static inline void localMatrixVectorMultiply3D( const uint_t            level,
       elVecOld[k] = srcVertexData[vertexDoFIndices[uint_c( k )]];
    }
 
-   // apply matrix (operator locally)
+   // local matvec
    elVecNew = alpha * ( elMat * elVecOld );
 
    // redistribute result from "local" to "global vector"
@@ -112,11 +115,11 @@ static inline void localMatrixVectorMultiply3D( const uint_t            level,
 
 template < class P1Form >
 static inline void assembleLocalElementMatrix2D( const Face&            face,
-                                   uint_t                 level,
-                                   const indexing::Index& microFace,
-                                   facedof::FaceType      fType,
-                                   P1Form                 form,
-                                   Matrix3r&              elMat )
+                                                 uint_t                 level,
+                                                 const indexing::Index& microFace,
+                                                 facedof::FaceType      fType,
+                                                 P1Form                 form,
+                                                 Matrix3r&              elMat )
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
@@ -133,11 +136,11 @@ static inline void assembleLocalElementMatrix2D( const Face&            face,
 
 template < class P1Form >
 static inline void assembleLocalElementMatrix3D( const Cell&            cell,
-                                   uint_t                 level,
-                                   const indexing::Index& microCell,
-                                   celldof::CellType      cType,
-                                   P1Form                 form,
-                                   Matrix4r&              elMat )
+                                                 uint_t                 level,
+                                                 const indexing::Index& microCell,
+                                                 celldof::CellType      cType,
+                                                 P1Form                 form,
+                                                 Matrix4r&              elMat )
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );

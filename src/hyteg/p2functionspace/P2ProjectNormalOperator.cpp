@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga.
+ * Copyright (c) 2020-2025 Daniel Drzisga, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,14 +41,45 @@ void P2ProjectNormalOperator::project( const P2Function< real_t >& dst_u,
    edgeDoFOperator.project( dst_u.getEdgeDoFFunction(), dst_v.getEdgeDoFFunction(), dst_w.getEdgeDoFFunction(), level, flag );
 }
 
+void P2ProjectNormalOperator::project( const P2Function< real_t >& dst_u,
+                                       const P2Function< real_t >& dst_v,
+                                       size_t                      level,
+                                       DoFType                     flag ) const
+{
+   p1Operator.project( dst_u.getVertexDoFFunction(), dst_v.getVertexDoFFunction(), level, flag );
+   edgeDoFOperator.project( dst_u.getEdgeDoFFunction(), dst_v.getEdgeDoFFunction(), level, flag );
+}
+
+void P2ProjectNormalOperator::project( const P2VectorFunction< real_t >& dst, size_t level, DoFType flag ) const
+{
+   if ( dst.getDimension() == 3 )
+   {
+      project( dst[0], dst[1], dst[2], level, flag );
+   }
+   else if ( dst.getDimension() == 2 )
+   {
+      project( dst[0], dst[1], level, flag );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Cannot deal with P2VectorFunction of dimension " << dst.getDimension() );
+   }
+}
+
 void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   // This way of delegation will not work for 2D case, as there ist no dst.uvw[2]
-   // project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
-
-   // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
-   uint_t idx = dst.uvw().getDimension() == 2 ? 0 : 2;
-   project( dst.uvw()[0], dst.uvw()[1], dst.uvw()[idx], level, flag );
+   if ( dst.uvw().getDimension() == 3 )
+   {
+      project( dst.uvw()[0], dst.uvw()[1], dst.uvw()[2], level, flag );
+   }
+   else if ( dst.uvw().getDimension() == 2 )
+   {
+      project( dst.uvw()[0], dst.uvw()[1], level, flag );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Cannot deal with P2P1TaylorHoodFunction of dimension " << dst.uvw().getDimension() );
+   }
 }
 
 void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -69,13 +100,19 @@ void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy
                                         DoFType                                     flag,
                                         bool                                        transpose ) const
 {
-   // transpose flag is kept to maintain the function call similar to the rotation-toMatrix for downstream templating
-   // transpose does not matter for projection matrices as they are symmetric
-   WALBERLA_UNUSED( transpose );
-
-   // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
-   uint_t idx = num.getDimension() == 2 ? 0 : 2;
-   toMatrix( mat, num[0], num[1], num[idx], level, flag );
+   if ( num.getDimension() == 3 )
+   {
+      toMatrix( mat, num[0], num[1], num[2], level, flag );
+   }
+   else if ( num.getDimension() == 2 )
+   {
+      p1Operator.toMatrix( mat, num[0].getVertexDoFFunction(), num[1].getVertexDoFFunction(), level, flag );
+      edgeDoFOperator.assembleLocalMatrix( mat, num[0].getEdgeDoFFunction(), num[1].getEdgeDoFFunction(), level, flag );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Encountered unsupported field dimension " << num.getDimension() );
+   }
 }
 
 } // namespace hyteg

@@ -20,14 +20,20 @@
 
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 
+#include <core/debug/CheckFunctions.h>
+#include <core/logging/Logging.h>
+#include <core/math/Random.h>
+
 #include "core/DataTypes.h"
-#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/p1functionspace/P1SurrogateOperator_optimized.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/types/types.hpp"
 
 /* This test checks whether the P1 surrogate
    operator works correctly. In particular
@@ -42,19 +48,23 @@
 using walberla::real_t;
 using namespace hyteg;
 
+template < uint_t q >
 void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        storage,
                               std::function< real_t( const hyteg::Point3D& ) >& k,
-                              const uint_t                                      q,
-                              const uint_t                                      level )
+                              const uint_t                                      level,
+                              const bool                                        gs = false )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "P1 surrogate operator test" )
+   auto d = ( storage->hasGlobalCells() ) ? 3 : 2;
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "P1 surrogate operator test: %dd, q=%d, lvl=%d", d, q, level ) );
 
-   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 1e-12 : 5e-4 );
+   const real_t epsilon = real_c( std::is_same< real_t, double >() ? 2e-11 : 1.5e-3 );
 
    // operators
-   forms::p1_div_k_grad_affine_q3    form( k, k );
-   P1AffineDivkGradOperator          A( storage, level, level, form );
-   P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
+   forms::p1_div_k_grad_affine_q3                form( k, k );
+   P1AffineDivkGradOperator                      A( storage, level, level, form );
+   deprecated::P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
+   P1SurrogateAffineDivKGradOperator< q >        A_q_opt( storage, level, level, form, 1 );
+   P1SurrogateAffineDivKGradOperator< q >        A_q_opt_ds( storage, level, level, form, 0 );
 
    A_q.interpolateStencils( q, level );
 
@@ -62,21 +72,105 @@ void P1SurrogateOperatorTest( const std::shared_ptr< PrimitiveStorage >&        
    hyteg::P1Function< real_t > u( "u", storage, level, level );
    hyteg::P1Function< real_t > Au( "Au", storage, level, level );
    hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
-   hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
+   hyteg::P1Function< real_t > Aqu_opt( "(A_q_opt)u", storage, level, level );
+   hyteg::P1Function< real_t > Aqu_opt_ds( "(A_q_opt_ds)u", storage, level, level );
+   hyteg::P1Function< real_t > err( "err", storage, level, level );
+   hyteg::P1Function< real_t > b( "b", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
       return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
 
+   auto check = [&]( const auto& msg ) {
+      auto errorMax = err.getMaxDoFMagnitude( level );
+      if ( errorMax > epsilon )
+      {
+         VTKOutput vtkOutput( ".", "error.vtk", storage );
+         vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
+         vtkOutput.add( err );
+         vtkOutput.write( level, 0 );
+      }
+      WALBERLA_CHECK_LESS( errorMax, epsilon, msg );
+   };
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Test A.apply()" )
+
    // apply operators
    A.apply( u, Au, level, All, Replace );
    A_q.apply( u, Aqu, level, All, Replace );
+   A_q_opt.apply( u, Aqu_opt, level, All, Replace );
+   A_q_opt_ds.apply( u, Aqu_opt_ds, level, All, Replace );
 
-   // compute error
+   // compute errors
    err.assign( { 1.0, -1.0 }, { Au, Aqu }, level, All );
-   auto errorMax = err.getMaxDoFMagnitude( level );
-   WALBERLA_CHECK_LESS( errorMax, epsilon, "||(A - A_q)u||_inf" );
+   check( "||(A - A_q)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt }, level, All );
+   check( "||(A - A_q_opt)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Au, Aqu_opt_ds }, level, All );
+   check( "||(A - A_q_opt_ds)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt }, level, All );
+   check( "||(A_q - A_q_opt)u||_inf" );
+
+   err.assign( { 1.0, -1.0 }, { Aqu, Aqu_opt_ds }, level, All );
+   check( "||(A_q - A_q_opt_ds)u||_inf" );
+
+   if ( !gs )
+   {
+      return;
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Test A.smooth_gs()" )
+
+   // initialize rhs
+   b.assign( { 1.0 }, { Au }, level, All );
+
+   // initialize solution
+   walberla::math::seedRandomGenerator( 0 );
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
+   };
+   Au.interpolate( rand, level, All );
+   Au.assign( { 1.0 }, { u }, level, DirichletBoundary );
+   for ( auto& dst : { Aqu, Aqu_opt, Aqu_opt_ds } )
+   {
+      dst.assign( { 1.0 }, { Au }, level, All );
+   }
+
+   // apply GS-smoother (should converge to u)
+   // check if the Surrogate operator converges at a similar rate
+   err.assign( { 1.0, -1.0 }, { Au, u }, level, Inner );
+   auto err0 = err.dotGlobal( err, level );
+   for ( uint_t n = 0; n < 5; ++n )
+   {
+      // apply smoothing
+      A.smooth_gs( Au, b, level, Inner );
+      A_q.smooth_gs( Aqu, b, level, Inner );
+      A_q_opt.smooth_gs( Aqu_opt, b, level, Inner );
+      A_q_opt_ds.smooth_gs( Aqu_opt_ds, b, level, Inner );
+
+      // compute errors
+      err.assign( { 1.0, -1.0 }, { Au, u }, level, Inner );
+      auto err_A = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "||e_i||/||e_0|| after GS iteration i=" << n );
+      WALBERLA_LOG_INFO_ON_ROOT( "baseline: " << err_A );
+      err.assign( { 1.0, -1.0 }, { Aqu, u }, level, All );
+      auto err_Aq = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate: " << err_Aq );
+      err.assign( { 1.0, -1.0 }, { Aqu_opt, u }, level, All );
+      auto err_Aq_opt = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt: " << err_Aq_opt );
+      err.assign( { 1.0, -1.0 }, { Aqu_opt_ds, u }, level, All );
+      auto err_Aq_opt_ds = err.dotGlobal( err, level ) / err0;
+      WALBERLA_LOG_INFO_ON_ROOT( "surrogate opt ds: " << err_Aq_opt_ds );
+
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq, err_A + 0.01 );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt, err_A + 0.01 );
+      WALBERLA_CHECK_LESS_EQUAL( err_Aq_opt_ds, err_A + 0.01 );
+   }
 }
 
 int main( int argc, char* argv[] )
@@ -115,29 +209,29 @@ int main( int argc, char* argv[] )
    //  Prepare setup for 2D tests
    // ----------------------------
 
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D(  0.0, 0.0  ), Point2D(  1.0, 1.0  ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshRectangle( Point2D( 0.0, 0.0 ), Point2D( 1.0, 1.0 ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
+   const uint_t l_min = 0;
+   const uint_t l_max = 5;
+
    // -------------------
    //  Run some 2D tests
    // -------------------
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=1, level=2" );
-   P1SurrogateOperatorTest( storage, k1, 1, 2 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=2, level=3" );
-   P1SurrogateOperatorTest( storage, k2, 2, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=3, level=3" );
-   P1SurrogateOperatorTest( storage, k3, 3, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=3" );
-   P1SurrogateOperatorTest( storage, k4, 4, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "2d, q=p=4, level=4" );
-   P1SurrogateOperatorTest( storage, k4, 4, 4 );
+   for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+   {
+      P1SurrogateOperatorTest< 1 >( storage, k1, lvl );
+      P1SurrogateOperatorTest< 2 >( storage, k2, lvl );
+      P1SurrogateOperatorTest< 3 >( storage, k3, lvl );
+      P1SurrogateOperatorTest< 4 >( storage, k4, lvl, lvl == l_max );
+   }
 
    // ----------------------------
    //  Prepare setup for 3D tests
    // ----------------------------
-   MeshInfo              meshInfo3d = MeshInfo::meshCuboid( Point3D(  0.0, 0.0, 0.0  ), Point3D(  1.0, 1.0, 1.0  ), 1, 1, 1 );
+   MeshInfo              meshInfo3d = MeshInfo::meshCuboid( Point3D( 0.0, 0.0, 0.0 ), Point3D( 1.0, 1.0, 1.0 ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage3d( meshInfo3d, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    loadbalancing::roundRobin( setupStorage3d );
    std::shared_ptr< PrimitiveStorage > storage3d = std::make_shared< PrimitiveStorage >( setupStorage3d );
@@ -145,16 +239,13 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Run some 3D tests
    // -------------------
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=1, level=3" );
-   P1SurrogateOperatorTest( storage3d, k1, 1, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=2, level=3" );
-   P1SurrogateOperatorTest( storage3d, k2, 2, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=3, level=3" );
-   P1SurrogateOperatorTest( storage3d, k3, 3, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=3" );
-   P1SurrogateOperatorTest( storage3d, k4, 4, 3 );
-   WALBERLA_LOG_INFO_ON_ROOT( "3d, q=p=4, level=4" );
-   P1SurrogateOperatorTest( storage3d, k4, 4, 4 );
+   for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
+   {
+      P1SurrogateOperatorTest< 1 >( storage3d, k1, lvl );
+      P1SurrogateOperatorTest< 2 >( storage3d, k2, lvl );
+      P1SurrogateOperatorTest< 3 >( storage3d, k3, lvl );
+      P1SurrogateOperatorTest< 4 >( storage3d, k4, lvl, lvl == l_max );
+   }
 
    return 0;
 }

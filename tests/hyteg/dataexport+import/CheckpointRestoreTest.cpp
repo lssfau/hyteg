@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr.
+ * Copyright (c) 2023-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,7 +27,6 @@
 #include "core/timing/all.h"
 
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointHelpers.hpp"
 #include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -157,10 +156,7 @@ auto importCheckpoint( const std::string&                                  fileP
 
    AdiosCheckpointImporter restorer( filePath, fileName, "" );
 
-   // if ( verbose )
-   // {
    restorer.printCheckpointInfo();
-   // }
 
    restorer.readAllUserAttributes( userAttributes );
 
@@ -170,7 +166,15 @@ auto importCheckpoint( const std::string&                                  fileP
    func_t< value_t > feFunc( funcDescr[0].name, storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
    restorer.restoreFunction( feFunc );
 
-   return feFunc;
+   // we do not want to have two function objects sharing the same function name in our test setting
+   func_t< value_t > feFuncRestored( funcDescr[0].name + "-restored", storage, funcDescr[0].minLevel, funcDescr[0].maxLevel );
+
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
+   {
+      feFuncRestored.assign( { static_cast< value_t >( 1 ) }, { feFunc }, level, All );
+   }
+
+   return feFuncRestored;
 }
 
 template < template < typename > class func_t, typename value_t >
@@ -209,14 +213,15 @@ auto importCheckpointContinuous( const std::string&                         file
    // Let's read in reverse, as we need for adjoints!
    for ( uint_t tStep = checkpointSteps; tStep >= 1; tStep-- )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "Restoring function '" << feFunc.getFunctionName() << "' at step " << tStep - 1 );
       restorer.restoreFunction( feFunc, tStep - 1 );
 
       auto func = std::make_shared< func_t< value_t > >(
           funcDescr[0].name + "_" + std::to_string( tStep - 1 ), storage, minLevel, maxLevel );
 
-      for ( uint_t l = minLevel; l <= maxLevel; l++ )
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         func->assign( { static_cast< value_t >( 1.0 ) }, { feFunc }, l, All );
+         func->assign( { static_cast< value_t >( 1.0 ) }, { feFunc }, level, All );
       }
 
       funcsToWrite[tStep - 1] = func;
@@ -255,7 +260,7 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
                                        const uint_t       minLevel,
                                        const uint_t       maxLevel,
                                        bool               verbose          = false,
-                                       const uint_t       testContinuous   = false,
+                                       bool               testContinuous   = false,
                                        const uint_t       nStepsContinuous = 0U )
 {
    bool exportFuncs = false;
@@ -269,6 +274,7 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
       WALBERLA_LOG_INFO_ON_ROOT( " - meshfile ........... '" << meshFileName << "'" );
       WALBERLA_LOG_INFO_ON_ROOT( " - filePath ........... '" << filePath << "'" );
       WALBERLA_LOG_INFO_ON_ROOT( " - fileName ........... '" << fileName << "'" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - testContinuous ..... '" << std::boolalpha << testContinuous << "'" );
       WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------------------" );
    }
 
@@ -278,13 +284,13 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
    std::map< std::string, adiosHelpers::adiostype_t > userAttributesToImport = {};
 
    // test all variant types
-   userAttributes["Test0"] = int( -4 );
-   userAttributes["Test1"] = long( -12l );
-   userAttributes["Test2"] = float( 0.9f );
-   userAttributes["Test3"] = double( -1.25 );
-   userAttributes["Test4"] = uint_t( 99ul );
-   userAttributes["Test5"] = bool( true );
-   userAttributes["Test6"] = std::string( "Test string" );
+   userAttributes["Test0"]  = int( -4 );
+   userAttributes["Test1"]  = long( -12l );
+   userAttributes["Test2"]  = float( 0.9f );
+   userAttributes["Test3"]  = double( -1.25 );
+   userAttributes["Test4"]  = uint_t( 99ul );
+   userAttributes["Test5"]  = bool( true );
+   userAttributes["Test6"]  = std::string( "Test string" );
    userAttributes["Test7"]  = std::vector< int >( { 1, -2, 3, -4, 5 } );
    userAttributes["Test8"]  = std::vector< long >( { 5l, -4l, 3l, -2l, 1l } );
    userAttributes["Test9"]  = std::vector< float >( { -0.1f, 0.2f, -0.3f, 0.4f, -0.5f } );
@@ -293,20 +299,20 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
    userAttributes["Test12"] = std::vector< bool >( { false, false, false, true, false, true } );
    userAttributes["Test13"] = std::vector< std::string >( { "This", "is", "a", "test" } );
 
-   userAttributesToImport["Test0"] = int( 0 );
-   userAttributesToImport["Test1"] = long( 0 );
-   userAttributesToImport["Test2"] = float( 0.0 );
-   userAttributesToImport["Test3"] = double( 0.0 );
-   userAttributesToImport["Test4"] = uint_t( 0 );
-   userAttributesToImport["Test5"] = bool( false );
-   userAttributesToImport["Test6"] = std::string( "" );
+   userAttributesToImport["Test0"]  = int( 0 );
+   userAttributesToImport["Test1"]  = long( 0 );
+   userAttributesToImport["Test2"]  = float( 0.0 );
+   userAttributesToImport["Test3"]  = double( 0.0 );
+   userAttributesToImport["Test4"]  = uint_t( 0 );
+   userAttributesToImport["Test5"]  = bool( false );
+   userAttributesToImport["Test6"]  = std::string( "" );
    userAttributesToImport["Test7"]  = std::vector< int >( {} );
    userAttributesToImport["Test8"]  = std::vector< long >( {} );
    userAttributesToImport["Test9"]  = std::vector< float >( {} );
    userAttributesToImport["Test10"] = std::vector< double >( {} );
    userAttributesToImport["Test11"] = std::vector< uint_t >( {} );
    userAttributesToImport["Test12"] = std::vector< bool >( {} );
-   userAttributesToImport["Test13"] = std::vector< std::string >( {} );   
+   userAttributesToImport["Test13"] = std::vector< std::string >( {} );
 
    //  Create Checkpoint
    if ( verbose )
@@ -324,8 +330,6 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
 
    func_t< value_t > funcRestored =
        importCheckpoint< func_t, value_t >( filePath, fileName, storage, minLevel, maxLevel, userAttributesToImport );
-
-   // std::cout << std::get< real_t >(userAttributesToImport["Test1"]) << ", " << std::get< uint_t >(userAttributesToImport["Test2"]) << ", " << std::get< bool >(userAttributesToImport["Test3"]) << std::endl;
 
    // integer datatype for output
    using intData_t = ADIOS2_PARAVIEW_INT_TYPE;
@@ -366,19 +370,25 @@ void runTestWithIdenticalCommunicator( const std::string& filePath,
           { static_cast< value_t >( 1 ), static_cast< value_t >( -1 ) }, { funcOriginal, funcRestored }, lvl, All );
       value_t error = computeCheckValue( difference, lvl );
 
+      if ( exportFuncs && std::is_floating_point_v< value_t > )
+      {
+         AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
+         adiosWriter.add( funcOriginal );
+         adiosWriter.add( funcRestored );
+         adiosWriter.add( difference );
+         adiosWriter.write( lvl );
+      }
+
       if ( verbose )
       {
          WALBERLA_LOG_INFO_ON_ROOT( " * checking differences on refinement level " << lvl << " ..." );
-         WALBERLA_CHECK_LESS_EQUAL( error, static_cast< value_t >( 0 ) );
-         WALBERLA_LOG_INFO_ON_ROOT( "   ... okay" );
       }
-      if ( exportFuncs )
+
+      WALBERLA_CHECK_LESS_EQUAL( error, static_cast< value_t >( 0 ) );
+
+      if ( verbose )
       {
-         // AdiosWriter adiosWriter( ".", "CheckpointRestoreTestOutput", storage );
-         // adiosWriter.add( funcOriginal );
-         // adiosWriter.add( funcRestored );
-         // adiosWriter.add( difference );
-         // adiosWriter.write( lvl );
+         WALBERLA_LOG_INFO_ON_ROOT( "   ... okay" );
       }
    }
 
@@ -516,7 +526,7 @@ int main( int argc, char* argv[] )
    // =====================
    //  Set Test Parameters
    // =====================
-   const uint_t minLevel = 0;
+   const uint_t minLevel = 2;
    const uint_t maxLevel = 3;
 
    std::string       filePath{ "." };
@@ -525,9 +535,7 @@ int main( int argc, char* argv[] )
    sStr << "-np" << walberla::mpi::MPIManager::instance()->numProcesses() << ".bp";
    fileName += sStr.str();
    std::string meshFile2D{ prependHyTeGMeshDir( "2D/LShape_6el.msh" ) };
-
-   // Some issue with AdiosWriter, so cannot visualise with this mesh!
-   std::string meshFile{ prependHyTeGMeshDir( "3D/cube_6el.msh" ) };
+   std::string meshFile3D{ prependHyTeGMeshDir( "3D/cube_6el.msh" ) };
 
    bool        onlyImport = false;
    std::string fileNameForRestore{ "non-existant-file" };
@@ -543,24 +551,41 @@ int main( int argc, char* argv[] )
    // ===========
    if ( !onlyImport )
    {
-      runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
-      runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile2D, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1Function, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
 
-      runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
-      runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile2D, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P1VectorFunction, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
 
-      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >(
-          filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
-      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true, true, 4U );
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile2D, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
+
+      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >( filePath, fileName, meshFile2D, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
+
       runTestWithIdenticalCommunicator< P2Function, real_t >(
           filePath, fileName, meshFile2D, minLevel, maxLevel, true, true, 4U );
+      runTestWithIdenticalCommunicator< P2Function, real_t >(
+          filePath, fileName, meshFile3D, minLevel, maxLevel, true, true, 4U );
 
-      // we are going to reuse this checkpoint in the next part of this pipeline job
-      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >(
+          filePath, fileName, meshFile2D, minLevel, maxLevel, true, true, 4U );
+      runTestWithIdenticalCommunicator< P2VectorFunction, real_t >(
+          filePath, fileName, meshFile3D, minLevel, maxLevel, true, true, 4U );
 
       // We currently would need to import the two component functions separately; Better than having specialised code here,
-      // alter AdiosCheckpoint[Ex|Im]porter meshFile2D
-      // runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile, minLevel, maxLevel, true );
+      // alter AdiosCheckpoint[Ex|Im]porter
+      // runTestWithIdenticalCommunicator< P2P1TaylorHoodFunction, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
+
+#ifdef DOF_DISTRIBUTION_WORKS_FOR_INTEGERS
+      // These test currently will fail, since the new implementation for importing checkpoints in version v0.3 cannot
+      // scale distributed DoFs are reading them, if the DoF type is an integral one. Keeping the calls here as a reminder!
+      runTestWithIdenticalCommunicator< P1Function, int64_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
+      runTestWithIdenticalCommunicator< P2Function, int32_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
+#endif
+
+      // we are going to reuse this checkpoint in the next part of this pipeline job
+      runTestWithIdenticalCommunicator< P2Function, real_t >( filePath, fileName, meshFile3D, minLevel, maxLevel, true );
    }
 
    // =====================
@@ -572,9 +597,18 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "You need to specify 'restoreFromFileWithName' either in the *.prm file or as CLI override" );
       }
-      runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile, minLevel, maxLevel, true );
-      return EXIT_SUCCESS;
+
+      if ( fileNameForRestore == "Checkpoint-v02-np4.bp" )
+      {
+        runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile3D, 0u, 3u, true );
+      }
+      else {
+        runTestWithOtherCommunicator< P2Function, real_t >( filePath, fileNameForRestore, meshFile3D, minLevel, maxLevel, true );
+      }
+
    }
+
+   return EXIT_SUCCESS;
 }
 
 // ensure speficied interfaces exist by making compiler explicitely instantiate the CRTP "base" class

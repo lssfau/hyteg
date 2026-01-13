@@ -77,3 +77,6 @@ waLBerla_add_test_executable( DiagonalNonConstantOperatorTest DiagonalNonConstan
 target_link_libraries       ( DiagonalNonConstantOperatorTest hyteg walberla::core constant_stencil_operator )
 waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
 
+waLBerla_add_test_executable( P1ElementwiseOperatorTest P1ElementwiseOperatorTest.cpp )
+target_link_libraries       ( P1ElementwiseOperatorTest hyteg walberla::core constant_stencil_operator )
+waLBerla_execute_test(NAME P1ElementwiseOperatorTest)

@@ -54,10 +54,13 @@ waLBerla_add_test_executable( MicroElementDoFTypificationTest MicroElementDoFTyp
 target_link_libraries       ( MicroElementDoFTypificationTest hyteg walberla::core )
 waLBerla_execute_test(NAME MicroElementDoFTypificationTest)
 
+waLBerla_add_test_executable( CubeIndexingTest CubeIndexingTest.cpp )
+target_link_libraries       ( CubeIndexingTest hyteg walberla::core )
+waLBerla_execute_test(NAME CubeIndexingTest)
+
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_add_test_executable( CouplingCountTest CouplingCountTest.cpp )
     target_link_libraries       ( CouplingCountTest hyteg walberla::core mixed_operator )
     waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest>)
     waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3)
 endif ()
-

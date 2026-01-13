@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
@@ -34,7 +35,6 @@
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {

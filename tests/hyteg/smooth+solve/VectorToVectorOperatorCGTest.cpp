@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Marcus Mohr.
+ * Copyright (c) 2022-2025 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,8 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseFullViscousOperator.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
@@ -88,7 +90,7 @@ void runCheck( std::string opName, bool verbose = false )
 
    uint_t maxIter  = 150;
    real_t tol      = real_c( std::is_same< real_t, double >() ? 1e-10 : 2e-7 );
-   auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, real_c(0), tol );
+   auto   cgSolver = hyteg::CGSolver< opType >( storage, level, level, maxIter, real_c( 0 ), tol );
    cgSolver.setPrintInfo( verbose );
 
    cgSolver.solve( *oper, u, f, level );

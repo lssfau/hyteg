@@ -130,7 +130,7 @@ struct FE_Space< ElementType::P1, StencilType::NONE >
 
    using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
    using LaplaceVAR   = hyteg::P1BlendingLaplaceOperator;
-   using LaplaceLSQP  = hyteg::P1SurrogateLaplaceOperator;
+   using LaplaceLSQP  = hyteg::deprecated::P1SurrogateLaplaceOperator;
 };
 
 template <>

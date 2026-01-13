@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,13 +19,12 @@
  */
 #pragma once
 
-#include <hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp>
-
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseEpsilonOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_invk_mass_affine_q4.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#include "constant_stencil_operator/P2ConstantEpsilonOperator.hpp"
 #include "mixed_operator/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
@@ -40,7 +39,10 @@ class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
                                                           std::function< real_t( const Point3D& ) >  mu )
    : Operator( storage, minLevel, maxLevel )
    , viscOp( storage, minLevel, maxLevel, mu )
-   , P( storage, minLevel, maxLevel, std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( mu, mu ) ) )
+   , P( storage,
+        minLevel,
+        maxLevel,
+        std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_invk_mass_affine_q4 >( mu, mu ) ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -55,7 +57,7 @@ class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
    }
 
    P2ElementwiseAffineEpsilonOperator viscOp;
-   P1BlendingLumpedDiagonalOperator P;
+   P1BlendingLumpedDiagonalOperator   P;
 
    bool hasGlobalCells_;
 };
