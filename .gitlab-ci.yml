@@ -896,7 +896,7 @@ benchmark_build_time:
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
     - cmake . -LA
-    - time make core -j20
+    - time make walberla_core -j20
     - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -f "hyteg buildtime %e" make hyteg -j20
     - cd $CI_PROJECT_DIR/build/tests && \
     - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -a -f "tests buildtime %e" make -j20
