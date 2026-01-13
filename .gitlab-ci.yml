@@ -935,7 +935,7 @@ benchmark_ClangBuildAnalyzer:
     - ninja hyteg
     - ClangBuildAnalyzer --stop src CBA
     - ClangBuildAnalyzer --analyze CBA
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
   tags:
     - docker-benchmark
   variables:
