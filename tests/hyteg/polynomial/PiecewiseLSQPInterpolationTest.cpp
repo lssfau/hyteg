@@ -94,11 +94,11 @@ real_t test( const MeshInfo& meshInfo, uint_t level, uint_t degree, uint_t depth
    SendBuffer sendBuffer;
    kdTree.serialize( sendBuffer );
 
-   walberla::mpi::writeBufferMPIIO( "../../../output/" + fileBaseName + ".buf", sendBuffer );
+   walberla::mpi::writeBuffer( "../../../output/" + fileBaseName + ".buf", sendBuffer );
 
    RecvBuffer recvBuffer;
 
-   walberla::mpi::readBufferMPIIO( "../../../output/" + fileBaseName + ".buf", recvBuffer );
+   walberla::mpi::readBuffer( "../../../output/" + fileBaseName + ".buf", recvBuffer );
 
    PiecewiseLSQPPolyKDTree kdTreeRead( aabb, 0 );
    kdTreeRead.deserialize( recvBuffer );
