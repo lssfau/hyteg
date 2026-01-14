@@ -198,7 +198,7 @@ icx_2024_mpionly_dbg_petsc_trilinos:
 
 ###############################################################################
 ##                                                                           ##
-##    Documentation                                                         ##
+##    Documentation                                                          ##
 ##                                                                           ##
 ###############################################################################
 
@@ -212,8 +212,7 @@ icx_2024_mpionly_dbg_petsc_trilinos:
     - cd $CI_PROJECT_DIR/build
     - cmake ..
     - make doc_hyteg
-    - mkdir $CI_PROJECT_DIR/public
-    - mv doc/html/* $CI_PROJECT_DIR/public/
+    - mv doc/html/ $CI_PROJECT_DIR/public/
   artifacts:
     paths:
       - public
