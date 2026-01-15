@@ -256,6 +256,8 @@ docu_build:
 coverage:
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
   script:
+    - python3 -m venv .venv
+    - source .venv/bin/activate
     - pip3 install gcovr
     - export NUM_CORES=$(nproc --all)
     - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
