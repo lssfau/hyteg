@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Andreas Wagner, Marcus Mohr.
+* Copyright (c) 2022-2026 Andreas Wagner, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -173,12 +173,8 @@ class P1ToDGOperator : public Operator< P1Function< ValueType >, DGFunction< Val
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
          {
-            if ( dim == 2 && microVolType >= 2 )
-            {
-               break;
-            }
-
-            auto faceType = facedof::allFaceTypes[microVolType];
+            // avoid out-of-bounds error in 3D
+            auto faceType = facedof::allFaceTypes[microVolType < 2 ? microVolType : 0];
             auto cellType = celldof::allCellTypes[microVolType];
 
             auto itFace = facedof::macroface::Iterator( level, faceType ).begin();

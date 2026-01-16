@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Andreas Wagner.
+ * Copyright (c) 2022-2026 Andreas Wagner, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -192,7 +192,8 @@ void DGRestriction::restrict( const dg::DGFunction< real_t >& function,
 
       for ( uint_t coarseMicroVolType = 0; coarseMicroVolType < numMicroVolTypes; coarseMicroVolType++ )
       {
-         auto coarseFaceType = facedof::allFaceTypes[coarseMicroVolType];
+         // avoid out-of-bounds error in 3D
+         auto coarseFaceType = facedof::allFaceTypes[coarseMicroVolType < 2 ? coarseMicroVolType : 0];
          auto coarseCellType = celldof::allCellTypes[coarseMicroVolType];
 
          auto itFace = facedof::macroface::Iterator( coarseLevel, coarseFaceType ).begin();
