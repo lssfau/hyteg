@@ -215,12 +215,8 @@ class DGOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
          {
-            if ( dim == 2 && microVolType >= 2 )
-            {
-               break;
-            }
-
-            auto faceType = facedof::allFaceTypes[microVolType];
+            // avoid out-of-bounds access for 3D case, where the loop will be from 0 to 5)
+            auto faceType = facedof::allFaceTypes[microVolType < 2 ? microVolType : 0];
             auto cellType = celldof::allCellTypes[microVolType];
 
             auto itFace = facedof::macroface::Iterator( level, faceType ).begin();
