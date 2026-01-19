@@ -155,21 +155,21 @@ gcc_15_serial_dbg_sp:
     - .serial_dbg_sp
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
 
-gcc_15_mpionly_petsc_trilinos:
+gcc_13_mpionly_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-13
   variables:
     HYTEG_BUILD_WITH_ADIOS2: "OFF"
     HYTEG_BUILD_WITH_PYTHON3: "OFF"
     HYTEG_TERRANEO_MODULE: "OFF"
 
-gcc_13_mpionly_dbg_petsc_trilinos:
+gcc_15_mpionly_dbg_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_dbg_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-13
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
 
 icx_2025_serial_dbg_sp:
   extends:
