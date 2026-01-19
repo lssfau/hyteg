@@ -47,7 +47,7 @@ class P2PlusBubbleProjectNormalOperator
    /// Assemble operator as sparse matrix
    ///
    /// \param mat     a sparse matrix proxy
-   /// \param numSrc  P2VectorFunction for determining row and column indices
+   /// \param numSrc  P2PlusBubbleVectorFunction for determining row and column indices
    /// \param numDst  unsued
    /// \param level   level in mesh hierarchy for which local operator is to be assembled
    /// \param flag    determines on which primitives this operator is assembled

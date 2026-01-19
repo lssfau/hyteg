@@ -125,7 +125,7 @@ int main( int argc, char* argv[] )
    testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, false >();
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for CCR in 2D" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Note: The warning on DG+Blending can be ignored, as the projection does not involve the bubble." );
+   WALBERLA_LOG_INFO_ON_ROOT( "Note: The warning on DG+Blending can be ignored, as the projection does not involve pressure." );
    testProjectNormal< CCRStokesFunction< real_t >, P2PlusBubbleProjectNormalOperator, false >();
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Testing normal projection for P1-P1 in 3D" );

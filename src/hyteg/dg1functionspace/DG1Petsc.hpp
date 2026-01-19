@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Marcus Mohr.
+ * Copyright (c) 2025-2026 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -47,7 +47,7 @@ inline void saveIdentityOperator( const DG1Function< idx_t >&                 nu
 
    if ( storage->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Missing 3D Implementation in DG1Petcs.hpp!" );
+      WALBERLA_ABORT( "Missing 3D Implementation in DG1Petsc.hpp!" );
    }
 
    else
