@@ -4,6 +4,5 @@ endif()
 
 # waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME vectorOpDemo
-        FILES vectorOpDemo.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( vectorOpDemo vectorOpDemo.cpp )
+target_link_libraries( vectorOpDemo hyteg mixed_operator )

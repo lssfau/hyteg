@@ -21,11 +21,11 @@
 #pragma once
 
 #include "core/DataTypes.h"
-#include "core/Format.hpp"
 #include "core/debug/all.h"
 #include "core/math/Matrix3.h"
 
 #include "hyteg/Algorithms.hpp"
+#include "hyteg/Format.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"

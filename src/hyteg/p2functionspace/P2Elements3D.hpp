@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "core/Optional.h"
-
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -36,7 +34,7 @@ namespace P2Elements {
 namespace P2Elements3D {
 
 /// \brief Returns the (sorted) array indices of the two micro-vertices of the given element that span the edge with the specified orientation there are any.
-inline walberla::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElement( const std::array< indexing::Index, 4 > & elementVertices,
+inline std::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElement( const std::array< indexing::Index, 4 > & elementVertices,
                                                                                      const edgedof::EdgeDoFOrientation & orientation )
 {
   for ( uint_t vertex0 = 0; vertex0 < 4; vertex0++ )
@@ -314,7 +312,7 @@ inline std::map< indexing::Index, real_t > calculateVertexToEdgeStencilInMacroCe
       // obtain weights from local element matrix
       std::vector< P2Form::dofPosByVertexPair3D > leafPos = { { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 } } };
       std::vector<real_t> weights = ufcGen.integrate( geometricCoordinates, centerEdge, leafPos );
-      
+
       // add values at correct index position into stencil
       for ( uint_t localVertexID = 0; localVertexID < weights.size(); localVertexID++ )
         {

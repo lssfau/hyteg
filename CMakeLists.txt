@@ -1,9 +1,9 @@
-cmake_minimum_required (VERSION 3.20)
+cmake_minimum_required (VERSION 3.26)
 
 PROJECT ( hyteg )
 enable_testing()
 set_property(GLOBAL PROPERTY USE FOLDERS TRUE)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -73,8 +73,8 @@ add_subdirectory( walberla EXCLUDE_FROM_ALL SYSTEM )
 list( APPEND WALBERLA_MODULE_DIRS "${hyteg_SOURCE_DIR}/src" "${hyteg_SOURCE_DIR}/tests" )
 
 # mark walberla include as system to prevent warning from walberla code
-target_include_directories(core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
-target_include_directories( core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
+target_include_directories( walberla_core SYSTEM PUBLIC ${WALBERLA_DIR}/src)
+target_include_directories( walberla_core SYSTEM PUBLIC ${hyteg_BINARY_DIR}/walberla/src )
 
 add_flag ( CMAKE_CXX_FLAGS "-Wall -Wconversion -Wshadow" )
 if ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" )
@@ -179,7 +179,10 @@ if( HYTEG_MANTLECONVECTION_APP )
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-    find_package(PETSc REQUIRED)
+    block(SCOPE_FOR POLICIES)
+       cmake_policy(SET CMP0126 OLD)
+       find_package(PETSc REQUIRED)
+    endblock()
     add_library(PETSc::PETSc INTERFACE IMPORTED)
     set_target_properties(PETSc::PETSc PROPERTIES
           INTERFACE_INCLUDE_DIRECTORIES "${PETSC_INCLUDES}"
@@ -207,8 +210,11 @@ endif()
 if ( HYTEG_BUILD_WITH_TRILINOS )
    find_package( Trilinos REQUIRED )
    message(STATUS "Found Trilinos! Trilinos_DIR = ${Trilinos_DIR} ")
-   INCLUDE_DIRECTORIES ( ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
-   list ( APPEND SERVICE_LIBS ${Trilinos_LIBRARIES} ${Trilinos_TPL_LIBRARY_DIRS})
+   add_library(Trilinos::Trilinos INTERFACE IMPORTED)
+   set_target_properties(Trilinos::Trilinos PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${Trilinos_INCLUDE_DIRS};${Trilinos_TPL_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${Trilinos_LIBRARIES};${Trilinos_TPL_LIBRARY_DIRS}"
+      )
 endif()
 
 if ( HYTEG_BUILD_WITH_MPI )

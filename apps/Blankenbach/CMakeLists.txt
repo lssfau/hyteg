@@ -9,6 +9,5 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable( NAME Blankenbach_Case3
-        FILES  Blankenbach_Case3.cpp
-        DEPENDS hyteg convection_particles sqlite mixed_operator)
+add_executable       ( Blankenbach_Case3 Blankenbach_Case3.cpp )
+target_link_libraries( Blankenbach_Case3 hyteg convection_particles walberla::sqlite mixed_operator )

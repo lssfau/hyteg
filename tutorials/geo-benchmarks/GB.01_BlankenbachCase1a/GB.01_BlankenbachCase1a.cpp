@@ -50,127 +50,127 @@
  * \page GB.01_BlankenbachCase1a Tutorial GB.01 - Blankenbach Benchmark (Case 1a)
  *
  * \dontinclude tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp
- * 
- * \brief We have demonstrated a plume rising on a cube and convection on annulus before. In this tutorial we will implement 
+ *
+ * \brief We have demonstrated a plume rising on a cube and convection on annulus before. In this tutorial we will implement
  * a standard benchmark from Geophysical literature, the Blankenbach problem, specially Case 1a, see
  * <a href="https://doi.org/10.1111/j.1365-246X.1989.tb05511.x">A benchmark comparison for mantle convection codes,
  * Blankenbach et al., 1989, GJI</a>.
  * It involves solving the respective equations on an unit square and calculation of Nusselt numbers and velocity RMS values
  * to verify the code.
- * 
+ *
  * \section GB01-BlankenbachBenchmark-GoverningEquations Model and Equations
- * 
+ *
  * The governing equations are basically the Stokes and energy equations,
- * 
+ *
  * \f{align*}{
  *  -\nabla\cdot\tau + \nabla p &= \text{Ra}T \\
  *  \nabla u &= 0 \\
  *  \frac{\partial T}{\partial t} + u \cdot \nabla T - \nabla \cdot \kappa \nabla T &= 0
  * \f}
- * 
+ *
  * The initial conditions for temperature is prescribed as,
- * 
+ *
  * \f{equation*}{
  *  T(x, y, t = 0) = (1-y) + A\cos{\pi x}\sin{\pi y}
  * \f}
- * 
+ *
  * while freeslip boundary conditions is imposed on all four walls of the square.
- * For the temperature field, a Dirichlet of T = 0 and T = 1 is imposed 
- * at the top and bottom and zero flux on the sides. This induces a single convection cell 
- * in the square and eventually reaches a steady state. Once this state is reached, 
+ * For the temperature field, a Dirichlet of T = 0 and T = 1 is imposed
+ * at the top and bottom and zero flux on the sides. This induces a single convection cell
+ * in the square and eventually reaches a steady state. Once this state is reached,
  * the Nusselt number values are calculated and verified.
  *
  * \section GB01-BlankenbachBenchmark-Domain Domain
- * 
- * Through the geometry module in HyTeG, a rectangle mesh can be created with the `meshRectangle`, 
- * which is used to create the unit square mesh. In addition to creating the macro mesh with required subdivisions, 
+ *
+ * Through the geometry module in HyTeG, a rectangle mesh can be created with the `meshRectangle`,
+ * which is used to create the unit square mesh. In addition to creating the macro mesh with required subdivisions,
  * the boundary nodes must be marked properly which will be used downstream when defining the boundary conditions
  * for the finite element functions, which is what is done in the following snippet.
- * 
+ *
  * \snippet{trimleft} this SetupStorageAndMarkings
- * 
+ *
  * \section GB01-BlankenbachBenchmark-BCs Boundary Conditions
- * 
+ *
  * The boundary conditions for the Temperature and Velocity are defined appropriately. For temperature, a Dirichlet is defined
  * on the top and bottom and zero flux on the side walls.
- * 
+ *
  * \snippet{trimleft} this BoundaryConditionsTemperature
- * 
+ *
  * For the velocity freeslip boundary conditions must be imposed on all four walls. For this, the coordinates can be seperately
  * defined a Dirichlet and Neumann condition, but here we generally impose freeslip boundary condition.
- * 
+ *
  * \snippet{trimleft} this BoundaryConditionsVelocity
- * 
+ *
  * \section GB01-BlankenbachBenchmark-OpStokes Operators -- Stokes
- * 
- * The application of freeslip boundary condition is done with a project normal operator 
+ *
+ * The application of freeslip boundary condition is done with a project normal operator
  * which needs the normals defined at the boundaries, with which the
  * velocity field is projected and the normal component is set to zero. Here the normals are defined through a lambda
  * function,
- * 
+ *
  * \snippet{trimleft} this NormalsFunctionForFS
- * 
+ *
  * And then passed on to the project normal operator
- * 
+ *
  * \snippet{trimleft} this ProjectNormalForFS
- * 
+ *
  * This is then in turn used in defining the freeslip wrapper which wraps the Stokes operator and uses the projection operator
  * to set the normal components to zero.
- * 
+ *
  * \snippet{trimleft} this StokesFreeslipOperator
- * 
+ *
  * \section GB01-BlankenbachBenchmark-OpEnergy Operators -- Energy
- * 
+ *
  * For the solution of the energy equations, we use a particle approach based on the modified method of characteristics (MMOC).
  * Hence the advection operator can be defined with
- * 
+ *
  * \snippet{trimleft} this MMOCForTransport
- * 
+ *
  * As the operator splitting approach is used, this must be taken care in the time stepping algorithm. We use an implicit Euler
- * scheme for timestepping the diffusion and the MMOC is used to step for advection. The `apply` function of the 
+ * scheme for timestepping the diffusion and the MMOC is used to step for advection. The `apply` function of the
  * `P2TransportTimesteppingOperator` applies the time discretized form of the weak form considering only the diffusion.
- * 
+ *
  * \snippet{trimleft} this TransportOperatorApply
- * 
+ *
  * \section GB01-BlankenbachBenchmark-SolverStokes Solver -- Stokes
- * 
- * Minres solver is used to compute the solution to the Stokes system. The RHS is calculated and the projection is applied 
- * before starting the iterative solve. As the Minres solver calls the wrapped Stokes operator, it is ensured that the 
+ *
+ * Minres solver is used to compute the solution to the Stokes system. The RHS is calculated and the projection is applied
+ * before starting the iterative solve. As the Minres solver calls the wrapped Stokes operator, it is ensured that the
  * projection is done at every step of the iterative solve, hence strongly applying the freeslip boundary condition.
- * 
+ *
  * \snippet{trimleft} this StokesSolverLambdaFunction
- * 
+ *
  * \section GB01-BlankenbachBenchmark-SolverEnergy Solver -- Energy
- * 
+ *
  * The timestep for the energy equation solver is calculated according to the CFL condition using the velocity from the most recent
  * Stokes solution. This is then used for the MMOC solver to step the advection, then also used for the diffusion solver.
  * Here we use CG solver for the timestepping solver as the system is nicely symmetric with only diffusion present.
- * 
+ *
  * \snippet{trimleft} this TransportSolverLambdaFunction
- * 
+ *
  * \section GB01-BlankenbachBenchmark-Timestepping Timestepping
- * 
+ *
  * First the temperature \f$ T(x, t_0) \f$ is initialized to the prescribed field according to the above equation.
- * 
+ *
  * \snippet{trimleft} this TemperatureInitialization
- * 
+ *
  * Then the Stokes system is solved to get the initial velocity field, else the program can also be started from a checkpoint.
- * 
+ *
  * \snippet{trimleft} this InitialSolveOrCheckpoint
- * 
- * This is then used to step the transport solver, both advection and the diffusion parts, with 
+ *
+ * This is then used to step the transport solver, both advection and the diffusion parts, with
  * MMOC and implicit Euler respectively. With this we compute the temperature field at time \f$ t_1 \f$. Then the Stokes system is
  * solved again to obtain the corresponding velocity field at time \f$ t_1 \f$ and so on.
- * 
+ *
  * \snippet{trimleft} this TimeStepLoopStart
  * \snippet{trimleft} this SolveEnergy
  * \snippet{trimleft} this SolveStokes
  * \snippet{trimleft} this WriteDataOut
- * 
+ *
  * \section GB01-BlankenbachBenchmark-Results Results
- * 
+ *
  * <img src="GB.01_BlankenbachSquareUpdated.png" width="50%" />
- * 
+ *
  * \section GB01-Code Complete Program
  * \include tutorials/geo-benchmarks/GB.01_BlankenbachCase1a/GB.01_BlankenbachCase1a.cpp
  */
@@ -541,7 +541,7 @@ int main( int argc, char* argv[] )
 
       simulationTime += dt;
 
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Transport done", iTimestep ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Transport done" );
 
       uPrev.assign( { 1.0 }, { u }, maxLevel, All );
 
@@ -549,7 +549,7 @@ int main( int argc, char* argv[] )
       solveU();
       ///[SolveStokes]
 
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Stokes done", iTimestep ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Stokes done" );
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Ended step %d", iTimestep ) );
 

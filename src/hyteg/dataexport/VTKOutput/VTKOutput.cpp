@@ -19,8 +19,7 @@
  */
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 
-#include "core/Format.hpp"
-
+#include "hyteg/Format.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKDGWriter.hpp"

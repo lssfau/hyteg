@@ -171,13 +171,13 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
    uExact.interpolate( solution, maxLevel, All );
    f.interpolate( rhs, maxLevel, All );
    M.apply( f, fWeak, maxLevel, All );
-   error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
+   error.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel, All );
 
    real_t l2Error    = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
                                real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
    real_t l2Residual = 0.0;
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " timestep | time total | discr. L2 error | discr. L2 residual" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "----------+------------+-----------------+--------------------" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | discr. L2 residual" );
+   WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+--------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.2e | %15.2e | %15.2e", 0, 0, l2Error, l2Residual ) );
    if ( vtk )
       vtkOutput.write( maxLevel, 0 );
@@ -189,8 +189,8 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
       rhs.inc( dt );
       timeTotal += dt;
 
-      uOld.assign( {1.0}, {u}, maxLevel, All );
-      fOld.assign( {1.0}, {f}, maxLevel, All );
+      uOld.assign( { 1.0 }, { u }, maxLevel, All );
+      fOld.assign( { 1.0 }, { f }, maxLevel, All );
 
       uExact.interpolate( solution, maxLevel, All );
       f.interpolate( rhs, maxLevel, All );
@@ -199,7 +199,7 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
       M.apply( f, fWeak, maxLevel, All );
       diffusionSolver.step( diffusionOperator, L, M, u, uOld, f, fOld, maxLevel, Inner );
 
-      error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
+      error.assign( { 1.0, -1.0 }, { u, uExact }, maxLevel, All );
       l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
                            real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
 

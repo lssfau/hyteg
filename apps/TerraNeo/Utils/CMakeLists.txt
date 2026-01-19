@@ -1,7 +1,5 @@
-waLBerla_add_executable( NAME PrimitiveStorageTransfer
-    FILES PrimitiveStorageTransfer.cpp
-    DEPENDS hyteg terraneo core sqlite convection_particles opgen-mass
-)
+add_executable       ( PrimitiveStorageTransfer PrimitiveStorageTransfer.cpp )
+target_link_libraries( PrimitiveStorageTransfer hyteg terraneo walberla::core walberla::sqlite convection_particles opgen-mass )
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config)
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/config")

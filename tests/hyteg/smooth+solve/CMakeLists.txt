@@ -1,10 +1,13 @@
 ## Basic Smoothing and Solving
-waLBerla_compile_test(FILES SmoothableTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_add_test_executable( SmoothableTest SmoothableTest.cpp )
+target_link_libraries       ( SmoothableTest hyteg walberla::core mixed_operator )
 waLBerla_execute_test(NAME SmoothableTest)
 
-waLBerla_compile_test(FILES VectorToVectorOperatorCGTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_add_test_executable( VectorToVectorOperatorCGTest VectorToVectorOperatorCGTest.cpp )
+target_link_libraries       ( VectorToVectorOperatorCGTest hyteg walberla::core mixed_operator )
 waLBerla_execute_test(NAME VectorToVectorOperatorCGTest)
 
-waLBerla_compile_test(FILES VectorToVectorOperatorChebyshevTest.cpp DEPENDS hyteg core mixed_operator)
+waLBerla_add_test_executable( VectorToVectorOperatorChebyshevTest VectorToVectorOperatorChebyshevTest.cpp )
+target_link_libraries       ( VectorToVectorOperatorChebyshevTest hyteg walberla::core mixed_operator )
 waLBerla_execute_test(NAME VectorToVectorOperatorChebyshevTest)
 

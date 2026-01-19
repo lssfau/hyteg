@@ -49,11 +49,12 @@ void test()
          {
             // check if tetIndices is a subset of cubeIndices
             bool found = std::find( cubeIndices.begin(), cubeIndices.end(), tetIndices[i] ) != cubeIndices.end();
-            WALBERLA_CHECK( found, walberla::format( "%s not contained in the micro cube", cts ) );
+            WALBERLA_CHECK( found, walberla::format( "%s not contained in the micro cube", cts.c_str() ) );
             // check if the mapping between tet and cube indices is correct
             auto j = p1::cubeIndicesFromCellIndices[ct][i];
-            WALBERLA_CHECK_EQUAL(
-                tetIndices[i], cubeIndices[j], walberla::format( "Mapping between %s-indices and cube-indices incorrect", cts ) );
+            WALBERLA_CHECK_EQUAL( tetIndices[i],
+                                  cubeIndices[j],
+                                  walberla::format( "Mapping between %s-indices and cube-indices incorrect", cts.c_str() ) );
          }
       }
    }

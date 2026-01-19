@@ -1,3 +1,5 @@
-# waLBerla_compile_test(FILES StokesAnalyticalExpressionsTest.cpp DEPENDS core hyteg manufactured_solutions)
-waLBerla_compile_test(FILES StokesAnalyticalExpressionsTest.cpp DEPENDS core)
+# waLBerla_add_test_executable( StokesAnalyticalExpressionsTest StokesAnalyticalExpressionsTest.cpp )
+# target_link_libraries       ( StokesAnalyticalExpressionsTest walberla::core hyteg manufactured_solutions )
+waLBerla_add_test_executable( StokesAnalyticalExpressionsTest StokesAnalyticalExpressionsTest.cpp )
+target_link_libraries       ( StokesAnalyticalExpressionsTest hyteg walberla::core )
 waLBerla_execute_test(NAME StokesAnalyticalExpressionsTest)

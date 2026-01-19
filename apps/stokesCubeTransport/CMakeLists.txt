@@ -4,6 +4,5 @@ endif ()
 
 waLBerla_link_files_to_builddir(*.prm)
 
-waLBerla_add_executable(NAME StokesCubeTransport
-      FILES StokesCubeTransport.cpp
-      DEPENDS hyteg mixed_operator)
+add_executable       ( StokesCubeTransport StokesCubeTransport.cpp )
+target_link_libraries( StokesCubeTransport hyteg mixed_operator )

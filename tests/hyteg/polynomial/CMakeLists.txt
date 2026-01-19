@@ -1,11 +1,15 @@
-waLBerla_compile_test(FILES PolynomialTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( PolynomialTest PolynomialTest.cpp )
+target_link_libraries       ( PolynomialTest hyteg walberla::core )
 waLBerla_execute_test(NAME PolynomialTest)
 
-waLBerla_compile_test(FILES StencilPolynomialTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( StencilPolynomialTest StencilPolynomialTest.cpp )
+target_link_libraries       ( StencilPolynomialTest hyteg walberla::core )
 waLBerla_execute_test(NAME StencilPolynomialTest)
 
-waLBerla_compile_test(FILES PiecewiseLSQPInterpolationTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( PiecewiseLSQPInterpolationTest PiecewiseLSQPInterpolationTest.cpp )
+target_link_libraries       ( PiecewiseLSQPInterpolationTest hyteg walberla::core )
 waLBerla_execute_test(NAME PiecewiseLSQPInterpolationTest)
 
-waLBerla_compile_test(FILES LeastSquaresTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( LeastSquaresTest LeastSquaresTest.cpp )
+target_link_libraries       ( LeastSquaresTest hyteg walberla::core )
 waLBerla_execute_test(NAME LeastSquaresTest)

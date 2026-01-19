@@ -20,9 +20,9 @@
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/math/Constants.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -48,15 +48,16 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_THREADINIT;
 
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
-   if( walberlaEnv.config() == nullptr )
+   if ( walberlaEnv.config() == nullptr )
    {
       auto defaultFile = "../data/param/fullMGTest.prm";
       cfg->readParameterFile( defaultFile );
-      if( !*cfg )
+      if ( !*cfg )
       {
          WALBERLA_ABORT( "could not open default file: " << defaultFile );
       }
-   } else
+   }
+   else
    {
       cfg = walberlaEnv.config();
    }
@@ -65,7 +66,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "HyTeG FMG Test" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
@@ -91,8 +93,8 @@ int main( int argc, char* argv[] )
    hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
 
-   hyteg::P1toP1LinearRestriction restrictionOperator;
-   hyteg::P1toP1LinearProlongation prolongationOperator;
+   hyteg::P1toP1LinearRestriction     restrictionOperator;
+   hyteg::P1toP1LinearProlongation    prolongationOperator;
    hyteg::P1toP1QuadraticProlongation quadraticProlongationOperator;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -116,7 +118,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   for( size_t ll = minLevel; ll <= maxLevel; ++ll )
+   for ( size_t ll = minLevel; ll <= maxLevel; ++ll )
    {
       x.interpolate( zero, ll, hyteg::Inner );
       x.interpolate( exact, ll, hyteg::DirichletBoundary );
@@ -125,41 +127,42 @@ int main( int argc, char* argv[] )
       M.apply( tmp, b, ll, hyteg::Inner );
    }
 
-   auto solver =
-       hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel, coarse_maxiter, real_c(0), coarse_tolerance );
+   auto solver = hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >(
+       storage, minLevel, minLevel, coarse_maxiter, real_c( 0 ), coarse_tolerance );
 
    std::function< void( size_t ) > cscycle;
 
    cscycle = [&]( size_t level ) {
-      if( level == minLevel )
+      if ( level == minLevel )
       {
          solver.solve( A, x, b, minLevel );
-      } else
+      }
+      else
       {
          // pre-smooth
-         for( size_t i = 0; i < nu_pre; ++i )
+         for ( size_t i = 0; i < nu_pre; ++i )
          {
             A.smooth_gs( x, b, level, hyteg::Inner );
          }
 
          A.apply( x, ax, level, hyteg::Inner );
-         r.assign( {1.0, -1.0}, {b, ax}, level, hyteg::Inner );
+         r.assign( { 1.0, -1.0 }, { b, ax }, level, hyteg::Inner );
 
          // restrict
          restrictionOperator.restrict( r, level, hyteg::Inner );
-         b.assign( {1.0}, {r}, level - 1, hyteg::Inner );
+         b.assign( { 1.0 }, { r }, level - 1, hyteg::Inner );
 
          x.interpolate( zero, level - 1 );
 
          cscycle( level - 1 );
 
          // prolongate
-         tmp.assign( {1.0}, {x}, level, hyteg::Inner );
+         tmp.assign( { 1.0 }, { x }, level, hyteg::Inner );
          prolongationOperator.prolongate( x, level - 1, hyteg::Inner );
-         x.add( {1.0}, {tmp}, level, hyteg::Inner );
+         x.add( { 1.0 }, { tmp }, level, hyteg::Inner );
 
          // post-smooth
-         for( size_t i = 0; i < nu_post; ++i )
+         for ( size_t i = 0; i < nu_post; ++i )
          {
             A.smooth_gs( x, b, level, hyteg::Inner );
          }
@@ -168,7 +171,7 @@ int main( int argc, char* argv[] )
    //hyteg::VTKWriter< hyteg::P1Function< real_t > >({ &x, &x_exact, &b }, minLevel, "../output", "fullmg");
 
    LIKWID_MARKER_START( "Compute" );
-   for( size_t ll = minLevel; ll <= maxLevel; ++ll )
+   for ( size_t ll = minLevel; ll <= maxLevel; ++ll )
    {
       tmp.interpolate( ones, ll );
       real_t npoints = tmp.dotGlobal( tmp, ll );
@@ -180,10 +183,10 @@ int main( int argc, char* argv[] )
       real_t rel_res = 1.0;
 
       A.apply( x, ax, ll, hyteg::Inner );
-      r.assign( {1.0, -1.0}, {b, ax}, ll, hyteg::Inner );
+      r.assign( { 1.0, -1.0 }, { b, ax }, ll, hyteg::Inner );
       real_t abs_res_old = std::sqrt( r.dotGlobal( r, ll, hyteg::Inner ) );
       real_t begin_res   = abs_res_old;
-      err.assign( {1.0, -1.0}, {x, x_exact}, ll );
+      err.assign( { 1.0, -1.0 }, { x, x_exact }, ll );
       real_t discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
       A.apply( err, tmp, ll, hyteg::Inner );
       real_t discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
@@ -191,28 +194,28 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, discr_h1_err ) )
 
-      for( size_t i = 0; i < outer; ++i )
+      for ( size_t i = 0; i < outer; ++i )
       {
          cscycle( ll );
          A.apply( x, ax, ll, hyteg::Inner );
-         r.assign( {1.0, -1.0}, {b, ax}, ll, hyteg::Inner );
+         r.assign( { 1.0, -1.0 }, { b, ax }, ll, hyteg::Inner );
          real_t abs_res = std::sqrt( r.dotGlobal( r, ll, hyteg::Inner ) );
          rel_res        = abs_res / begin_res;
-         err.assign( {1.0, -1.0}, {x, x_exact}, ll );
+         err.assign( { 1.0, -1.0 }, { x, x_exact }, ll );
          discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
          A.apply( err, tmp, ll, hyteg::Inner );
          discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
 
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
-                                                 i + 1,
-                                                 begin_res,
-                                                 rel_res,
-                                                 begin_res / abs_res_old,
-                                                 discr_l2_err,
-                                                 discr_h1_err ) )
+                                                      i + 1,
+                                                      begin_res,
+                                                      rel_res,
+                                                      begin_res / abs_res_old,
+                                                      discr_l2_err,
+                                                      discr_h1_err ) )
          abs_res_old = abs_res;
       }
-      if( ll < maxLevel )
+      if ( ll < maxLevel )
       {
          quadraticProlongationOperator.prolongate( x, ll, hyteg::Inner );
       }

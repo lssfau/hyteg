@@ -11,7 +11,6 @@ waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.job )
 waLBerla_link_files_to_builddir( *.sh )
 
-waLBerla_add_executable( NAME flexcycles
-        FILES flexcycles.cpp
-        DEPENDS hyteg core opgen-div_k_grad constant_stencil_operator)
+add_executable       ( flexcycles flexcycles.cpp )
+target_link_libraries( flexcycles hyteg walberla::core opgen-div_k_grad constant_stencil_operator )
  

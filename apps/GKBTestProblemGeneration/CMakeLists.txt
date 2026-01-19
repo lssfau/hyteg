@@ -8,8 +8,7 @@ waLBerla_link_files_to_builddir( *.sh )
 
 if ( HYTEG_BUILD_WITH_PETSC )
 
-waLBerla_add_executable( NAME GKBTestProblemGenerator
-        FILES  GKBTestProblemGenerator.cpp
-      DEPENDS hyteg mixed_operator)
+add_executable       ( GKBTestProblemGenerator GKBTestProblemGenerator.cpp )
+target_link_libraries( GKBTestProblemGenerator hyteg mixed_operator )
 
 endif()

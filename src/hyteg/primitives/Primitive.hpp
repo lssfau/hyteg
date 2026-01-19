@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "core/DataTypes.h"
-#include "core/NonCopyable.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
@@ -40,12 +39,11 @@
 namespace hyteg {
 
 // to be removed when moving to walberla namespace
-using walberla::NonCopyable;
 using walberla::uint_t;
 
 namespace internal {
 
-class PrimitiveData : private NonCopyable
+class PrimitiveData
 {
  public:
    template < typename DataType >
@@ -54,6 +52,9 @@ class PrimitiveData : private NonCopyable
    {
       WALBERLA_ASSERT_NOT_NULLPTR( ptr.get() );
    }
+
+   PrimitiveData( const PrimitiveData& )            = delete;
+   PrimitiveData& operator=( const PrimitiveData& ) = delete;
 
    template < typename DataType >
    DataType* get()

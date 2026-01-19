@@ -1,19 +1,15 @@
 
 
 if (HYTEG_BUILD_WITH_PETSC)
-waLBerla_add_executable( NAME MultiSinkerBenchmark
-        FILES MultiSinkerBenchmark.cpp
-      DEPENDS hyteg core mixed_operator)
+add_executable       ( MultiSinkerBenchmark MultiSinkerBenchmark.cpp )
+target_link_libraries( MultiSinkerBenchmark hyteg walberla::core mixed_operator )
 
-waLBerla_add_executable( NAME SolViBenchmark
-        FILES SolViBenchmark.cpp
-      DEPENDS hyteg core mixed_operator)
+add_executable       ( SolViBenchmark SolViBenchmark.cpp )
+target_link_libraries( SolViBenchmark hyteg walberla::core mixed_operator )
 
-waLBerla_add_executable( NAME EGSmoothViscTests
-        FILES EGSmoothViscTests.cpp
-      DEPENDS hyteg core mixed_operator)
+add_executable       ( EGSmoothViscTests EGSmoothViscTests.cpp )
+target_link_libraries( EGSmoothViscTests hyteg walberla::core mixed_operator )
 
-waLBerla_add_executable( NAME EGJumpTests.cpp
-        FILES EGJumpTests.cpp
-      DEPENDS hyteg core mixed_operator)
+add_executable       ( EGJumpTests.cpp EGJumpTests.cpp )
+target_link_libraries( EGJumpTests.cpp hyteg walberla::core mixed_operator )
 endif ()

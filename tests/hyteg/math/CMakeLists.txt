@@ -1,3 +1,4 @@
-waLBerla_compile_test(FILES IntersectionTest.cpp DEPENDS hyteg core)
+waLBerla_add_test_executable( IntersectionTest IntersectionTest.cpp )
+target_link_libraries       ( IntersectionTest hyteg walberla::core )
 waLBerla_execute_test(NAME IntersectionTest)
 

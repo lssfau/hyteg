@@ -1,10 +1,10 @@
 add_compile_options( "-std=c++20" )
 add_flag( CMAKE_CXX_FLAGS "-Wno-ambiguous-reversed-operator" )
 
-waLBerla_add_executable( NAME TerraNeo
-    FILES Convection.cpp
-    DEPENDS hyteg terraneo core sqlite convection_particles 
-    constant_stencil_operator mixed_operator opgen-mass opgen-k_mass 
+add_executable       ( TerraNeo Convection.cpp )
+target_link_libraries( TerraNeo
+    hyteg terraneo walberla::core walberla::sqlite convection_particles
+    constant_stencil_operator mixed_operator opgen-mass opgen-k_mass
     opgen-composites-stokes opgen-div_k_grad opgen-terraneo
 )
 

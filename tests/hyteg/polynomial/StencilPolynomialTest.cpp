@@ -19,7 +19,6 @@
  */
 
 #include <core/Environment.h>
-#include <core/Format.hpp>
 #include <core/config/Create.h>
 #include <core/logging/Logging.h>
 #include <core/math/Constants.h>
@@ -28,6 +27,7 @@
 #include <hyteg/polynomial/stencil/polynomial.hpp>
 #include <simd/SSE2.h>
 
+#include "hyteg/Format.hpp"
 #include "hyteg/polynomial/new/polynomial.hpp"
 
 using hyteg::idx_t;

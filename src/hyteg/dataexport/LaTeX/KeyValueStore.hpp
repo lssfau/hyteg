@@ -27,8 +27,9 @@
 #include <sstream>
 #include <string>
 
-#include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
+
+#include "hyteg/Format.hpp"
 
 namespace hyteg {
 namespace latex {

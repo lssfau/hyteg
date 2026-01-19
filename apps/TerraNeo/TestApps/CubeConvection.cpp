@@ -928,7 +928,7 @@ class TALASimulation
 void TALASimulation::solveU()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "STARTING STOKES SOLVER" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    uRhsStrong->uvw().component( 0u ).interpolate( 0.0, maxLevel, All );
@@ -966,14 +966,14 @@ void TALASimulation::solveU()
    vertexdof::projectMean( u->p(), maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "STOKES SOLVER DONE!" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
 void TALASimulation::solveT()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER STARTED!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "TRANSPORT SOLVER STARTED!" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    transportTALAOp->calculateTimestep( params.cflMax );
@@ -1037,7 +1037,7 @@ void TALASimulation::solveT()
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "TRANSPORT SOLVER DONE!" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
@@ -1091,7 +1091,7 @@ void TALASimulation::solve()
 
       step();
 
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Step done!" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Step done!" );
 
       iTimeStep++;
 

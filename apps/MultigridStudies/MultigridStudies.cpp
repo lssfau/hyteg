@@ -19,6 +19,7 @@
  */
 
 #include <cmath>
+#include <filesystem>
 
 #include "core/Environment.h"
 #include "core/Hostname.h"
@@ -119,7 +120,7 @@ std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D&
 #else
 std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
 
-std::function< real_t( const hyteg::Point3D& ) > rhs         = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D& ) { return 0; };
 #endif
 #endif // END ELSE CONSTANTA
 
@@ -350,7 +351,7 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto solver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, level );
 #else
-   auto solver     = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
+   auto solver = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
 #endif
    solver->solve( A, u, f, level );
 
@@ -2555,8 +2556,8 @@ void setup( int argc, char** argv )
          {
             for ( int p = 0; p < ( walberla::mpi::MPIManager::instance()->numProcesses() / numRanksPerDirectory ) + 1; p++ )
             {
-               walberla::filesystem::create_directory( outputBaseDirectory + "/" + parallelDirectoryPrefix +
-                                                       std::to_string( p * numRanksPerDirectory ) );
+               std::filesystem::create_directory( outputBaseDirectory + "/" + parallelDirectoryPrefix +
+                                                  std::to_string( p * numRanksPerDirectory ) );
             }
          }
          WALBERLA_MPI_BARRIER();

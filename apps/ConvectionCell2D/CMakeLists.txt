@@ -4,6 +4,5 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME ConvectionCell2D
-        FILES  ConvectionCell2D.cpp
-        DEPENDS hyteg convection_particles mixed_operator)
+add_executable       ( ConvectionCell2D ConvectionCell2D.cpp )
+target_link_libraries( ConvectionCell2D hyteg convection_particles mixed_operator )

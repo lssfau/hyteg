@@ -5,10 +5,8 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable(NAME curlCurlConvergence
-      FILES curlCurlConvergence.cpp
-      DEPENDS hyteg constant_stencil_operator mixed_operator)
+add_executable       ( curlCurlConvergence curlCurlConvergence.cpp )
+target_link_libraries( curlCurlConvergence hyteg constant_stencil_operator mixed_operator )
 
-waLBerla_add_executable(NAME torusVisualization
-      FILES torusVisualization.cpp
-      DEPENDS hyteg)
+add_executable       ( torusVisualization torusVisualization.cpp )
+target_link_libraries( torusVisualization hyteg )

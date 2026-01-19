@@ -1,14 +1,11 @@
-waLBerla_add_executable( NAME CompareInterpolate
-        FILES CompareInterpolate.cpp
-        DEPENDS hyteg)
+add_executable       ( CompareInterpolate CompareInterpolate.cpp )
+target_link_libraries( CompareInterpolate hyteg )
 
-waLBerla_add_executable( NAME IndexFunctionVSManualVersion
-        FILES IndexFunctionVSManualVersion.cpp
-        DEPENDS hyteg constant_stencil_operator)
+add_executable       ( IndexFunctionVSManualVersion IndexFunctionVSManualVersion.cpp )
+target_link_libraries( IndexFunctionVSManualVersion hyteg constant_stencil_operator )
 
-waLBerla_add_executable(NAME CollectiveOperationsBenchmark
-      FILES CollectiveOperationsBenchmark.cpp
-      DEPENDS hyteg)
+add_executable       ( CollectiveOperationsBenchmark CollectiveOperationsBenchmark.cpp )
+target_link_libraries( CollectiveOperationsBenchmark hyteg )
 
 add_subdirectory(KernelBench)
 if (WALBERLA_DOUBLE_ACCURACY)

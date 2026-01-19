@@ -1,6 +1,5 @@
-waLBerla_add_executable( NAME BA.04_BoundaryConditions
-        FILES BA.04_BoundaryConditions.cpp
-        DEPENDS hyteg core )
+add_executable       ( BA.04_BoundaryConditions BA.04_BoundaryConditions.cpp )
+target_link_libraries( BA.04_BoundaryConditions hyteg walberla::core )
 if(CMAKE_BUILD_TYPE MATCHES "Release")
    waLBerla_execute_test( NO_MODULE_LABEL NAME BA.04_BoundaryConditions )
 endif()

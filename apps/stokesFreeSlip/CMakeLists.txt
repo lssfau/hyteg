@@ -4,10 +4,8 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME StokesFreeSlip
-        FILES StokesFreeSlip.cpp
-      DEPENDS hyteg mixed_operator)
+add_executable       ( StokesFreeSlip StokesFreeSlip.cpp )
+target_link_libraries( StokesFreeSlip hyteg mixed_operator )
 
-waLBerla_add_executable( NAME ProjectNormalDemo
-        FILES ProjectNormalDemo.cpp
-        DEPENDS hyteg)
+add_executable       ( ProjectNormalDemo ProjectNormalDemo.cpp )
+target_link_libraries( ProjectNormalDemo hyteg )

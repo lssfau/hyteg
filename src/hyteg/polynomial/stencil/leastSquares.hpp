@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <core/Format.hpp>
 #include <core/logging/Logging.h>
 #include <filesystem>
 #include <hyteg/eigen/EigenWrapper.hpp>
@@ -32,6 +31,8 @@
 #include <hyteg/indexing/MacroCellIndexing.hpp>
 #include <hyteg/indexing/MacroFaceIndexing.hpp>
 #include <hyteg/polynomial/new/leastSquares.hpp>
+
+#include "hyteg/Format.hpp"
 
 namespace hyteg {
 namespace p1 {

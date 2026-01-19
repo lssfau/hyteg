@@ -20,9 +20,9 @@
 
 #include "VTKHexahedraOutput.hpp"
 
-#include "core/Format.hpp"
 #include "core/mpi/MPITextFile.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/types/PointND.hpp"
 
 #include "VTKStreamWriter.hpp"

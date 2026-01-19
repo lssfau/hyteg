@@ -4,16 +4,13 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME SPHdemo
-  FILES SPHdemo.cpp
-  DEPENDS hyteg terraneo)
+add_executable       ( SPHdemo SPHdemo.cpp )
+target_link_libraries( SPHdemo hyteg terraneo )
 
 if (NOT APPLE)
-  waLBerla_add_executable(NAME EigFunLaplace
-    FILES EigFunLaplace.cpp
-    DEPENDS hyteg terraneo)
+  add_executable       ( EigFunLaplace EigFunLaplace.cpp )
+  target_link_libraries( EigFunLaplace hyteg terraneo )
 endif ()
 
-waLBerla_add_executable( NAME bmark
-  FILES bmark.cpp
-  DEPENDS hyteg terraneo mixed_operator)
+add_executable       ( bmark bmark.cpp )
+target_link_libraries( bmark hyteg terraneo mixed_operator )

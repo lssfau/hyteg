@@ -27,8 +27,9 @@
 #include <string>
 #include <vector>
 
-#include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
+
+#include "hyteg/Format.hpp"
 
 namespace hyteg {
 namespace latex {
@@ -87,7 +88,7 @@ class Table
    }
 
    /// Auxilliary method for printing a specific rows without increasing the current row counter
-   void printSpecificRow( std::ostream& os, const std::array<std::basic_string<char>, N> row ) const
+   void printSpecificRow( std::ostream& os, const std::array< std::basic_string< char >, N > row ) const
    {
       for ( auto it = row.begin(); it != row.end(); ++it )
       {
@@ -111,7 +112,8 @@ class Table
  public:
    /// \brief Create a new `Table` with the given column `headers`.
    Table( std::array< std::string, N >&& headers )
-   : rows_{ headers }, currentRow_{ 0 }
+   : rows_{ headers }
+   , currentRow_{ 0 }
    {}
 
    /// \brief Inserts an element into this table.
@@ -149,7 +151,7 @@ class Table
       WALBERLA_ROOT_SECTION()
       {
          std::string   datFilename( walberla::format( "%s/%s.dat", dir.c_str(), filename.c_str() ) );
-         auto streamMode = ( currentRow_ == 0 ) ? std::ios_base::trunc : std::ios_base::app;
+         auto          streamMode = ( currentRow_ == 0 ) ? std::ios_base::trunc : std::ios_base::app;
          std::ofstream file( datFilename, streamMode );
 
          while ( currentRow_ < rows_.size() )

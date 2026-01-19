@@ -22,10 +22,10 @@
 #include <memory>
 
 #include "core/DataTypes.h"
-#include "core/Format.hpp"
 #include "core/debug/CheckFunctions.h"
 #include "core/mpi/MPITextFile.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKHelpers.hpp"
 #include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Vertex.hpp"
@@ -48,7 +48,7 @@ static void writeDomainPartitioningVTK( const PrimitiveStorage&                 
                                         const VTK_CELL_TYPE&                                            vtkCellType,
                                         const std::map< std::string, std::map< PrimitiveID, real_t > >& realData )
 {
-   const uint_t rank              = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
    std::vector< PrimitiveID > primitiveIDs;
    uint_t                     numLocalPrimitives   = 0;

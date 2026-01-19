@@ -4,10 +4,8 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME GMRESApp
-        FILES GMRESApp.cpp
-      DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( GMRESApp GMRESApp.cpp )
+target_link_libraries( GMRESApp hyteg walberla::core constant_stencil_operator )
 
-waLBerla_add_executable( NAME StokesGMRES
-        FILES  StokesGMRES.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( StokesGMRES StokesGMRES.cpp )
+target_link_libraries( StokesGMRES hyteg mixed_operator )

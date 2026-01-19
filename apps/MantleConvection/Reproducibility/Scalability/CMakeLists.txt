@@ -1,41 +1,33 @@
-waLBerla_add_executable( NAME MC_StrongScaling_3D
-    FILES MC_StrongScaling_3D.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
+add_executable       ( MC_StrongScaling_3D MC_StrongScaling_3D.cpp )
+target_link_libraries( MC_StrongScaling_3D hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )
 
-waLBerla_add_executable( NAME MC_WeakScaling_3D_ApproxOp
-    FILES MC_WeakScaling_3D_ApproxOp.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
+add_executable       ( MC_WeakScaling_3D_ApproxOp MC_WeakScaling_3D_ApproxOp.cpp )
+target_link_libraries( MC_WeakScaling_3D_ApproxOp hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )
 
-waLBerla_add_executable( NAME MC_WeakScaling_3D
-    FILES MC_WeakScaling_3D.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)   
+add_executable       ( MC_WeakScaling_3D MC_WeakScaling_3D.cpp )
+target_link_libraries( MC_WeakScaling_3D hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )   
 
-waLBerla_add_executable( NAME MC_StrongScaling_3D_ApproxA
-    FILES MC_StrongScaling_3D_ApproxA.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)
+add_executable       ( MC_StrongScaling_3D_ApproxA MC_StrongScaling_3D_ApproxA.cpp )
+target_link_libraries( MC_StrongScaling_3D_ApproxA hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )
 
 if ( HYTEG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME MC_StrongScaling_3D_PETSc
-    FILES MC_StrongScaling_3D_PETSc.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)   
+add_executable       ( MC_StrongScaling_3D_PETSc MC_StrongScaling_3D_PETSc.cpp )
+target_link_libraries( MC_StrongScaling_3D_PETSc hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )   
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME MC_StrongScaling_3D_ApproxA_PETSc
-    FILES MC_StrongScaling_3D_ApproxA_PETSc.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)    
+add_executable       ( MC_StrongScaling_3D_ApproxA_PETSc MC_StrongScaling_3D_ApproxA_PETSc.cpp )
+target_link_libraries( MC_StrongScaling_3D_ApproxA_PETSc hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )    
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME MC_WeakScaling_3D_ApproxOp_PETSc
-    FILES MC_WeakScaling_3D_ApproxOp_PETSc.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)    
+add_executable       ( MC_WeakScaling_3D_ApproxOp_PETSc MC_WeakScaling_3D_ApproxOp_PETSc.cpp )
+target_link_libraries( MC_WeakScaling_3D_ApproxOp_PETSc hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )    
 endif()
 
 if ( HYTEG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME MC_WeakScaling_3D_PETSc
-    FILES MC_WeakScaling_3D_PETSc.cpp
-    DEPENDS hyteg core Boost::headers convection_particles MC-operators elementwise_dof_value_operator)       
+add_executable       ( MC_WeakScaling_3D_PETSc MC_WeakScaling_3D_PETSc.cpp )
+target_link_libraries( MC_WeakScaling_3D_PETSc hyteg walberla::core Boost::headers convection_particles MC-operators elementwise_dof_value_operator )       
 endif()
 
 waLBerla_link_files_to_builddir( *.prm )

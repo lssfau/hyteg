@@ -19,7 +19,6 @@
  */
 
 #include <core/Environment.h>
-#include <core/Format.hpp>
 #include <core/config/Create.h>
 #include <core/math/Constants.h>
 #include <core/math/Random.h>
@@ -27,6 +26,8 @@
 #include <filesystem>
 #include <hyteg/polynomial/new/leastSquares.hpp>
 #include <hyteg/polynomial/stencil/leastSquares.hpp>
+
+#include "hyteg/Format.hpp"
 
 using hyteg::idx_t;
 using hyteg::real_t;

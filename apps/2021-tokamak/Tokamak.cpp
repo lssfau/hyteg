@@ -640,8 +640,8 @@ void tokamak( TokamakDomain         tokamakDomain,
    auto lastResidualL2 = initialResidualL2;
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Solving ..." )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( " iteration |  residual | res. rate |     error " )
+   WALBERLA_LOG_INFO_ON_ROOT( " ----------+-----------+-----------+-----------" )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
    auto timingTree = storage->getTimingTree();
    LIKWID_MARKER_START( "Solve" );

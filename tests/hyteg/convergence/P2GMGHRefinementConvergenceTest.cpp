@@ -18,12 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "core/Environment.h"
-#include "core/Format.hpp"
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
@@ -84,7 +84,9 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero  = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    walberla::math::seedRandomGenerator( 0 );
-   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return real_c( walberla::math::realRandom( 0.0, 20.0 ) ); };
+   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
+      return real_c( walberla::math::realRandom( 0.0, 20.0 ) );
+   };
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating u" );
    u.interpolate( rand, maxLevel, hyteg::Inner );
@@ -96,53 +98,55 @@ int main( int argc, char* argv[] )
    //  M.apply(npoints_helper, f, maxLevel, hyteg::All);
 
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up stiffness operator" );
-   auto                           start = walberla::timing::getWcTime();
+   auto                             start = walberla::timing::getWcTime();
    hyteg::P2ConstantLaplaceOperator L( storage, minLevel, maxLevel );
-   auto                           end       = walberla::timing::getWcTime();
-   real_t                         setupTime = end - start;
+   auto                             end       = walberla::timing::getWcTime();
+   real_t                           setupTime = end - start;
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2ConstantLaplaceOperator>  >();
+   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2ConstantLaplaceOperator > >();
    auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator > >(
-       storage, minLevel, minLevel, max_cg_iter, real_c(0), coarse_tolerance );
-   auto restrictionOperator = std::make_shared< hyteg::P2toP2QuadraticRestriction>();
+       storage, minLevel, minLevel, max_cg_iter, real_c( 0 ), coarse_tolerance );
+   auto restrictionOperator  = std::make_shared< hyteg::P2toP2QuadraticRestriction >();
    auto prolongationOperator = std::make_shared< hyteg::P2toP2QuadraticProlongation >();
 
    auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P2ConstantLaplaceOperator >(
-      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
-   if( parameters.getParameter< bool >( "useExactWeights" ) )
+   if ( parameters.getParameter< bool >( "useExactWeights" ) )
    {
       WALBERLA_LOG_INFO( "WARNING: works only on tri_1el mesh" );
       auto weights = hyteg::stencilWeights::tri_1el();
 
-      for( uint_t i = minLevel; i <= maxLevel; ++i )
+      for ( uint_t i = minLevel; i <= maxLevel; ++i )
       {
-         real_t* vToV =
-             storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getVertexToVertexOpr().getFaceStencilID() )->getPointer( i );
-         for( uint_t j = 0; j < 7; ++j )
+         real_t* vToV = storage->getFace( PrimitiveID::create( 6 ) )
+                            ->getData( L.getVertexToVertexOpr().getFaceStencilID() )
+                            ->getPointer( i );
+         for ( uint_t j = 0; j < 7; ++j )
          {
             vToV[j] = weights.vertexToVertexStencil[j];
          }
 
          real_t* eToV =
              storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( i );
-         for( uint_t j = 0; j < 12; ++j )
+         for ( uint_t j = 0; j < 12; ++j )
          {
             eToV[j] = weights.edgeToVertexStencil[j];
          }
 
          real_t* vToE =
              storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( i );
-         for( uint_t j = 0; j < 12; ++j )
+         for ( uint_t j = 0; j < 12; ++j )
          {
             vToE[j] = weights.vertexToEdgeStencil[j];
          }
 
-         real_t* eToE = storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( i );
-         for( uint_t j = 0; j < 15; ++j )
+         real_t* eToE =
+             storage->getFace( PrimitiveID::create( 6 ) )->getData( L.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( i );
+         for ( uint_t j = 0; j < 15; ++j )
          {
             eToE[j] = weights.edgeToEdgeStencil[j];
          }
@@ -156,23 +160,24 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    L.apply( u, Lu, maxLevel, hyteg::Inner );
-   r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner );
+   r.assign( { 1.0, -1.0 }, { f, Lu }, maxLevel, hyteg::Inner );
 
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+   err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       solveTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
    const uint_t convergenceStartIter   = 3;
 
    uint_t i = 0;
-   for( ; i < max_outer_iter; ++i )
+   for ( ; i < max_outer_iter; ++i )
    {
       start = walberla::timing::getWcTime();
 
@@ -182,10 +187,10 @@ int main( int argc, char* argv[] )
       end = walberla::timing::getWcTime();
 
       L.apply( u, Lu, maxLevel, hyteg::Inner );
-      r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner );
+      r.assign( { 1.0, -1.0 }, { f, Lu }, maxLevel, hyteg::Inner );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+      err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
@@ -193,14 +198,14 @@ int main( int argc, char* argv[] )
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old, discr_l2_err, end - start ) )
       solveTime += end - start;
 
-      if( i >= convergenceStartIter )
+      if ( i >= convergenceStartIter )
       {
          averageConvergenceRate += abs_res / abs_res_old;
       }
 
       abs_res_old = abs_res;
 
-      if( rel_res < mg_tolerance )
+      if ( rel_res < mg_tolerance )
       {
          break;
       }
@@ -218,9 +223,9 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( discr_l2_err, 9e-08 )
 
-   if( parameters.getParameter< bool >( "vtkOutput" ) )
+   if ( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput("../output", "gmg_P2_h_refinement", storage);
+      VTKOutput vtkOutput( "../output", "gmg_P2_h_refinement", storage );
       vtkOutput.add( u );
       vtkOutput.add( u_exact );
       vtkOutput.add( f );
@@ -230,7 +235,7 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   if( parameters.getParameter< bool >( "printTiming" ) )
+   if ( parameters.getParameter< bool >( "printTiming" ) )
    {
       walberla::WcTimingTree tt = timingTree->getReduced();
       WALBERLA_LOG_INFO_ON_ROOT( tt );

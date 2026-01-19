@@ -19,13 +19,11 @@ waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.sh )
 
 if (HYTEG_BUILD_WITH_PETSC)
-waLBerla_add_executable( NAME Scaling_Workshop_01_Cube
-        FILES  Scaling_Workshop_01_Cube.cpp Helpers.cpp
-        DEPENDS hyteg sqlite mixed_operator)
+add_executable       ( Scaling_Workshop_01_Cube Scaling_Workshop_01_Cube.cpp Helpers.cpp )
+target_link_libraries( Scaling_Workshop_01_Cube hyteg walberla::sqlite mixed_operator )
 
-waLBerla_add_executable( NAME Scaling_Workshop_02_Spherical_Shell
-        FILES  Scaling_Workshop_02_Spherical_Shell.cpp Helpers.cpp
-        DEPENDS hyteg sqlite mixed_operator)
+add_executable       ( Scaling_Workshop_02_Spherical_Shell Scaling_Workshop_02_Spherical_Shell.cpp Helpers.cpp )
+target_link_libraries( Scaling_Workshop_02_Spherical_Shell hyteg walberla::sqlite mixed_operator )
 endif()
 
 add_subdirectory(scriptGeneration)

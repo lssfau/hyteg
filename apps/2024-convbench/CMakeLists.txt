@@ -12,10 +12,8 @@ waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *sh )
 
-waLBerla_add_executable( NAME 2DStokesFSConvTest
-        FILES  2DStokesFSConvTest.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( 2DStokesFSConvTest 2DStokesFSConvTest.cpp )
+target_link_libraries( 2DStokesFSConvTest hyteg mixed_operator )
 
-waLBerla_add_executable( NAME 3DStokesFSConvTest
-        FILES  3DStokesFSConvTest.cpp
-        DEPENDS hyteg mixed_operator)
+add_executable       ( 3DStokesFSConvTest 3DStokesFSConvTest.cpp )
+target_link_libraries( 3DStokesFSConvTest hyteg mixed_operator )

@@ -6,7 +6,7 @@
 ###################################################################################################
 
 add_library( unresolved_particles )
-target_link_libraries( unresolved_particles PUBLIC blockforest core stencil vtk )
+target_link_libraries( unresolved_particles PUBLIC walberla::blockforest walberla::core walberla::stencil walberla::vtk )
 target_include_directories( unresolved_particles PUBLIC ${hyteg_SOURCE_DIR}/src/ ${hyteg_BINARY_DIR}/src/ )
 add_subdirectory( collision_detection )
 add_subdirectory( common )

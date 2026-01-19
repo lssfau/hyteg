@@ -4,6 +4,5 @@ endif()
 
 # waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME 3DSurfaceDemo
-  FILES 3DSurfaceDemo.cpp
-  DEPENDS hyteg )
+add_executable       ( 3DSurfaceDemo 3DSurfaceDemo.cpp )
+target_link_libraries( 3DSurfaceDemo hyteg )

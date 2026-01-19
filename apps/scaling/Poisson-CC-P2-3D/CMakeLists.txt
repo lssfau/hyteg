@@ -5,6 +5,5 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
-waLBerla_add_executable( NAME Poisson-CC-P2-3D
-        FILES Poisson-CC-P2-3D.cpp
-        DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( Poisson-CC-P2-3D Poisson-CC-P2-3D.cpp )
+target_link_libraries( Poisson-CC-P2-3D hyteg walberla::core constant_stencil_operator )

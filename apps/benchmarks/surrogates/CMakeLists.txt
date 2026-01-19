@@ -3,7 +3,6 @@ waLBerla_link_files_to_builddir( *.py )
 waLBerla_link_files_to_builddir( *.job )
 waLBerla_link_files_to_builddir( *.sh )
 
-waLBerla_add_executable( NAME SurrogateBenchmarks
-        FILES SurrogateBenchmarks.cpp
-        DEPENDS hyteg core constant_stencil_operator)
+add_executable       ( SurrogateBenchmarks SurrogateBenchmarks.cpp )
+target_link_libraries( SurrogateBenchmarks hyteg walberla::core constant_stencil_operator )
 

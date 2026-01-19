@@ -21,9 +21,9 @@
 #pragma once
 
 #include "core/DataTypes.h"
-#include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/Format.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/sparseassembly/DirichletBCs.hpp"
@@ -184,7 +184,7 @@ class TrilinosSparseMatrix
          if ( crsMatrix_->isGloballyIndexed() )
          {
             typename MatrixType::global_inds_host_view_type rowinds;
-            typename MatrixType::values_host_view_type     rowvals;
+            typename MatrixType::values_host_view_type      rowvals;
             crsMatrix_->getGlobalRowView( gid, rowinds, rowvals );
             for ( size_t j = 0; j < nE; ++j )
             {
