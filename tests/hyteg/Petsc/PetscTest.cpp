@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,7 +22,8 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/composites/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
+#include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dg1functionspace/DG1Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -30,7 +31,6 @@
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
