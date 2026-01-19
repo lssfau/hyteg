@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2026 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -233,7 +233,8 @@ class P0ToP1Operator : public Operator< P0Function< real_t >, P1Function< real_t
                break;
             }
 
-            auto faceType = facedof::allFaceTypes[microVolType];
+            // avoid out-of-bounds error in 3D
+            auto faceType = facedof::allFaceTypes[microVolType < 2 ? microVolType : 0];
             auto cellType = celldof::allCellTypes[microVolType];
 
             auto itFace = facedof::macroface::Iterator( level, faceType ).begin();
