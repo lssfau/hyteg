@@ -199,12 +199,7 @@ class P1ToP0Operator : public Operator< P1Function< real_t >, P0Function< real_t
 
          for ( uint_t microVolType = 0; microVolType < numMicroVolTypes; microVolType++ )
          {
-            if ( dim == 2 && microVolType >= 2 )
-            {
-               break;
-            }
-
-            auto faceType = facedof::allFaceTypes[microVolType];
+            auto faceType = facedof::allFaceTypes[microVolType < 2 ? microVolType : 0];
             auto cellType = celldof::allCellTypes[microVolType];
 
             auto itFace = facedof::macroface::Iterator( level, faceType ).begin();
