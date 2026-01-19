@@ -134,20 +134,20 @@ clang_21_serial_dbg_sp:
     - .serial_dbg_sp
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
 
-clang_21_mpionly_petsc_trilinos:
+clang_19_mpionly_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-19
   stage: pretest
   variables:
     HYTEG_BUILD_WITH_ADIOS2: "OFF"
 
-clang_19_mpionly_dbg_petsc_trilinos:
+clang_21_mpionly_dbg_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_dbg_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-19
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
 
 gcc_15_serial_dbg_sp:
   extends:
@@ -179,19 +179,19 @@ icx_2025_serial_dbg_sp:
   variables:
     CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
 
-icx_2025_mpionly_petsc_trilinos:
+icx_2024_mpionly_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2024
   variables:
     CMAKE_CXX_FLAGS: "-fp-model=precise"
 
-icx_2024_mpionly_dbg_petsc_trilinos:
+icx_2025_mpionly_dbg_petsc_trilinos:
   extends:
     - .build_template
     - .mpionly_dbg_petsc_trilinos
-  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2024
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
   variables:
     CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
 
