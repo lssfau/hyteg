@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Berta Vilacis, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2022-2025 Berta Vilacis, Marcus Mohr, Nils Kohl, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -56,7 +56,7 @@ class PlateVelocityProvider
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
 
-      // Transform the point to Lon, Lat, Radius - to preform all caculations
+      // Transform the point to Lon, Lat, Radius - to perform all caculations
       // We use the Lon, Lat coordinates
       const vec3D pointLonLat = terraneo::conversions::cart2sph( point );
 
@@ -74,6 +74,14 @@ class PlateVelocityProvider
       return getPointVelocity( point, age, LinearDistanceSmoother{ 0.015 }, DefaultPlateNotFoundHandler{} );
    }
 
+   /// Alternative: Interpolated linearly in time between the current and next plate age stage. Defaults to the boundaries of
+   /// plateTopologies_.getListOfPlateStages() if age lies out of bounds of plateTopologies_.getListOfPlateStages().
+   vec3D getPointVelocityLinearlyInterpolatedInTime( const vec3D& point, const real_t age )
+   {
+      return getPointVelocityLinearlyInterpolatedInTime(
+          point, age, LinearDistanceSmoother{ 0.015 }, DefaultPlateNotFoundHandler{} );
+   }
+
    /// Returns velocity vector for a point determined from the velocity of the associated plate at given age stage
    ///
    /// This is the expert version of the method which allows to explicitly set a SmoothingStrategy and
@@ -88,7 +96,7 @@ class PlateVelocityProvider
       bool   plateFound{ false };
       real_t distance{ real_c( -1 ) };
 
-      // Transform the point to Lon, Lat, Radius - to preform all calculations
+      // Transform the point to Lon, Lat, Radius - to perform all calculations
       // We use the Lon, Lat coordinates
       vec3D pointLonLat = terraneo::conversions::cart2sph( point );
 
@@ -105,9 +113,85 @@ class PlateVelocityProvider
 
       const real_t smoothingFactor = computeSmoothing( distance );
 
-      WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor: " << smoothingFactor << "\n" );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor: " << smoothingFactor );
       WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID: " << plateID << "\n" );
       return computeCartesianVelocityVector( plateRotations_, plateID, age, pointLonLat, smoothingFactor );
+   }
+
+   /// Returns velocity vector for a point determined from the velocity of the associated plate at given age stage
+   ///
+   /// Interpolated linearly in time between the current and next plate age stage. Defaults to the boundaries of
+   /// plateTopologies_.getListOfPlateStages() if age lies out of bounds of plateTopologies_.getListOfPlateStages().
+   template < typename SmoothingStrategy, typename PlateNotFoundStrategy >
+   vec3D getPointVelocityLinearlyInterpolatedInTime( const vec3D&            point,
+                                                     const real_t            age,
+                                                     SmoothingStrategy       computeSmoothing,
+                                                     PlateNotFoundStrategy&& errorHandler )
+   {
+      std::vector< real_t > plateStages = plateTopologies_.getListOfPlateStages();
+      // find the age in the plateStages list, crop to plateStages if age lies outside
+      uint_t indexFloor;
+      uint_t indexCeil;
+      real_t interpolationFactor;
+      if ( age >= plateStages.back() )
+      {
+         indexFloor          = plateStages.size() - 1;
+         indexCeil           = indexFloor;
+         interpolationFactor = real_c( 1.0 );
+      }
+      else if ( age <= plateStages.front() )
+      {
+         indexFloor          = 0;
+         indexCeil           = 0;
+         interpolationFactor = real_c( 1.0 );
+      }
+      else
+      {
+         auto iteratorLowerBound = std::lower_bound( plateStages.begin(), plateStages.end(), age );
+         indexCeil               = static_cast< uint_t >( std::distance( plateStages.begin(), iteratorLowerBound ) );
+         indexFloor              = indexCeil - 1;
+         interpolationFactor =
+             ( age - plateStages.at( indexFloor ) ) / ( plateStages.at( indexCeil ) - plateStages.at( indexFloor ) );
+      }
+
+      const real_t ageFloor = plateStages.at( indexFloor );
+      const real_t ageCeil  = plateStages.at( indexCeil );
+
+      // now to find the plates at the two ages
+      uint_t plateIDFloor{ 0 };
+      uint_t plateIDCeil{ 0 };
+      bool   plateFoundFloor{ false };
+      bool   plateFoundCeil{ false };
+      real_t distanceFloor{ real_c( -1 ) };
+      real_t distanceCeil{ real_c( -1 ) };
+
+      // Transform the point to Lon, Lat, Radius - to perform all calculations
+      // We use the Lon, Lat coordinates
+      vec3D pointLonLat = terraneo::conversions::cart2sph( point );
+      std::tie( plateFoundFloor, plateIDFloor, distanceFloor ) =
+          findPlateAndDistance( ageFloor, plateTopologies_, pointLonLat, idWhenNoPlateFound );
+      std::tie( plateFoundCeil, plateIDCeil, distanceCeil ) =
+          findPlateAndDistance( ageCeil, plateTopologies_, pointLonLat, idWhenNoPlateFound );
+
+      if ( !plateFoundFloor || !plateFoundCeil )
+      {
+         return errorHandler( point, age );
+      }
+
+      const real_t smoothingFactorFloor = computeSmoothing( distanceFloor );
+      const real_t smoothingFactorCeil  = computeSmoothing( distanceCeil );
+
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor Floor: " << smoothingFactorFloor );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Smoothing Factor Ceil: " << smoothingFactorCeil );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID Floor: " << plateIDFloor );
+      WALBERLA_LOG_DETAIL_ON_ROOT( "Plate ID Ceil: " << plateIDCeil << "\n" );
+
+      vec3D vecFloor =
+          computeCartesianVelocityVector( plateRotations_, plateIDFloor, ageFloor, pointLonLat, smoothingFactorFloor );
+      vec3D vecCeil = computeCartesianVelocityVector( plateRotations_, plateIDCeil, ageCeil, pointLonLat, smoothingFactorCeil );
+
+      // linear interpolation in time
+      return vecFloor + interpolationFactor * ( vecCeil - vecFloor );
    }
 
    /// Computes a weighted average of the velocity around the given point using the provided point and weights.
@@ -185,8 +269,8 @@ class PlateVelocityProvider
    /// Plate ID to be used when no associated plate was found for a point
    const uint_t idWhenNoPlateFound{ 0 };
 
-   real_t getMinAge() const {return plateTopologies_.getMinAge();}
-   real_t getMaxAge() const {return plateTopologies_.getMaxAge();}
+   real_t getMinAge() const { return plateTopologies_.getMinAge(); }
+   real_t getMaxAge() const { return plateTopologies_.getMaxAge(); }
 
  private:
    PlateStorage          plateTopologies_;
