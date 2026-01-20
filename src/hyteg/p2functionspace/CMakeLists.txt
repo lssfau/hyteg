@@ -2,6 +2,7 @@ target_sources( hyteg
     PRIVATE
     P2Elements.hpp
     P2Elements3D.hpp
+    P2FullViscousTDependentOperator.hpp
     P2Function.cpp
     P2Function.hpp
     P2FunctionApplyOperator.hpp
@@ -20,7 +21,6 @@ target_sources( hyteg
     P2TransferOperators.hpp
     P2VariableOperator.hpp
     P2VectorFunction.hpp
-    P2FullViscousTDependentOperator.hpp
     P2VectorMassOperator.hpp
 )
 add_subdirectory( variablestencil )

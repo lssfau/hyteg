@@ -36,6 +36,11 @@ class CCRStokesOperator : public Operator< CCRStokesFunction< real_t >, CCRStoke
    typedef P2PlusBubbleVectorLaplaceOperator                    VelocityBlockOperator_T;
    typedef operatorgeneration::P2PlusBubbleElementwiseDiffusion VelocityOperator_T;
 
+   // We do not solve iteratively at the moment and, thus, have not considered what a good block
+   // preconditioner would be. However, the StrongFreeslipWrapper expects us to typedef one. We
+   // could consider using the NoOperator class instead, but maybe better let it crash ;-)
+   typedef std::string BlockPreconditioner_T;
+
    CCRStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , Lapl( storage, minLevel, maxLevel )

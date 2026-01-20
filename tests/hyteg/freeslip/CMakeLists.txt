@@ -5,7 +5,7 @@ waLBerla_execute_test(NAME ProjectNormalTestMPI COMMAND $<TARGET_FILE:ProjectNor
 
 if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_add_test_executable( FreeslipPetscApplyTest FreeslipPetscApplyTest.cpp )
-    target_link_libraries       ( FreeslipPetscApplyTest hyteg walberla::core mixed_operator )
+    target_link_libraries       ( FreeslipPetscApplyTest hyteg walberla::core mixed_operator opgen-diffusion )
     waLBerla_execute_test(NAME FreeslipPetscApplyTest)
 endif ()
 

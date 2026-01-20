@@ -3,5 +3,6 @@ target_sources( hyteg
     DG1Function.cpp
     DG1Function.hpp
     DG1Operator.hpp
+    DG1Petsc.hpp
 )
 
