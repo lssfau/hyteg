@@ -17,6 +17,7 @@ default:
     - export
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - export CCACHE_DIR=/ccache
+    - export CXXFLAGS='-fdiagnostics-color=always'
     - export NUM_CORES=$(nproc --all)
     - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
     - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
