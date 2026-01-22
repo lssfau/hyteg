@@ -157,6 +157,13 @@ clang_21_mpionly_dbg_petsc_trilinos:
     - .mpionly_dbg_petsc_trilinos
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
 
+gcc_15_mpionly:
+  extends: .build_template
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
+  stage: pretest
+  variables:
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
+
 gcc_15_serial_dbg_sp:
   extends:
     - .build_template
