@@ -22,6 +22,7 @@ default:
     - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
     - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
     - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
+    # In a container environment we are running as root so we must disable [OpenMPI's protection](https://docs.open-mpi.org/en/v5.0.x/man-openmpi/man1/mpirun.1.html#label-schizo-ompi-allow-run-as-root).
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - $CXX --version
     - cmake --version
