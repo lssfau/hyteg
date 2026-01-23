@@ -184,7 +184,7 @@ inline void assign( const uint_t&                                               
           scalars[0] * edge.getData( srcIds[0] )
                            ->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
 
-      for ( size_t k = 1; k < srcIds.size(); ++k )
+      for ( size_t k = 1; k < scalars.size() && k < srcIds.size(); ++k )
       {
          tmp += scalars[k] *
                 edge.getData( srcIds[k] )
