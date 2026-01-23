@@ -17,8 +17,7 @@ default:
     - export
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - export CCACHE_DIR=/ccache
-    - export CLICOLOR_FORCE=1                      # for ninja
-    - export CXXFLAGS='-fdiagnostics-color=always' # for compiler
+    - export CLICOLOR_FORCE=1 # enable color output from ninja (including compiler diagnostics)
     - export NUM_CORES=$(nproc --all)
     - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
     - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
@@ -84,6 +83,7 @@ default:
     - docker
   # these are the defaults which will be overwritten with the extends keyword
   variables:
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always"
     CTEST_EXCLUDE_LABELS: "longrun"
     HYTEG_BUILD_WITH_MPI: "ON"
     HYTEG_BUILD_WITH_OPENMP: "OFF"
@@ -194,7 +194,7 @@ icx_2025_serial_dbg_sp:
     - .serial_dbg_sp
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
   variables:
-    CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -Rno-debug-disables-optimization"
 
 icx_2024_mpionly_petsc_trilinos:
   extends:
@@ -202,7 +202,7 @@ icx_2024_mpionly_petsc_trilinos:
     - .mpionly_petsc_trilinos
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2024
   variables:
-    CMAKE_CXX_FLAGS: "-fp-model=precise"
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -fp-model=precise"
 
 icx_2025_mpionly_dbg_petsc_trilinos:
   extends:
@@ -210,7 +210,7 @@ icx_2025_mpionly_dbg_petsc_trilinos:
     - .mpionly_dbg_petsc_trilinos
   image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
   variables:
-    CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -Rno-debug-disables-optimization"
 
 
 ###############################################################################
