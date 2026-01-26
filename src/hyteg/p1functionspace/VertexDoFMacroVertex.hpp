@@ -86,7 +86,7 @@ inline void assign( Vertex&                                                     
 {
    ValueType tmp = scalars[0] * vertex.getData( srcIds[0] )->getPointer( level )[0];
 
-   for ( size_t i = 1; i < srcIds.size(); ++i )
+   for ( size_t i = 1; i < scalars.size() && i < srcIds.size(); ++i )
    {
       tmp += scalars[i] * vertex.getData( srcIds[i] )->getPointer( level )[0];
    }

@@ -70,10 +70,10 @@ class EGP0StokesOperatorType : public Operator< EGP0StokesFunction< real_t >, EG
    EGP0StokesOperatorType( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , velocityBlockOp( storage, minLevel, maxLevel )
-   , blockPrec( storage, minLevel, maxLevel )
    , div( storage, minLevel, maxLevel )
    , divT( storage, minLevel, maxLevel )
    , energyNormOp( storage, minLevel, maxLevel )
+   , blockPrec( storage, minLevel, maxLevel )
    {}
 
    void apply( const EGP0StokesFunction< real_t >& src,

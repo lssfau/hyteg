@@ -70,18 +70,18 @@ static const std::array< Point3D, 4 > T2_points  = { Point3D( 0.0, 0.0, 0.0 ),
 static const std::array< real_t, 4 >  T2_weights = { 1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0 };
 
 /// 3DT-3: exact for polynomial integrands up to order 2
-static const std::array< Point3D, 4 > T3_points = { Point3D( { ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 } ),
-                                                    Point3D( { ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 } ),
-                                                    Point3D( { ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 } ),
-                                                    Point3D( { ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0,
-                                                               ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0 } ) };
+static const std::array< Point3D, 4 > T3_points = { Point3D( { real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ) } ),
+                                                    Point3D( { real_c( ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ) } ),
+                                                    Point3D( { real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ) } ),
+                                                    Point3D( { real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 - 1.0 * std::sqrt( 5.0 ) ) / 20.0 ),
+                                                               real_c( ( 5.0 + 3.0 * std::sqrt( 5.0 ) ) / 20.0 ) } ) };
 
 static const std::array< real_t, 4 > T3_weights = { 1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0 };
 

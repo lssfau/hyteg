@@ -614,7 +614,20 @@ void distributeVertexDoFData( const P1Function< value_t >& function, uint_t minL
 
          value_t factor = static_cast< value_t >(
              1.0 / ( storage->hasGlobalCells() ? edge.getNumNeighborCells() : edge.getNumNeighborFaces() ) );
+
+         // GCC 15 is emitting false positive warnings.
+         // There are several issues in GCC's bugzilla, e.g.
+         // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120954. I wanted to
+         // submit my own but couldn't find an MWE with reasonable effort, even
+         // with the use of cvise.
+         #if __GNUC__ == 15
+         #pragma GCC diagnostic push
+         #pragma GCC diagnostic ignored "-Warray-bounds"
+         #endif
          vertexdof::macroedge::assign( level, edge, { factor }, { edgeDataID }, edgeDataID );
+         #if __GNUC__ == 15
+         #pragma GCC diagnostic pop
+         #endif
       }
 
       for ( const auto& item : storage->getVertices() )
@@ -623,7 +636,15 @@ void distributeVertexDoFData( const P1Function< value_t >& function, uint_t minL
 
          value_t factor = static_cast< value_t >(
              1.0 / ( storage->hasGlobalCells() ? vertex.getNumNeighborCells() : vertex.getNumNeighborFaces() ) );
+
+         #if __GNUC__ == 15
+         #pragma GCC diagnostic push
+         #pragma GCC diagnostic ignored "-Warray-bounds"
+         #endif
          vertexdof::macrovertex::assign( vertex, { factor }, { vertexDataID }, vertexDataID, level );
+         #if __GNUC__ == 15
+         #pragma GCC diagnostic pop
+         #endif
       }
    }
 }

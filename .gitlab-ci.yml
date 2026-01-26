@@ -1,6 +1,6 @@
 ###############################################################################
 ##                                                                           ##
-##    Genral settings                                                        ##
+##    General settings                                                       ##
 ##                                                                           ##
 ###############################################################################
 
@@ -8,10 +8,29 @@ stages:
   - pretest
   - test
   - benchmark
-  - no_werror
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
+
+default:
+  before_script:
+    - export
+    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
+    - export CCACHE_DIR=/ccache
+    - export CLICOLOR_FORCE=1 # enable color output from ninja (including compiler diagnostics)
+    - export NUM_CORES=$(nproc --all)
+    - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
+    - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
+    - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
+    # In a container environment we are running as root so we must disable [OpenMPI's protection](https://docs.open-mpi.org/en/v5.0.x/man-openmpi/man1/mpirun.1.html#label-schizo-ompi-allow-run-as-root).
+    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
+    - $CXX --version
+    - cmake --version
+    - ccache --version
+    - doxygen --version
+    - mpirun --version
+    - ninja --version
+    - python --version
 
 ###############################################################################
 ##                                                                           ##
@@ -22,23 +41,12 @@ variables:
 .build_template:
   script:
     - rm -rf /usr/include/boost /opt/boost
-    - export
-    - export NUM_CORES=$(nproc --all)
-    - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
-    - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
-    - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
-    - $CXX --version
-    - cmake --version
-    - ccache --version
-    - mpirun --version
-    - ninja --version
-    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
+    - export CCACHE_STATSLOG=$CI_PROJECT_DIR/build/ccache-statslog
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
-    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake ..
       -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-      -DCMAKE_CXX_FLAGS=$CMAKE_CXX_FLAGS
+      -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS"
       -DWARNING_ERROR=$WARNING_ERROR
       -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY
       -DHYTEG_BUILD_WITH_MPI=$HYTEG_BUILD_WITH_MPI
@@ -65,6 +73,7 @@ variables:
       -GNinja
     - cmake . -LA
     - ninja -j $MAX_BUILD_CORES -l $NUM_CORES tests/all apps/all tutorials/all
+    - ccache --show-log-stats
     - cd $CI_PROJECT_DIR/build/tests
     - ctest -LE $CTEST_EXCLUDE_LABELS -C $CMAKE_BUILD_TYPE --output-on-failure -j $NUM_CORES
     - cd $CI_PROJECT_DIR/build/tutorials
@@ -75,6 +84,7 @@ variables:
     - docker
   # these are the defaults which will be overwritten with the extends keyword
   variables:
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always"
     CTEST_EXCLUDE_LABELS: "longrun"
     HYTEG_BUILD_WITH_MPI: "ON"
     HYTEG_BUILD_WITH_OPENMP: "OFF"
@@ -98,6 +108,29 @@ variables:
     WALBERLA_OPTIMIZE_FOR_LOCALHOST: "OFF"
     WARNING_ERROR: "ON"
 
+.serial_dbg_sp:
+  variables:
+    CMAKE_BUILD_TYPE: "Debug"
+    HYTEG_BUILD_WITH_MPI: "OFF"
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
+    WALBERLA_BUILD_WITH_METIS: "OFF"
+    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
+    WALBERLA_DOUBLE_ACCURACY: "OFF"
+
+.mpionly_petsc_trilinos:
+  variables:
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+    WALBERLA_OPTIMIZE_FOR_LOCALHOST: "ON"
+
+.mpionly_dbg_petsc_trilinos:
+  variables:
+    CMAKE_BUILD_TYPE: "Debug"
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
+    HYTEG_BUILD_WITH_PETSC: "ON"
+    HYTEG_BUILD_WITH_TRILINOS: "ON"
+
 
 ###############################################################################
 ##                                                                           ##
@@ -106,692 +139,97 @@ variables:
 ###############################################################################
 
 
-icx_2024_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_CXX_FLAGS: "-fp-model=precise"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
+clang_21_serial_dbg_sp:
+  extends:
+    - .build_template
+    - .serial_dbg_sp
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
 
-icx_2024_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    CMAKE_CXX_FLAGS: "-fp-model=precise"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-icx_2024_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-    CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
-  tags:
-    - docker
-
-icx_2024_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    CMAKE_CXX_FLAGS: "-Rno-debug-disables-optimization"
-    PETSC_DIR: "/opt/view"
-  tags:
-    - docker
-
-icx_2024_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-    CMAKE_CXX_FLAGS: "-fp-model=precise"
-  tags:
-    - docker
-
-icx_2024_mpionly_eigen_petsc_trilinos_no_werror:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/icx-2024:28
-  stage: no_werror
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-    WARNING_ERROR: "OFF"
-    CMAKE_CXX_FLAGS: "-fp-model=precise"
-  when: manual
-  needs: [ ]
-  tags:
-    - docker
-
-gcc_10_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_10_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_10_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_10_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_10_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-10:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_11_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_11_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_11_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_11_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_11_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_12_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_12_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_12_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_12_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_12_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-12:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_13_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-gcc_13_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
+clang_19_mpionly_petsc_trilinos:
+  extends:
+    - .build_template
+    - .mpionly_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-19
   stage: pretest
   variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  tags:
-    - docker
+    HYTEG_BUILD_WITH_ADIOS2: "OFF"
 
-gcc_13_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  tags:
-    - docker
+clang_21_mpionly_dbg_petsc_trilinos:
+  extends:
+    - .build_template
+    - .mpionly_dbg_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
 
-gcc_13_mpionly_dbg_petsc-complex_trilinos:
+gcc_15_mpionly:
   extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
+  stage: pretest
   variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  tags:
-    - docker
+    HYTEG_BUILD_WITH_OPENMP: "OFF"
+
+gcc_15_serial_dbg_sp:
+  extends:
+    - .build_template
+    - .serial_dbg_sp
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
 
 gcc_13_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
+  extends:
+    - .build_template
+    - .mpionly_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-13
   variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
     HYTEG_BUILD_WITH_ADIOS2: "OFF"
-    HYTEG_TERRANEO_MODULE: "OFF"
-    PETSC_DIR: "/opt/view"
     HYTEG_BUILD_WITH_PYTHON3: "OFF"
-  tags:
-    - docker
+    HYTEG_TERRANEO_MODULE: "OFF"
 
-gcc_13_mpionly_eigen_petsc_trilinos_no_werror:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
-  stage: no_werror
+gcc_15_mpionly_dbg_petsc_trilinos:
+  extends:
+    - .build_template
+    - .mpionly_dbg_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
+
+icx_2025_serial_dbg_sp:
+  extends:
+    - .build_template
+    - .serial_dbg_sp
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
   variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-    WARNING_ERROR: "OFF"
-  when: manual
-  needs: [ ]
-  tags:
-    - docker
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -Rno-debug-disables-optimization"
 
-clang_14_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
+icx_2024_mpionly_petsc_trilinos:
+  extends:
+    - .build_template
+    - .mpionly_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2024
   variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -fp-model=precise"
 
-clang_14_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
+icx_2025_mpionly_dbg_petsc_trilinos:
+  extends:
+    - .build_template
+    - .mpionly_dbg_petsc_trilinos
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-icx-2025
   variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_14_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_14_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_14_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-14:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_15_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_15_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_15_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_15_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_15_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-15:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_16_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_16_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_16_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_16_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_16_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-16:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_17_serial:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_17_mpionly:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-  only:
-    variables:
-      - $ENABLE_NIGHTLY_BUILDS
-  tags:
-    - docker
-
-clang_17_serial_dbg_sp:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  before_script:
-    - sed -i 's/-Wno-error=\(.*\)conversion/-Wno-\1conversion/g' $CI_PROJECT_DIR/CMakeLists.txt
-  variables:
-    WALBERLA_BUILD_WITH_MPI: "OFF"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    WALBERLA_BUILD_WITH_PARMETIS: "OFF"
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_DOUBLE_ACCURACY: "OFF"
-    WALBERLA_BUILD_WITH_METIS: "OFF"
-  tags:
-    - docker
-
-clang_17_mpionly_dbg_petsc-complex_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  variables:
-    CMAKE_BUILD_TYPE: "Debug"
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  tags:
-    - docker
-
-clang_17_mpionly_petsc_trilinos:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  stage: pretest
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_ADIOS2: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-  tags:
-    - docker
-
-clang_17_mpionly_eigen_petsc_trilinos_no_werror:
-  extends: .build_template
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
-  stage: no_werror
-  variables:
-    WALBERLA_BUILD_WITH_OPENMP: "OFF"
-    HYTEG_BUILD_WITH_PETSC: "ON"
-    HYTEG_BUILD_WITH_TRILINOS: "ON"
-    PETSC_DIR: "/opt/view"
-    WARNING_ERROR: "OFF"
-  when: manual
-  needs: [ ]
-  tags:
-    - docker
-
+    CMAKE_CXX_FLAGS: "-fdiagnostics-color=always -Rno-debug-disables-optimization"
 
 
 ###############################################################################
 ##                                                                           ##
-##    Documentation                                                         ##
+##    Documentation                                                          ##
 ##                                                                           ##
 ###############################################################################
 
 .docu_template:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-13:28
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
   script:
-    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - cd $CI_PROJECT_DIR/doc
     - python3 checkImages.py
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
     - cmake ..
     - make doc_hyteg
-    - mkdir $CI_PROJECT_DIR/public
-    - mv doc/html/* $CI_PROJECT_DIR/public/
+    - mv doc/html/ $CI_PROJECT_DIR/public/
   artifacts:
     paths:
       - public
@@ -814,69 +252,6 @@ docu_build:
 
 ###############################################################################
 ##                                                                           ##
-##    Code analysis                                                          ##
-##                                                                           ##
-###############################################################################
-
-# cppcheck:
-#    image: walberla/cppcheck
-#    script:
-#       - cppcheck --version
-#       - cppcheck . --max-configs=10 --enable=warning --enable=style --enable=performance --enable=portability -i src/gui/extern -i src/geometry/structured/extern -i sqlite3.c -i StackWalker.cpp -I src/ -I tests/ -I apps/ -D HYTEG_BUILD_WITH_MPI -D WALBERLA_BUILD_WITH_METIS -D WALBERLA_BUILD_WITH_BOOST_THREAD -D WALBERLA_BUILD_WITH_PYTHON --xml 2> report.xml
-#       - cppcheck-htmlreport --file=report.xml --report-dir=html_report --source-dir=.
-#    artifacts:
-#       untracked: true
-#    only:
-#       - triggers
-#    tags:
-#       - docker
-#
-#
-coverage:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-9
-  script:
-    - pip3 install gcovr
-    - export NUM_CORES=$(nproc --all)
-    - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
-    - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
-    - $CXX --version
-    - cmake --version
-    - ccache --version
-    - mpirun --version
-    - gcov --version
-    - echo $CI_PROJECT_DIR
-    - mkdir $CI_PROJECT_DIR/build-coverage
-    - cd $CI_PROJECT_DIR/build-coverage
-    - pwd
-    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-    - cmake .. -DWARNING_ERROR=ON -DHYTEG_BUILD_WITH_MPI=ON -DHYTEG_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=Debug -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fprofile-abs-path"
-    - cmake . -LA
-    - cd $CI_PROJECT_DIR/build-coverage/tests
-    - pwd
-    - make -j $MAX_BUILD_CORES -l $NUM_CORES
-    - ctest -LE $CTEST_EXCLUDE_LABELS --output-on-failure -j $NUM_CORES
-    - cd $CI_PROJECT_DIR/build-coverage
-    - mkdir coverage
-    - pwd
-    - gcovr --root ${CI_PROJECT_DIR} -f  ${CI_PROJECT_DIR}/src  -e ".*generatedKernels.*" --print-summary --html coverage/coverage.html --html-details --xml-pretty -o coverage/coverage.xml .
-  coverage: /^\s*lines:\s*\d+.\d+\%/
-  artifacts:
-    paths:
-      - build-coverage/coverage/
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: build-coverage/coverage/coverage.xml
-  tags:
-    - docker
-  when: manual
-  needs: [ ]
-  stage: benchmark
-  variables:
-    CTEST_EXCLUDE_LABELS: "longrun"
-
-###############################################################################
-##                                                                           ##
 ##    Benchmarks                                                             ##
 ##                                                                           ##
 ###############################################################################
@@ -885,15 +260,8 @@ benchmark_build_time:
   script:
     - apt-get update --fix-missing
     - apt-get install -y python3-influxdb time
-    - cmake --version
-    - ccache --version
-    - mpirun --version
-    - export CC=/usr/bin/gcc
-    - export CXX=/usr/bin/g++
-    - $CXX --version
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
-    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
     - cmake . -LA
     - time make walberla_core -j20
@@ -905,7 +273,7 @@ benchmark_build_time:
     - cd $CI_PROJECT_DIR/
     - cat BuildTiming.txt
     # - python3 $CI_PROJECT_DIR/data/scripts/upload.py
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-gcc-15
   tags:
     - docker-benchmark
   variables:
@@ -913,13 +281,6 @@ benchmark_build_time:
 
 benchmark_ClangBuildAnalyzer:
   script:
-    - pip3 install ninja
-    - cmake --version
-    - ccache --version
-    - mpirun --version
-    - export CC=clang
-    - export CXX=clang++
-    - $CXX --version
     - cd /tmp
     - git clone https://github.com/aras-p/ClangBuildAnalyzer.git
     - cd ClangBuildAnalyzer
@@ -928,96 +289,14 @@ benchmark_ClangBuildAnalyzer:
     - export PATH+=:$(pwd)
     - mkdir $CI_PROJECT_DIR/build
     - cd $CI_PROJECT_DIR/build
-    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -G Ninja -DCMAKE_CXX_FLAGS=-ftime-trace -G Ninja
     - cmake . -LA
     - ClangBuildAnalyzer --start src
     - ninja hyteg
     - ClangBuildAnalyzer --stop src CBA
     - ClangBuildAnalyzer --analyze CBA
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-17:28
+  image: i10git.cs.fau.de:5005/ci/images/spack-stable-bincache:i10ci-hyteg-clang-21
   tags:
     - docker-benchmark
   variables:
     CTEST_EXCLUDE_LABELS: "longrun"
-
-.benchmark_template: &benchmark_definition
-  script:
-    - apt-get update --fix-missing
-    - apt-get install -y python3-influxdb python3-git
-    - $CXX --version
-    - cmake --version
-    - ccache --version
-    - mpirun --version
-    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
-    - mkdir $CI_PROJECT_DIR/build
-    - cd $CI_PROJECT_DIR/build
-    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-    - cmake .. -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DHYTEG_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF -DHYTEG_BUILD_WITH_LIKWID=ON
-    - cmake . -LA
-    - time make core -j20
-    - time make hyteg -j20
-    - cd $CI_PROJECT_DIR/build/tests
-    - time make -j20
-    - time ctest -LE $CTEST_EXCLUDE_LABELS -C $CMAKE_BUILD_TYPE --output-on-failure -j 1
-    - cd $CI_PROJECT_DIR/build/apps
-    - time make -j20
-    - cd $CI_PROJECT_DIR/build/apps/benchmarks/P1Benchmark
-    - make -j 20
-    - export PATH=$PATH:/usr/local/likwid/bin
-    - likwid-setFrequencies -t 0
-    - likwid-setFrequencies -g performance
-    - likwid-setFrequencies -f 3.3 # set frequency to 3.3
-    - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=10 | tee P1BenchmarkOutput.txt
-    - python3 upload.py
-    - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=12 | tee P1BenchmarkOutput.txt
-    - python3 upload.py
-    - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=14 | tee P1BenchmarkOutput.txt
-    - python3 upload.py
-    - cd $CI_PROJECT_DIR/build/apps/benchmarks/P2Benchmark
-    - make -j 20
-    - export PATH=$PATH:/usr/local/likwid/bin
-    - likwid-setFrequencies -t 0
-    - likwid-setFrequencies -g performance
-    - likwid-setFrequencies -f 3.3 # set frequency to 3.3
-    - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P2Benchmark P2Benchmark.prm -Parameters.level=10 | tee P2BenchmarkOutput.txt
-    - python3 upload.py
-    - cd $CI_PROJECT_DIR/build/apps/benchmarks/P2SolverBenchmark
-    - make -j 20
-    - export PATH=$PATH:/usr/local/likwid/bin
-    - likwid-setFrequencies -t 0
-    - likwid-setFrequencies -g performance
-    - likwid-setFrequencies -f 3.3 # set frequency to 3.3
-    - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P2SolverBenchmark P2SolverBenchmark.prm -Parameters.level=8 | tee P2SolverBenchmarkOutput.txt
-    - python3 upload.py
-    - cd $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/
-    - make -j 20
-    - python3 createLevelScalingDataOnSwarm.py
-    - mkdir -p ~/.config/matplotlib
-    - echo backend:Agg > ~/.config/matplotlib/matplotlibrc
-    - cat $DOCKER_IMAGE_NAME.txt
-    - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP [MFLOP/s] STAT"
-  tags:
-    - docker-benchmark
-  variables:
-    CTEST_EXCLUDE_LABELS: "longrun"
-  artifacts:
-    paths:
-      - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.pdf
-      - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.txt
-    expire_in: 1 weeks
-  when: manual
-  needs: [ ]
-  stage: benchmark
-
-benchmark_intel20:
-  <<: *benchmark_definition
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:20
-
-benchmark_gcc11:
-  <<: *benchmark_definition
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc-11
-
-benchmark_clang13:
-  <<: *benchmark_definition
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/clang-13.0

@@ -750,7 +750,11 @@ PrimitiveStorage::PrimitiveStorage( const std::string& file, uint_t additionalHa
 #ifdef HYTEG_BUILD_WITH_ADIOS2
       const std::string engineType_{ "BPFile" };
 
+#ifdef HYTEG_BUILD_WITH_MPI
       adios2::ADIOS adios_ = adios2::ADIOS( walberla::MPIManager::instance()->comm() );
+#else
+      adios2::ADIOS adios_ = adios2::ADIOS();
+#endif
 
       adios2::IO io = adios_.DeclareIO( "SetupPrimitiveStorageReadFromFile" );
       io.SetEngine( engineType_ );

@@ -74,7 +74,7 @@ class FileWritingVector : public VectorProxy
 
    void readFromFile( std::string filename )
    {
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
 
       uint_t newLocalMapSize  = mapVector_->getSize();
       uint_t newGlobalMapSize = walberla::mpi::allReduce( newLocalMapSize, walberla::mpi::SUM );
@@ -107,7 +107,7 @@ class FileWritingVector : public VectorProxy
          file.close();
       }
 
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
 
       // read from the file
       {
@@ -171,12 +171,12 @@ class FileWritingVector : public VectorProxy
          file.close();
       }
 
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
    }
 
    void writeToFile( std::string filename )
    {
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
 
       uint_t newLocalMapSize  = mapVector_->getSize();
       uint_t newGlobalMapSize = walberla::mpi::allReduce( newLocalMapSize, walberla::mpi::SUM );
@@ -215,7 +215,7 @@ class FileWritingVector : public VectorProxy
          file.close();
       }
 
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
 
       // write to the file
       {
@@ -268,7 +268,7 @@ class FileWritingVector : public VectorProxy
          file.close();
       }
 
-      MPI_Barrier( MPI_COMM_WORLD );
+      WALBERLA_MPI_WORLD_BARRIER();
    }
 
  private:

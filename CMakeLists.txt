@@ -102,12 +102,21 @@ if ( HYTEG_BUILD_WITH_MPFR )
     # Extends cmake module path - so that FindMPFR.cmake in the current directory is found
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${EIGEN_DIR}/cmake)
 
+    find_package(GMP REQUIRED)
+    add_library(GMP::GMP INTERFACE IMPORTED)
+    set_target_properties(GMP::GMP PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDES}"
+            INTERFACE_LINK_LIBRARIES "${GMP_LIBRARIES}"
+    )
+
     find_package(MPFR REQUIRED)
     add_library(MPFR::MPFR INTERFACE IMPORTED)
     set_target_properties(MPFR::MPFR PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${MPFR_INCLUDES}"
             INTERFACE_LINK_LIBRARIES "${MPFR_LIBRARIES}"
     )
+    target_link_libraries(MPFR::MPFR INTERFACE GMP::GMP)
+
     # add the path of the mpfr-wrapper to the include path
     include_directories(SYSTEM extern/mpfr-wrapper)
 endif ()
@@ -293,7 +302,7 @@ add_subdirectory( tutorials )
 # Build documentation using Doxygen (www.doxygen.org)
 ############################################################################################################################
 
-  find_package ( Doxygen 1.10.0 OPTIONAL_COMPONENTS dot )
+  find_package ( Doxygen 1.11.0 OPTIONAL_COMPONENTS dot )
   find_package ( HTMLHelp )
 
   if ( HTML_HELP_COMPILER EQUAL "" )
@@ -335,11 +344,6 @@ if ( DOXYGEN_FOUND )
 
   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
     COMMENT "Generating API documentation with Doxygen" VERBATIM )
-
-  if ( ${DOXYGEN_VERSION} VERSION_LESS "1.11.0" )
-    message( WARNING "Doxygen version is older than 1.11.0 !\nThus, your version does not include a patch for "
-      "issue https://github.com/doxygen/doxygen/issues/10517\nwhich affects some of HyTeG's tutorials" )
-  endif()
 
 else ()
 

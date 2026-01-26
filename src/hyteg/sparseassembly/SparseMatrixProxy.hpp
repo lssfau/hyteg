@@ -23,20 +23,25 @@
 #include <vector>
 
 #include "core/DataTypes.h"
+#include "core/mpi/MPIWrapper.h"
 
 namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
+using namespace walberla::mpistubs;
 
 /// \brief This class serves as a proxy for the assembly of sparse matrices, especially for external formats/libraries.
 class SparseMatrixProxy
 {
  public:
-   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const      = 0;
-   virtual std::shared_ptr< SparseMatrixProxy > createEmptyCopy() const = 0;
-   virtual std::shared_ptr< SparseMatrixProxy >
-       createMatrix( uint_t localRows, uint_t localCols, uint_t globalRows, uint_t globalCols, const MPI_Comm& MpiCommunicator ) const = 0;
+   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const                                    = 0;
+   virtual std::shared_ptr< SparseMatrixProxy > createEmptyCopy() const                               = 0;
+   virtual std::shared_ptr< SparseMatrixProxy > createMatrix( uint_t          localRows,
+                                                              uint_t          localCols,
+                                                              uint_t          globalRows,
+                                                              uint_t          globalCols,
+                                                              const MPI_Comm& MpiCommunicator ) const = 0;
 
    /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
    virtual void addValue( uint_t row, uint_t col, real_t value ) = 0;
