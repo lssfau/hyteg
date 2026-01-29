@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -33,6 +33,7 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellAlignedMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/ThinShellMap.hpp"
 #include "hyteg/geometry/TorusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/mesh/micro/MicroMesh.hpp"
@@ -69,6 +70,8 @@ enum class LoadBalancingType
    PARMETIS,
    DIFFUSIVE_CLUSTER
 };
+
+const real_t thinShellRadius = real_t( 0.5 );
 
 struct MeshBuilder
 {
@@ -243,9 +246,8 @@ struct MeshIcosahedralShell : public MeshBuilder
       auto nrad    = uint_c( std::stoi( *( std::next( itFlag, 2 ) ) ) );
       auto flavour = *( std::next( itFlag, 3 ) );
 
-      const auto thinShellRadius = real_t( 0.5 );
-      const auto rmin            = real_c( 0.5 );
-      const auto rmax            = real_c( 1.0 );
+      const auto rmin = real_c( 0.5 );
+      const auto rmax = real_c( 1.0 );
 
       MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
       if ( flavour == "thin" )
@@ -270,12 +272,22 @@ struct MeshIcosahedralShell : public MeshBuilder
       if ( blending == "affine" ) {}
       else if ( blending == "blended" )
       {
-         WALBERLA_CHECK_EQUAL( flavour, "thick", "Only the 'thick' shell can be blended." )
-         IcosahedralShellMap::setMap( setupStorage );
+         if ( flavour == "thick" )
+         {
+            IcosahedralShellMap::setMap( setupStorage );
+         }
+         else if ( flavour == "thin" )
+         {
+            ThinShellMap::setMap( setupStorage, thinShellRadius );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Don't know how to handle blending = '" << flavour << "'" );
+         }
       }
       else if ( blending == "blended-aligned" )
       {
-         WALBERLA_CHECK_EQUAL( flavour, "thick", "Only the 'thick' shell can be blended." )
+         WALBERLA_CHECK_EQUAL( flavour, "thick", "Only the 'thick' shell can be blended with style 'blended-aligned'." )
          IcosahedralShellAlignedMap::setMap( setupStorage );
       }
       else
