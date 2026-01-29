@@ -45,6 +45,7 @@ enum class DoFType
    EDGE_XYZ,
    DG,
    FACEDOF_OLD,
+   P0,
    P2,
    P2_PLUS_BUBBLE,
    N1E1,

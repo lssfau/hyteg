@@ -391,6 +391,15 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
    }
 
    // ---------------------------------------------
+   //  P0Functions [double, foat,int32_t, int64_t]
+   // ---------------------------------------------
+   if ( !excludeDGTypeFunctions && feFunctionRegistry.getP0Functions().size() > 0 )
+   {
+      WALBERLA_ABORT( "Sorry implementation missing in syncRegisteredFunctions() for P0Function objects!" );
+   }
+   controlCount += feFunctionRegistry.getP0Functions().size();
+
+   // ---------------------------------------------
    //  DGFunctions [double, foat,int32_t, int64_t]
    // ---------------------------------------------
    if ( !excludeDGTypeFunctions && feFunctionRegistry.getDGFunctions().size() > 0 )
