@@ -3,6 +3,6 @@ target_sources( hyteg
     P0Function.cpp
     P0Function.hpp
     P0Operator.hpp
-        P0P0MassForm.hpp
+    P0P0WeightedMassForm.hpp
 )
 

@@ -1,6 +1,5 @@
-
 /*
-* Copyright (c) 2017-2022 Nils Kohl.
+* Copyright (c) 2017-2026 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,11 +36,11 @@ WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesOperator.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0MassFormAffine.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p0functionspace/P0P0MassForm.hpp"
 #include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -291,7 +290,7 @@ class StokesConvergenceOrderTest
       {
          if constexpr ( isEGP0Discr< StokesOperatorType >() || isP1P0Discr< StokesOperatorType >() )
          {
-            auto           mass_form = std::make_shared< dg::P0P0MassForm >();
+            auto           mass_form = std::make_shared< dg::P0MassFormAffine >();
             dg::DGOperator M_pressure( storage_, level_, level_, mass_form );
             M_pressure.apply( *err_.p().getDGFunction(), *tmpErr_.p().getDGFunction(), level_, All, Replace );
          }
@@ -386,7 +385,7 @@ class StokesConvergenceOrderTest
       {
          EGMassOperator M_vel( storage_, level, level );
          M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
-         auto           mass_form = std::make_shared< dg::P0P0MassForm >();
+         auto           mass_form = std::make_shared< dg::P0MassFormAffine >();
          dg::DGOperator M_pressure( storage_, level, level, mass_form );
          M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
       }
@@ -394,7 +393,7 @@ class StokesConvergenceOrderTest
       {
          P1ConstantVectorMassOperator M_vel( storage_, level, level );
          M_vel.apply( f.uvw(), rhs.uvw(), level, All, Replace );
-         auto           mass_form = std::make_shared< dg::P0P0MassForm >();
+         auto           mass_form = std::make_shared< dg::P0MassFormAffine >();
          dg::DGOperator M_pressure( storage_, level, level, mass_form );
          M_pressure.apply( *f.p().getDGFunction(), *rhs.p().getDGFunction(), level, All, Replace );
       }
@@ -637,7 +636,7 @@ class StokesConvergenceOrderTest
 
       case 2: {
          PETScBlockPreconditionedStokesSolver< StokesOperatorType > solver(
-             storage_, level, std::numeric_limits< PetscInt >::max(), real_c(1e-30), residualTol_, 6, 1 );
+             storage_, level, std::numeric_limits< PetscInt >::max(), real_c( 1e-30 ), residualTol_, 6, 1 );
          solver.disableApplicationBC( usesNitscheBCs< StokesOperatorType >() );
          solver.solve( *Op_, u, rhs, level );
 
