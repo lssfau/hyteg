@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -40,6 +40,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKN1E1Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP0Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1DGEWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2PlusBubbleWriter.hpp"
@@ -176,6 +177,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    friend class VTKFaceDoFWriter;
    friend class VTKEdgeDoFWriter;
    friend class VTKMeshWriter;
+   friend class VTKP0Writer;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
    friend class VTKP2PlusBubbleWriter;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2025 Andreas Wagner, Fabian Böhm, Marcus Mohr.
+* Copyright (c) 2022-2026 Andreas Wagner, Fabian Böhm, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,12 +30,12 @@
 #include "hyteg/forms/form_hyteg_dg/DGDivForm.hpp"
 #include "hyteg/forms/form_hyteg_dg/DGVectorLaplaceForm.hpp"
 #include "hyteg/forms/form_hyteg_dg/DGVectorMassForm.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0MassFormAffine.hpp"
 #include "hyteg/mixedoperators/P0ScalarToP1VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP0Operator.hpp"
 #include "hyteg/mixedoperators/P1VectorToP0ScalarOperator.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/p0functionspace/P0Operator.hpp"
-#include "hyteg/p0functionspace/P0P0MassForm.hpp"
 #include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
 
 #include "constant_stencil_operator/P1ConstantOperator.hpp"
@@ -366,7 +366,7 @@ class EGP0StokesPreconditionerNitscheBC : public Operator< EGP0StokesFunction< r
    EGP0StokesPreconditionerNitscheBC( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , viscOp( storage, minLevel, maxLevel )
-   , P( storage, minLevel, maxLevel, std::make_shared< dg::P0P0MassForm >() )
+   , P( storage, minLevel, maxLevel, std::make_shared< dg::P0MassFormAffine >() )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 

@@ -96,7 +96,7 @@ int main( int argc, char* argv[] )
    registry.extractFunctionNames( names, functionTraits::P2_FUNCTION );
    WALBERLA_CHECK_EQUAL( names[0], "P2 scalar function 1" );
 
-   registry.extractFunctionNames( names, functionTraits::DG_FUNCTION );
+   registry.extractFunctionNames( names, functionTraits::P0_FUNCTION );
    WALBERLA_CHECK_EQUAL( names[1], "P0 scalar function 1" );
    WALBERLA_CHECK_EQUAL( names[2], "P0 scalar function 2" );
 
@@ -115,7 +115,8 @@ int main( int argc, char* argv[] )
    registry.add( ccrStokesFunc );
 
    // check name extraction individually for all kinds
-   std::map< functionTraits::FunctionKind, uint_t > kindCount{ { DG_FUNCTION, 4 },
+   std::map< functionTraits::FunctionKind, uint_t > kindCount{ { DG_FUNCTION, 2 },
+                                                               { P0_FUNCTION, 2 },
                                                                { P1_FUNCTION, 3 },
                                                                { P2_FUNCTION, 1 },
                                                                { P2_PLUS_BUBBLE_FUNCTION, 1 },
@@ -153,7 +154,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), --kindCount[P2_VECTOR_FUNCTION] );
 
    registry.remove( p0ScalarFunc1 );
-   WALBERLA_CHECK_EQUAL( registry.getDGFunctions().size(), --kindCount[DG_FUNCTION] );
+   WALBERLA_CHECK_EQUAL( registry.getP0Functions().size(), --kindCount[P0_FUNCTION] );
 
    registry.remove( stokesFunc );
    WALBERLA_CHECK_EQUAL( registry.getP2VectorFunctions().size(), --kindCount[P2_VECTOR_FUNCTION] );

@@ -27,6 +27,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0MassFormAffine.hpp"
 #include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
@@ -35,6 +36,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/geometry/ThinShellMap.hpp"
+#include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -173,6 +175,13 @@ int main( int argc, char** argv )
       checkArea< DG1MassOperator >( primStore, 8.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
    }
 
+   {
+      using P0MassOperator = P0Operator< P0MassFormAffine >;
+      auto p0MassForm = std::make_shared< P0MassFormAffine >();
+      auto p0MassOperator  = std::make_shared< P0MassOperator >( primStore, 2, 4, p0MassForm );
+      checkArea< P0MassOperator >( primStore, 8.0, "P0MassOperator", 2, real_c( -1 ), false, p0MassOperator );
+   }
+
    // Test with backward facing step
    logSectionHeader( "Testing with BFS" );
    meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
@@ -191,6 +200,13 @@ int main( int argc, char** argv )
       using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 4 );
       checkArea< DG1MassOperator >( primStore, 1.75, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
+
+   {
+      using P0MassOperator = P0Operator< P0MassFormAffine >;
+      auto p0MassForm = std::make_shared< P0MassFormAffine >();
+      auto p0MassOperator  = std::make_shared< P0MassOperator >( primStore, 2, 4, p0MassForm );
+      checkArea< P0MassOperator >( primStore, 1.75, "P0MassOperator", 2, real_c( -1 ), false, p0MassOperator );
    }
 
    // ----------
@@ -213,6 +229,13 @@ int main( int argc, char** argv )
       using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
       auto dg1MassOperator  = std::make_shared< DG1MassOperator >( primStore, 2, 3 );
       checkArea< DG1MassOperator >( primStore, 6.0, "DG1MassOperator", 2, real_c( -1 ), false, dg1MassOperator );
+   }
+
+   {
+      using P0MassOperator = P0Operator< P0MassFormAffine >;
+      auto p0MassForm = std::make_shared< P0MassFormAffine >();
+      auto p0MassOperator  = std::make_shared< P0MassOperator >( primStore, 2, 3, p0MassForm );
+      checkArea< P0MassOperator >( primStore, 6.0, "P0MassOperator", 2, real_c( -1 ), false, p0MassOperator );
    }
 
    // Test with coarse representation of thick spherical shell

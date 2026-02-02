@@ -10,6 +10,7 @@ target_sources(hyteg
   DGStokesP1P0PressureStabFormAffine.hpp
   DGVectorLaplaceForm.hpp
   DGVectorMassForm.hpp
+  P0MassFormAffine.hpp
   P0_to_P1_divt_form.cpp
   P0_to_P1_divt_form.hpp
   P1_to_P0_div_form.cpp

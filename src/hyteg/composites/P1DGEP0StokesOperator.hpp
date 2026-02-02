@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,9 +19,8 @@
  */
 #pragma once
 
-#include <hyteg/p0functionspace/P0P0MassForm.hpp>
-
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
+#include "hyteg/forms/form_hyteg_dg/P0MassFormAffine.hpp"
 #include "hyteg/p0functionspace/P0P0WeightedMassForm.hpp"
 
 #include "mixed_operator/EGOperators.hpp"
@@ -36,7 +35,7 @@ class EGP0StokesPreconditionerType : public Operator< EGP0StokesFunction< real_t
    EGP0StokesPreconditionerType( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , viscOp( storage, minLevel, maxLevel )
-   , P( storage, minLevel, maxLevel, std::make_shared< dg::P0P0MassForm >() )
+   , P( storage, minLevel, maxLevel, std::make_shared< dg::P0MassFormAffine >() )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 

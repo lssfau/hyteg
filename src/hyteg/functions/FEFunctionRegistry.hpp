@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,9 +21,9 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
 #include "hyteg/ccrfunctionspace/P2PlusBubbleFunction.hpp"
 #include "hyteg/ccrfunctionspace/P2PlusBubbleVectorFunction.hpp"
-#include "hyteg/ccrfunctionspace/CCRStokesFunction.hpp"
 #include "hyteg/composites/P1DGEP0StokesFunction.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -34,6 +34,7 @@
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
+#include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -88,7 +89,7 @@ class FEFunctionRegistry
       // P0Functions
       else if constexpr ( std::is_same_v< func_t< value_t >, P0Function< value_t > > )
       {
-         dgFunctions_.add( *function.getDGFunction() );
+         p0Functions_.add( function );
       }
 
       // DG1Functions
@@ -245,7 +246,7 @@ class FEFunctionRegistry
       // P0Functions
       else if constexpr ( std::is_same_v< func_t< value_t >, P0Function< value_t > > )
       {
-         dgFunctions_.remove( *function.getDGFunction() );
+         p0Functions_.remove( function );
       }
 
       // DG1Functions
@@ -358,6 +359,7 @@ class FEFunctionRegistry
    }
 
    // clang-format off
+   const FunctionMultiStore< P0Function >&                 getP0Functions()                 const { return p0Functions_;              }
    const FunctionMultiStore< P1Function >&                 getP1Functions()                 const { return p1Functions_;              }
    const FunctionMultiStore< P2Function >&                 getP2Functions()                 const { return p2Functions_;              }
    const FunctionMultiStore< P1VectorFunction >&           getP1VectorFunctions()           const { return p1VecFunctions_;           }
@@ -380,6 +382,7 @@ class FEFunctionRegistry
    uint_t getNumberOfFunctionsInRegistry() const
    {
       uint_t num{ 0u };
+      num += p0Functions_.size();
       num += p1Functions_.size();
       num += p2Functions_.size();
       num += p2PlusBubbleFunctions_.size();
@@ -397,6 +400,10 @@ class FEFunctionRegistry
    template < template < class > class func_t >
    const FunctionMultiStore< func_t >& getFunctions()
    {
+      if constexpr ( std::is_same_v< func_t< real_t >, P0Function< real_t > > )
+      {
+         return p0Functions_;
+      }
       if constexpr ( std::is_same_v< func_t< real_t >, P1Function< real_t > > )
       {
          return p1Functions_;
@@ -454,6 +461,9 @@ class FEFunctionRegistry
 
       switch ( funcKind )
       {
+      case functionTraits::P0_FUNCTION:
+         namesFound = p0Functions_.getFunctionNames();
+         break;
       case functionTraits::P1_FUNCTION:
          namesFound = p1Functions_.getFunctionNames();
          break;
@@ -495,6 +505,7 @@ class FEFunctionRegistry
    }
 
  private:
+   FunctionMultiStore< P0Function >                 p0Functions_;
    FunctionMultiStore< P1Function >                 p1Functions_;
    FunctionMultiStore< P2Function >                 p2Functions_;
    FunctionMultiStore< P1VectorFunction >           p1VecFunctions_;
@@ -513,6 +524,10 @@ class FEFunctionRegistry
       bool matchFound = false;
       switch ( function.getFunctionKind() )
       {
+      case functionTraits::P0_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P0Function< value_t > > >( function );
+         break;
+
       case functionTraits::P1_FUNCTION:
          matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< value_t > > >( function );
          break;
