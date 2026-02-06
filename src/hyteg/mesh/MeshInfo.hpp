@@ -617,6 +617,15 @@ class MeshInfo
    /// a mesh composed of a single tetrahedron by providing its vertices.
    static MeshInfo singleTetrahedron( const std::array< Point3D, 4 >& vertices );
 
+   /// \brief Create a mesh by splitting a spherical hexahedron into six tetrahedra
+   ///
+   /// For testing and performance checks this convenience method allows to generate
+   /// a mesh composed of six tetrahedrons derived from splitting a hexahedron. The
+   /// first four nodes of the hexahedron must reside on the same outer spherical shell
+   /// the next four on the same inner spherical shell. Ordering is to be anti-clockwise
+   /// when looking outward with the nodes on the outer layer first.
+   static MeshInfo splitSphericalHexahedron( const std::array< Point3D, 8 >& hexNodes );
+
    /// \brief Creates a finer coarse mesh from a given mesh
    ///
    /// Takes a given MeshInfo and refines it with the default refinement algorithm.
