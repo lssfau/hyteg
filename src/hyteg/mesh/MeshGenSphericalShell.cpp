@@ -351,8 +351,12 @@ static std::tuple< Point3D, MeshInfo::hollowFlag > getVertex( uint_t            
    return std::make_tuple( vertex, topologyMarker );
 }
 
-static std::vector< uint_t >
-    getCell( uint_t ntan, uint_t nrad, uint_t idx, uint_t offset[8][3], uint_t tNode[6][4], uint_t sNode[6][4] )
+static std::vector< uint_t > getCell( uint_t                                    ntan,
+                                      uint_t                                    nrad,
+                                      uint_t                                    idx,
+                                      std::array< std::array< uint_t, 3 >, 8 >& offset,
+                                      std::array< std::array< uint_t, 4 >, 6 >& tNode,
+                                      std::array< std::array< uint_t, 4 >, 6 >& sNode )
 {
    // Find address tuple of element
    uint_t it, is1, is2, id, ir;
@@ -572,6 +576,67 @@ static void setupCoordsClassic( uint_t ntan, real_t iNode[12][3], uint_t dNode[1
    *coords = nodeCoords;
 }
 
+std::array< std::array< uint_t, 4 >, 6 > setNodeIndicesOfTetsOnNorthernHemisphere()
+{
+   std::array< std::array< uint_t, 4 >, 6 > tNode;
+   tNode[0][0] = 0;
+   tNode[0][1] = 1;
+   tNode[0][2] = 3;
+   tNode[0][3] = 7;
+   tNode[1][0] = 4;
+   tNode[1][1] = 7;
+   tNode[1][2] = 5;
+   tNode[1][3] = 0;
+   tNode[2][0] = 0;
+   tNode[2][1] = 5;
+   tNode[2][2] = 1;
+   tNode[2][3] = 7;
+   tNode[3][0] = 1;
+   tNode[3][1] = 2;
+   tNode[3][2] = 3;
+   tNode[3][3] = 6;
+   tNode[4][0] = 5;
+   tNode[4][1] = 7;
+   tNode[4][2] = 6;
+   tNode[4][3] = 1;
+   tNode[5][0] = 3;
+   tNode[5][1] = 6;
+   tNode[5][2] = 7;
+   tNode[5][3] = 1;
+
+   return tNode;
+}
+
+std::array< std::array< uint_t, 4 >, 6 > setNodeIndicesOfTetsOnSouthernHemisphere()
+{
+   std::array< std::array< uint_t, 4 >, 6 > sNode;
+   sNode[0][0] = 4;
+   sNode[0][1] = 7;
+   sNode[0][2] = 5;
+   sNode[0][3] = 1;
+   sNode[1][0] = 0;
+   sNode[1][1] = 1;
+   sNode[1][2] = 3;
+   sNode[1][3] = 4;
+   sNode[2][0] = 4;
+   sNode[2][1] = 3;
+   sNode[2][2] = 7;
+   sNode[2][3] = 1;
+   sNode[3][0] = 7;
+   sNode[3][1] = 6;
+   sNode[3][2] = 5;
+   sNode[3][3] = 2;
+   sNode[4][0] = 3;
+   sNode[4][1] = 1;
+   sNode[4][2] = 2;
+   sNode[4][3] = 7;
+   sNode[5][0] = 5;
+   sNode[5][1] = 2;
+   sNode[5][2] = 1;
+   sNode[5][3] = 7;
+   return sNode;
+}
+
 } // namespace meshGenSphShell
 
 MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, real_t rmin, real_t rmax, shellMeshType meshType )
@@ -634,62 +699,14 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< real_t >&
    uint_t nElems_ = ( ntan - 1 ) * ( ntan - 1 ) * ( nrad - 1 ) * 10 * 6;
 
    // Assign vertices of local cell to its six tetrahedrons on the northern hemisphere
-   uint_t tNode[6][4];
-   tNode[0][0] = 0;
-   tNode[0][1] = 1;
-   tNode[0][2] = 3;
-   tNode[0][3] = 7;
-   tNode[1][0] = 4;
-   tNode[1][1] = 7;
-   tNode[1][2] = 5;
-   tNode[1][3] = 0;
-   tNode[2][0] = 0;
-   tNode[2][1] = 5;
-   tNode[2][2] = 1;
-   tNode[2][3] = 7;
-   tNode[3][0] = 1;
-   tNode[3][1] = 2;
-   tNode[3][2] = 3;
-   tNode[3][3] = 6;
-   tNode[4][0] = 5;
-   tNode[4][1] = 7;
-   tNode[4][2] = 6;
-   tNode[4][3] = 1;
-   tNode[5][0] = 3;
-   tNode[5][1] = 6;
-   tNode[5][2] = 7;
-   tNode[5][3] = 1;
+   std::array< std::array< uint_t, 4 >, 6 > tNode = meshGenSphShell::setNodeIndicesOfTetsOnNorthernHemisphere();
 
    // Assign vertices of local cell to its six tetrahedrons on the southern hemisphere
-   uint_t sNode[6][4];
-   sNode[0][0] = 4;
-   sNode[0][1] = 7;
-   sNode[0][2] = 5;
-   sNode[0][3] = 1;
-   sNode[1][0] = 0;
-   sNode[1][1] = 1;
-   sNode[1][2] = 3;
-   sNode[1][3] = 4;
-   sNode[2][0] = 4;
-   sNode[2][1] = 3;
-   sNode[2][2] = 7;
-   sNode[2][3] = 1;
-   sNode[3][0] = 7;
-   sNode[3][1] = 6;
-   sNode[3][2] = 5;
-   sNode[3][3] = 2;
-   sNode[4][0] = 3;
-   sNode[4][1] = 1;
-   sNode[4][2] = 2;
-   sNode[4][3] = 7;
-   sNode[5][0] = 5;
-   sNode[5][1] = 2;
-   sNode[5][2] = 1;
-   sNode[5][3] = 7;
+   std::array< std::array< uint_t, 4 >, 6 > sNode = meshGenSphShell::setNodeIndicesOfTetsOnSouthernHemisphere();
 
    // Index offsets for computing address tuples for the
    // eight vertices of a local cell (is1, is2, ir)
-   uint_t offset[8][3];
+   std::array< std::array< uint_t, 3 >, 8 > offset;
    offset[0][0] = 0;
    offset[0][1] = 0;
    offset[0][2] = 1;
@@ -916,7 +933,8 @@ MeshInfo MeshInfo::meshThinSphericalShell( uint_t ntan, real_t radius )
    // ----------------------------
    meshInfo.computeSphericalShellVertices( ntan, { radius }, MeshInfo::shellMeshType::SHELLMESH_CLASSIC );
 
-   WALBERLA_ASSERT_EQUAL( meshInfo.getVertices().size(), 10 * ( ntan - 1 ) * ( ntan - 1 ) + 2, "Oops! Inconsistent vertex count!" );
+   WALBERLA_ASSERT_EQUAL(
+       meshInfo.getVertices().size(), 10 * ( ntan - 1 ) * ( ntan - 1 ) + 2, "Oops! Inconsistent vertex count!" );
 
    // --------------------------
    //  generate face primitives
@@ -957,6 +975,41 @@ MeshInfo MeshInfo::meshThinSphericalShell( uint_t ntan, real_t radius )
    }
 
    WALBERLA_ASSERT_EQUAL( meshInfo.getEdges().size(), 30 * ( ntan - 1 ) * ( ntan - 1 ), "Oops! Inconsistent edge count!" );
+
+   return meshInfo;
+}
+
+MeshInfo MeshInfo::splitSphericalHexahedron( const std::array< Point3D, 8 >& hexNodes )
+{
+   // perform consistency checks
+   real_t normOuter = hexNodes[0].norm();
+   for ( uint_t idx = 1; idx < 4; ++idx )
+   {
+      WALBERLA_CHECK_FLOAT_EQUAL( hexNodes[idx].norm(), normOuter );
+   }
+   real_t normInner = hexNodes[4].norm();
+   for ( uint_t idx = 5; idx < 8; ++idx )
+   {
+      WALBERLA_CHECK_FLOAT_EQUAL( hexNodes[idx].norm(), normInner );
+   }
+   WALBERLA_CHECK_LESS( normInner, normOuter );
+
+   // insert vertices into meshInfo
+   MeshInfo meshInfo;
+
+   for ( uint_t idx = 0; idx < 8; ++idx )
+   {
+      meshInfo.addVertex( MeshInfo::Vertex( idx, hexNodes[idx], 0 ) );
+   }
+
+   // obtain node indices of the six tetrahedrons (on the northern hemisphere)
+   std::array< std::array< uint_t, 4 >, 6 > tNode = meshGenSphShell::setNodeIndicesOfTetsOnNorthernHemisphere();
+
+   for ( uint_t tetIdx = 0; tetIdx < 6; ++tetIdx )
+   {
+      Cell tet( { tNode[tetIdx][0], tNode[tetIdx][1], tNode[tetIdx][2], tNode[tetIdx][3] }, 0 );
+      meshInfo.addCellAndAllEdgesAndFaces( tet );
+   }
 
    return meshInfo;
 }

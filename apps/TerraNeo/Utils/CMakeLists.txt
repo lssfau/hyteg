@@ -10,3 +10,6 @@ waLBerla_link_files_to_builddir( *.prm )
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/output)
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output")
 endif()
+
+add_executable       ( microMeshForHexSplitting microMeshForHexSplitting.cpp )
+target_link_libraries( microMeshForHexSplitting hyteg )
