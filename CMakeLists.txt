@@ -242,7 +242,7 @@ if ( HYTEG_BUILD_WITH_ADIOS2 )
   endif()
 
   if ( ${ADIOS2_VERSION} VERSION_LESS "2.9.2" )
-    message( WARNING "ADIOS2 version ${ADIOS2_VERSION} is below 2.9.2 !\nThus, your version is susceptible to the hashing issue described in\n https://github.com/ornladios/ADIOS2/discussions/3822\nThis can severly affect HyTeG's current checkpointing implementation!" )
+    message( WARNING "ADIOS2 version ${ADIOS2_VERSION} is below 2.9.2 !\nThus, your version is susceptible to the hashing issue described in\n https://github.com/ornladios/ADIOS2/discussions/3822\nThis can severly affect HyTeG's capability to import old, i.e. v0.2, checkpoints!" )
   endif()
 endif()
 
