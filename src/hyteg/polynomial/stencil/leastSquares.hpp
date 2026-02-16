@@ -51,7 +51,11 @@ using walberla::uint_t;
  */
 static constexpr inline uint_t n_edge( uint_t lvl, uint_t downsampling, uint_t offset = 0 )
 {
+#if !defined(__clang__) && ( defined(__GNUG__) && (__GNUC__ < 13) )
+   // GCC12 chockes on the WALBERLA_ASSERT_GREATER as n_edge is marked constexpr
+#else
    WALBERLA_ASSERT_GREATER( 1 << lvl, 2 + offset );
+#endif
    return ( ( ( 1 << lvl ) - 2 - offset ) / downsampling ) + 1;
 }
 
