@@ -33,110 +33,6 @@
 
 using namespace hyteg;
 
-#ifdef VISUAL_TAG_INSPECTION
-// output generated tags for visual inspection
-void checkTagGenerationForP2( const P2Function< real_t >& func, uint_t level )
-{
-   const auto& storage = func.getStorage();
-
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*  CELLS  *" );
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-
-   PrimitiveDataID< FunctionMemory< real_t >, Cell > cellDataIndex = func.getVertexDoFFunction().getCellDataID();
-   for ( const auto& macroIterator : storage->getCells() )
-   {
-      Cell&       cell = *macroIterator.second;
-      std::string tag  = adiosCheckpointHelpers::generateVariableName( func.getFunctionName(), cell.getID(), level );
-      uint_t      size = cell.getData( cellDataIndex )->getSize( level );
-      WALBERLA_LOG_INFO( "Generated tag = '" << tag << "'" );
-      WALBERLA_LOG_INFO( "Data buffer size = " << size );
-   }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*  FACES  *" );
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-
-   PrimitiveDataID< FunctionMemory< real_t >, Face > faceDataIndex = func.getVertexDoFFunction().getFaceDataID();
-   for ( const auto& macroIterator : storage->getFaces() )
-   {
-      Face&       face = *macroIterator.second;
-      std::string tag  = adiosCheckpointHelpers::generateVariableName( func.getFunctionName(), face.getID(), level );
-      uint_t      size = face.getData( faceDataIndex )->getSize( level );
-      WALBERLA_LOG_INFO( "Generated tag = '" << tag << "'" );
-      WALBERLA_LOG_INFO( "Data buffer size = " << size );
-   }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*  EDGES  *" );
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-
-   PrimitiveDataID< FunctionMemory< real_t >, Edge > edgeDataIndex = func.getVertexDoFFunction().getEdgeDataID();
-   for ( const auto& macroIterator : storage->getEdges() )
-   {
-      Edge&       edge = *macroIterator.second;
-      std::string tag  = adiosCheckpointHelpers::generateVariableName( func.getFunctionName(), edge.getID(), level );
-      uint_t      size = edge.getData( edgeDataIndex )->getSize( level );
-      WALBERLA_LOG_INFO( "Generated tag = '" << tag << "'" );
-      WALBERLA_LOG_INFO( "Data buffer size = " << size );
-   }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*  VERTS  *" );
-   WALBERLA_LOG_INFO_ON_ROOT( "***********" );
-
-   PrimitiveDataID< FunctionMemory< real_t >, Vertex > vertexVertexDoFDataIndex = func.getVertexDoFFunction().getVertexDataID();
-   PrimitiveDataID< FunctionMemory< real_t >, Vertex > vertexEdgeDoFDataIndex   = func.getEdgeDoFFunction().getVertexDataID();
-   for ( const auto& macroIterator : storage->getVertices() )
-   {
-      Vertex&     vertex = *macroIterator.second;
-      std::string tag    = adiosCheckpointHelpers::generateVariableName( func.getFunctionName(), vertex.getID(), level );
-      uint_t      size   = vertex.getData( vertexVertexDoFDataIndex )->getSize( level ) +
-                    vertex.getData( vertexEdgeDoFDataIndex )->getSize( level );
-      WALBERLA_LOG_INFO( "Generated tag = '" << tag << "'" );
-      WALBERLA_LOG_INFO( "Data buffer size = " << size );
-   }
-}
-#endif
-
-void storeCheckpoint_v02( std::string filePath, std::string fileName )
-{
-   std::string           meshFileName{ prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) };
-   MeshInfo              mesh = MeshInfo::fromGmshFile( meshFileName );
-   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-   const uint_t minLevel = 2;
-   const uint_t maxLevel = 3;
-
-   P1Function< real_t >  funcP1( "P1_Test_Function", storage, minLevel, maxLevel );
-   P2Function< real_t >  funcP2( "P2_Test_Function", storage, minLevel, maxLevel );
-   P2Function< int64_t > intFunc( "P2_Test_Function<int64>", storage, minLevel, maxLevel );
-
-   P1VectorFunction< real_t > funcP1Vec( "P1_Test_Vector_Function", storage, minLevel, maxLevel );
-   P2VectorFunction< real_t > funcP2Vec( "P2_Test_Vector_Function", storage, minLevel, maxLevel );
-
-   P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes Function", storage, minLevel, maxLevel );
-
-   for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
-   {
-      funcP1Vec.interpolate( { real_c( 1 ), real_c( 2 ), real_c( 3 ) }, lvl );
-   }
-
-   deprecated::AdiosCheckpointExporter checkpointer( "" );
-   checkpointer.registerFunction( funcP1, minLevel, maxLevel );
-   checkpointer.registerFunction( funcP2, minLevel, maxLevel );
-   checkpointer.registerFunction( intFunc, maxLevel, maxLevel );
-   checkpointer.registerFunction( funcP1Vec, minLevel, maxLevel );
-   checkpointer.registerFunction( funcP2Vec, minLevel, maxLevel );
-   checkpointer.registerFunction( stokesFunc, maxLevel, maxLevel );
-
-   std::map< std::string, adiosHelpers::adiostype_t > userAttributes = { { "MeshFile", meshFileName } };
-
-   checkpointer.storeCheckpoint( filePath, fileName, userAttributes );
-}
-
 void testPrimitiveEnumeration( bool beVerbose = false )
 {
    uint_t commSize = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -258,11 +154,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Enumerating Faces and/or Cells ***" );
    WALBERLA_LOG_INFO_ON_ROOT( "**********************************************" );
    testPrimitiveEnumeration( true );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 2) ***" );
-   WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
-   storeCheckpoint_v02( ".", "CheckpointingTest_v02.bp" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "*********************************************************" );
    WALBERLA_LOG_INFO_ON_ROOT( "*** Testing Checkpoint Export with ADIOS2 (version 3) ***" );
