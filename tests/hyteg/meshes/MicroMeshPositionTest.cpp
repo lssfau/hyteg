@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Marcus Mohr.
+* Copyright (c) 2017-2026 Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -83,10 +83,19 @@ void checkNodeIdentity( const Point3D& first, const Point3D& second )
 
 std::array< Point3D, 3 > getMicroFaceVertexCoordinatesOnComputationalDomain( uint_t                 level,
                                                                              const indexing::Index& microFaceIndex,
-                                                                             facedof::FaceType      faceType )
+                                                                             facedof::FaceType      faceType,
+                                                                             bool useConsistentEdgeOrientation = false )
 {
-   std::array< Point3D, 3 > microVertices;
-   const auto               microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   std::array< Point3D, 3 >         microVertices;
+   std::array< indexing::Index, 3 > microVertexIndices;
+   if ( useConsistentEdgeOrientation )
+   {
+      microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace< true >( microFaceIndex, faceType );
+   }
+   else
+   {
+      microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   }
 
 #ifdef MICRO_MESH_POSITION_TEST_DEBUG
    std::cout << ".................\n"
@@ -149,6 +158,37 @@ Point3D mapPointToPhysicalDomain( const Point3D&                                
    }
 
    return mapped;
+}
+
+// Auxilliary function for the micromesh degree 2 case, when testing arbitrary edge positions
+Point3D evalQuadPoly( const std::shared_ptr< PrimitiveStorage >& storage,
+                      const Point3D&                             unmappedVertexA,
+                      const Point3D&                             unmappedVertexB,
+                      real_t                                     evalScalar )
+{
+   // construct missing midpoint (need three nodes for quadratic polynomial)
+   const Point3D unmappedEdgeCenter = real_c( 0.5 ) * ( unmappedVertexA + unmappedVertexB );
+
+   // map the points
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > polarCoords = {
+       []( const Point3D& x ) { return x[0] * std::cos( x[1] ); }, []( const Point3D& x ) { return x[0] * std::sin( x[1] ); } };
+
+   const Point3D v0 = mapPointToPhysicalDomain( unmappedVertexA, storage, polarCoords );
+   const Point3D v2 = mapPointToPhysicalDomain( unmappedVertexB, storage, polarCoords );
+   const Point3D v1 = mapPointToPhysicalDomain( unmappedEdgeCenter, storage, polarCoords );
+
+   // we deliberately use a different approach to evaluate the polynomial here than in the micromesh implementation
+   const real_t x0 = real_c( 0.0 );
+   const real_t x1 = real_c( 0.5 );
+   const real_t x2 = real_c( 1.0 );
+
+   const real_t L0 = ( evalScalar - x1 ) / ( x0 - x1 ) * ( evalScalar - x2 ) / ( x0 - x2 );
+   const real_t L1 = ( evalScalar - x0 ) / ( x1 - x0 ) * ( evalScalar - x2 ) / ( x1 - x2 );
+   const real_t L2 = ( evalScalar - x0 ) / ( x2 - x0 ) * ( evalScalar - x1 ) / ( x2 - x1 );
+
+   Point3D retVal = L0 * v0 + L1 * v1 + L2 * v2;
+
+   return retVal;
 }
 
 void run2DtestOnLevel( uint_t level, bool beVerbose = true )
@@ -389,6 +429,144 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
             }
 
             checkNodeIdentity( center, control );
+         }
+      }
+   }
+
+   // -------------------------------------------------------------------------------------------
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- testing arbitrary on edge positions in 2D (test #1)" );
+
+   for ( uint_t k = 0; k < numScenarios; ++k )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  * testing setting #" << k << " " << scenarioLabel[k] );
+
+      const auto& storage = stores[k];
+
+      for ( const auto& faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& microFaceIndex : facedof::macroface::Iterator( level, faceType, 0 ) )
+         {
+            auto allFaceIDs = storage->getFaceIDs();
+            WALBERLA_CHECK_EQUAL( allFaceIDs.size(), 1 );
+            PrimitiveID faceID{ allFaceIDs[0] };
+
+            // obtain coordinates of vertices of current micro-face
+            std::array< Point3D, 3 > coords =
+                getMicroFaceVertexCoordinatesOnComputationalDomain( level, microFaceIndex, faceType );
+
+            // compute edge midpoints on computational domain
+            std::array< Point3D, 3 > edgeCenters;
+            edgeCenters[0] = coords[0] + ( coords[1] - coords[0] ) * real_c( 0.5 );
+            edgeCenters[1] = coords[1] + ( coords[2] - coords[1] ) * real_c( 0.5 );
+            edgeCenters[2] = coords[2] + ( coords[0] - coords[2] ) * real_c( 0.5 );
+
+            if ( k == 0 || k == 1 )
+            {
+               edgeCenters[0] = mapPointToPhysicalDomain( edgeCenters[0], storage, faceID );
+               edgeCenters[1] = mapPointToPhysicalDomain( edgeCenters[1], storage, faceID );
+               edgeCenters[2] = mapPointToPhysicalDomain( edgeCenters[2], storage, faceID );
+            }
+            else if ( k == 2 )
+            {
+               std::array< Point3D, 3 > newCoords;
+               newCoords[0] = mapPointToPhysicalDomain( coords[0], storage, polarCoords );
+               newCoords[1] = mapPointToPhysicalDomain( coords[1], storage, polarCoords );
+               newCoords[2] = mapPointToPhysicalDomain( coords[2], storage, polarCoords );
+
+               edgeCenters[0] = newCoords[0] + ( newCoords[1] - newCoords[0] ) * real_c( 0.5 );
+               edgeCenters[1] = newCoords[1] + ( newCoords[2] - newCoords[1] ) * real_c( 0.5 );
+               edgeCenters[2] = newCoords[0] + ( newCoords[2] - newCoords[0] ) * real_c( 0.5 );
+            }
+            else if ( k == 3 )
+            {
+               edgeCenters[0] = mapPointToPhysicalDomain( edgeCenters[0], storage, polarCoords );
+               edgeCenters[1] = mapPointToPhysicalDomain( edgeCenters[1], storage, polarCoords );
+               edgeCenters[2] = mapPointToPhysicalDomain( edgeCenters[2], storage, polarCoords );
+            }
+
+            const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+
+            for ( uint_t j = 0; j < 3; ++j )
+            {
+               Point3D node = micromesh::microEdgeArbitraryPosition(
+                   storage, faceID, level, microVertexIndices[j], microVertexIndices[( j + 1 ) % 3], real_t( 0.5 ) );
+               Point3D control = edgeCenters[j];
+               if ( beVerbose )
+               {
+                  WALBERLA_LOG_INFO_ON_ROOT( "    node = " << node << ", control = " << control );
+               }
+               checkNodeIdentity( node, control );
+            }
+         }
+      }
+   }
+
+   // -------------------------------------------------------------------------------------------
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- testing arbitrary on edge positions in 2D (test #2)" );
+
+   for ( uint_t k = 0; k < numScenarios; ++k )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  * testing setting #" << k << " " << scenarioLabel[k] );
+
+      const auto& storage = stores[k];
+
+      for ( const auto& faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& microFaceIndex : facedof::macroface::Iterator( level, faceType, 0 ) )
+         {
+            auto allFaceIDs = storage->getFaceIDs();
+            WALBERLA_CHECK_EQUAL( allFaceIDs.size(), 1 );
+            PrimitiveID faceID{ allFaceIDs[0] };
+
+            // obtain coordinates of vertices of current micro-face
+            std::array< Point3D, 3 > coords =
+                getMicroFaceVertexCoordinatesOnComputationalDomain( level, microFaceIndex, faceType );
+
+            // compute edge midpoints on computational domain
+            std::array< Point3D, 3 > edgePositions;
+            edgePositions[0] = coords[0] + ( coords[1] - coords[0] ) * real_c( 1.0 / 3.0 );
+            edgePositions[1] = coords[1] + ( coords[2] - coords[1] ) * real_c( 1.0 / 3.0 );
+            edgePositions[2] = coords[2] + ( coords[0] - coords[2] ) * real_c( 1.0 / 3.0 );
+
+            if ( k == 0 || k == 1 )
+            {
+               edgePositions[0] = mapPointToPhysicalDomain( edgePositions[0], storage, faceID );
+               edgePositions[1] = mapPointToPhysicalDomain( edgePositions[1], storage, faceID );
+               edgePositions[2] = mapPointToPhysicalDomain( edgePositions[2], storage, faceID );
+            }
+            else if ( k == 2 )
+            {
+               std::array< Point3D, 3 > newCoords;
+               newCoords[0] = mapPointToPhysicalDomain( coords[0], storage, polarCoords );
+               newCoords[1] = mapPointToPhysicalDomain( coords[1], storage, polarCoords );
+               newCoords[2] = mapPointToPhysicalDomain( coords[2], storage, polarCoords );
+
+               edgePositions[0] = newCoords[0] + ( newCoords[1] - newCoords[0] ) * real_c( 1.0 / 3.0 );
+               edgePositions[1] = newCoords[1] + ( newCoords[2] - newCoords[1] ) * real_c( 1.0 / 3.0 );
+               edgePositions[2] = newCoords[2] + ( newCoords[0] - newCoords[2] ) * real_c( 1.0 / 3.0 );
+            }
+            else if ( k == 3 )
+            {
+               edgePositions[0] = evalQuadPoly( storage, coords[0], coords[1], real_c( 1.0 / 3.0 ) );
+               edgePositions[1] = evalQuadPoly( storage, coords[1], coords[2], real_c( 1.0 / 3.0 ) );
+               edgePositions[2] = evalQuadPoly( storage, coords[2], coords[0], real_c( 1.0 / 3.0 ) );
+            }
+
+            const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+
+            for ( uint_t j = 0; j < 3; ++j )
+            {
+               Point3D node = micromesh::microEdgeArbitraryPosition(
+                   storage, faceID, level, microVertexIndices[j], microVertexIndices[( j + 1 ) % 3], real_t( 1.0 / 3.0 ) );
+               Point3D control = edgePositions[j];
+               if ( beVerbose )
+               {
+                  WALBERLA_LOG_INFO_ON_ROOT( "    node = " << node << ", control = " << control );
+               }
+               checkNodeIdentity( node, control );
+            }
          }
       }
    }

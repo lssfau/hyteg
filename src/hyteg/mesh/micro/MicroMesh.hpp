@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2026 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,8 +27,8 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg::micromesh {
 
@@ -165,6 +165,20 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
                                  uint_t                                     level,
                                  const indexing::Index&                     microEdgeIndex,
                                  const edgedof::EdgeDoFOrientation&         microEdgeOrientation );
+
+/// \brief Returns the position of an arbitrary point on a micro-edge.
+///
+/// The edge is assumed to be oriented from vertex A to vertex B and the position on the edge indicated by the positionFactor
+/// which must be a value between 0 ( = vertex A ) and 1 ( = vertex B ).
+/// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
+/// refined and potentially blended coarse mesh. Thus, this function can (and should) be called safely whenever the position of
+/// an arbitrary point on a micro-edge is needed.
+Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                    PrimitiveID                                primitiveId,
+                                    uint_t                                     level,
+                                    const indexing::Index&                     microVertexIndexA,
+                                    const indexing::Index&                     microVertexIndexB,
+                                    real_t                                     positionFactor );
 
 /// \brief Returns the position of the "center" of a micro-face.
 ///

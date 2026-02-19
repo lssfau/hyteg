@@ -817,6 +817,179 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    return p;
 }
 
+Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                    PrimitiveID                                primitiveId,
+                                    uint_t                                     level,
+                                    const indexing::Index&                     microVertexIndexA,
+                                    const indexing::Index&                     microVertexIndexB,
+                                    real_t                                     positionFactor )
+{
+   WALBERLA_CHECK( storage->primitiveExistsLocally( primitiveId ), "Cannot compute micro-mesh index of non-local primitive." );
+
+   auto microMesh = storage->getMicroMesh();
+
+   Point3D position;
+   position.setZero();
+
+   if ( microMesh )
+   {
+      WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
+                      "Invalid polynomial degree of MicroMesh." )
+   }
+
+   if ( storage->edgeExistsLocally( primitiveId ) )
+   {
+      auto edge = storage->getEdge( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macroedge::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *edge, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *edge, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *edge );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = edge->getData( microMesh->p1Mesh()->component( i ).getEdgeDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macroedge::index( level, microVertexIndexA.x() )];
+               real_t  coordB = vdata[vertexdof::macroedge::index( level, microVertexIndexB.x() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = edge->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getEdgeDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   edge->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macroedge::index( level, microVertexIndexA.x() )];
+               real_t weightB = edata[edgedof::macroedge::index( level, edgeIndex.x() )];
+               real_t weightC = vdata[vertexdof::macroedge::index( level, microVertexIndexB.x() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else if ( storage->faceExistsLocally( primitiveId ) )
+   {
+      auto face = storage->getFace( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macroface::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *face, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *face, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *face );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = face->getData( microMesh->p1Mesh()->component( i ).getFaceDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macroface::index( level, microVertexIndexA.x(), microVertexIndexA.y() )];
+               real_t  coordB = vdata[vertexdof::macroface::index( level, microVertexIndexB.x(), microVertexIndexB.y() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = face->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getFaceDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   face->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macroface::index( level, microVertexIndexA.x(), microVertexIndexA.y() )];
+               real_t weightB = edata[edgedof::macroface::index( level, edgeIndex.x(), edgeIndex.y(), edgeOrientation )];
+               real_t weightC = vdata[vertexdof::macroface::index( level, microVertexIndexB.x(), microVertexIndexB.y() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else if ( storage->cellExistsLocally( primitiveId ) )
+   {
+      auto cell = storage->getCell( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macrocell::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *cell, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *cell, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *cell );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = cell->getData( microMesh->p1Mesh()->component( i ).getCellDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexA.x(), microVertexIndexA.y(), microVertexIndexA.z() )];
+               real_t  coordB = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexB.x(), microVertexIndexB.y(), microVertexIndexB.z() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = cell->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getCellDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   cell->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexA.x(), microVertexIndexA.y(), microVertexIndexA.z() )];
+               real_t weightB =
+                   edata[edgedof::macrocell::index( level, edgeIndex.x(), edgeIndex.y(), edgeIndex.z(), edgeOrientation )];
+               real_t weightC = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexB.x(), microVertexIndexB.y(), microVertexIndexB.z() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "MicroMesh: PrimitiveID not existing locally. " )
+   }
+
+   return position;
+}
+
 std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap )
 {
    return { [&]( const Point3D& x ) {
