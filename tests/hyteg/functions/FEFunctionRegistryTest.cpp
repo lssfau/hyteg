@@ -35,6 +35,7 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 // using walberla::uint_t;
@@ -50,7 +51,7 @@ int main( int argc, char* argv[] )
    const uint_t maxLevel{ 2 };
 
    // Prepare mesh and primitive storages
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "3D/pyramid_2el.msh" ) );
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/penta_5el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -64,6 +65,9 @@ int main( int argc, char* argv[] )
 
    P2Function< real_t >  p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
    P2Function< int64_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
+
+   P3Function< real_t >  p3ScalarFunc1( "P3 scalar function 1", storage, minLevel, maxLevel );
+   P3Function< real_t >  p3ScalarFunc2( "P3 scalar function 2", storage, minLevel, maxLevel );
 
    DG1Function< real_t >  dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
    DG1Function< int32_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
@@ -91,6 +95,8 @@ int main( int argc, char* argv[] )
 
    registry.add( p2ScalarFunc1 );
 
+   registry.add( p3ScalarFunc1 );
+
    // check name extraction
    std::vector< std::string > names;
    registry.extractFunctionNames( names, functionTraits::P2_FUNCTION );
@@ -100,6 +106,9 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( names[1], "P0 scalar function 1" );
    WALBERLA_CHECK_EQUAL( names[2], "P0 scalar function 2" );
 
+   registry.extractFunctionNames( names, functionTraits::P3_FUNCTION );
+   WALBERLA_CHECK_EQUAL( names[3], "P3 scalar function 1" );
+
    // add further functions
    registry.add( dg1ScalarFunc1 );
    registry.add( egVectorFunc );
@@ -107,6 +116,7 @@ int main( int argc, char* argv[] )
    registry.add( p1VectorFunc );
    registry.add( p2VectorFunc );
    registry.add( p2BubbleFunc );
+   registry.add( p3ScalarFunc2 );
 
    // adding this will increate the count of P1Function and P2VectorFunction
    registry.add( stokesFunc );
@@ -119,6 +129,7 @@ int main( int argc, char* argv[] )
                                                                { P0_FUNCTION, 2 },
                                                                { P1_FUNCTION, 3 },
                                                                { P2_FUNCTION, 1 },
+                                                               { P3_FUNCTION, 2 },
                                                                { P2_PLUS_BUBBLE_FUNCTION, 1 },
                                                                { P2_PLUS_BUBBLE_VECTOR_FUNCTION, 1 },
                                                                { P1_VECTOR_FUNCTION, 1 },
@@ -163,6 +174,9 @@ int main( int argc, char* argv[] )
    registry.remove( ccrStokesFunc );
    WALBERLA_CHECK_EQUAL( registry.getP2PlusBubbleVectorFunctions().size(), --kindCount[P2_PLUS_BUBBLE_VECTOR_FUNCTION] );
    WALBERLA_CHECK_EQUAL( registry.getDGFunctions().size(), --kindCount[DG_FUNCTION] );
+
+   registry.remove( p3ScalarFunc1 );
+   WALBERLA_CHECK_EQUAL( registry.getP3Functions().size(), --kindCount[P3_FUNCTION] );
 
    return EXIT_SUCCESS;
 }

@@ -37,6 +37,7 @@
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 
 namespace hyteg {
 
@@ -80,6 +81,12 @@ class FEFunctionRegistry
       else if constexpr ( std::is_same_v< func_t< value_t >, P2VectorFunction< value_t > > )
       {
          p2VecFunctions_.add( function );
+      }
+
+      // P3Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P3Function< value_t > > )
+      {
+         p3Functions_.add( function );
       }
 
       // -------------
@@ -239,6 +246,12 @@ class FEFunctionRegistry
          p2VecFunctions_.remove( function );
       }
 
+      // P3Functions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P3Function< value_t > > )
+      {
+         p3Functions_.remove( function );
+      }
+
       // -------------
       //  DGFunctions
       // -------------
@@ -362,6 +375,7 @@ class FEFunctionRegistry
    const FunctionMultiStore< P0Function >&                 getP0Functions()                 const { return p0Functions_;              }
    const FunctionMultiStore< P1Function >&                 getP1Functions()                 const { return p1Functions_;              }
    const FunctionMultiStore< P2Function >&                 getP2Functions()                 const { return p2Functions_;              }
+   const FunctionMultiStore< P3Function >&                 getP3Functions()                 const { return p3Functions_;              }
    const FunctionMultiStore< P1VectorFunction >&           getP1VectorFunctions()           const { return p1VecFunctions_;           }
    const FunctionMultiStore< P2VectorFunction >&           getP2VectorFunctions()           const { return p2VecFunctions_;           }
    const FunctionMultiStore< EdgeDoFFunction >&            getEdgeDoFFunctions()            const { return edgeDoFFunctions_;         }
@@ -385,6 +399,7 @@ class FEFunctionRegistry
       num += p0Functions_.size();
       num += p1Functions_.size();
       num += p2Functions_.size();
+      num += p3Functions_.size();
       num += p2PlusBubbleFunctions_.size();
       num += p1VecFunctions_.size();
       num += p2VecFunctions_.size();
@@ -411,6 +426,10 @@ class FEFunctionRegistry
       else if constexpr ( std::is_same_v< func_t< real_t >, P2Function< real_t > > )
       {
          return p2Functions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P3Function< real_t > > )
+      {
+         return p3Functions_;
       }
       else if constexpr ( std::is_same_v< func_t< real_t >, P2PlusBubbleFunction< real_t > > )
       {
@@ -473,11 +492,14 @@ class FEFunctionRegistry
       case functionTraits::P2_FUNCTION:
          namesFound = p2Functions_.getFunctionNames();
          break;
-      case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
-         namesFound = p2PlusBubbleFunctions_.getFunctionNames();
-         break;
       case functionTraits::P2_VECTOR_FUNCTION:
          namesFound = p2VecFunctions_.getFunctionNames();
+         break;
+      case functionTraits::P3_FUNCTION:
+         namesFound = p3Functions_.getFunctionNames();
+         break;
+      case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
+         namesFound = p2PlusBubbleFunctions_.getFunctionNames();
          break;
       case functionTraits::P2_PLUS_BUBBLE_VECTOR_FUNCTION:
          namesFound = p2PlusBubbleVecFunctions_.getFunctionNames();
@@ -508,6 +530,7 @@ class FEFunctionRegistry
    FunctionMultiStore< P0Function >                 p0Functions_;
    FunctionMultiStore< P1Function >                 p1Functions_;
    FunctionMultiStore< P2Function >                 p2Functions_;
+   FunctionMultiStore< P3Function >                 p3Functions_;
    FunctionMultiStore< P1VectorFunction >           p1VecFunctions_;
    FunctionMultiStore< P2VectorFunction >           p2VecFunctions_;
    FunctionMultiStore< EdgeDoFFunction >            edgeDoFFunctions_;
@@ -534,6 +557,10 @@ class FEFunctionRegistry
 
       case functionTraits::P2_FUNCTION:
          matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< value_t > > >( function );
+         break;
+
+      case functionTraits::P3_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P3Function< value_t > > >( function );
          break;
 
       case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
