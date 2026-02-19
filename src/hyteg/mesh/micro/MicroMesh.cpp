@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2026 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -136,11 +136,11 @@ static Point3D microVertexPositionNoMesh( uint_t                                
 /// Micro-edges ///
 ///////////////////
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Edge&                 edge,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Edge&                 edge,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    WALBERLA_UNUSED( microEdgeOrientation );
 
@@ -154,11 +154,11 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, edge );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Face&                 face,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Face&                 face,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    Point3D pos = edgedof::macroface::coordinateFromIndex( level, face, microEdgeIndex, microEdgeOrientation );
 
@@ -170,11 +170,11 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, face );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Cell&                 cell,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Cell&                 cell,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    Point3D pos = edgedof::macrocell::coordinateFromIndex( level, cell, microEdgeIndex, microEdgeOrientation );
 
@@ -186,27 +186,27 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, cell );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                                     level,
-                                        const std::shared_ptr< PrimitiveStorage >& storage,
-                                        PrimitiveID                                primitiveId,
-                                        const indexing::Index&                     microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation                microEdgeOrientation,
-                                        bool                                       withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                                     level,
+                                              const std::shared_ptr< PrimitiveStorage >& storage,
+                                              PrimitiveID                                primitiveId,
+                                              const indexing::Index&                     microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation                microEdgeOrientation,
+                                              bool                                       withBlending )
 {
    auto cellPtr = storage->getLocalCell( primitiveId );
    if ( cellPtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *cellPtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *cellPtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
    auto facePtr = storage->getLocalFace( primitiveId );
    if ( facePtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *facePtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *facePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
    auto edgePtr = storage->getLocalEdge( primitiveId );
    if ( edgePtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *edgePtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *edgePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
 
    WALBERLA_ABORT( "MicroMesh: Primitive does not exist locally, or you passed a macro-vertex!" );
@@ -299,7 +299,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
       for ( auto idx : edgedof::macroedge::Iterator( level ) )
       {
-         auto pos = microEdgePositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending );
+         auto pos = microEdgeCenterPositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending );
          for ( uint_t i = 0; i < dimension; i++ )
          {
             auto edata = edge->getData( p2Mesh.component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
@@ -324,7 +324,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
       {
          for ( auto idx : edgedof::macroface::Iterator( level ) )
          {
-            auto pos = microEdgePositionNoMesh( level, *face, idx, orientation, withBlending );
+            auto pos = microEdgeCenterPositionNoMesh( level, *face, idx, orientation, withBlending );
             for ( uint_t i = 0; i < dimension; i++ )
             {
                auto edata = face->getData( p2Mesh.component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
@@ -350,7 +350,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
       {
          for ( auto idx : edgedof::macrocell::Iterator( level ) )
          {
-            auto pos = microEdgePositionNoMesh( level, *cell, idx, orientation, withBlending );
+            auto pos = microEdgeCenterPositionNoMesh( level, *cell, idx, orientation, withBlending );
             for ( uint_t i = 0; i < dimension; i++ )
             {
                auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
@@ -361,7 +361,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
       for ( auto idx : edgedof::macrocell::IteratorXYZ( level ) )
       {
-         auto pos = microEdgePositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending );
+         auto pos = microEdgeCenterPositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending );
          for ( uint_t i = 0; i < dimension; i++ )
          {
             auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
@@ -723,7 +723,7 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 
    if ( !microMesh )
    {
-      return microEdgePositionNoMesh( level, storage, primitiveId, microEdgeIndex, microEdgeOrientation, true );
+      return microEdgeCenterPositionNoMesh( level, storage, primitiveId, microEdgeIndex, microEdgeOrientation, true );
    }
 
    WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
