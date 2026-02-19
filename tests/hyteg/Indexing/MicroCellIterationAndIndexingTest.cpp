@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Marcus Mohr.
+ * Copyright (c) 2017-2026 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -31,17 +31,15 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
+#include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 using namespace hyteg;
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-int main( int argc, char* argv[] )
+void runMicroCellTest()
 {
-   walberla::mpi::Environment walberlaEnv( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------------------------" );
    WALBERLA_LOG_INFO_ON_ROOT( "TEST iterating over all micro-cells inside a macro-cell with double loop" );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------------------------------" );
@@ -146,4 +144,79 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( edgeDoFIndices[3], numEdgeDoFs - 2 * numEdgesPerType - 1 );
    WALBERLA_CHECK_EQUAL( edgeDoFIndices[4], numEdgeDoFs - 1 * numEdgesPerType - 1 );
    WALBERLA_CHECK_EQUAL( edgeDoFIndices[5], numEdgeDoFs - 0 * numEdgesPerType - 1 );
+}
+
+void runMicroEdgeOrientationTest()
+{
+   const real_t a      = real_c( 1.0 );
+   const real_t deltaX = real_c( 2.0 );
+   const real_t deltaY = real_c( 0.8 );
+
+   MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D{ a, a }, Point2D{ a + deltaX, a }, Point2D{ a + deltaX, a + deltaY } );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   using indexing::Index;
+   Index microFaceIndex{ 2, 4, 0 };
+
+   std::array< Index, 3 > controlGray;
+   std::array< Index, 3 > controlBlue;
+   std::array< Index, 3 > listGray;
+   std::array< Index, 3 > listBlue;
+
+   for ( uint_t checkCase = 0; checkCase <= 1; ++checkCase )
+   {
+      if ( checkCase == 0 )
+      {
+         controlGray = { Index( 2, 4, 0 ), Index( 3, 4, 0 ), Index( 2, 5, 0 ) };
+         controlBlue = { Index( 3, 4, 0 ), Index( 2, 5, 0 ), Index( 3, 5, 0 ) };
+      }
+      else
+      {
+         controlGray = { Index( 2, 4, 0 ), Index( 3, 4, 0 ), Index( 2, 5, 0 ) };
+         controlBlue = { Index( 3, 4, 0 ), Index( 3, 5, 0 ), Index( 2, 5, 0 ) };
+      }
+
+      if ( checkCase == 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "* Testing with consistent edge orientation:" );
+         listGray = facedof::macroface::getMicroVerticesFromMicroFace< true >( microFaceIndex, facedof::FaceType::GRAY );
+         listBlue = facedof::macroface::getMicroVerticesFromMicroFace< true >( microFaceIndex, facedof::FaceType::BLUE );
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "* Testing with anti-clockwise edge orientation:" );
+         listGray = facedof::macroface::getMicroVerticesFromMicroFace< false >( microFaceIndex, facedof::FaceType::GRAY );
+         listBlue = facedof::macroface::getMicroVerticesFromMicroFace< false >( microFaceIndex, facedof::FaceType::BLUE );
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "  -> testing gray type" );
+      for ( uint_t k = 0; k < 3; ++k )
+      {
+         WALBERLA_CHECK_EQUAL( controlGray[k], listGray[k] );
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "  -> testing blue type" );
+      for ( uint_t k = 0; k < 3; ++k )
+      {
+         WALBERLA_CHECK_EQUAL( controlBlue[k], listBlue[k] );
+      }
+   }
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::mpi::Environment walberlaEnv( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Running MICRO CELL TEST" );
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================" );
+   runMicroCellTest();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Running MICRO EDGE TEST" );
+   WALBERLA_LOG_INFO_ON_ROOT( "=========================" );
+   runMicroEdgeOrientationTest();
 }

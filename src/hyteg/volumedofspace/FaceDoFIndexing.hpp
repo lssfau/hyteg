@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -80,6 +80,12 @@ inline constexpr uint_t index( const uint_t& level, const idx_t& x, const idx_t&
 }
 
 /// Returns an array of the three logical micro-vertex-indices that span the micro-face of the given indices and face type.
+///
+/// For the default of useConsistentEdgeOrientation = false the ordering of the returned micro-vertex-indices is such that
+/// they are in anti-clockwise fashion. For true the returned array is sorted in such a way, that micro-edges have the
+/// same orientation as the corresponding macro-edges. Here, an edge is defined to be oriented from the vertex with the
+/// lower array index to the vertex with the higher array index.
+template < bool useConsistentEdgeOrientation = false >
 inline std::array< Index, 3 > getMicroVerticesFromMicroFace( const Index& microFaceIndex, const FaceType& microFaceType )
 {
    const idx_t cellX = microFaceIndex.x();
@@ -91,8 +97,16 @@ inline std::array< Index, 3 > getMicroVerticesFromMicroFace( const Index& microF
       return std::array< Index, 3 >(
           { { Index( cellX, cellY, 0 ), Index( cellX + 1, cellY, 0 ), Index( cellX, cellY + 1, 0 ) } } );
    case FaceType::BLUE:
-      return std::array< Index, 3 >(
-          { { Index( cellX + 1, cellY, 0 ), Index( cellX + 1, cellY + 1, 0 ), Index( cellX, cellY + 1, 0 ) } } );
+      if constexpr ( useConsistentEdgeOrientation )
+      {
+         return std::array< Index, 3 >(
+             { { Index( cellX + 1, cellY, 0 ), Index( cellX, cellY + 1, 0 ), Index( cellX + 1, cellY + 1, 0 ) } } );
+      }
+      else
+      {
+         return std::array< Index, 3 >(
+             { { Index( cellX + 1, cellY, 0 ), Index( cellX + 1, cellY + 1, 0 ), Index( cellX, cellY + 1, 0 ) } } );
+      }
    default:
       WALBERLA_ABORT( "Not implemented for this cell type." );
       break;
@@ -477,7 +491,7 @@ indexIterator& indexIterator::operator++()
 indexIterator indexIterator::operator++( int )
 {
    indexIterator tmp( *this );
-                 operator++();
+   operator++();
    return tmp;
 }
 
