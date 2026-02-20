@@ -36,6 +36,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/p3functionspace/P3Function.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 // using walberla::uint_t;
@@ -74,6 +75,7 @@ int main( int argc, char* argv[] )
 
    P1VectorFunction< real_t >  p1VectorFunc( "P1 vector function", storage, minLevel, maxLevel );
    P2VectorFunction< int64_t > p2VectorFunc( "P2 vector function", storage, minLevel, maxLevel );
+   P3VectorFunction< int64_t > p3VectorFunc( "P3 vector function", storage, minLevel, maxLevel );
 
    P2P1TaylorHoodFunction< real_t > stokesFunc( "Stokes function", storage, minLevel, maxLevel );
    CCRStokesFunction< real_t >      ccrStokesFunc( "CCR Stokes function", storage, minLevel, maxLevel );
@@ -115,6 +117,7 @@ int main( int argc, char* argv[] )
    registry.add( n1e1VectorFunc );
    registry.add( p1VectorFunc );
    registry.add( p2VectorFunc );
+   registry.add( p3VectorFunc );
    registry.add( p2BubbleFunc );
    registry.add( p3ScalarFunc2 );
 
@@ -134,6 +137,7 @@ int main( int argc, char* argv[] )
                                                                { P2_PLUS_BUBBLE_VECTOR_FUNCTION, 1 },
                                                                { P1_VECTOR_FUNCTION, 1 },
                                                                { P2_VECTOR_FUNCTION, 2 },
+                                                               { P3_VECTOR_FUNCTION, 1 },
                                                                { N1E1_VECTOR_FUNCTION, 1 },
                                                                { EG_FUNCTION, 1 } };
 
@@ -177,6 +181,9 @@ int main( int argc, char* argv[] )
 
    registry.remove( p3ScalarFunc1 );
    WALBERLA_CHECK_EQUAL( registry.getP3Functions().size(), --kindCount[P3_FUNCTION] );
+
+   registry.remove( p3VectorFunc );
+   WALBERLA_CHECK_EQUAL( registry.getP3VectorFunctions().size(), --kindCount[P3_VECTOR_FUNCTION] );
 
    return EXIT_SUCCESS;
 }

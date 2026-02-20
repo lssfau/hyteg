@@ -69,6 +69,8 @@ struct P1VectorFunctionTag
 {};
 struct P2VectorFunctionTag
 {};
+struct P3VectorFunctionTag
+{};
 struct P2PlusBubbleVectorFunctionTag
 {};
 struct CCRStokesFunctionTag
@@ -148,6 +150,9 @@ template < typename VType >
 class P2VectorFunction;
 
 template < typename VType >
+class P3VectorFunction;
+
+template < typename VType >
 class P2PlusBubbleVectorFunction;
 
 template < typename VType >
@@ -185,6 +190,7 @@ typedef enum
    N1E1_VECTOR_FUNCTION,
    P1_VECTOR_FUNCTION,
    P2_VECTOR_FUNCTION,
+   P3_VECTOR_FUNCTION,
    P2_PLUS_BUBBLE_VECTOR_FUNCTION,
    DG_VECTOR_FUNCTION,
    EG_FUNCTION,
@@ -308,7 +314,7 @@ struct FunctionTrait< P3Function< VType > >
 {
    typedef VType                     ValueType;
    typedef P3FunctionTag             Tag;
-   // typedef P3VectorFunction< VType > AssocVectorFunctionType;
+   typedef P3VectorFunction< VType > AssocVectorFunctionType;
 
    static std::string getTypeName() { return "P3Function"; }
 
@@ -403,6 +409,19 @@ struct FunctionTrait< P2VectorFunction< VType > >
    static std::string getTypeName() { return "P2VectorFunction"; }
 
    static const functionTraits::FunctionKind kind = functionTraits::P2_VECTOR_FUNCTION;
+};
+
+/// P3VectorFunction specialization
+template < typename VType >
+struct FunctionTrait< P3VectorFunction< VType > >
+{
+   typedef VType               ValueType;
+   typedef P3VectorFunctionTag Tag;
+   typedef P3Function< VType > VectorComponentType;
+
+   static std::string getTypeName() { return "P3VectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P3_VECTOR_FUNCTION;
 };
 
 /// P2PlusBubbleVectorFunction specialization

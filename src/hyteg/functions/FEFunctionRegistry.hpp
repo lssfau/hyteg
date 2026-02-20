@@ -36,8 +36,11 @@
 #include "hyteg/n1e1functionspace/N1E1VectorFunction.hpp"
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/p3functionspace/P3Function.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 
 namespace hyteg {
 
@@ -87,6 +90,12 @@ class FEFunctionRegistry
       else if constexpr ( std::is_same_v< func_t< value_t >, P3Function< value_t > > )
       {
          p3Functions_.add( function );
+      }
+
+      // P3VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P3VectorFunction< value_t > > )
+      {
+         p3VecFunctions_.add( function );
       }
 
       // -------------
@@ -252,6 +261,12 @@ class FEFunctionRegistry
          p3Functions_.remove( function );
       }
 
+      // P3VectorFunctions
+      else if constexpr ( std::is_same_v< func_t< value_t >, P3VectorFunction< value_t > > )
+      {
+         p3VecFunctions_.remove( function );
+      }
+
       // -------------
       //  DGFunctions
       // -------------
@@ -378,6 +393,7 @@ class FEFunctionRegistry
    const FunctionMultiStore< P3Function >&                 getP3Functions()                 const { return p3Functions_;              }
    const FunctionMultiStore< P1VectorFunction >&           getP1VectorFunctions()           const { return p1VecFunctions_;           }
    const FunctionMultiStore< P2VectorFunction >&           getP2VectorFunctions()           const { return p2VecFunctions_;           }
+   const FunctionMultiStore< P3VectorFunction >&           getP3VectorFunctions()           const { return p3VecFunctions_;           }
    const FunctionMultiStore< EdgeDoFFunction >&            getEdgeDoFFunctions()            const { return edgeDoFFunctions_;         }
    const FunctionMultiStore< dg::DGFunction >&             getDGFunctions()                 const { return dgFunctions_;              }
    const FunctionMultiStore< dg::DGVectorFunction >&       getDGVectorFunctions()           const { return dgVecFunctions_;           }
@@ -403,6 +419,7 @@ class FEFunctionRegistry
       num += p2PlusBubbleFunctions_.size();
       num += p1VecFunctions_.size();
       num += p2VecFunctions_.size();
+      num += p3VecFunctions_.size();
       num += p2PlusBubbleVecFunctions_.size();
       num += edgeDoFFunctions_.size();
       num += dgFunctions_.size();
@@ -442,6 +459,10 @@ class FEFunctionRegistry
       else if constexpr ( std::is_same_v< func_t< real_t >, P2VectorFunction< real_t > > )
       {
          return p2VecFunctions_;
+      }
+      else if constexpr ( std::is_same_v< func_t< real_t >, P3VectorFunction< real_t > > )
+      {
+         return p3VecFunctions_;
       }
       else if constexpr ( std::is_same_v< func_t< real_t >, P2PlusBubbleVectorFunction< real_t > > )
       {
@@ -498,6 +519,9 @@ class FEFunctionRegistry
       case functionTraits::P3_FUNCTION:
          namesFound = p3Functions_.getFunctionNames();
          break;
+      case functionTraits::P3_VECTOR_FUNCTION:
+         namesFound = p3VecFunctions_.getFunctionNames();
+         break;
       case functionTraits::P2_PLUS_BUBBLE_FUNCTION:
          namesFound = p2PlusBubbleFunctions_.getFunctionNames();
          break;
@@ -533,6 +557,7 @@ class FEFunctionRegistry
    FunctionMultiStore< P3Function >                 p3Functions_;
    FunctionMultiStore< P1VectorFunction >           p1VecFunctions_;
    FunctionMultiStore< P2VectorFunction >           p2VecFunctions_;
+   FunctionMultiStore< P3VectorFunction >           p3VecFunctions_;
    FunctionMultiStore< EdgeDoFFunction >            edgeDoFFunctions_;
    FunctionMultiStore< dg::DGFunction >             dgFunctions_;
    FunctionMultiStore< dg::DGVectorFunction >       dgVecFunctions_;
@@ -573,6 +598,10 @@ class FEFunctionRegistry
 
       case functionTraits::P2_VECTOR_FUNCTION:
          matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< value_t > > >( function );
+         break;
+
+      case functionTraits::P3_VECTOR_FUNCTION:
+         matchFound = tryUnwrapAndAdd< FunctionWrapper< P3VectorFunction< value_t > > >( function );
          break;
 
       case functionTraits::P2_PLUS_BUBBLE_VECTOR_FUNCTION:
