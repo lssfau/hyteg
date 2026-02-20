@@ -45,6 +45,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2PlusBubbleWriter.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKP2Writer.hpp"
+#include "hyteg/dataexport/VTKOutput/VTKP3Writer.hpp"
 #include "hyteg/dataexport/VTKOutput/VTKStreamWriter.hpp"
 
 // from walberla
@@ -82,7 +83,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
                          std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t >,
                      "The VTK printer is able to print only functions of the types double, float, int32 and int64." );
 
-      // Index vectors of non-nodal FE functions can not be printed directly.
+      // Index vectors of non-nodal FE functions cannot be printed directly.
       static_assert( !( (std::is_same_v< value_t, int32_t > || std::is_same_v< value_t, int64_t >) &&(
                          std::is_same_v< func_t< value_t >, DG1Function< value_t > > ||
                          std::is_same_v< func_t< value_t >, dg::DGFunction< value_t > > ||
@@ -180,6 +181,7 @@ class VTKOutput : public FEFunctionWriter< VTKOutput >
    friend class VTKP0Writer;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
+   friend class VTKP3Writer;
    friend class VTKP2PlusBubbleWriter;
    friend class VTKDGWriter;
    friend class VTKP1DGEWriter;

@@ -57,6 +57,26 @@ class VTKMeshWriter
                                          uint_t                                     level,
                                          const vtk::DoFType&                        dofType );
 
+   /// \brief Writes coordinates for arbitrary points for all micro edges of a certain edge type
+   ///
+   /// Higher-order Lagrange elements have multiple DoFs on one edge. This function allows selecting a certain
+   /// class of DoFs by specifying their relative position on the edge as a value between 0 and 1.
+   ///
+   /// \param write2D       flag for toggling 2D and 3D
+   /// \param dstStream     an object that behaves like an output stream, i.e. we can write to it using the << operator
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level to write
+   /// \param dofType       selects the type of edge, e.g. horizontal, for which midpoints get written
+   /// \param factor        specifies the relative point position as a value between 0 (= start vertex of edge)
+   ///                      and 1 (= end vertex of edge)
+   template < typename dstStream_t >
+   static void writePointsOnMicroEdges( bool                                       write2D,
+                                        dstStream_t&                               dstStream,
+                                        const std::shared_ptr< PrimitiveStorage >& storage,
+                                        uint_t                                     level,
+                                        const vtk::DoFType&                        dofType,
+                                        real_t                                     factor );
+
    /// \brief Writes the point coordinates for all micro face centers.
    ///
    /// \param dstStream     an object that behaves like an output stream, i.e. we can write to it using the << operator
@@ -91,6 +111,17 @@ class VTKMeshWriter
                                              const std::shared_ptr< PrimitiveStorage >& storage,
                                              uint_t                                     level,
                                              bool                                       discontinuous = false );
+
+   /// \brief Writes connectivity information for 2D cells of type VTK_LAGRANGE_TRIANGLE for P3 elements
+   ///
+   /// \param vtkDataFormat format in which data is stored in the VTK file
+   /// \param output        an output stream to write to
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   static void writeConnectivityP3Triangles( vtk::DataFormat                            vtkDataFormat,
+                                             std::ostream&                              output,
+                                             const std::shared_ptr< PrimitiveStorage >& storage,
+                                             uint_t                                     level );
 
    /// \brief Writes connectivity information for exporting P2PlusBubbleFunctions on triangles
    ///
@@ -140,6 +171,16 @@ class VTKMeshWriter
    /// \param level         refinement level for output
    template < typename dstStream_t >
    static void writeElementNodeAssociationP2Triangles( dstStream_t&                               dstStream,
+                                                       const std::shared_ptr< PrimitiveStorage >& storage,
+                                                       uint_t                                     level );
+
+   /// \brief Writes element <-> node association information for 2D cells of type VTK_LAGRANGE_TRIANGLE for P3 elements
+   ///
+   /// \param dstStream     stream-like object to write data to, must support operator<<
+   /// \param storage       the associated PrimitiveStorage
+   /// \param level         refinement level for output
+   template < typename dstStream_t >
+   static void writeElementNodeAssociationP3Triangles( dstStream_t&                               dstStream,
                                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                                        uint_t                                     level );
 

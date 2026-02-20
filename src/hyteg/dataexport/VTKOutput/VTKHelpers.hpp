@@ -47,6 +47,7 @@ enum class DoFType
    FACEDOF_OLD,
    P0,
    P2,
+   P3,
    P2_PLUS_BUBBLE,
    N1E1,
    P1DGE
