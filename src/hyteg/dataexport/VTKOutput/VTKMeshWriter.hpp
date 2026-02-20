@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -51,7 +51,7 @@ class VTKMeshWriter
    /// \param level         refinement level to write
    /// \param dofType       selects the type of edge, e.g. horizontal, for which midpoints get written
    template < typename dstStream_t >
-   static void writePointsForMicroEdges( bool                                       write2D,
+   static void writeCentersOfMicroEdges( bool                                       write2D,
                                          dstStream_t&                               dstStream,
                                          const std::shared_ptr< PrimitiveStorage >& storage,
                                          uint_t                                     level,
@@ -63,9 +63,8 @@ class VTKMeshWriter
    /// \param storage       the associated PrimitiveStorage
    /// \param level         refinement level to write
    template < typename dstStream_t >
-   static void writePointsForMicroFaceCenters( dstStream_t&                               dstStream,
-                                               const std::shared_ptr< PrimitiveStorage >& storage,
-                                               uint_t                                     level );
+   static void
+       writePointsForMicroFaceCenters( dstStream_t& dstStream, const std::shared_ptr< PrimitiveStorage >& storage, uint_t level );
 
    /// \brief Writes the 2D cells.
    ///

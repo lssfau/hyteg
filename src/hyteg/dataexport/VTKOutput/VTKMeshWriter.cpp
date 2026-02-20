@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -115,7 +115,7 @@ void VTKMeshWriter::writePointsForMicroVertices( bool                           
 }
 
 template < typename dstStream_t >
-void VTKMeshWriter::writePointsForMicroEdges( bool                                       write2D,
+void VTKMeshWriter::writeCentersOfMicroEdges( bool                                       write2D,
                                               dstStream_t&                               dstStream,
                                               const std::shared_ptr< PrimitiveStorage >& storage,
                                               uint_t                                     level,
@@ -1082,7 +1082,7 @@ template void VTKMeshWriter::writePointsForMicroVertices( bool                  
                                                           uint_t                                     level,
                                                           bool                                       discontinuous );
 
-template void VTKMeshWriter::writePointsForMicroEdges( bool                                       write2D,
+template void VTKMeshWriter::writeCentersOfMicroEdges( bool                                       write2D,
                                                        VTKStreamWriter< real_t >&                 dstStream,
                                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                                        uint_t                                     level,
@@ -1121,7 +1121,7 @@ template void VTKMeshWriter::writeElementNodeAssociationP2Tetrahedrons(
     const std::shared_ptr< PrimitiveStorage >&                       storage,
     uint_t                                                           level );
 
-template void VTKMeshWriter::writePointsForMicroEdges( bool                                       write2D,
+template void VTKMeshWriter::writeCentersOfMicroEdges( bool                                       write2D,
                                                        AdiosWriter::StreamAccessBuffer< real_t >& dstStream,
                                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                                        uint_t                                     level,

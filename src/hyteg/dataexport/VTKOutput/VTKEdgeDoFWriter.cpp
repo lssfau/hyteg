@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl, Michael Zikeli.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -76,7 +76,7 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
 
    {
       VTKStreamWriter< real_t > streamWriter( mgr.vtkDataFormat_ );
-      VTKMeshWriter::writePointsForMicroEdges( mgr.write2D_, streamWriter, storage, level, dofType );
+      VTKMeshWriter::writeCentersOfMicroEdges( mgr.write2D_, streamWriter, storage, level, dofType );
       streamWriter.toStream( output );
    }
 
