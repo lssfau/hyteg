@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -467,6 +467,50 @@ void EdgeDoFFunction< ValueType >::interpolate(
    }
    this->stopTiming( "Interpolate" );
 }
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                                uint_t                                              level,
+                                                real_t                                              positionFactor,
+                                                DoFType                                             flag ) const
+{
+   this->startTiming( "Interpolate" );
+
+   if constexpr ( !std::is_floating_point_v< ValueType > )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT(
+          "Are you sure that you want to use interpolate() with an EdgeDoFFunction of non-fp ValueType?" );
+   }
+
+   if ( this->storage_->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "EdgeDoFFunction::interpolate() for arbitray position not implemented for 3D, yet!" );
+   }
+   else
+   {
+      for ( const auto& it : this->storage_->getEdges() )
+      {
+         const Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+           edgedof::macroedge::interpolate< ValueType >( this->storage_, level, edge, edgeDataID_, positionFactor, expr );
+         }
+      }
+
+      for ( const auto& it : this->storage_->getFaces() )
+      {
+         const Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+           // edgedof::macroface::interpolate< ValueType >( this->storage_, level, face, faceDataID_, positionFactor, expr );
+         }
+      }
+   }
+
+   this->stopTiming( "Interpolate" );
+};
 
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::setToZero( uint_t level ) const

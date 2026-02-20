@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -176,6 +176,11 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
       WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
       this->interpolate( expr[0], level, flag );
    };
+
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                     uint_t                                              level,
+                     real_t                                              positionFactor,
+                     DoFType                                             flag = All ) const;
 
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;

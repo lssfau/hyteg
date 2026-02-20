@@ -43,7 +43,12 @@ P3Function< ValueType >::P3Function( const std::string&                         
       vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
 , edgeDoFFunctionBlue_( EdgeDoFFunction< ValueType >( name + "_EdgeDoFBlue", storage, minLevel, maxLevel, boundaryCondition ) )
 , edgeDoFFunctionRed_( EdgeDoFFunction< ValueType >( name + "_EdgeDoFRed", storage, minLevel, maxLevel, boundaryCondition ) )
-, faceDoFFunction_( volumedofspace::VolumeDoFFunction< ValueType >( name + "_FaceDoF", storage, minLevel, maxLevel, 1, volumedofspace::indexing::VolumeDoFMemoryLayout::SoA ) )
+, faceDoFFunction_( volumedofspace::VolumeDoFFunction< ValueType >( name + "_FaceDoF",
+                                                                    storage,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    1,
+                                                                    volumedofspace::indexing::VolumeDoFMemoryLayout::SoA ) )
 {
    if ( storage->hasGlobalCells() )
    {
@@ -57,6 +62,103 @@ P3Function< ValueType >::P3Function( const std::string&                         
       communicators_[level] = nullptr;
    }
 #endif
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
+{
+   vertexDoFFunction_.interpolate( constant, level, flag );
+   edgeDoFFunctionBlue_.interpolate( constant, level, flag );
+   edgeDoFFunctionRed_.interpolate( constant, level, flag );
+   faceDoFHelpers::interpolate( faceDoFFunction_, constant, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                                                           ValueType                                             constant,
+                                                           uint_t                                                level,
+                                                           DoFType                                               flag )
+{
+   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
+   WALBERLA_UNUSED( flag );
+
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
+   }
+   else
+   {
+      for ( auto& it : function.getStorage()->getFaces() )
+      {
+         const auto  faceID = it.first;
+         const auto& face   = *it.second;
+
+         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+         const auto memLayout = function.memoryLayout();
+         auto       dofs      = function.dofMemory( faceID, level );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = constant;
+            }
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                           uint_t                                              level,
+                                           DoFType                                             flag ) const
+{
+   vertexDoFFunction_.interpolate( expr, level, flag );
+   edgeDoFFunctionBlue_.interpolate( expr, level, flag ); // WRONG !!! need to interpolate at real_c( 1.0 / 3.0 ) not 0.5
+   edgeDoFFunctionRed_.interpolate( expr, level, flag );  // WRONG !!! need to interpolate at real_c( 2.0 / 3.0 ) not 0.5
+   faceDoFHelpers::interpolate( faceDoFFunction_, expr, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                                                           const std::function< ValueType( const Point3D& ) >&   expr,
+                                                           uint_t                                                level,
+                                                           DoFType                                               flag )
+{
+   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
+   WALBERLA_UNUSED( flag );
+
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
+   }
+   else
+   {
+      for ( auto& it : function.getStorage()->getFaces() )
+      {
+         const auto  faceID = it.first;
+         const auto& face   = *it.second;
+
+         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+         const auto memLayout = function.memoryLayout();
+         auto       dofs      = function.dofMemory( faceID, level );
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               const Point3D centroid =
+                   micromesh::microFaceCenterPosition( function.getStorage(), faceID, level, idxIt, faceType );
+
+               const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
+
+               dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = ValueType( val );
+            }
+         }
+      }
+   }
 }
 
 // ========================

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -100,6 +100,34 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 
       edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.x(), stencilDirection::EDGE_HO_C )] =
           expr( currentCoordinates, srcVector );
+   }
+}
+
+template < concepts::value_type ValueType >
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                  storage,
+                         uint_t                                                      level,
+                         const Edge&                                                 edge,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& edgeMemoryId,
+                         real_t                                                      positionFactor,
+                         const std::function< ValueType( const hyteg::Point3D& ) >&  expr )
+{
+   auto edgeData = edge.getData( edgeMemoryId )->getPointer( level );
+
+   for ( const auto& microEdgeIdx : edgedof::macroedge::Iterator( level ) )
+   {
+      indexing::Index v0 = microEdgeIdx;
+      indexing::Index v1 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+
+#ifndef NDEBUG
+      std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::X );
+      WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 1, 0, 0 ) );
+#endif
+
+      const Point3D currentCoordinates =
+          micromesh::microEdgeArbitraryPosition( storage, edge.getID(), level, v0, v1, positionFactor );
+
+      edgeData[edgedof::macroedge::indexFromHorizontalEdge( level, microEdgeIdx.x(), stencilDirection::EDGE_HO_C )] =
+          expr( currentCoordinates );
    }
 }
 

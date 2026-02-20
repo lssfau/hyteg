@@ -26,12 +26,14 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
+#include "hyteg/types/Concepts.hpp"
 #include "hyteg/volumedofspace/VolumeDoFFunction.hpp"
 
 namespace hyteg {
 
 using walberla::real_c;
 
+// template < concepts::value_type ValueType >
 template < typename ValueType >
 class P3Function final : public Function< P3Function< ValueType > >
 {
@@ -79,6 +81,21 @@ class P3Function final : public Function< P3Function< ValueType > >
       faceDoFFunction_.setToZero( level );
    };
 
+   /// @name Member functions for interpolation using DoFType flags
+   ///@{
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
+
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
+
+   void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      this->interpolate( expr[0], level, flag );
+   };
+   ///@}
+
  private:
    using Function< P3Function< ValueType > >::communicators_;
 
@@ -88,6 +105,13 @@ class P3Function final : public Function< P3Function< ValueType > >
 
    // TODO: In 2D this is fine, but in 3D we need a true FaceDoFFunction!!!!
    volumedofspace::VolumeDoFFunction< ValueType > faceDoFFunction_;
+
+   /// Auxilliary class with static method for functionality not available in VolumeDoFFunction
+   struct faceDoFHelpers
+   {
+      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >&function, ValueType constant, uint_t level, DoFType flag );
+      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >&function, const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag );
+   };
 };
 
 extern template class P3Function< double >;

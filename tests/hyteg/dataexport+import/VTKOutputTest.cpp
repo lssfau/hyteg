@@ -72,6 +72,7 @@ static void exportFunctions2D( uint_t level )
    P2Function< real_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
 
    P3Function< real_t > p3ScalarFunc1( "P3 scalar function 1", storage, minLevel, maxLevel );
+   P3Function< real_t > p3ScalarFunc2( "P3 scalar function 2", storage, minLevel, maxLevel );
 
    DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
    DG1Function< real_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
@@ -89,6 +90,7 @@ static void exportFunctions2D( uint_t level )
    // Interpolate
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
    std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1]; };
+
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc };
 
    p0ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
@@ -99,6 +101,9 @@ static void exportFunctions2D( uint_t level )
 
    p2ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
    p2ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
+   p3ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p3ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
 
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
@@ -154,6 +159,7 @@ static void exportFunctions2D( uint_t level )
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput3( fPath, fName, storage );
       vtkOutput3.add( p3ScalarFunc1 );
+      vtkOutput3.add( p3ScalarFunc2 );
       vtkOutput3.write( maxLevel );
 
       fName = "VTKOutputTest-DG1";
