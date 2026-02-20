@@ -332,6 +332,34 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
       controlCount++;
    }
 
+   // -----------------------------------------------
+   //  P3Functions [double, float, int32_t, int64_t]
+   // -----------------------------------------------
+   for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< double >() )
+   {
+      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< float >() )
+   {
+      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< int32_t >() )
+   {
+      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      controlCount++;
+   }
+   for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< int64_t >() )
+   {
+      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
+      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      controlCount++;
+   }
+
    // ---------------------------------------------------------
    //  P2PlusBubbleFunctions [double, float, int32_t, int64_t]
    // ---------------------------------------------------------
