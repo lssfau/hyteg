@@ -22,6 +22,8 @@
 
 #include <algorithm>
 
+#include "hyteg/p3functionspace/P3FunctionPackInfo.hpp"
+
 namespace hyteg {
 
 template < typename ValueType >
@@ -54,14 +56,29 @@ P3Function< ValueType >::P3Function( const std::string&                         
    {
       WALBERLA_ABORT( "This proof-of-concept implementation only works for 2D! We are missing a FaceDoFFunction for 3D!" );
    }
-#if 0
+
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Vertex >, 3 > dataIDsMacroVertex;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Edge >, 3 >   dataIDsMacroEdge;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Face >, 3 >   dataIDsMacroFace;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Cell >, 3 >   dataIDsMacroCell; // currently unused
+
+   dataIDsMacroVertex[0] = vertexDoFFunction_.getVertexDataID();
+   dataIDsMacroVertex[1] = edgeDoFFunctionBlue_.getVertexDataID();
+   dataIDsMacroVertex[2] = edgeDoFFunctionRed_.getVertexDataID();
+
+   dataIDsMacroEdge[0] = vertexDoFFunction_.getEdgeDataID();
+   dataIDsMacroEdge[1] = edgeDoFFunctionBlue_.getEdgeDataID();
+   dataIDsMacroEdge[2] = edgeDoFFunctionRed_.getEdgeDataID();
+
+   dataIDsMacroFace[0] = vertexDoFFunction_.getFaceDataID();
+   dataIDsMacroFace[1] = edgeDoFFunctionBlue_.getFaceDataID();
+   dataIDsMacroFace[2] = edgeDoFFunctionRed_.getFaceDataID();
+
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      /// one has to use the communicators of the vertexDoF and edgeDoF function to communicate
-      /// TODO: find better solution
-      communicators_[level] = nullptr;
+      communicators_[level]->addPackInfo( std::make_shared< P3FunctionPackInfo< ValueType > >(
+          level, dataIDsMacroVertex, dataIDsMacroEdge, dataIDsMacroFace, dataIDsMacroCell, this->getStorage() ) );
    }
-#endif
 }
 
 template < typename ValueType >

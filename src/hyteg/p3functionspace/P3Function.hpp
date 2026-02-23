@@ -96,8 +96,39 @@ class P3Function final : public Function< P3Function< ValueType > >
    };
    ///@}
 
+   /// @name Member functions for (MPI or local) communication
+   ///@{
+   template < typename SenderType, typename ReceiverType >
+   inline void startCommunication( const uint_t& level ) const
+   {
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
+      communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   inline void endCommunication( const uint_t& level ) const
+   {
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
+      communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   void communicate( const uint_t& level ) const
+   {
+      startCommunication< SenderType, ReceiverType >( level );
+      endCommunication< SenderType, ReceiverType >( level );
+   }
+   ///@}
+
  private:
    using Function< P3Function< ValueType > >::communicators_;
+   using Function< P3Function< ValueType > >::additiveCommunicators_;
 
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >              edgeDoFFunctionBlue_;
@@ -109,8 +140,14 @@ class P3Function final : public Function< P3Function< ValueType > >
    /// Auxilliary class with static method for functionality not available in VolumeDoFFunction
    struct faceDoFHelpers
    {
-      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >&function, ValueType constant, uint_t level, DoFType flag );
-      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >&function, const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag );
+      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                               ValueType                                             constant,
+                               uint_t                                                level,
+                               DoFType                                               flag );
+      static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                               const std::function< ValueType( const Point3D& ) >&   expr,
+                               uint_t                                                level,
+                               DoFType                                               flag );
    };
 };
 
