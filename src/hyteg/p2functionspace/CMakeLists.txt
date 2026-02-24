@@ -6,6 +6,8 @@ target_sources( hyteg
     P2Function.cpp
     P2Function.hpp
     P2FunctionApplyOperator.hpp
+    P2FunctionPackInfo.cpp
+    P2FunctionPackInfo.hpp
     P2MacroCell.cpp
     P2MacroCell.hpp
     P2MacroFace.cpp

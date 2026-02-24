@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -79,22 +79,28 @@ class P2Function final : public Function< P2Function< ValueType > >
    template < typename SenderType, typename ReceiverType >
    void startCommunication( const uint_t& level ) const
    {
-      vertexDoFFunction_.template startCommunication< SenderType, ReceiverType >( level );
-      edgeDoFFunction_.template startCommunication< SenderType, ReceiverType >( level );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
+      communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    void endCommunication( const uint_t& level ) const
    {
-      vertexDoFFunction_.template endCommunication< SenderType, ReceiverType >( level );
-      edgeDoFFunction_.template endCommunication< SenderType, ReceiverType >( level );
+      WALBERLA_CHECK_EQUAL( communicators_.count( level ),
+                            1,
+                            "No communicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                 << "' exist on this level?" );
+      communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const
    {
-      vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
-      edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
+      startCommunication< SenderType, ReceiverType >( level );
+      endCommunication< SenderType, ReceiverType >( level );
    }
 
    /// \brief Evaluate finite element function at a specific coordinates.
@@ -106,7 +112,7 @@ class P2Function final : public Function< P2Function< ValueType > >
    ///   1. For all volume primitives of the local subdomain:
    ///      If a point-tet (point-triangle in 2D) inclusion test succeeds,
    ///      the function returns true and the finite-element function is evaluated. While checking all
-   ///      volume primitives, we store the primitive with the smallest computational point - primitive distance 
+   ///      volume primitives, we store the primitive with the smallest computational point - primitive distance
    ///      that also fulfills a point pairing check. If a primitives's distance is smaller than the given
    ///      distanceTolerance parameter, then the method can also return that primitive & respective computational
    ///      domain point immediately. Use distanceTolerance = 0 to disable that feature.
