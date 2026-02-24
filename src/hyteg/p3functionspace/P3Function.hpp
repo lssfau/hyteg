@@ -68,8 +68,8 @@ class P3Function final : public Function< P3Function< ValueType > >
    }
 
    inline const vertexdof::VertexDoFFunction< ValueType >&      getVertexDoFFunction() const { return vertexDoFFunction_; }
-   inline const EdgeDoFFunction< ValueType >&                   getEdgeDoFFunctionRed() const { return edgeDoFFunctionRed_; }
    inline const EdgeDoFFunction< ValueType >&                   getEdgeDoFFunctionBlue() const { return edgeDoFFunctionBlue_; }
+   inline const EdgeDoFFunction< ValueType >&                   getEdgeDoFFunctionRed() const { return edgeDoFFunctionRed_; }
    inline const volumedofspace::VolumeDoFFunction< ValueType >& getFaceDoFFunction() const { return faceDoFFunction_; }
 
    /// Set all function DoFs to zero including the ones in the halos
@@ -125,6 +125,106 @@ class P3Function final : public Function< P3Function< ValueType > >
       endCommunication< SenderType, ReceiverType >( level );
    }
    ///@}
+
+   /// Compute the product of several functions in an elementwise fashion
+   ///
+   /// The method takes as input a collection of functions. These are multiplied together in an elementwise fashion.
+   /// The latter is to be understood not in a FE context, but in the sense of element-wise operators in matrix/array
+   /// oriented languages, i.e. the product is a function of the same type as the inputs and its DoFs are formed as
+   /// product of the corresponding DoFs of the input functions. The result is stored in the function object on which
+   /// the method is invoked, overwritting its contents. It is safe, if the destination function is part of the product.
+   ///
+   /// \param functions  the functions forming the product
+   /// \param level      level on which the multiplication should be computed
+   /// \param flag       marks those primitives which are partaking in the computation of the product
+   void multElementwise( const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+                         uint_t                                                                        level,
+                         DoFType                                                                       flag = All ) const;
+
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
+
+   void add( const std::vector< ValueType >&                                               scalars,
+             const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+             uint_t                                                                        level,
+             DoFType                                                                       flag = All ) const;
+
+   void swap( const P3Function< ValueType >& other, const uint_t& level, const DoFType& dofType = All ) const;
+
+   void assign( const std::vector< ValueType >&                                               scalars,
+                const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+                uint_t                                                                        level,
+                DoFType                                                                       flag = All ) const;
+
+   ValueType dotLocal( const P3Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
+
+   ValueType dotGlobal( const P3Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
+
+   /// @name Member functions for accessing/manipulating boundary conditions
+   ///@{
+   BoundaryCondition getBoundaryCondition() const;
+
+   void setBoundaryCondition( BoundaryCondition bc );
+
+   template < typename OtherFunctionValueType >
+   void copyBoundaryConditionFromFunction( const P3Function< OtherFunctionValueType >& other )
+   {
+      setBoundaryCondition( other.getBoundaryCondition() );
+   }
+   ///@}
+
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   /// This method also works, if the storages are distributed differently.
+   ///
+   /// \param other another function
+   /// \param level the refinement level
+   /// \param localPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of this function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage of the other function
+   /// \param otherPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of the other function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage this function lives on.
+   ///
+   void copyFrom( const P3Function< ValueType >&         other,
+                  const uint_t&                          level,
+                  const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const;
+
+   /// @name Member functions for conversion to/from linear algebra representation
+   ///@{
+   void toVector( const P3Function< idx_t >&            numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const;
+
+   void fromVector( const P3Function< idx_t >&            numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const;
+
+   void enumerate( uint_t level ) const { WALBERLA_ABORT( "P3Function::enumerate() still needs to be implemented!" ); }
+
+   void enumerate( uint_t level, ValueType& offset ) const
+   {
+      WALBERLA_ABORT( "P3Function::enumerate() still needs to be implemented!" );
+   }
+   ///@}
+
+   /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
+   ///
+   /// \param level        refinement level
+   /// \param communicator if required, a custom communicator can be passed
+   /// \param onRootOnly   if true, the result is only returned on the root process
+   /// \return
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      // return numberOfGlobalDoFs< P3FunctionTag >( *this->storage_, level, communicator, onRootOnly );
+      WALBERLA_ABORT( "P3Function::getNumberOfGlobalDoFs() still needs to be implemented!" );
+      return 0;
+   }
 
  private:
    using Function< P3Function< ValueType > >::communicators_;

@@ -178,6 +178,197 @@ void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace:
    }
 }
 
+template < typename ValueType >
+void P3Function< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+    uint_t                                                                        level,
+    DoFType                                                                       flag ) const
+{
+   std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > >      vertexDoFFunctions;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsBlue;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsRed;
+   std::vector< std::reference_wrapper< const volumedofspace::VolumeDoFFunction< ValueType > > > faceDoFFunctions;
+
+   for ( const P3Function< ValueType >& function : functions )
+   {
+      vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+      edgeDoFFunctionsBlue.push_back( function.edgeDoFFunctionBlue_ );
+      edgeDoFFunctionsRed.push_back( function.edgeDoFFunctionRed_ );
+      faceDoFFunctions.push_back( function.faceDoFFunction_ );
+   }
+
+   vertexDoFFunction_.multElementwise( vertexDoFFunctions, level, flag );
+   edgeDoFFunctionBlue_.multElementwise( edgeDoFFunctionsBlue, level, flag );
+   edgeDoFFunctionRed_.multElementwise( edgeDoFFunctionsRed, level, flag );
+
+   WALBERLA_ABORT( "Need to implement multelementwise for facedof part!" );
+   // faceDoFFunction_.multElementwise( faceDoFFunctions, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
+{
+   vertexDoFFunction_.add( scalar, level, flag );
+   edgeDoFFunctionBlue_.add( scalar, level, flag );
+   edgeDoFFunctionRed_.add( scalar, level, flag );
+   faceDoFFunction_.add( scalar, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::add( const std::vector< ValueType >&                                               scalars,
+                                   const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+                                   uint_t                                                                        level,
+                                   DoFType                                                                       flag ) const
+{
+   std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > >      vertexDoFFunctions;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsBlue;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsRed;
+   std::vector< std::reference_wrapper< const volumedofspace::VolumeDoFFunction< ValueType > > > faceDoFFunctions;
+
+   for ( const P3Function< ValueType >& function : functions )
+   {
+      vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+      edgeDoFFunctionsBlue.push_back( function.edgeDoFFunctionBlue_ );
+      edgeDoFFunctionsRed.push_back( function.edgeDoFFunctionRed_ );
+      faceDoFFunctions.push_back( function.faceDoFFunction_ );
+   }
+
+   vertexDoFFunction_.add( scalars, vertexDoFFunctions, level, flag );
+   edgeDoFFunctionBlue_.add( scalars, edgeDoFFunctionsBlue, level, flag );
+   edgeDoFFunctionRed_.add( scalars, edgeDoFFunctionsRed, level, flag );
+
+   // Will need a version that supports flag argument for 3D!
+   faceDoFFunction_.add( scalars, faceDoFFunctions, level );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::swap( const P3Function< ValueType >& other, const uint_t& level, const DoFType& flag ) const
+{
+   vertexDoFFunction_.swap( other.getVertexDoFFunction(), level, flag );
+   edgeDoFFunctionBlue_.swap( other.getEdgeDoFFunctionBlue(), level, flag );
+   edgeDoFFunctionRed_.swap( other.getEdgeDoFFunctionRed(), level, flag );
+   faceDoFFunction_.swap( other.getFaceDoFFunction(), level );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
+                                      const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
+                                      uint_t                                                                        level,
+                                      DoFType                                                                       flag ) const
+{
+   std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > >      vertexDoFFunctions;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsBlue;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >                   edgeDoFFunctionsRed;
+   std::vector< std::reference_wrapper< const volumedofspace::VolumeDoFFunction< ValueType > > > faceDoFFunctions;
+
+   for ( const P3Function< ValueType >& function : functions )
+   {
+      vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+      edgeDoFFunctionsBlue.push_back( function.edgeDoFFunctionBlue_ );
+      edgeDoFFunctionsRed.push_back( function.edgeDoFFunctionRed_ );
+      faceDoFFunctions.push_back( function.faceDoFFunction_ );
+   }
+
+   vertexDoFFunction_.assign( scalars, vertexDoFFunctions, level, flag );
+   edgeDoFFunctionBlue_.assign( scalars, edgeDoFFunctionsBlue, level, flag );
+   edgeDoFFunctionRed_.assign( scalars, edgeDoFFunctionsRed, level, flag );
+
+   // Will need a version that supports flag argument for 3D!
+   faceDoFFunction_.assign( scalars, faceDoFFunctions, level );
+}
+
+template < typename ValueType >
+ValueType P3Function< ValueType >::dotLocal( const P3Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
+{
+   auto sum = ValueType( 0 );
+   sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
+   sum += edgeDoFFunctionBlue_.dotLocal( rhs.edgeDoFFunctionBlue_, level, flag );
+   sum += edgeDoFFunctionRed_.dotLocal( rhs.edgeDoFFunctionRed_, level, flag );
+
+   // Will need a version that supports flag argument for 3D!
+   sum += faceDoFFunction_.dotLocal( rhs.faceDoFFunction_, level );
+
+   return sum;
+}
+
+template < typename ValueType >
+ValueType P3Function< ValueType >::dotGlobal( const P3Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
+{
+   ValueType sum = dotLocal( rhs, level, flag );
+   this->startTiming( "Dot (reduce)" );
+   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   this->stopTiming( "Dot (reduce)" );
+   return sum;
+}
+
+template < typename ValueType >
+BoundaryCondition P3Function< ValueType >::getBoundaryCondition() const
+{
+   WALBERLA_ASSERT_EQUAL( vertexDoFFunction_.getBoundaryCondition(),
+                          edgeDoFFunctionBlue_.getBoundaryCondition(),
+                          "P3Function: boundary conditions of underlying component functions differ!" )
+   WALBERLA_ASSERT_EQUAL( vertexDoFFunction_.getBoundaryCondition(),
+                          edgeDoFFunctionRed_.getBoundaryCondition(),
+                          "P3Function: boundary conditions of underlying component functions differ!" )
+
+   // NOTE: We will need faceDoFFunction_.getBoundaryCondition() for 3D!
+
+   // WALBERLA_ASSERT_EQUAL( vertexDoFFunction_.getBoundaryCondition(),
+   //                        faceDoFFunction_.getBoundaryCondition(),
+   //                        "P3Function: boundary conditions of underlying component functions differ!" )
+
+   return vertexDoFFunction_.getBoundaryCondition();
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::setBoundaryCondition( BoundaryCondition bc )
+{
+   vertexDoFFunction_.setBoundaryCondition( bc );
+   edgeDoFFunctionBlue_.setBoundaryCondition( bc );
+   edgeDoFFunctionRed_.setBoundaryCondition( bc );
+
+   // NOTE: We will need faceDoFFunction_.setBoundaryCondition() for 3D!
+   // faceDoFFunction_.setBoundaryCondition( bc );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::copyFrom( const P3Function< ValueType >&         other,
+                                        const uint_t&                          level,
+                                        const std::map< PrimitiveID, uint_t >& localPrimitiveIDsToRank,
+                                        const std::map< PrimitiveID, uint_t >& otherPrimitiveIDsToRank ) const
+{
+   vertexDoFFunction_.copyFrom( other.getVertexDoFFunction(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+   edgeDoFFunctionBlue_.copyFrom( other.getEdgeDoFFunctionBlue(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+   edgeDoFFunctionRed_.copyFrom( other.getEdgeDoFFunctionRed(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+
+   WALBERLA_ABORT( "Need to implement copyFrom for facedof part!" );
+   // faceDoFFunction_.copyFrom( other.getFaceDoFFunction(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::toVector( const P3Function< idx_t >&            numerator,
+                                        const std::shared_ptr< VectorProxy >& vec,
+                                        uint_t                                level,
+                                        DoFType                               flag ) const
+{
+   vertexDoFFunction_.toVector( numerator.getVertexDoFFunction(), vec, level, flag );
+   edgeDoFFunctionBlue_.toVector( numerator.getEdgeDoFFunctionBlue(), vec, level, flag );
+   edgeDoFFunctionRed_.toVector( numerator.getEdgeDoFFunctionRed(), vec, level, flag );
+   faceDoFFunction_.toVector( numerator.getFaceDoFFunction(), vec, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::fromVector( const P3Function< idx_t >&            numerator,
+                                          const std::shared_ptr< VectorProxy >& vec,
+                                          uint_t                                level,
+                                          DoFType                               flag ) const
+{
+   vertexDoFFunction_.fromVector( numerator.getVertexDoFFunction(), vec, level, flag );
+   edgeDoFFunctionBlue_.fromVector( numerator.getEdgeDoFFunctionBlue(), vec, level, flag );
+   edgeDoFFunctionRed_.fromVector( numerator.getEdgeDoFFunctionRed(), vec, level, flag );
+   faceDoFFunction_.fromVector( numerator.getFaceDoFFunction(), vec, level, flag );
+};
+
 // ========================
 //  explicit instantiation
 // ========================
