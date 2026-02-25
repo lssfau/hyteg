@@ -104,6 +104,12 @@ class P2FunctionPackInfo : public communication::PackInfo
 
    void communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const override;
 
+   void packFaceForVertex( const Face* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
+
+   void unpackVertexFromFace( Vertex* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const override;
+
+   void communicateLocalFaceToVertex( const Face* sender, Vertex* receiver ) const override;
+
  private:
    uint_t                                   level_;
    std::weak_ptr< hyteg::PrimitiveStorage > storage_;

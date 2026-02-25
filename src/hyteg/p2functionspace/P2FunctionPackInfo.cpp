@@ -237,6 +237,28 @@ void P2FunctionPackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* se
    edgeDoFPackInfo_.communicateLocalEdgeToCell( sender, receiver );
 }
 
+template < concepts::value_type ValueType >
+void P2FunctionPackInfo< ValueType >::packFaceForVertex( const Face*                sender,
+                                                         const PrimitiveID&         receiver,
+                                                         walberla::mpi::SendBuffer& buffer ) const
+{
+   vertexDoFPackInfo_.packFaceForVertex( sender, receiver, buffer );
+}
+
+template < concepts::value_type ValueType >
+void P2FunctionPackInfo< ValueType >::unpackVertexFromFace( Vertex*                    receiver,
+                                                            const PrimitiveID&         sender,
+                                                            walberla::mpi::RecvBuffer& buffer ) const
+{
+   vertexDoFPackInfo_.unpackVertexFromFace( receiver, sender, buffer );
+}
+
+template < concepts::value_type ValueType >
+void P2FunctionPackInfo< ValueType >::communicateLocalFaceToVertex( const Face* sender, Vertex* receiver ) const
+{
+   vertexDoFPackInfo_.communicateLocalFaceToVertex( sender, receiver );
+}
+
 template class P2FunctionPackInfo< double >;
 template class P2FunctionPackInfo< float >;
 template class P2FunctionPackInfo< int >;
