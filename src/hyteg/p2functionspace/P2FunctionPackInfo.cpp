@@ -295,6 +295,112 @@ void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInf
    vertexDoFPackInfo_.communicateLocalFaceToVertex( sender, receiver );
 }
 
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::packCellForEdge(
+    const Cell*                sender,
+    const PrimitiveID&         receiver,
+    walberla::mpi::SendBuffer& buffer ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.packCellForEdge( sender, receiver, buffer );
+      edgeDoFPackInfo_.packCellForEdge( sender, receiver, buffer );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::packCellForEdge(): cannot serve your request!" );
+   }
+}
+
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::unpackEdgeFromCell(
+    Edge*                      receiver,
+    const PrimitiveID&         sender,
+    walberla::mpi::RecvBuffer& buffer ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.unpackEdgeFromCell( receiver, sender, buffer );
+      edgeDoFPackInfo_.unpackEdgeFromCell( receiver, sender, buffer );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::unpackEdgeForCell(): cannot serve your request!" );
+   }
+}
+
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::communicateLocalCellToEdge(
+    const Cell* sender,
+    Edge*       receiver ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.communicateLocalCellToEdge( sender, receiver );
+      edgeDoFPackInfo_.communicateLocalCellToEdge( sender, receiver );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::communicateLocalCellToEdge(): cannot serve your request!" );
+   }
+}
+
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::packCellForVertex(
+    const Cell*                sender,
+    const PrimitiveID&         receiver,
+    walberla::mpi::SendBuffer& buffer ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.packCellForVertex( sender, receiver, buffer );
+      edgeDoFPackInfo_.packCellForVertex( sender, receiver, buffer );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::packCellForVertex(): cannot serve your request!" );
+   }
+}
+
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::unpackVertexFromCell(
+    Vertex*                    receiver,
+    const PrimitiveID&         sender,
+    walberla::mpi::RecvBuffer& buffer ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.unpackVertexFromCell( receiver, sender, buffer );
+      edgeDoFPackInfo_.unpackVertexFromCell( receiver, sender, buffer );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::unpackVertexFromCell(): cannot serve your request!" );
+   }
+}
+
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+void P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfoType, EdgeDoFPackInfoType >::communicateLocalCellToVertex(
+    const Cell* sender,
+    Vertex*     receiver ) const
+{
+   if constexpr ( std::is_same_v< VertexDoFPackInfoType, VertexDoFAdditivePackInfo< ValueType > > &&
+                  std::is_same_v< EdgeDoFPackInfoType, EdgeDoFAdditivePackInfo< ValueType > > )
+   {
+      vertexDoFPackInfo_.communicateLocalCellToVertex( sender, receiver );
+      edgeDoFPackInfo_.communicateLocalCellToVertex( sender, receiver );
+   }
+   else
+   {
+      WALBERLA_ABORT( "P2FunctionPackInfoGeneric::communicateLocalCellToVertex(): cannot serve your request!" );
+   }
+}
+
 // Explicit instantiations for P2FunctionPackInfo
 // clang-format off
 template class P2FunctionPackInfoGeneric< double   , VertexDoFPackInfo< double    >, EdgeDoFPackInfo< double    > >;
