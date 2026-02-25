@@ -227,11 +227,10 @@ void P2ElementwiseOperator< P2Form >::gemv( const real_t&               alpha,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+
       this->storage_->getTimingTree()->stop( "additive communication" );
    }
 
@@ -311,9 +310,8 @@ void P2ElementwiseOperator< P2Form >::gemv( const real_t&               alpha,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
-      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, betaIsZero );
+      dst.communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, betaIsZero );
    }
 
    this->stopTiming( "apply" );
@@ -499,11 +497,9 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
          }
 
          // Push result to lower-dimensional primitives
-         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Face >( level );
-         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Edge >( level );
-         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level );
-         targetFunction->getEdgeDoFFunction().communicateAdditively< Cell, Face >( level );
-         targetFunction->getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level );
+         targetFunction->communicateAdditively< Cell, Face >( level );
+         targetFunction->communicateAdditively< Cell, Edge >( level );
+         targetFunction->communicateAdditively< Cell, Vertex >( level );
       }
 
       else
@@ -553,14 +549,12 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
          }
 
          // Push result to lower-dimensional primitives
-         targetFunction->getVertexDoFFunction().communicateAdditively< Face, Edge >( level );
-         targetFunction->getVertexDoFFunction().communicateAdditively< Face, Vertex >( level );
-         targetFunction->getEdgeDoFFunction().communicateAdditively< Face, Edge >( level );
+         targetFunction->communicateAdditively< Face, Edge >( level );
+         targetFunction->communicateAdditively< Face, Vertex >( level );
 
          // Retrieve assembled data values
-         targetFunction->getVertexDoFFunction().communicate< Vertex, Edge >( level );
-         targetFunction->getVertexDoFFunction().communicate< Edge, Face >( level );
-         targetFunction->getEdgeDoFFunction().communicate< Edge, Face >( level );
+         targetFunction->communicate< Vertex, Edge >( level );
+         targetFunction->communicate< Edge, Face >( level );
       }
 
       // Invert values if desired (note: using false below means we only invert in the interior of the primitives,

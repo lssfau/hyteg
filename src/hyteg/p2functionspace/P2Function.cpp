@@ -78,6 +78,9 @@ P2Function< ValueType >::P2Function( const std::string&                         
    {
       communicators_[level]->addPackInfo( std::make_shared< P2FunctionPackInfo< ValueType > >(
           level, dataIDsMacroVertex, dataIDsMacroEdge, dataIDsMacroFace, dataIDsMacroCell, this->getStorage() ) );
+
+      additiveCommunicators_[level]->addPackInfo( std::make_shared< P2FunctionAdditivePackInfo< ValueType > >(
+          level, dataIDsMacroVertex, dataIDsMacroEdge, dataIDsMacroFace, dataIDsMacroCell, this->getStorage() ) );
    }
 }
 

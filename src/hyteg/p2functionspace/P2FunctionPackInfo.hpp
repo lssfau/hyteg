@@ -25,7 +25,9 @@
 
 #include "hyteg/communication/PackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPackInfo.hpp"
+#include "hyteg/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFPackInfo.hpp"
+#include "hyteg/p1functionspace/VertexDoFAdditivePackInfo.hpp"
 #include "hyteg/types/Concepts.hpp"
 
 namespace hyteg {
@@ -45,16 +47,16 @@ class Cell;
 class PrimitiveStorage;
 class PrimitiveID;
 
-template < concepts::value_type ValueType >
-class P2FunctionPackInfo : public communication::PackInfo
+template < concepts::value_type ValueType, typename VertexDoFPackInfoType, typename EdgeDoFPackInfoType >
+class P2FunctionPackInfoGeneric : public communication::PackInfo
 {
  public:
-   P2FunctionPackInfo( uint_t                                                                  level,
-                       std::array< PrimitiveDataID< FunctionMemory< ValueType >, Vertex >, 2 > dataIDsMacroVertex,
-                       std::array< PrimitiveDataID< FunctionMemory< ValueType >, Edge >, 2 >   dataIDsMacroEdge,
-                       std::array< PrimitiveDataID< FunctionMemory< ValueType >, Face >, 2 >   dataIDsMacroFace,
-                       std::array< PrimitiveDataID< FunctionMemory< ValueType >, Cell >, 2 >   dataIDsMacroCell,
-                       std::weak_ptr< PrimitiveStorage >                                       storage );
+   P2FunctionPackInfoGeneric( uint_t                                                                  level,
+                              std::array< PrimitiveDataID< FunctionMemory< ValueType >, Vertex >, 2 > dataIDsMacroVertex,
+                              std::array< PrimitiveDataID< FunctionMemory< ValueType >, Edge >, 2 >   dataIDsMacroEdge,
+                              std::array< PrimitiveDataID< FunctionMemory< ValueType >, Face >, 2 >   dataIDsMacroFace,
+                              std::array< PrimitiveDataID< FunctionMemory< ValueType >, Cell >, 2 >   dataIDsMacroCell,
+                              std::weak_ptr< PrimitiveStorage >                                       storage );
 
    void packVertexForEdge( const Vertex* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const override;
 
@@ -114,8 +116,15 @@ class P2FunctionPackInfo : public communication::PackInfo
    uint_t                                   level_;
    std::weak_ptr< hyteg::PrimitiveStorage > storage_;
 
-   VertexDoFPackInfo< ValueType > vertexDoFPackInfo_;
-   EdgeDoFPackInfo< ValueType >   edgeDoFPackInfo_;
+   VertexDoFPackInfoType vertexDoFPackInfo_;
+   EdgeDoFPackInfoType   edgeDoFPackInfo_;
 };
+
+template < concepts::value_type ValueType >
+using P2FunctionPackInfo = P2FunctionPackInfoGeneric< ValueType, VertexDoFPackInfo< ValueType >, EdgeDoFPackInfo< ValueType > >;
+
+template < concepts::value_type ValueType >
+using P2FunctionAdditivePackInfo =
+    P2FunctionPackInfoGeneric< ValueType, VertexDoFAdditivePackInfo< ValueType >, EdgeDoFAdditivePackInfo< ValueType > >;
 
 } //namespace hyteg

@@ -178,7 +178,7 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    ///   1. For all volume primitives of the local subdomain:
    ///      If a point-tet (point-triangle in 2D) inclusion test succeeds,
    ///      the function returns true and the finite-element function is evaluated. While checking all
-   ///      volume primitives, we store the primitive with the smallest computational point - primitive distance 
+   ///      volume primitives, we store the primitive with the smallest computational point - primitive distance
    ///      that also fulfills a point pairing check. If a primitives's distance is smaller than the given
    ///      distanceTolerance parameter, then the method can also return that primitive & respective computational
    ///      domain point immediately. Use distanceTolerance = 0 to disable that feature.
@@ -288,6 +288,9 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
                      const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
+
+   template < typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
    ///@}
 
    /// interpolate data from a coarser mesh.
@@ -549,9 +552,6 @@ class VertexDoFFunction final : public Function< VertexDoFFunction< ValueType > 
    }
 
  private:
-   template < typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
    inline void deleteFunctionMemory()
    {
       this->storage_->deleteVertexData( vertexDataID_ );

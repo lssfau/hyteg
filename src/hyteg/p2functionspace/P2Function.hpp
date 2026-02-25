@@ -26,9 +26,6 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-// #include "hyteg/p2functionspace/P2Multigrid.hpp"
-// #include "hyteg/p2functionspace/P2TransferOperators.hpp"
-// #include "hyteg/p2functionspace/P2MacroFace.hpp"
 
 namespace hyteg {
 
@@ -76,6 +73,10 @@ class P2Function final : public Function< P2Function< ValueType > >
    inline const vertexdof::VertexDoFFunction< ValueType >& getVertexDoFFunction() const { return vertexDoFFunction_; }
    inline const EdgeDoFFunction< ValueType >&              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
+   /// @name Member functions related to communictation
+   ///@{
+   void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode );
+
    template < typename SenderType, typename ReceiverType >
    void startCommunication( const uint_t& level ) const
    {
@@ -102,6 +103,119 @@ class P2Function final : public Function< P2Function< ValueType > >
       startCommunication< SenderType, ReceiverType >( level );
       endCommunication< SenderType, ReceiverType >( level );
    }
+
+   /// Starts additive communication and will return before the communication is finished such that it can be used for
+   /// asynchronous tasks. endAdditiveCommunication has to be called manually!
+   /// See communicateAdditively( const uint_t& ) const for more details
+   template < typename SenderType, typename ReceiverType >
+   inline void startAdditiveCommunication( const uint_t& level, const bool& zeroOutDestination = true ) const
+   {
+      if ( zeroOutDestination )
+      {
+         vertexDoFFunction_.template interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
+         edgeDoFFunction_.template interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
+      }
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
+      additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+   }
+
+   /// Starts additive communication that excludes primitives with a certain boundary flag from \b receiving.
+   /// Will return before the communication is finished such that it can be used for
+   /// asynchronous tasks. endAdditiveCommunication has to be called manually!
+   /// See communicateAdditively( const uint_t&, const DoFType, const PrimitiveStorage& ) const for more details
+   template < typename SenderType, typename ReceiverType >
+   inline void startAdditiveCommunication( const uint_t&           level,
+                                           const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                           const PrimitiveStorage& primitiveStorage,
+                                           const bool&             zeroOutDestination = true ) const
+   {
+      std::vector< PrimitiveID > receiverIDs;
+      std::vector< PrimitiveID > receiverNeighborIDs;
+      std::vector< PrimitiveID > excludeFromReceiving;
+      primitiveStorage.getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
+      primitiveStorage.getNeighboringPrimitiveIDsGenerically< ReceiverType >( receiverNeighborIDs );
+      for ( const PrimitiveID& id : receiverIDs )
+      {
+         if ( testFlag(
+                  this->getBoundaryCondition().getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                  boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
+      for ( const PrimitiveID& id : receiverNeighborIDs )
+      {
+         if ( testFlag(
+                  this->getBoundaryCondition().getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                  boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
+      if ( zeroOutDestination )
+      {
+         vertexDoFFunction_.template interpolateByPrimitiveType< ReceiverType >(
+             0, level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+         edgeDoFFunction_.template interpolateByPrimitiveType< ReceiverType >(
+             0, level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+      }
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
+      additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
+   }
+
+   /// Waits for the additive communication to finish. Requires that startAdditiveCommunication() was called before.
+   template < typename SenderType, typename ReceiverType >
+   inline void endAdditiveCommunication( const uint_t& level ) const
+   {
+      WALBERLA_CHECK_EQUAL( additiveCommunicators_.count( level ),
+                            1,
+                            "No additiveCommunicator found for level = " << level << ".\nDoes function '" << this->functionName_
+                                                                         << "' exist on this level?" );
+      additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
+   }
+
+   /// Additive communication sends the ghost layers of a primitive with dimension N and reduces (adds) them during the
+   /// communication on the receiving primitive with dimension N-1. This is for example used for the prolongation and restriction
+   /// where e.g. in 2D all the work is done on the faces and the result is additively communicated onto the edges and vertices
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
+   {
+      startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
+      endAdditiveCommunication< SenderType, ReceiverType >( level );
+   }
+
+   /// Similar to communicateAdditively() but excludes all primitives with the boundary type
+   /// /p boundaryTypeToSkipDuringAdditiveCommunication from receiving any data. These primitives are still sending their data
+   /// however!
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
+   /// \param boundaryTypeToSkipDuringAdditiveCommunication primitives will this boundary type will no \b receive any data
+   /// \param primitiveStorage
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t&           level,
+                                      const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                      const PrimitiveStorage& primitiveStorage,
+                                      const bool&             zeroOutDestination = true ) const
+   {
+      startAdditiveCommunication< SenderType, ReceiverType >(
+          level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
+      endAdditiveCommunication< SenderType, ReceiverType >( level );
+   }
+   ///@}
 
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
@@ -273,8 +387,6 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    void enumerate( uint_t level, ValueType& offset ) const;
 
-   void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode );
-
    /// @name Member functions for conversion to/from linear algebra representation
    ///@{
    void toVector( const P2Function< idx_t >&            numerator,
@@ -311,6 +423,7 @@ class P2Function final : public Function< P2Function< ValueType > >
 
  private:
    using Function< P2Function< ValueType > >::communicators_;
+   using Function< P2Function< ValueType > >::additiveCommunicators_;
 
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >              edgeDoFFunction_;
