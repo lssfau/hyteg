@@ -308,7 +308,7 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 template < concepts::value_type ValueType >
 inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                  storage,
                          uint_t                                                      level,
-                         Face&                                                       face,
+                         const Face&                                                 face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
                          real_t                                                      positionFactor,
                          const std::function< ValueType( const hyteg::Point3D& ) >&  expr )

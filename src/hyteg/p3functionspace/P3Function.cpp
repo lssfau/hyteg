@@ -132,8 +132,8 @@ void P3Function< ValueType >::interpolate( const std::function< ValueType( const
                                            DoFType                                             flag ) const
 {
    vertexDoFFunction_.interpolate( expr, level, flag );
-   edgeDoFFunctionBlue_.interpolate( expr, level, flag ); // WRONG !!! need to interpolate at real_c( 1.0 / 3.0 ) not 0.5
-   edgeDoFFunctionRed_.interpolate( expr, level, flag );  // WRONG !!! need to interpolate at real_c( 2.0 / 3.0 ) not 0.5
+   edgeDoFFunctionBlue_.interpolate( expr, level, real_c( 1.0 / 3.0 ), flag );
+   edgeDoFFunctionRed_.interpolate( expr, level, real_c( 2.0 / 3.0 ), flag );
    faceDoFHelpers::interpolate( faceDoFFunction_, expr, level, flag );
 }
 

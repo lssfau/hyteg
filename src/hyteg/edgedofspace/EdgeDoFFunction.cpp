@@ -494,7 +494,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
 
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-           edgedof::macroedge::interpolate< ValueType >( this->storage_, level, edge, edgeDataID_, positionFactor, expr );
+            edgedof::macroedge::interpolate< ValueType >( this->storage_, level, edge, edgeDataID_, positionFactor, expr );
          }
       }
 
@@ -504,7 +504,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
 
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
-           // edgedof::macroface::interpolate< ValueType >( this->storage_, level, face, faceDataID_, positionFactor, expr );
+            edgedof::macroface::interpolate< ValueType >( this->storage_, level, face, faceDataID_, positionFactor, expr );
          }
       }
    }
