@@ -224,6 +224,15 @@ class P3Function final : public Function< P3Function< ValueType > >
       return numberOfGlobalDoFs< P3FunctionTag >( *this->storage_, level, communicator, onRootOnly );
    }
 
+   /// @Name Functions for getting meta-information on DoF values
+   ///@{
+   ValueType getMaxDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+
+   ValueType getMaxDoFMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+
+   ValueType getMinDoFValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ///@}
+
  private:
    using Function< P3Function< ValueType > >::communicators_;
    using Function< P3Function< ValueType > >::additiveCommunicators_;
