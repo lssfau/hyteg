@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -23,6 +23,7 @@
 
 #include "hyteg/geometry/BlendingHelpers.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/p2functionspace/P2FunctionPackInfo.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
@@ -56,11 +57,30 @@ P2Function< ValueType >::P2Function( const std::string&                         
       vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
 , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
 {
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Vertex >, 2 > dataIDsMacroVertex;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Edge >, 2 >   dataIDsMacroEdge;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Face >, 2 >   dataIDsMacroFace;
+   std::array< PrimitiveDataID< FunctionMemory< ValueType >, Cell >, 2 >   dataIDsMacroCell;
+
+   dataIDsMacroVertex[0] = vertexDoFFunction_.getVertexDataID();
+   dataIDsMacroVertex[1] = edgeDoFFunction_.getVertexDataID();
+
+   dataIDsMacroEdge[0] = vertexDoFFunction_.getEdgeDataID();
+   dataIDsMacroEdge[1] = edgeDoFFunction_.getEdgeDataID();
+
+   dataIDsMacroFace[0] = vertexDoFFunction_.getFaceDataID();
+   dataIDsMacroFace[1] = edgeDoFFunction_.getFaceDataID();
+
+   dataIDsMacroCell[0] = vertexDoFFunction_.getCellDataID();
+   dataIDsMacroCell[1] = edgeDoFFunction_.getCellDataID();
+
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      /// one has to use the communicators of the vertexDoF and edgeDoF function to communicate
-      /// TODO: find better solution
-      communicators_[level] = nullptr;
+      communicators_[level]->addPackInfo( std::make_shared< P2FunctionPackInfo< ValueType > >(
+          level, dataIDsMacroVertex, dataIDsMacroEdge, dataIDsMacroFace, dataIDsMacroCell, this->getStorage() ) );
+
+      additiveCommunicators_[level]->addPackInfo( std::make_shared< P2FunctionAdditivePackInfo< ValueType > >(
+          level, dataIDsMacroVertex, dataIDsMacroEdge, dataIDsMacroFace, dataIDsMacroCell, this->getStorage() ) );
    }
 }
 
