@@ -221,9 +221,7 @@ class P3Function final : public Function< P3Function< ValueType > >
                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
                                  const bool&     onRootOnly   = false ) const
    {
-      // return numberOfGlobalDoFs< P3FunctionTag >( *this->storage_, level, communicator, onRootOnly );
-      WALBERLA_ABORT( "P3Function::getNumberOfGlobalDoFs() still needs to be implemented!" );
-      return 0;
+      return numberOfGlobalDoFs< P3FunctionTag >( *this->storage_, level, communicator, onRootOnly );
    }
 
  private:

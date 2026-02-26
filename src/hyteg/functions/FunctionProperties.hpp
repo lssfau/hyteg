@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -127,6 +127,35 @@ inline uint_t numberOfInnerDoFs( const uint_t& level )
       else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
       {
          return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
+      }
+   }
+
+   // =============
+   //  P3Functions
+   // =============
+   else if constexpr ( std::is_same_v< FunctionTag_T, P3FunctionTag > )
+   {
+      // Vertex
+      if constexpr ( std::is_same_v< PrimitiveType, Vertex > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+      }
+      // Edge
+      else if constexpr ( std::is_same_v< PrimitiveType, Edge > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Edge >( level ) + 2u * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
+      }
+      // Face
+      else if constexpr ( std::is_same_v< PrimitiveType, Face > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Face >( level ) + 2u * numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) +
+                levelinfo::num_microfaces_per_face( level );
+      }
+      // Cell
+      else if constexpr ( std::is_same_v< PrimitiveType, Cell > )
+      {
+         return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + 2u * numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level ) +
+                levelinfo::num_microfaces_per_cell( level );
       }
    }
 
@@ -266,6 +295,17 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
    {
       return numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level ) +
              numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+   }
+
+   // ============
+   //  P3Function
+   // ============
+   else if constexpr ( std::is_same_v< P3FunctionTag, FunctionTag_T > )
+   {
+      return numberOfInnerDoFs< P3FunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
+             numberOfInnerDoFs< P3FunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
+             numberOfInnerDoFs< P3FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
+             numberOfInnerDoFs< P3FunctionTag, Cell >( level ) * primitiveStorage.getNumberOfLocalCells();
    }
 
    // =======================

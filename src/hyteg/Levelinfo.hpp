@@ -129,6 +129,11 @@ inline uint_t num_microcells_per_cell_from_width( const uint_t& width )
    return whiteUp + whiteDown + 4 * others;
 }
 
+constexpr inline uint_t num_microfaces_per_cell( uint_t level )
+{
+   return 2u * ( num_microcells_per_cell( level ) + num_microfaces_per_face( level ) );
+}
+
 } // namespace levelinfo
 
 } // namespace hyteg
