@@ -29,6 +29,7 @@
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hyteg {
@@ -80,8 +81,13 @@ void testInstantiation()
 
    P3Function< float >   p3Float( "P3Function< float > in 2D", storage2D, minLevel, maxLevel );
    P3Function< double >  p3Double( "P3Function< double > in 2D", storage2D, minLevel, maxLevel );
-   P3Function< int32_t > p3int32( "P3Function< int32_t > in 2D", storage2D, minLevel, maxLevel );
-   P3Function< int64_t > p3int64( "P3Function< int64_t > in 2D", storage2D, minLevel, maxLevel );
+   P3Function< int32_t > p3Int32( "P3Function< int32_t > in 2D", storage2D, minLevel, maxLevel );
+   P3Function< int64_t > p3Int64( "P3Function< int64_t > in 2D", storage2D, minLevel, maxLevel );
+
+   P3VectorFunction< float >   p3VectorFloat( "P3VectorFunction< float > in 2D", storage2D, minLevel, maxLevel );
+   P3VectorFunction< double >  p3VectorDouble( "P3VectorFunction< double > in 2D", storage2D, minLevel, maxLevel );
+   P3VectorFunction< int32_t > p3VectorInt32( "P3VectorFunction< int32_t > in 2D", storage2D, minLevel, maxLevel );
+   P3VectorFunction< int64_t > p3VectorInt64( "P3VectorFunction< int64_t > in 2D", storage2D, minLevel, maxLevel );
 }
 
 void testInterpolation()
@@ -213,8 +219,8 @@ void testDotProduct()
       P3Function< real_t > funcA( "P3Function 'A'", storage2D, level, level );
       P3Function< real_t > funcB( "P3Function 'B'", storage2D, level, level );
 
-      funcA.interpolate( real_c(2), level );
-      funcB.interpolate( real_c(3), level );
+      funcA.interpolate( real_c( 2 ), level );
+      funcB.interpolate( real_c( 3 ), level );
 
       real_t dot = funcA.dotGlobal( funcB, level, All );
 
