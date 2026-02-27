@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,9 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
@@ -68,6 +71,17 @@ void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& vecFu
 
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFunc,
+                                          const uint_t&                    level,
+                                          syncDirection_t                  direction )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncFunctionBetweenPrimitives( vecFunc[idx], level, direction );
+   }
+}
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< vType >& vecFunc,
                                           const uint_t&                    level,
                                           syncDirection_t                  direction )
 {
@@ -157,6 +171,21 @@ template void
 template void
     syncFunctionBetweenPrimitives( const P2Function< int64_t >& function, const uint_t& level, syncDirection_t direction );
 
+// ----------------------------------------
+//  Explicit Instantiations for P3Function
+// ----------------------------------------
+template void
+    syncFunctionBetweenPrimitives( const P3Function< double >& function, const uint_t& level, syncDirection_t direction );
+
+template void
+    syncFunctionBetweenPrimitives( const P3Function< float >& function, const uint_t& level, syncDirection_t direction );
+
+template void
+    syncFunctionBetweenPrimitives( const P3Function< int32_t >& function, const uint_t& level, syncDirection_t direction );
+
+template void
+    syncFunctionBetweenPrimitives( const P3Function< int64_t >& function, const uint_t& level, syncDirection_t direction );
+
 // --------------------------------------------------
 //  Explicit Instantiations for P2PlusBubbleFunction
 // --------------------------------------------------
@@ -211,6 +240,25 @@ template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int32
                                                    syncDirection_t                    direction );
 
 template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< int64_t >& function,
+                                                   const uint_t&                      level,
+                                                   syncDirection_t                    direction );
+
+// ----------------------------------------------
+//  Explicit Instantiations for P3VectorFunction
+// ----------------------------------------------
+template void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< double >& function,
+                                                   const uint_t&                     level,
+                                                   syncDirection_t                   direction );
+
+template void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< float >& function,
+                                                   const uint_t&                    level,
+                                                   syncDirection_t                  direction );
+
+template void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< int32_t >& function,
+                                                   const uint_t&                      level,
+                                                   syncDirection_t                    direction );
+
+template void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< int64_t >& function,
                                                    const uint_t&                      level,
                                                    syncDirection_t                    direction );
 
