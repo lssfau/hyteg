@@ -98,6 +98,42 @@ class P2PlusBubbleFunction final : public Function< P2PlusBubbleFunction< ValueT
       edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
    }
 
+   /// Additive communication sends the ghost layers of a primitive with dimension N and reduces (adds) them during the
+   /// communication on the receiving primitive with dimension N-1. This is for example used for the prolongation and restriction
+   /// where e.g. in 2D all the work is done on the faces and the result is additively communicated onto the edges and vertices
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t& level, const bool& zeroOutDestination = true ) const
+   {
+     vertexDoFFunction_.template communicateAdditively< SenderType, ReceiverType >( level, zeroOutDestination );
+     edgeDoFFunction_.template communicateAdditively< SenderType, ReceiverType >( level, zeroOutDestination );
+   }
+
+   /// Similar to communicateAdditively() but excludes all primitives with the boundary type
+   /// /p boundaryTypeToSkipDuringAdditiveCommunication from receiving any data. These primitives are still sending their data
+   /// however!
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
+   /// \param boundaryTypeToSkipDuringAdditiveCommunication primitives will this boundary type will no \b receive any data
+   /// \param primitiveStorage
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t&           level,
+                                      const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                      const PrimitiveStorage& primitiveStorage,
+                                      const bool&             zeroOutDestination = true ) const
+   {
+     vertexDoFFunction_.template communicateAdditively< SenderType, ReceiverType >( level,  boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
+     edgeDoFFunction_.template communicateAdditively< SenderType, ReceiverType >(
+         level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
+   }
+
    /// \brief Evaluate finite element function at a specific coordinates.
    ///
    /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
