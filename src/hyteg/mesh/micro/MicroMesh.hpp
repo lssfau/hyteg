@@ -30,7 +30,12 @@
 #include "hyteg/volumedofspace/CellDoFIndexing.hpp"
 #include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
-namespace hyteg::micromesh {
+namespace hyteg {
+
+template < typename >
+class P3VectorFunction;
+
+namespace micromesh {
 
 /// \brief Container for FE functions that define the geometric positioning of micro elements.
 ///
@@ -110,6 +115,9 @@ class MicroMesh
    /// Construct a MicroMesh directly from some already allocated vector function.
    explicit MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh );
 
+   /// Construct a MicroMesh directly from some already allocated vector function.
+   explicit MicroMesh( const std::shared_ptr< P3VectorFunction< real_t > >& mesh );
+
    /// Returns the polynomial degree of the mesh approximation.
    [[nodiscard]] uint_t polynomialDegree() const;
 
@@ -122,13 +130,19 @@ class MicroMesh
    /// Returns the P2 mesh. Could be a nullptr if not allocated.
    [[nodiscard]] std::shared_ptr< P2VectorFunction< real_t > > p2Mesh() const;
 
+   /// Returns the P3 mesh. Could be a nullptr if not allocated.
+   [[nodiscard]] std::shared_ptr< P3VectorFunction< real_t > > p3Mesh() const;
+
    /// Returns the mesh. Could be a nullptr if not allocated.
-   [[nodiscard]] std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > >
+   [[nodiscard]] std::variant< std::shared_ptr< P1VectorFunction< real_t > >,
+                               std::shared_ptr< P2VectorFunction< real_t > >,
+                               std::shared_ptr< P3VectorFunction< real_t > > >
        mesh() const;
 
  private:
    std::shared_ptr< P1VectorFunction< real_t > > p1_;
    std::shared_ptr< P2VectorFunction< real_t > > p2_;
+   std::shared_ptr< P3VectorFunction< real_t > > p3_;
 };
 
 /// \brief Returns the position of any micro-vertex of the MicroMesh.
@@ -258,4 +272,5 @@ void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& st
 /// Jacobian evaluations of the P1 and P2 parametric mappings respectively.
 std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap );
 
-} // namespace hyteg::micromesh
+} // namespace micromesh
+} // namespace hyteg

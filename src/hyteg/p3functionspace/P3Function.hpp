@@ -33,6 +33,12 @@ namespace hyteg {
 
 using walberla::real_c;
 
+// forward declare VolumeDoFFunction class to avoid cyclic dependencies with MicroMesh
+namespace volumedofspace {
+template < typename >
+class VolumeDoFFunction;
+}
+
 // template < concepts::value_type ValueType >
 template < typename ValueType >
 class P3Function final : public Function< P3Function< ValueType > >
@@ -73,13 +79,7 @@ class P3Function final : public Function< P3Function< ValueType > >
    inline const volumedofspace::VolumeDoFFunction< ValueType >& getFaceDoFFunction() const { return faceDoFFunction_; }
 
    /// Set all function DoFs to zero including the ones in the halos
-   void setToZero( const uint_t level ) const override final
-   {
-      vertexDoFFunction_.setToZero( level );
-      edgeDoFFunctionRed_.setToZero( level );
-      edgeDoFFunctionBlue_.setToZero( level );
-      faceDoFFunction_.setToZero( level );
-   };
+   void setToZero( const uint_t level ) const override final;
 
    /// @name Member functions for interpolation using DoFType flags
    ///@{

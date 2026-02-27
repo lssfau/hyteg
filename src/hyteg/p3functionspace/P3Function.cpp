@@ -82,6 +82,15 @@ P3Function< ValueType >::P3Function( const std::string&                         
 }
 
 template < typename ValueType >
+void P3Function< ValueType >::setToZero( const uint_t level ) const
+{
+   vertexDoFFunction_.setToZero( level );
+   edgeDoFFunctionRed_.setToZero( level );
+   edgeDoFFunctionBlue_.setToZero( level );
+   faceDoFFunction_.setToZero( level );
+};
+
+template < typename ValueType >
 void P3Function< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.interpolate( constant, level, flag );
@@ -377,7 +386,7 @@ ValueType P3Function< ValueType >::getMaxDoFValue( uint_t level, DoFType flag, b
    localMax      = std::max( localMax, edgeDoFFunctionBlue_.getMaxDoFValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionRed_.getMaxDoFValue( level, flag, false ) );
    // will need to pass a flag below for 3D!
-   localMax      = std::max( localMax, faceDoFFunction_.getMaxDoFValue( level, false ) );
+   localMax = std::max( localMax, faceDoFFunction_.getMaxDoFValue( level, false ) );
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -397,7 +406,7 @@ ValueType P3Function< ValueType >::getMaxDoFMagnitude( uint_t level, DoFType fla
    localMax      = std::max( localMax, edgeDoFFunctionBlue_.getMaxDoFMagnitude( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionRed_.getMaxDoFMagnitude( level, flag, false ) );
    // will need to pass a flag below for 3D!
-   localMax      = std::max( localMax, faceDoFFunction_.getMaxDoFMagnitude( level, false ) );
+   localMax = std::max( localMax, faceDoFFunction_.getMaxDoFMagnitude( level, false ) );
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -417,7 +426,7 @@ ValueType P3Function< ValueType >::getMinDoFValue( uint_t level, DoFType flag, b
    localMin      = std::min( localMin, edgeDoFFunctionBlue_.getMinDoFValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunctionRed_.getMinDoFValue( level, flag, false ) );
    // will need to pass a flag below for 3D!
-   localMin      = std::min( localMin, faceDoFFunction_.getMinDoFValue( level, false ) );
+   localMin = std::min( localMin, faceDoFFunction_.getMinDoFValue( level, false ) );
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMin = localMin;

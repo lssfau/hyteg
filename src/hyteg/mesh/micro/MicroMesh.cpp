@@ -30,6 +30,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg::micromesh {
@@ -372,6 +373,11 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
    }
 }
 
+static void initMicroMeshFromMacroMesh( P3VectorFunction< real_t >& p3Mesh, uint_t level, bool withBlending )
+{
+   WALBERLA_ABORT( "initMicroMeshFromMacroMesh() not implemented for p3 case!" );
+}
+
 //////////////////////////////////////
 /// MicroMesh class implementation ///
 //////////////////////////////////////
@@ -405,6 +411,14 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
          initMicroMeshFromMacroMesh( *p2_, level, withBlending );
       }
    }
+   else if ( polynomialDegree == 3 )
+   {
+      p3_ = std::make_shared< P3VectorFunction< real_t > >( "microMeshP3", storage, minLevel, maxLevel, dimension );
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         initMicroMeshFromMacroMesh( *p3_, level, withBlending );
+      }
+   }
    else
    {
       WALBERLA_ABORT( "MicroMesh with polynomial degree " << polynomialDegree << " not supported." );
@@ -419,6 +433,10 @@ MicroMesh::MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh 
 : p2_{ mesh }
 {}
 
+MicroMesh::MicroMesh( const std::shared_ptr< P3VectorFunction< real_t > >& mesh )
+: p3_{ mesh }
+{}
+
 uint_t MicroMesh::polynomialDegree() const
 {
    if ( p1Mesh() )
@@ -429,6 +447,11 @@ uint_t MicroMesh::polynomialDegree() const
    if ( p2Mesh() )
    {
       return 2;
+   }
+
+   if ( p3Mesh() )
+   {
+      return 3;
    }
 
    WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
@@ -446,6 +469,11 @@ uint_t MicroMesh::dimension() const
       return p2Mesh()->getDimension();
    }
 
+   if ( p3Mesh() )
+   {
+      return p3Mesh()->getDimension();
+   }
+
    WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
 }
 
@@ -459,10 +487,20 @@ std::shared_ptr< P2VectorFunction< real_t > > MicroMesh::p2Mesh() const
    return p2_;
 }
 
-std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > >
+std::shared_ptr< P3VectorFunction< real_t > > MicroMesh::p3Mesh() const
+{
+   return p3_;
+}
+
+std::variant< std::shared_ptr< P1VectorFunction< real_t > >,
+              std::shared_ptr< P2VectorFunction< real_t > >,
+              std::shared_ptr< P3VectorFunction< real_t > > >
     MicroMesh::mesh() const
 {
-   std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > > mesh;
+   std::variant< std::shared_ptr< P1VectorFunction< real_t > >,
+                 std::shared_ptr< P2VectorFunction< real_t > >,
+                 std::shared_ptr< P3VectorFunction< real_t > > >
+       mesh;
    if ( p1Mesh() )
    {
       mesh = p1Mesh();
@@ -470,6 +508,10 @@ std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2
    else if ( p2Mesh() )
    {
       mesh = p2Mesh();
+   }
+   else if ( p3Mesh() )
+   {
+      mesh = p3Mesh();
    }
    return mesh;
 }
@@ -487,6 +529,10 @@ void communicate( MicroMesh& microMesh, uint_t level )
    else if ( microMesh.p2Mesh() )
    {
       communication::syncVectorFunctionBetweenPrimitives( *microMesh.p2Mesh(), level );
+   }
+   else if ( microMesh.p3Mesh() )
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *microMesh.p3Mesh(), level );
    }
 }
 
@@ -518,6 +564,10 @@ void interpolate( MicroMesh&                                                    
    {
       microMesh.p2Mesh()->interpolate( map, level );
    }
+   else if ( microMesh.p3Mesh() )
+   {
+      microMesh.p3Mesh()->interpolate( map, level );
+   }
    else
    {
       WALBERLA_ABORT( "MicroMesh has no function allocated :/" )
@@ -530,7 +580,7 @@ void interpolate( const std::shared_ptr< PrimitiveStorage >&                    
 {
    auto microMesh = storage->getMicroMesh();
 
-   WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate if no mesh has been added to the PrimitiveStorage!" )
+   WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate, if no mesh was added to the PrimitiveStorage!" )
 
    interpolate( *microMesh, map, level );
 }
@@ -561,6 +611,10 @@ void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool with
    {
       initMicroMeshFromMacroMesh( *microMesh.p2Mesh(), level, withBlending );
    }
+   else if ( microMesh.p3Mesh() )
+   {
+      initMicroMeshFromMacroMesh( *microMesh.p3Mesh(), level, withBlending );
+   }
 }
 
 void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending )
@@ -589,6 +643,8 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
    {
       return microVertexPositionNoMesh( level, storage, primitiveId, microVertexIndex, true );
    }
+
+   WALBERLA_CHECK( microMesh->polynomialDegree() != 3, "P3 case not implmented, yet!" );
 
    WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
                    "Invalid polynomial degree of MicroMesh." )
@@ -726,6 +782,8 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
       return microEdgeCenterPositionNoMesh( level, storage, primitiveId, microEdgeIndex, microEdgeOrientation, true );
    }
 
+   WALBERLA_CHECK( microMesh->polynomialDegree() != 3, "P3 case not implmented, yet!" );
+
    WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
                    "Invalid polynomial degree of MicroMesh." )
 
@@ -835,6 +893,8 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
    {
       WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
                       "Invalid polynomial degree of MicroMesh." )
+
+      WALBERLA_CHECK( microMesh->polynomialDegree() != 3, "P3 case not implmented, yet!" );
    }
 
    if ( storage->edgeExistsLocally( primitiveId ) )
@@ -865,7 +925,7 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
                                    ->getPointer( level );
                real_t* edata =
                    edge->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
-               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeIndex = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
 
                real_t weightA = vdata[vertexdof::macroedge::index( level, microVertexIndexA.x() )];
                real_t weightB = edata[edgedof::macroedge::index( level, edgeIndex.x() )];
@@ -1056,6 +1116,8 @@ Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
       return microFaceCenterPositionNoMesh( storage, faceId, level, microFaceIndex, faceType, true );
    }
 
+   WALBERLA_CHECK( microMesh->polynomialDegree() != 3, "P3 case not implmented, yet!" );
+
    const uint_t                  dim  = microMesh->dimension();
    std::shared_ptr< const Face > face = storage->getPrimitiveGenerically< Face >( faceId );
    Point3D                       center;
@@ -1160,6 +1222,8 @@ Point3D microCellCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    }
    else
    {
+      WALBERLA_CHECK( microMesh->polynomialDegree() != 3, "P3 case not implmented, yet!" );
+
       WALBERLA_LOG_WARNING_ON_ROOT( "Centroid computation is not accurate in 3D when parametric map is active" );
 
       const Cell& cell = *( storage->getPrimitiveGenerically< Cell >( cellId ) );
