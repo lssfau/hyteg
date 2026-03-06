@@ -40,23 +40,25 @@ namespace micromesh {
 /// \brief Container for FE functions that define the geometric positioning of micro elements.
 ///
 /// This data structure can be used to work with super-, sub-, and isoparametric finite elements.
-/// Currently implements conforming (C^0, piecewise polynomial) linear and quadratic mappings using Lagrangian basis functions.
+/// Currently implements conforming (\f$C^0\f$, piecewise polynomial) linear, quadratic and cubic mappings using Lagrangian
+/// basis functions.
 ///
 /// There are currently essentially three approaches to approximate domains in HyTeG:
 ///
 /// 1. No further approximation (sometimes referred to 'affine' - although somewhat misleading).
 ///    In that case the domain has to be approximated only through the coarse mesh. This enables extremely fast kernels but only
 ///    limited approximations to complex geometries if the coarse mesh is actually kept coarse. Clearly the coarse mesh can be
-///    of arbitrarily high resolution - but this diminishes the advantages of a block-structured grid.
+///    of arbitrarily high resolution - but this diminishes the advantages of a block-structured grid.<br/>
 ///
-/// 2. "Blending"
-///    An analytical mapping (referred to as below "blending map") can be defined that maps from the coarse mesh to the actual
-///    domain. That mapping has to be differentiable and its Jacobian needs to be available to the compute kernels. If the domain
-///    can be described analytically, this approach is arbitrarily exact (the error is technically only limited by the quadrature
-///    error) and requires no additional memory. On the downside, it is hard to construct mappings for arbitrary domains, and the
-///    evaluation of the Jacobian can be expensive for complicated maps.
+/// 2. <b>"Blending"</b><br/>
+///    An analytical mapping (referred to as "blending map" below) can be defined that maps from the coarse mesh (a.k.a.
+///    computational domain) to the actual (physical) domain. That mapping can be defined piecewise on each macro-element.
+///    Its requirements are that it constitutes a homeomorphism globally and locally, i.e. per micro-element, is a diffeomorphism.
+///    If the domain can be described analytically, this approach is arbitrarily exact (the error is technically only limited by
+///    the quadrature error) and requires no additional memory. On the downside, it is hard to construct mappings for arbitrary
+///    domains, and the evaluation of the Jacobian can become expensive for complicated mappings.<br/>
 ///
-/// 3. Parametric mappings (is this what we want to call it?)
+/// 3. <b>Parametric mappings</b> (is this what we want to call it?)<br/>
 ///    The geometry is approximated by piecewise polynomials that typically match the degree of the finite element approximation
 ///    used for the solution (then called isoparametric). Essentially, the node positions are themselves stored as a finite
 ///    element function of corresponding degree. Note that the degree of the mesh approximation and the finite element solution
@@ -65,7 +67,7 @@ namespace micromesh {
 ///    that arbitrary geometries can be approximated and no analytical expression needs to be available. The computation of the
 ///    Jacobians only depends on the degree of the mesh approximation, and especially for linear/low order mappings is comparably
 ///    cheap. On the downside, three scalars have to be stored per node, and the accuracy is limited by the chosen polynomial
-///    degree.
+///    degree. Also there exists no known closed form inverse in the quadratic and cubic cases.<br/>
 ///
 /// The MicroMesh class is a container that stores the mesh to implement the third approach outlined above.
 ///
@@ -187,6 +189,12 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 /// If no MicroMesh was allocated and added to the PrimitiveStorage, it defaults to returning the position with respect to the
 /// refined and potentially blended coarse mesh. Thus, this function can (and should) be called safely whenever the position of
 /// an arbitrary point on a micro-edge is needed.
+///
+/// \note For the case of a cubic micromesh we have some restrictions:
+/// - positionFactor must only be 1/3 or 2/3
+/// - the edge given by vertexA -> vertexB must have 'consistent' ordering. This means that the orientation of the micro-edge
+///   must be identical to that of the macro-edge to which it is parallel (yes, in 3D we also have the xyz case). The macro-edge
+///   is always oriented from the vertex with the lower local index to the one with the higher local index.
 Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& storage,
                                     PrimitiveID                                primitiveId,
                                     uint_t                                     level,

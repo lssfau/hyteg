@@ -137,7 +137,7 @@ Point3D mapPointToPhysicalDomain( const Point3D&                             poi
 }
 
 // Note: This function only works correctly if point is a micro-face vertex (micromesh degree 1 and 2)
-// or an edge midpoint (micromesh degree 2 ) !
+// or an edge midpoint (micromesh degree 2) or one of the dof positions of a p3 element
 Point3D mapPointToPhysicalDomain( const Point3D&                                                   point,
                                   const std::shared_ptr< PrimitiveStorage >&                       storage,
                                   std::vector< std::function< real_t( const hyteg::Point3D& ) > >& map )
@@ -191,6 +191,41 @@ Point3D evalQuadPoly( const std::shared_ptr< PrimitiveStorage >& storage,
    return retVal;
 }
 
+// Auxilliary function for the micromesh degree 3 case
+Point3D evalCubicPoly( const std::shared_ptr< PrimitiveStorage >& storage,
+                       const Point3D&                             unmappedVertexA,
+                       const Point3D&                             unmappedVertexB,
+                       real_t                                     evalScalar )
+{
+   // construct the two other points on the edge A -> B
+   const Point3D unmappedVertexBlue = unmappedVertexA + real_c( 1.0 / 3.0 ) * ( unmappedVertexB - unmappedVertexA );
+   const Point3D unmappedVertexRed  = unmappedVertexA + real_c( 2.0 / 3.0 ) * ( unmappedVertexB - unmappedVertexA );
+
+   // map the points
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > polarCoords = {
+       []( const Point3D& x ) { return x[0] * std::cos( x[1] ); }, []( const Point3D& x ) { return x[0] * std::sin( x[1] ); } };
+
+   const Point3D v0 = mapPointToPhysicalDomain( unmappedVertexA, storage, polarCoords );
+   const Point3D v1 = mapPointToPhysicalDomain( unmappedVertexBlue, storage, polarCoords );
+   const Point3D v2 = mapPointToPhysicalDomain( unmappedVertexRed, storage, polarCoords );
+   const Point3D v3 = mapPointToPhysicalDomain( unmappedVertexB, storage, polarCoords );
+
+   // we deliberately use a different approach to evaluate the polynomial here than in the micromesh implementation
+   const real_t x0 = real_c( 0.0 );
+   const real_t x1 = real_c( 1.0 / 3.0 );
+   const real_t x2 = real_c( 2.0 / 3.0 );
+   const real_t x3 = real_c( 1.0 );
+
+   const real_t L0 = ( evalScalar - x1 ) / ( x0 - x1 ) * ( evalScalar - x2 ) / ( x0 - x2 ) * ( evalScalar - x3 ) / ( x0 - x3 );
+   const real_t L1 = ( evalScalar - x0 ) / ( x1 - x0 ) * ( evalScalar - x2 ) / ( x1 - x2 ) * ( evalScalar - x3 ) / ( x1 - x3 );
+   const real_t L2 = ( evalScalar - x0 ) / ( x2 - x0 ) * ( evalScalar - x1 ) / ( x2 - x1 ) * ( evalScalar - x3 ) / ( x2 - x3 );
+   const real_t L3 = ( evalScalar - x0 ) / ( x3 - x0 ) * ( evalScalar - x1 ) / ( x3 - x1 ) * ( evalScalar - x2 ) / ( x3 - x2 );
+
+   Point3D retVal = L0 * v0 + L1 * v1 + L2 * v2 + L3 * v3;
+
+   return retVal;
+}
+
 void run2DtestOnLevel( uint_t level, bool beVerbose = true )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "=====================================" );
@@ -207,8 +242,8 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
 
    // -------------------------------------------------------------------------------------------
 
-   // for the different micromesh application scenarios (currently maximally four)
-   const uint_t                                                    numScenarios = 4;
+   // for the different micromesh application scenarios (currently maximally five)
+   const uint_t                                                    numScenarios = 5;
    std::array< std::shared_ptr< PrimitiveStorage >, numScenarios > stores;
    std::array< std::string, numScenarios >                         scenarioLabel;
 
@@ -239,6 +274,13 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
    micromesh::interpolateAndCommunicate( *microMeshDegree2, polarCoords, level );
    stores[3]->setMicroMesh( microMeshDegree2 );
    scenarioLabel[3] = "[w/ micromesh (degree 2)]";
+
+   // Scenario #4: with a cubic isoparametric mapping
+   stores[4]                   = std::make_shared< PrimitiveStorage >( setupStorage );
+   const auto microMeshDegree3 = std::make_shared< micromesh::MicroMesh >( stores[4], level, level, 3, 2 );
+   micromesh::interpolateAndCommunicate( *microMeshDegree3, polarCoords, level );
+   stores[4]->setMicroMesh( microMeshDegree3 );
+   scenarioLabel[4] = "[w/ micromesh (degree 3)]";
 
    // -------------------------------------------------------------------------------------------
 
@@ -328,6 +370,16 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
                edgeCenters[0] = mapPointToPhysicalDomain( edgeCenters[0], storage, polarCoords );
                edgeCenters[1] = mapPointToPhysicalDomain( edgeCenters[1], storage, polarCoords );
                edgeCenters[2] = mapPointToPhysicalDomain( edgeCenters[2], storage, polarCoords );
+            }
+            else if ( k == 4 )
+            {
+               edgeCenters[0] = evalCubicPoly( storage, coords[0], coords[1], real_c( 0.5 ) );
+               edgeCenters[1] = evalCubicPoly( storage, coords[0], coords[2], real_c( 0.5 ) );
+               edgeCenters[2] = evalCubicPoly( storage, coords[1], coords[2], real_c( 0.5 ) );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Hmmm, did you maybe forget to implement a test case?" );
             }
 
             const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
@@ -422,6 +474,15 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
                control = -( newCoords[0] + newCoords[1] + newCoords[2] ) / real_c( 9 ) +
                          ( newCoords[3] + newCoords[4] + newCoords[5] ) * real_c( 4 ) / real_c( 9 );
             }
+            else if ( k == 4 )
+            {
+               Point3D aux = ( coords[0] + coords[1] + coords[2] ) / real_c( 3 );
+               control     = mapPointToPhysicalDomain( aux, storage, polarCoords );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Hmmm, did you maybe forget to implement a test case?" );
+            }
 
             if ( beVerbose )
             {
@@ -439,7 +500,15 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
 
    for ( uint_t k = 0; k < numScenarios; ++k )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "  * testing setting #" << k << " " << scenarioLabel[k] );
+      if ( k == 4 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "  * SKIPPING setting #" << k << " " << scenarioLabel[k] );
+         break;
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "  * testing setting #" << k << " " << scenarioLabel[k] );
+      }
 
       const auto& storage = stores[k];
 
@@ -484,6 +553,10 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
                edgeCenters[1] = mapPointToPhysicalDomain( edgeCenters[1], storage, polarCoords );
                edgeCenters[2] = mapPointToPhysicalDomain( edgeCenters[2], storage, polarCoords );
             }
+            else
+            {
+               WALBERLA_ABORT( "Hmmm, did you maybe forget to implement a test case?" );
+            }
 
             const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
 
@@ -521,8 +594,9 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
             PrimitiveID faceID{ allFaceIDs[0] };
 
             // obtain coordinates of vertices of current micro-face
-            std::array< Point3D, 3 > coords =
-                getMicroFaceVertexCoordinatesOnComputationalDomain( level, microFaceIndex, faceType );
+            bool                     useConsistentEdgeOrientation = ( k == 4 ) ? true : false;
+            std::array< Point3D, 3 > coords                       = getMicroFaceVertexCoordinatesOnComputationalDomain(
+                level, microFaceIndex, faceType, useConsistentEdgeOrientation );
 
             // compute edge midpoints on computational domain
             std::array< Point3D, 3 > edgePositions;
@@ -553,13 +627,48 @@ void run2DtestOnLevel( uint_t level, bool beVerbose = true )
                edgePositions[1] = evalQuadPoly( storage, coords[1], coords[2], real_c( 1.0 / 3.0 ) );
                edgePositions[2] = evalQuadPoly( storage, coords[2], coords[0], real_c( 1.0 / 3.0 ) );
             }
+            else if ( k == 4 )
+            {
+               if ( faceType == facedof::FaceType::GRAY )
+               {
+                  edgePositions[0] = evalCubicPoly( storage, coords[0], coords[1], real_c( 1.0 / 3.0 ) );
+                  edgePositions[1] = evalCubicPoly( storage, coords[1], coords[2], real_c( 1.0 / 3.0 ) );
+                  edgePositions[2] = evalCubicPoly( storage, coords[0], coords[2], real_c( 1.0 / 3.0 ) );
+               }
+               else
+               {
+                  edgePositions[0] = evalCubicPoly( storage, coords[0], coords[1], real_c( 1.0 / 3.0 ) );
+                  edgePositions[1] = evalCubicPoly( storage, coords[1], coords[2], real_c( 1.0 / 3.0 ) );
+                  edgePositions[2] = evalCubicPoly( storage, coords[0], coords[2], real_c( 1.0 / 3.0 ) );
+               }
+            }
+            else
+            {
+               WALBERLA_ABORT( "Hmmm, did you maybe forget to implement a test case?" );
+            }
 
-            const auto microVertexIndices = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+            const auto microVertexIndices =
+                useConsistentEdgeOrientation ?
+                    facedof::macroface::getMicroVerticesFromMicroFace< true >( microFaceIndex, faceType ) :
+                    facedof::macroface::getMicroVerticesFromMicroFace< false >( microFaceIndex, faceType );
 
             for ( uint_t j = 0; j < 3; ++j )
             {
+               uint_t idxA, idxB;
+
+               // in the cubic scenario we need to ensure 'consistent' edge orientation
+               if ( k == 4 )
+               {
+                  idxA = std::min( j, ( j + 1 ) % 3 );
+                  idxB = std::max( j, ( j + 1 ) % 3 );
+               }
+               else
+               {
+                  idxA = j;
+                  idxB = ( j + 1 ) % 3;
+               }
                Point3D node = micromesh::microEdgeArbitraryPosition(
-                   storage, faceID, level, microVertexIndices[j], microVertexIndices[( j + 1 ) % 3], real_t( 1.0 / 3.0 ) );
+                   storage, faceID, level, microVertexIndices[idxA], microVertexIndices[idxB], real_t( 1.0 / 3.0 ) );
                Point3D control = edgePositions[j];
                if ( beVerbose )
                {
