@@ -1,0 +1,77 @@
+Parameters
+{
+  nx 4;
+  ny 4;
+	
+  rMin 1.0;
+  rMax 2.0;
+
+  RayleighNumber 1e4;
+  DissipationNumber 0.5;
+  alpha 1.0;
+  thermalConductivity 1.0;
+
+  nsCalcFreq 10;
+
+  rho 1.0;
+  cp 1.0;
+
+  plateDirSwitch false;
+  plateSwitchFreq 100;
+  plateVelRad 0.0;
+  
+  nPlumes 8;
+
+  minLevel 0;
+  maxLevel 1;
+
+  AiniPerturb 0.1;
+
+  verbose false;
+
+  stokesMinresIter 1000;
+  stokesMinresTol 1e-2;
+
+  transportMinresIter 1000;
+  transportMinresTol 1e-5;
+
+  transportGmresIter 1000;
+  transportGmresTol 1e-8;
+
+  residualExitTol 1e12;
+
+  MMOC true;
+  SUPG false;
+  compressible true;
+  adiabaticHeating true;
+  shearHeating true;
+
+  directSolver false;
+
+  maxTimeSteps 5;
+  dtStart 1e-6;
+  dtMin 1e-12;
+  dtMax 1e-1;
+  dtRaster 1e-7;
+  cflMax 0.75;
+  simulationTime 1e1;
+  nonLinIter 4;
+  iterPicard 1;
+
+  level 1;
+
+  cpPath ./checkpoint;
+  cpFilename KingSquare_Checkpoint;
+  cpStartFilename KingSquare_Checkpoint;
+
+  useAdios2 false;
+  
+  outputPath ./output;
+  outputFilename KingSquare;
+  vtkWriteFrequency 25;
+  adiosXmlConfig ./ADIOS2demo.xml;
+
+  storeCheckpointFreq 1000;
+  storeCheckpoint false;
+  startFromCheckpoint false;
+}
