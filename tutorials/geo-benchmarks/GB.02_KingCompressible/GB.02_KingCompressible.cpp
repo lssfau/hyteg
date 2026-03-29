@@ -741,7 +741,7 @@ class TALASimulation
 template < typename OutputWriter_T >
 void TALASimulation< OutputWriter_T >::solveU()
 {
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STARTING STOKES SOLVER" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "STARTING STOKES SOLVER" );
 
    uRhsStrong->uvw().component( 0u ).interpolate( 0.0, maxLevel, All );
    uRhsStrong->uvw().component( 1u ).interpolate( params.Ra * params.alphabar, maxLevel, All );
@@ -781,7 +781,7 @@ void TALASimulation< OutputWriter_T >::solveU()
    /// [StokesSolverLambdaFunction]
 
    vertexdof::projectMean( u->p(), maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "STOKES SOLVER DONE!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "STOKES SOLVER DONE!" );
 }
 
 /// [TransportSolverLambdaFunction]
@@ -814,7 +814,7 @@ void TALASimulation< OutputWriter_T >::solveT()
 
    transportTALAOp->incrementTimestep();
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "TRANSPORT SOLVER DONE!" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "TRANSPORT SOLVER DONE!" );
 }
 /// [TransportSolverLambdaFunction]
 
@@ -877,7 +877,7 @@ void TALASimulation< OutputWriter_T >::solve()
 
       step();
 
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "Step done!" ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Step done!" );
 
       iTimeStep++;
 
