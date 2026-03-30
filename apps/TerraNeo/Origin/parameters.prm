@@ -129,6 +129,12 @@ Parameters
    viscosityLowerBound 1e21;
    viscosityUpperBound 1e25;
 
+   //Implementing weak plate boundaries 
+   
+   viscosityWeakZones false;
+   distanceFromPlateBoundary 1e-2; // determines the width of the weak zones 
+   weakness 0.001; // the factor by which the weak zones are weakened 
+
    //setup solvers again due to changing spectral bounds of stokes operator
 
    ///////////////////////////////////////////////////////////
@@ -174,7 +180,9 @@ Parameters
 
    rotFactor 0.25;
 
-   // Model simulation type: ConvectionModel / CirculationModel
+   // Model simulation type: ConvectionModel / CirculationModel / ConstantPlateVelocity
+   // The option ConstantPlateVelocity assimilates the 
+   // initialPlateAge chosen below until the end of the simulation 
 
    simulationType CirculationModel;
 
@@ -226,7 +234,7 @@ Parameters
 
    fnameTopologies ../../../data/terraneo/plates/topologies0-100Ma.geojson;
    fnameReconstructions ../../../data/terraneo/plates/Global_EarthByte_230-0Ma_GK07_AREPS.rot;
-   initialPlateAge 100;
+   initialPlateAge 2;
    finalPlateAge 0;
    plateVelocityScaling 4;
 
@@ -316,7 +324,7 @@ Parameters
    OutputVelocity true;
    OutputTemperature true;
    OutputPDA true;
-   OutputInterval 10;
+   OutputInterval 2;
    OutputVertexDoFs false;
 
    //If desired: output per Myr:
@@ -352,7 +360,7 @@ Parameters
 
    outputDirectory ./output;
    modelBaseName TerraNeo;
-   overrideModelFolder true;
+   overrideModelFolder false;
 
    // Output of a. json file containing timing tree information
 

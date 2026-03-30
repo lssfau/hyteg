@@ -460,21 +460,24 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
 
    /*############ SIMULATION PARAMETERS ############*/
 
-   simulationParam.cflMax                 = mainConf.getParameter< real_t >( "cflMax" );
-   simulationParam.fixedTimestep          = mainConf.getParameter< bool >( "fixedTimestep" );
-   simulationParam.maxTimestepSize        = mainConf.getParameter< real_t >( "maxTimestepSize" );
-   simulationParam.dtConstant             = mainConf.getParameter< real_t >( "dtConstant" );
-   simulationParam.predictorCorrector     = mainConf.getParameter< bool >( "predictorCorrector" );
-   simulationParam.maxNumTimesteps        = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
-   simulationParam.maxModelAge            = mainConf.getParameter< real_t >( "maxModelAge" );
-   simulationParam.continueSimulation     = mainConf.getParameter< bool >( "continueSimulation" );
-   simulationParam.adaptiveRefTemp        = mainConf.getParameter< bool >( "adaptiveRefTemp" );
-   simulationParam.volAvrgTemperatureDev  = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
-   simulationParam.tempDependentViscosity = mainConf.getParameter< bool >( "tempDependentViscosity" );
-   simulationParam.simulationType         = mainConf.getParameter< std::string >( "simulationType" );
-   simulationParam.compressible           = mainConf.getParameter< bool >( "compressible" );
-   simulationParam.frozenVelocity         = mainConf.getParameter< bool >( "frozenVelocity" );
-   simulationParam.shearHeating           = mainConf.getParameter< bool >( "shearHeating" );
+   simulationParam.cflMax                    = mainConf.getParameter< real_t >( "cflMax" );
+   simulationParam.fixedTimestep             = mainConf.getParameter< bool >( "fixedTimestep" );
+   simulationParam.maxTimestepSize           = mainConf.getParameter< real_t >( "maxTimestepSize" );
+   simulationParam.dtConstant                = mainConf.getParameter< real_t >( "dtConstant" );
+   simulationParam.predictorCorrector        = mainConf.getParameter< bool >( "predictorCorrector" );
+   simulationParam.maxNumTimesteps           = mainConf.getParameter< uint_t >( "maxNumTimesteps" );
+   simulationParam.maxModelAge               = mainConf.getParameter< real_t >( "maxModelAge" );
+   simulationParam.continueSimulation        = mainConf.getParameter< bool >( "continueSimulation" );
+   simulationParam.adaptiveRefTemp           = mainConf.getParameter< bool >( "adaptiveRefTemp" );
+   simulationParam.volAvrgTemperatureDev     = mainConf.getParameter< bool >( "volAvrgTemperatureDev" );
+   simulationParam.tempDependentViscosity    = mainConf.getParameter< bool >( "tempDependentViscosity" );
+   simulationParam.viscosityWeakZones        = mainConf.getParameter< bool >( "viscosityWeakZones" );
+   simulationParam.distanceFromPlateBoundary = mainConf.getParameter< real_t >( "distanceFromPlateBoundary" );
+   simulationParam.weakness                  = mainConf.getParameter< real_t >( "weakness" );
+   simulationParam.simulationType            = mainConf.getParameter< std::string >( "simulationType" );
+   simulationParam.compressible              = mainConf.getParameter< bool >( "compressible" );
+   simulationParam.frozenVelocity            = mainConf.getParameter< bool >( "frozenVelocity" );
+   simulationParam.shearHeating              = mainConf.getParameter< bool >( "shearHeating" );
    if ( simulationParam.shearHeating )
    {
       if ( parameterFileVerion < ParameterFileVersion( 0, 2 ) )
@@ -515,7 +518,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.finalPlateAge = mainConf.getParameter< real_t >( "finalPlateAge" );
    
    //simulation parameters for circulation models only:
-   if ( simulationParam.simulationType == "CirculationModel" )
+   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "ConstantPlateVelocity")
    {
       if ( mainConf.isDefined( "fnameTopologies" ) && mainConf.isDefined( "fnameReconstructions" ) )
       {
@@ -951,7 +954,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.                 : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "volumetric avrg Ref Temp.          : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
 
-   if ( simulationParam.simulationType == "CirculationModel" )
+   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "ConstantPlateVelocity")
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Filename topologies              : " << simulationParam.fnameTopologies );
       WALBERLA_LOG_INFO_ON_ROOT( "Filename reconstructions         : " << simulationParam.fnameReconstructions );
