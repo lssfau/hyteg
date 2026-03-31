@@ -26,11 +26,9 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
-#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
-#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+
 #include "hyteg/dataexport/VTKOutput/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
@@ -45,6 +43,12 @@
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "mixed_operator/VectorMassOperator.hpp"
 #include "terraneo/utils/NusseltNumberOperator.hpp"
+
+#ifdef HYTEG_BUILD_WITH_ADIOS2
+#include "hyteg/dataexport/ADIOS2/AdiosWriter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointExporter.hpp"
+#include "hyteg/checkpointrestore/ADIOS2/AdiosCheckpointImporter.hpp"
+#endif
 
 /**
  * \page GB.01_BlankenbachCase1a Tutorial GB.01 - Blankenbach Benchmark (Case 1a)

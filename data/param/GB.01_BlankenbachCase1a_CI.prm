@@ -24,7 +24,7 @@ Parameters
 
     logNsFreq 100;
 
-    useAdios2 true;
+    useAdios2 false;
     adiosXmlConfig ./ADIOS2demo.xml;
 
     outputPath ./output;
