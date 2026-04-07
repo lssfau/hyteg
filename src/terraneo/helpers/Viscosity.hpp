@@ -116,19 +116,22 @@ real_t viscosityFunction( const hyteg::Point3D& x, real_t Temperature, const Ter
    {
       const real_t lithThickness = 
       ( TN.simulationParameters.lithosphereThickness * 1000 ) / ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ;
-      
+
       const real_t lithLim = ( TN.domainParameters.rMax - lithThickness ) ; 
 
       if ( radius > lithLim ) // check that the point is in the lithosphere 
       {
          vec3D coords{ x[0], x[1], x[2] };
-         bool boundaries = oracle->findPlateBoundaries( coords, TN.simulationParameters.plateAge, TN.simulationParameters.distanceFromPlateBoundary );
+         bool boundaries = oracle->isPointCloseToAPlateBoundary( coords, 
+                                                                 N.simulationParameters.plateAge, 
+                                                                 TN.simulationParameters.distanceFromPlateBoundary, 
+                                                                 TN.domainParameters.rSurface );
          if ( boundaries ) // check if the point is on the boundary 
          {
-            retVal *= TN.simulationParameters.weakness;
+            retVal *= TN.simulationParameters.weaknessFactor;
          } 
       }
-   }   
+   }
 
    retVal /= TN.physicalParameters.referenceViscosity;
 

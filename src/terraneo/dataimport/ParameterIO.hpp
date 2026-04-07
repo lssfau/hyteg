@@ -473,7 +473,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.tempDependentViscosity    = mainConf.getParameter< bool >( "tempDependentViscosity" );
    simulationParam.viscosityWeakZones        = mainConf.getParameter< bool >( "viscosityWeakZones" );
    simulationParam.distanceFromPlateBoundary = mainConf.getParameter< real_t >( "distanceFromPlateBoundary" );
-   simulationParam.weakness                  = mainConf.getParameter< real_t >( "weakness" );
+   simulationParam.weaknessFactor            = mainConf.getParameter< real_t >( "weaknessFactor" );
    simulationParam.simulationType            = mainConf.getParameter< std::string >( "simulationType" );
    simulationParam.compressible              = mainConf.getParameter< bool >( "compressible" );
    simulationParam.frozenVelocity            = mainConf.getParameter< bool >( "frozenVelocity" );
@@ -518,7 +518,7 @@ inline TerraNeoParameters parseConfig( const walberla::Config::BlockHandle& main
    simulationParam.finalPlateAge = mainConf.getParameter< real_t >( "finalPlateAge" );
    
    //simulation parameters for circulation models only:
-   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "ConstantPlateVelocity")
+   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "TimeConstantPlateVelocity")
    {
       if ( mainConf.isDefined( "fnameTopologies" ) && mainConf.isDefined( "fnameReconstructions" ) )
       {
@@ -954,7 +954,7 @@ inline void printConfig( const TerraNeoParameters& terraNeoParameters, std::stri
    WALBERLA_LOG_INFO_ON_ROOT( "adaptive Ref Temp.                 : " << ( simulationParam.adaptiveRefTemp ? "true" : "false" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "volumetric avrg Ref Temp.          : " << ( simulationParam.volAvrgTemperatureDev ? "true" : "false" ) );
 
-   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "ConstantPlateVelocity")
+   if ( simulationParam.simulationType == "CirculationModel" || simulationParam.simulationType == "TimeConstantPlateVelocity")
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Filename topologies              : " << simulationParam.fnameTopologies );
       WALBERLA_LOG_INFO_ON_ROOT( "Filename reconstructions         : " << simulationParam.fnameReconstructions );

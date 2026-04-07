@@ -133,7 +133,7 @@ Parameters
    
    viscosityWeakZones false;
    distanceFromPlateBoundary 1e-2; // determines the width of the weak zones 
-   weakness 0.001; // the factor by which the weak zones are weakened 
+   weaknessFactor 0.001; // the factor by which the weak zones are weakened 
 
    //setup solvers again due to changing spectral bounds of stokes operator
 
@@ -180,9 +180,15 @@ Parameters
 
    rotFactor 0.25;
 
-   // Model simulation type: ConvectionModel / CirculationModel / ConstantPlateVelocity
-   // The option ConstantPlateVelocity assimilates the 
-   // initialPlateAge chosen below until the end of the simulation 
+   // Model simulation type: ConvectionModel / CirculationModel / TimeConstantPlateVelocity
+   // ConvectionModel            : starts at time zero and ends when the maxNumTimeSteps or maxModelAge is reached. 
+   //                              No plate velocity reconstructions is used.
+   // CirculationModel           : uses the parameters in the block "Input files for circulation model" (below)
+   //                              starts at time initialPlateAge and reaches the finalPlateAge. 
+   //                              uses plate velocity reconstructions as surafce boundary condition which is updated every one million year. 
+   // TimeConstantPlateVelocity  : similar to the CirculationModel as it uses the plate velocity reconstructions from data (below).
+   //                              However it only uses the initialPlateAge for the entire model run, never updating the velocities. 
+   //                              The model stops when the maxNumTimeSteps or maxModelAge is reached.  
 
    simulationType CirculationModel;
 
@@ -360,9 +366,9 @@ Parameters
 
    outputDirectory ./output;
    modelBaseName TerraNeo;
-   overrideModelFolder false;
+   overrideModelFolder true;
 
-   // Output of a. json file containing timing tree information
+   // Output of a json file containing timing tree information
 
    timingAnalysis false;
    createTimingDB false;
