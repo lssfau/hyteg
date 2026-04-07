@@ -123,7 +123,7 @@ real_t viscosityFunction( const hyteg::Point3D& x, real_t Temperature, const Ter
       {
          vec3D coords{ x[0], x[1], x[2] };
          bool boundaries = oracle->isPointCloseToAPlateBoundary( coords, 
-                                                                 N.simulationParameters.plateAge, 
+                                                                 TN.simulationParameters.plateAge, 
                                                                  TN.simulationParameters.distanceFromPlateBoundary, 
                                                                  TN.domainParameters.rSurface );
          if ( boundaries ) // check if the point is on the boundary 
