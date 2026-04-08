@@ -159,7 +159,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
                                                                                      TN.domainParameters.maxLevel ) );
          TN.physicalParameters.velocityProfile = velocityProfiles->rms;
 
-         if ( TN.simulationParameters.tempDependentViscosity )
+         if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones )
          {
             viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
                                                                                          TN.domainParameters.rMin,
@@ -441,7 +441,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
    TN.physicalParameters.velocityProfile = velocityProfiles->rms;
 
    // update viscosity Profiles for logging
-   if ( TN.simulationParameters.tempDependentViscosity )
+   if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones )
    {
       viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
                                                                                    TN.domainParameters.rMin,
@@ -565,7 +565,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::step()
       // }
 
       // update viscosity Profiles for logging
-      if ( TN.simulationParameters.tempDependentViscosity )
+      if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones )
       {
          viscosityProfiles = std::make_shared< RadialProfile >( computeRadialProfile( *( viscosityFE ),
                                                                                       TN.domainParameters.rMin,
@@ -950,7 +950,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::solveSt
    std::shared_ptr< P2P1StokesFunction_T >& velocityPressureRotatedFE = p2p1StokesFunctionContainer.at( "VelocityFERotated" );
    std::shared_ptr< P2P1StokesFunction_T >& stokesRHSRotated          = p2p1StokesFunctionContainer.at( "StokesRHSRotated" );
 
-   if ( TN.simulationParameters.tempDependentViscosity )
+   if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones )
    {
       updateViscosity();
       stokesOperator_->getA().computeInverseDiagonalOperatorValues();

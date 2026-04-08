@@ -29,6 +29,8 @@ real_t viscosityFunction( const hyteg::Point3D& x, real_t Temperature, const Ter
    real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
    real_t retVal = 1.0;
 
+   // this is where the lithosphere begins so 6271 km radius
+
    // If a viscosity profile is provided, use it, otherwise use a constant background viscosity
    if ( TN.simulationParameters.haveViscosityProfile )
    {
@@ -107,6 +109,27 @@ real_t viscosityFunction( const hyteg::Point3D& x, real_t Temperature, const Ter
       if ( retVal > TN.physicalParameters.viscosityUpperBound )
       {
          retVal = TN.physicalParameters.viscosityUpperBound;
+      }
+   }
+
+   if ( TN.simulationParameters.viscosityWeakZones )
+   {
+      const real_t lithThickness = 
+      ( TN.simulationParameters.lithosphereThickness * 1000 ) / ( TN.domainParameters.rSurface - TN.domainParameters.rCMB ) ;
+
+      const real_t lithLim = ( TN.domainParameters.rMax - lithThickness ) ; 
+
+      if ( radius > lithLim ) // check that the point is in the lithosphere 
+      {
+         vec3D coords{ x[0], x[1], x[2] };
+         bool boundaries = oracle->isPointCloseToAPlateBoundary( coords, 
+                                                                 TN.simulationParameters.plateAge, 
+                                                                 TN.simulationParameters.distanceFromPlateBoundary, 
+                                                                 TN.domainParameters.rSurface );
+         if ( boundaries ) // check if the point is on the boundary 
+         {
+            retVal *= TN.simulationParameters.weaknessFactor;
+         } 
       }
    }
 

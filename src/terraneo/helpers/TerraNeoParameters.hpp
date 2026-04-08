@@ -238,6 +238,9 @@ struct SimulationParameters
    bool        tempDependentViscosity     = false;
    bool        volAvrgTemperatureDev      = false;
    uint_t      tempDependentViscosityType = 0;
+   bool        viscosityWeakZones         = false;
+   real_t      distanceFromPlateBoundary  = real_c( 3e-2 ); 
+   real_t      weaknessFactor             = real_c( 1e-2 ); 
 
    //circulation model parameters
    real_t      initialPlateAge = real_c( 100 );   //initial age for circulation models

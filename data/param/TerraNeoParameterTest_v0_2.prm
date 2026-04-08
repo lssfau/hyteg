@@ -129,6 +129,12 @@ Parameters
    viscosityLowerBound 1e21;
    viscosityUpperBound 1e25;
 
+   //Implementing weak plate boundaries 
+   
+   viscosityWeakZones false;
+   distanceFromPlateBoundary 1e-2; // determines the width of the weak zones 
+   weaknessFactor 0.001; // the factor by which the weak zones are weakened 
+
    //setup solvers again due to changing spectral bounds of stokes operator
 
    ///////////////////////////////////////////////////////////

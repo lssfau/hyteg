@@ -378,7 +378,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    temperatureP2->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel, All );
    temperatureP1->interpolate( temperatureInitialCondition, TN.domainParameters.maxLevel + 1, All );
 
-   if ( TN.simulationParameters.simulationType == "CirculationModel" )
+   if ( TN.simulationParameters.simulationType == "CirculationModel" || TN.simulationParameters.simulationType == "TimeConstantPlateVelocity" )
    {
       // initialise plate velocity oracle
       WALBERLA_LOG_INFO_ON_ROOT( "Setup Oracle for Plates" );
@@ -394,7 +394,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
    temperaturePrevP2->assign( { real_c( 1 ) }, { *( temperatureP2 ) }, TN.domainParameters.maxLevel, All );
    temperaturePrevP1->assign( { real_c( 1 ) }, { *( temperatureP1 ) }, TN.domainParameters.maxLevel, All );
 
-   if ( TN.simulationParameters.simulationType == "CirculationModel" )
+   if ( TN.simulationParameters.simulationType == "CirculationModel" || TN.simulationParameters.simulationType == "TimeConstantPlateVelocity" )
    {
       updatePlateVelocities( *( velocityPressureFE ) );
    }
@@ -431,7 +431,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::initial
                                                       TN.domainParameters.maxLevel );
    velocityProfiles           = std::make_shared< RadialProfile >( velocityRadialProfile );
 
-   if ( TN.outputParameters.outputProfiles && TN.simulationParameters.tempDependentViscosity )
+   if ( TN.outputParameters.outputProfiles && (TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones) )
    {
       updateViscosity();
       auto viscosityRadialProfile = computeRadialProfile( *( viscosityP2 ),

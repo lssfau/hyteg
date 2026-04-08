@@ -64,6 +64,32 @@ class PlateVelocityProvider
       return plateID;
    }
 
+   // This function checks if a point is on/very close to the boundary at a certain age 
+   // Primarily written to be used in the viscosity function of a Circulation Model
+   bool isPointCloseToAPlateBoundary( const vec3D& point, const real_t age, const real_t& distanceFromPlateBoundary, const real_t& rSurface )
+   {
+      uint_t plateID{ 0 };
+      bool   plateFound{ false };
+      real_t distance{ real_c( -1 ) };
+      real_t rSurfacekm = ( rSurface / 1000 );
+
+      // Transform the point to Lon, Lat, Radius - to perform all calculations
+      // We use the Lon, Lat coordinates
+      const vec3D pointLonLat = conversions::cart2sph( point );
+
+      std::tie( plateFound, plateID, distance ) = findPlateAndDistance( age, plateTopologies_, pointLonLat, idWhenNoPlateFound );
+      distance /= rSurfacekm ;
+
+      if ( distance < distanceFromPlateBoundary )
+      {      
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
    /// Returns velocity vector for a point determined from the velocity of the associated plate at given age stage
    ///
    /// This is the convenience (non-expert) version of the method which uses a

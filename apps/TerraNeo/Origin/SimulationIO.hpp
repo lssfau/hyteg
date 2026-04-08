@@ -350,7 +350,7 @@ void ConvectionSimulation< TemperatureFunction_T, ViscosityFunction_T >::dataOut
               "%s/%s_VelocityProfile_%s.dat", modelRadialProfilesPath.c_str(), modelBaseName.c_str(), outputTimeStr.c_str() ),
           "velocity" );
 
-      if ( TN.simulationParameters.tempDependentViscosity )
+      if ( TN.simulationParameters.tempDependentViscosity || TN.simulationParameters.viscosityWeakZones )
       {
          // Redimensionalise viscosity to SI unit [Pa s]
          for ( uint_t i = 0; i < viscosityProfiles->mean.size(); i++ )
