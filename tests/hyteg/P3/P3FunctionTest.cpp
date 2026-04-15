@@ -230,6 +230,35 @@ void testDotProduct()
    }
 }
 
+void testEnumeration()
+{
+   hyteg::printSeparator();
+   WALBERLA_LOG_INFO_ON_ROOT( "Enumeration Test" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> running 2D test" );
+   {
+      Point2D lowerLeft( real_c( 0.0 ), real_c( 0.0 ) );
+      Point2D upperRight( real_c( 1.0 ), real_c( 1.0 ) );
+
+      MeshInfo              mesh2D = MeshInfo::meshRectangle( lowerLeft, upperRight, MeshInfo::meshFlavour::CRISSCROSS, 1, 1 );
+      SetupPrimitiveStorage setupStorage2D( mesh2D, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      std::shared_ptr< PrimitiveStorage > storage2D = std::make_shared< PrimitiveStorage >( setupStorage2D );
+
+      const uint_t level = 2;
+
+      P3Function< real_t > testFunc( "Test Function", storage2D, level, level );
+      P3Function< idx_t >  numerator( "Enumerator", storage2D, level, level );
+
+      numerator.enumerate( level );
+
+      uint_t idxMin = numerator.getMinDoFValue( level );
+      uint_t idxMax = numerator.getMaxDoFValue( level );
+      WALBERLA_LOG_INFO( "* smallest DoF index = " << idxMin );
+      WALBERLA_LOG_INFO( "* largest  DoF index = " << idxMax );
+      WALBERLA_CHECK_EQUAL( idxMin, 0u );
+      WALBERLA_CHECK_EQUAL( idxMax, 312u );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -245,6 +274,7 @@ int main( int argc, char* argv[] )
    hyteg::testInterpolation();
    hyteg::testAssignAndAdd();
    hyteg::testDotProduct();
+   hyteg::testEnumeration();
 
    hyteg::printSeparator();
    return EXIT_SUCCESS;

@@ -438,6 +438,62 @@ ValueType P3Function< ValueType >::getMinDoFValue( uint_t level, DoFType flag, b
    return globalMin;
 }
 
+template < typename ValueType >
+void P3Function< ValueType >::enumerate( uint_t level ) const
+{
+   this->startTiming( "Enumerate" );
+
+   uint_t counterVertexDoFs = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+   uint_t counterEdgeDoFs   = 2u * hyteg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+   uint_t counterFaceDoFs   = this->getStorage()->getNumberOfLocalFaces() *
+                            ( facedof::macroface::numMicroFacesPerMacroFace( level, facedof::FaceType::GRAY ) +
+                              facedof::macroface::numMicroFacesPerMacroFace( level, facedof::FaceType::BLUE ) );
+
+   std::vector< uint_t > counters{ counterVertexDoFs, counterEdgeDoFs, counterFaceDoFs };
+   std::vector< uint_t > dofsPerRank = walberla::mpi::allGatherv( counters );
+
+   ValueType offset = 0;
+   for ( uint_t idx = 0; idx < uint_c( walberla::MPIManager::instance()->rank() ); ++idx )
+   {
+      uint_t vertexDoFsOnRank = dofsPerRank[3 * idx + 0];
+      uint_t edgeDoFsOnRank   = dofsPerRank[3 * idx + 1];
+      uint_t faceDoFsOnRank   = dofsPerRank[3 * idx + 2];
+
+      offset += static_cast< ValueType >( vertexDoFsOnRank + edgeDoFsOnRank + faceDoFsOnRank );
+   }
+   enumerate( level, offset );
+
+   this->stopTiming( "Enumerate" );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::enumerate( uint_t level, ValueType& offset ) const
+{
+   vertexDoFFunction_.enumerate( level, offset );
+   edgeDoFFunctionBlue_.enumerate( level, offset );
+   edgeDoFFunctionRed_.enumerate( level, offset );
+
+   // Our faceDoFFunction_ currently is of type VolumeDoFFunction. The latter does not currently
+   // provide an enumerate method (only the DGFunction class does). Thus, we implement the
+   // enumeration of the faceDoFs ourselves here.
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      const auto faceID = it.first;
+      const auto face   = *it.second;
+
+      auto       dofs      = faceDoFFunction_.dofMemory( faceID, level );
+      const auto memLayout = faceDoFFunction_.memoryLayout();
+
+      for ( auto faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+         {
+            dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = offset++;
+         }
+      }
+   }
+}
+
 // ========================
 //  explicit instantiation
 // ========================

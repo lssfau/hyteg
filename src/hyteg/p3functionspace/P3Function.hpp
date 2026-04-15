@@ -203,12 +203,9 @@ class P3Function final : public Function< P3Function< ValueType > >
                     uint_t                                level,
                     DoFType                               flag ) const;
 
-   void enumerate( uint_t level ) const { WALBERLA_ABORT( "P3Function::enumerate() still needs to be implemented!" ); }
+   void enumerate( uint_t level ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const
-   {
-      WALBERLA_ABORT( "P3Function::enumerate() still needs to be implemented!" );
-   }
+   void enumerate( uint_t level, ValueType& offset ) const;
    ///@}
 
    /// \brief Returns the number of DoFs. Performs global reduction, must be called collectively.
