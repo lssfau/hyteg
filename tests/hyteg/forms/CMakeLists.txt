@@ -20,3 +20,6 @@ waLBerla_add_test_executable( SingleRowIntegrationTest SingleRowIntegrationTest.
 target_link_libraries       ( SingleRowIntegrationTest hyteg walberla::core )
 waLBerla_execute_test(NAME SingleRowIntegrationTest)
 
+waLBerla_add_test_executable( P3FormBasicTest P3FormBasicTest.cpp )
+target_link_libraries       ( P3FormBasicTest hyteg walberla::core )
+waLBerla_execute_test(NAME P3FormBasicTest)
