@@ -49,9 +49,8 @@ namespace hyteg {
 class Solution
 {
  public:
-   Solution( real_t diffusivity, uint_t setting )
-   : diffusivity_( diffusivity )
-   , setting_( setting )
+   Solution( uint_t setting )
+   : setting_( setting )
    , t_( 0 )
    {}
 
@@ -60,7 +59,7 @@ class Solution
       switch ( setting_ )
       {
       case 0:
-         return diffusivity_ * ( 1 - std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
+         return ( 1 - std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
       case 1:
          return std::pow( e, -t_ ) * std::sin( pi * p[0] ) * std::sin( pi * p[1] );
       default:
@@ -71,7 +70,6 @@ class Solution
    void inc( const real_t& dt ) { t_ += dt; }
 
  private:
-   real_t diffusivity_;
    uint_t setting_;
    real_t t_;
 };
@@ -90,9 +88,9 @@ class Rhs
       switch ( setting_ )
       {
       case 0:
-         return diffusivity_ * ( 2 - std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
+         return ( 2 * diffusivity_ + ( 1 - 2 * diffusivity_ ) * std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
       case 1:
-         return ( 2 * pi * pi - 1 ) * std::pow( e, -t_ ) * std::sin( pi * p[0] ) * std::sin( pi * p[1] );
+         return ( 2 * diffusivity_ * pi * pi - 1 ) * std::pow( e, -t_ ) * std::sin( pi * p[0] ) * std::sin( pi * p[1] );
       default:
          WALBERLA_ABORT( "Invalid setting" )
       }
@@ -122,7 +120,7 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
 
    const real_t dt          = tMax / real_c( steps );
    const bool   vtk         = true;
-   const real_t diffusivity = 1.0;
+   const real_t diffusivity = 2;
 
    WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt )
    WALBERLA_LOG_INFO_ON_ROOT( "max level: " << maxLevel );
@@ -164,7 +162,7 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
    vtkOutput.add( u );
    vtkOutput.add( error );
 
-   Solution solution( diffusivity, testSolution );
+   Solution solution( testSolution );
    Rhs      rhs( diffusivity, testSolution );
 
    u.interpolate( solution, maxLevel, All );
