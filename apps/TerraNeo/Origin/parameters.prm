@@ -356,7 +356,8 @@ Parameters
    checkpointStartTimestep 100;
    checkpointStartTimeMa 50;
 
-   // In steps
+ 
+   // if outputMyr == true: checkpoints also are written per Myr 
    ADIOS2StoreCheckpointFrequency 1000;
 
    // ADIOS2 parameter keys and values for data output
