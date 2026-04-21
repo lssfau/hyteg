@@ -225,12 +225,12 @@ int main( int argc, char* argv[] )
    real_t tMax           = 1;
    uint_t maxLevel       = 4;
    uint_t timeIntegrator = 0;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 7.4e-04 ) );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 3.6e-04 ) );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 1.9e-04 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 7.6e-04 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 3.7e-04 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 2.0e-04 ) );
 
    timeIntegrator = 1;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 1.4e-05 ) );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 2.6e-06 ) );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 4.9e-07 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, real_c( 1.5e-05 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, real_c( 2.7e-06 ) );
+   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, real_c( 5.1e-07 ) );
 }
