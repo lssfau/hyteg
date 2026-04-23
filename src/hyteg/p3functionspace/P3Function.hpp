@@ -141,6 +141,9 @@ class P3Function final : public Function< P3Function< ValueType > >
                          uint_t                                                                        level,
                          DoFType                                                                       flag = All ) const;
 
+   /// Replace values of the function by their inverses in an elementwise fashion
+   void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
+
    void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                               scalars,
@@ -248,10 +251,19 @@ class P3Function final : public Function< P3Function< ValueType > >
                                ValueType                                             constant,
                                uint_t                                                level,
                                DoFType                                               flag );
+
       static void interpolate( const volumedofspace::VolumeDoFFunction< ValueType >& function,
                                const std::function< ValueType( const Point3D& ) >&   expr,
                                uint_t                                                level,
                                DoFType                                               flag );
+
+      static void invertElementwise( const volumedofspace::VolumeDoFFunction< ValueType >& function, uint_t level, DoFType flag );
+
+      static void multElementwise(
+          const volumedofspace::VolumeDoFFunction< ValueType >&                                                function,
+          const std::vector< std::reference_wrapper< const volumedofspace::VolumeDoFFunction< ValueType > > >& srcFunctions,
+          uint_t                                                                                               level,
+          DoFType                                                                                              flag );
    };
 };
 

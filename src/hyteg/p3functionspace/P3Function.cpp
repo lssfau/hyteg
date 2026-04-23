@@ -188,6 +188,105 @@ void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace:
 }
 
 template < typename ValueType >
+void P3Function< ValueType >::faceDoFHelpers::invertElementwise( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                                                                 uint_t                                                level,
+                                                                 DoFType                                               flag )
+{
+   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
+   WALBERLA_UNUSED( flag );
+
+   if constexpr ( !std::is_floating_point< ValueType >::value )
+   {
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "P3Function< ValueType >::faceDoFHelpers::invertElementwise not available for requested ValueType" );
+   }
+
+   else
+   {
+      if ( function.getStorage()->hasGlobalCells() )
+      {
+         WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
+      }
+      else
+      {
+         for ( auto& it : function.getStorage()->getFaces() )
+         {
+            const auto  faceID = it.first;
+            const auto& face   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+            const auto memLayout = function.memoryLayout();
+            auto       dofs      = function.dofMemory( faceID, level );
+
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
+                  dofs[idx]  = real_c( 1 ) / dofs[idx];
+               }
+            }
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::faceDoFHelpers::multElementwise(
+    const volumedofspace::VolumeDoFFunction< ValueType >&                                                function,
+    const std::vector< std::reference_wrapper< const volumedofspace::VolumeDoFFunction< ValueType > > >& srcFunctions,
+    uint_t                                                                                               level,
+    DoFType                                                                                              flag )
+{
+   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
+   WALBERLA_UNUSED( flag );
+
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
+   }
+   else
+   {
+      for ( auto& it : function.getStorage()->getFaces() )
+      {
+         const auto  faceID = it.first;
+         const auto& face   = *it.second;
+
+         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+         // does not really matter, if we have AoS or SoA in the case of a single value
+         const auto memLayout = function.memoryLayout();
+
+         ValueType* dstPtr = function.dofMemory( faceID, level );
+
+         std::vector< ValueType* > srcPtrs;
+         srcPtrs.reserve( srcFunctions.size() );
+         for ( const volumedofspace::VolumeDoFFunction< ValueType >& src : srcFunctions )
+         {
+            srcPtrs.push_back( src.dofMemory( faceID, level ) );
+         }
+
+         for ( auto faceType : facedof::allFaceTypes )
+         {
+            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            {
+               uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
+
+               ValueType tmp = srcPtrs[0][idx];
+               for ( uint_t k = 1; k < srcPtrs.size(); ++k )
+               {
+                  tmp *= srcPtrs[k][idx];
+               }
+               dstPtr[idx] = tmp;
+            }
+         }
+      }
+   }
+}
+
+template < typename ValueType >
 void P3Function< ValueType >::multElementwise(
     const std::vector< std::reference_wrapper< const P3Function< ValueType > > >& functions,
     uint_t                                                                        level,
@@ -210,8 +309,16 @@ void P3Function< ValueType >::multElementwise(
    edgeDoFFunctionBlue_.multElementwise( edgeDoFFunctionsBlue, level, flag );
    edgeDoFFunctionRed_.multElementwise( edgeDoFFunctionsRed, level, flag );
 
-   WALBERLA_ABORT( "Need to implement multelementwise for facedof part!" );
-   // faceDoFFunction_.multElementwise( faceDoFFunctions, level, flag );
+   faceDoFHelpers::multElementwise( faceDoFFunction_, faceDoFFunctions, level, flag );
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
+{
+   vertexDoFFunction_.invertElementwise( level, flag, workOnHalos );
+   edgeDoFFunctionBlue_.invertElementwise( level, flag, workOnHalos );
+   edgeDoFFunctionRed_.invertElementwise( level, flag, workOnHalos );
+   faceDoFHelpers::invertElementwise( faceDoFFunction_, level, flag );
 }
 
 template < typename ValueType >
