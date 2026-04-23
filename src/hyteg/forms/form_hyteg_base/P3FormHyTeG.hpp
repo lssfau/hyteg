@@ -28,6 +28,14 @@
 
 namespace hyteg {
 
+/// Base class for HyTeG forms for the P3 element
+///
+/// This class forms the base class for HyTeG forms computing element matrices for bilinear forms using P3 functions
+/// as test and trial functions. The local DoF ordering for triangles is given in the following figure:
+///
+/// <center>
+/// <img src="P3_Local_Indexing.png" width="600">
+/// </center>
 class P3FormHyTeG : public Form
 {
  public:
