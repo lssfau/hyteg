@@ -74,8 +74,7 @@ enum class DiffusionTimeIntegrator
 ///
 /// To solve the unsteady diffusion equation, see UnsteadyDiffusion.
 template < typename FunctionType,
-           template < class >
-           class Operator_T,
+           template < class > class Operator_T,
            typename LaplaceForm_T,
            typename MassForm_T,
            typename LinearCombinationForm_T >
@@ -195,6 +194,7 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
    }
 
    real_t dt() const { return dt_; }
+   real_t coeff() const { return diffusionCoefficient_; }
 
    void setDt( const real_t& dt )
    {
@@ -203,7 +203,7 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
           storage_,
           minLevel_,
           maxLevel_,
-          LinearCombinationForm_T( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
+          LinearCombinationForm_T( { 1.0, dtScaling() * dt * diffusionCoefficient_ }, { massForm_.get(), laplaceForm_.get() } ) );
    }
 
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                                    mat,
@@ -346,7 +346,7 @@ class UnsteadyDiffusion
          // implicit Euler
          M.apply( f, fWeak_, level, flag );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { 1.0, A.dt() }, { uOld_, fWeak_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
@@ -357,7 +357,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( { real_c( 1.0 ), real_c( 0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() * A.coeff() }, { uOld_, fWeak_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -377,16 +377,16 @@ class UnsteadyDiffusion
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0}, {uOld_}, level, flag );
+         uOld_.assign( { 1.0 }, { uOld_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
       {
          // Crank-Nicholson
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0}, {uOld_}, level, flag );
+         uOld_.assign( { 1.0 }, { uOld_ }, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() * A.coeff() }, { uOld_, fWeak_ }, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -410,7 +410,7 @@ class UnsteadyDiffusion
       {
          M.apply( f, fWeak_, level, flag );
          M.apply( uOld, uOld_, level, flag );
-         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( { 1.0, A.dt() }, { uOld_, fWeak_ }, level, flag );
       }
       else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
       {
@@ -419,7 +419,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( { real_c( 1.0 ), real_c( 0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() }, { uOld_, fWeak_ }, level, flag );
+         uOld_.assign( { real_c( 1.0 ), real_c( -0.5 ) * A.dt() * A.coeff() }, { uOld_, fWeak_ }, level, flag );
       }
       A.apply( u, fWeak_, level, flag );
       r.assign( { real_c( 1.0 ), real_c( -1.0 ) }, { uOld_, fWeak_ }, level, flag );
