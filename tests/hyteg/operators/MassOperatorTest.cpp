@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -26,6 +26,7 @@
 #include "hyteg/dg1functionspace/DG1Operator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P3ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_dg/DG1MassFormAffine.hpp"
 #include "hyteg/forms/form_hyteg_dg/P0MassFormAffine.hpp"
 #include "hyteg/forms/form_hyteg_manual/SphericalElementFormMass.hpp"
@@ -39,6 +40,7 @@
 #include "hyteg/p0functionspace/P0Operator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include "constant_stencil_operator/P2ConstantOperator.hpp"
@@ -168,6 +170,7 @@ int main( int argc, char** argv )
    checkArea< P2ConstantMassOperator >( primStore, 8.0, "P2ConstantMassOperator" );
    checkArea< P1ElementwiseMassOperator >( primStore, 8.0, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( primStore, 8.0, "P2ElementwiseMassOperator" );
+   checkArea< P3ElementwiseMassOperator >( primStore, 8.0, "P3ElementwiseMassOperator" );
 
    {
       using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
@@ -193,8 +196,10 @@ int main( int argc, char** argv )
    checkArea< P2ConstantMassOperator >( primStore, 1.75, "P2ConstantMassOperator" );
    checkArea< P1ElementwiseMassOperator >( primStore, 1.75, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( primStore, 1.75, "P2ElementwiseMassOperator" );
+   checkArea< P3ElementwiseMassOperator >( primStore, 1.75, "P3ElementwiseMassOperator" );
 
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 1.75, "P3ElementwiseBlendingMassOperator" );
 
    {
       using DG1MassOperator = DG1Operator< DG1MassFormAffine >;
@@ -275,6 +280,7 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( primStore, 3.0 * pi, "P1BlendingMassOperator" );
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P1ElementwiseBlendingMassOperator" );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P2ElementwiseBlendingMassOperator" );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P3ElementwiseBlendingMassOperator" );
 
    // Test with annulus v2 (why do we need more refinement, compared to PolarCoordsMap?)
    logSectionHeader( "Testing with BLENDING( ANNULUS -- AnnulusMap )" );
@@ -286,6 +292,7 @@ int main( int argc, char** argv )
 
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P1ElementwiseBlendingMassOperator", 3 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P2ElementwiseBlendingMassOperator", 3 );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 3.0 * pi, "P3ElementwiseBlendingMassOperator", 3 );
    checkArea< P1BlendingMassOperator >( primStore, 3.0 * pi, "P1BlendingMassOperator", 3 );
 
    // Test with unit square containing circular hole
@@ -326,6 +333,7 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P1BlendingMassOperator", 3 );
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P1ElementwiseBlendingMassOperator", 3 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P2ElementwiseBlendingMassOperator", 3 );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P3ElementwiseBlendingMassOperator", 3 );
 
    // Test with backward facing step and affine mapping
    logSectionHeader( "Testing with BLENDING( AFFINE_MAP rotation )" );
@@ -344,6 +352,7 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( primStore, 1.75, "P1BlendingMassOperator" );
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.75, "P1ElementwiseBlendingMassOperator" );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 1.75, "P3ElementwiseBlendingMassOperator" );
 
    // Test with backward facing step and affine mapping
    logSectionHeader( "Testing with BLENDING( AFFINE_MAP shear, scale + shift )" );
@@ -362,6 +371,7 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( primStore, 1.75 * scalFac * scalFac, "P1BlendingMassOperator", 2, -1.0, true );
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.75 * scalFac * scalFac, "P1ElementwiseBlendingMassOperator" );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75 * scalFac * scalFac, "P2ElementwiseBlendingMassOperator" );
+   checkArea< P3ElementwiseBlendingMassOperator >( primStore, 1.75 * scalFac * scalFac, "P3ElementwiseBlendingMassOperator" );
 
    // -------------------
    //  3D Blending Tests
