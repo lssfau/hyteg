@@ -753,5 +753,6 @@ void P3ElementwiseOperator< P3FormHyTeG >::localMatrixAssembly2D( const std::sha
 // P3ElementwiseMassOperators
 template class P3ElementwiseOperator< forms::p3_mass_affine_qe >;
 template class P3ElementwiseOperator< forms::p3_mass_blending_q6 >;
+template class P3ElementwiseOperator< forms::p3_diffusion_affine_q4 >;
 
 } // namespace hyteg

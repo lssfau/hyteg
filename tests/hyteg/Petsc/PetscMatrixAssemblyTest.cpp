@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Marcus Mohr.
+ * Copyright (c) 2021-2026 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -41,6 +41,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P3ElementwiseOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -53,6 +54,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
@@ -329,6 +331,7 @@ int main( int argc, char* argv[] )
 
    testAssembly< P1ElementwiseMassOperator >( storage, level, "P1ElementwiseOperator" );
    testAssembly< P2ElementwiseMassOperator >( storage, level, "P2ElementwiseOperator" );
+   testAssembly< P3ElementwiseMassOperator >( storage, level, "P3ElementwiseOperator" );
 
    auto                            p2MassFormHyTeG       = std::make_shared< forms::p2_mass_blending_q4 >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2026 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -42,6 +42,9 @@
 // P2PlusBubble Operators
 #include "hyteg_operators/operators/diffusion/P2PlusBubbleElementwiseDiffusion.hpp"
 
+// P3 Operators
+#include "hyteg/elementwiseoperators/P3ElementwiseOperator.hpp"
+
 // Mixed Operators
 #include "hyteg/ccrfunctionspace/CCRStokesOperator.hpp"
 
@@ -68,7 +71,9 @@ typedef enum
    P2LAPLACE,
    P2PLUSBUBBLELAPLACE,
    P2P1STOKES,
-   P2EDGEMASS
+   P2EDGEMASS,
+   P3MASS,
+   P3LAPLACE
 } operatorTag;
 
 typedef struct
@@ -83,6 +88,8 @@ std::map< std::string, oprInfo > oprMap = { { "CCRStokes", { CCRSTOKES, "StokesO
                                             { "P1Diff", { P1LAPLACE, "DiffOpP1", true } },
                                             { "P2Mass", { P2MASS, "MassOpP2", false } },
                                             { "P2Diff", { P2LAPLACE, "DiffOpP2", true } },
+                                            { "P3Mass", { P3MASS, "MassOpP3", false } },
+                                            { "P3Diff", { P3LAPLACE, "DiffOpP3", true } },
                                             { "P2PlusBubbleDiff", { P2PLUSBUBBLELAPLACE, "DiffOpP2PlusBubble", true } },
                                             { "P2P1Stokes", { P2P1STOKES, "StokesOpP2P1", true } },
                                             { "P2EdgeMass", { P2EDGEMASS, "MassOpP2_EdgeDoFs", false } } };
@@ -243,6 +250,23 @@ int main( int argc, char* argv[] )
       P2PlusBubbleElementwiseDiffusion opr( storage, level, level );
       petsc::exportOperator< P2PlusBubbleElementwiseDiffusion >(
           opr, fileName, matName, format, storage, level, elim, symm, verb );
+   }
+   break;
+
+      // --------------
+      //  P3 operators
+      // --------------
+   case P3LAPLACE: {
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P3 elements" );
+      hyteg::P3ElementwiseDiffusionOperator opr( storage, level, level );
+      petsc::exportOperator< P3ElementwiseDiffusionOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
+   }
+   break;
+
+   case P3MASS: {
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P3 elements" );
+      hyteg::P3ElementwiseMassOperator opr( storage, level, level );
+      petsc::exportOperator< P3ElementwiseMassOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
    }
    break;
 

@@ -331,5 +331,6 @@ void assembleLocalElementMatrix2D( const Face&            face,
 
 typedef P3ElementwiseOperator< forms::p3_mass_affine_qe > P3ElementwiseMassOperator;
 typedef P3ElementwiseOperator< forms::p3_mass_blending_q6 > P3ElementwiseBlendingMassOperator;
+typedef P3ElementwiseOperator< forms::p3_diffusion_affine_q4 > P3ElementwiseDiffusionOperator;
 
 } // namespace hyteg
