@@ -36,9 +36,10 @@ void printSeparator()
    WALBERLA_LOG_INFO_ON_ROOT( "-----------------------------------------------" );
 }
 
-void testForms()
+void testFormsUnitTriangle()
 {
    printSeparator();
+   WALBERLA_LOG_INFO_ON_ROOT( "*** GREY TRIANGLE ***" );
    WALBERLA_LOG_INFO_ON_ROOT( "Testing instantiation of form objects:" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> mass form" );
@@ -78,7 +79,7 @@ void testForms()
 
    Matrix< real_t, 10, 10 > difference = ( elMat - ctrlMatMass );
    real_t                   diffNorm   = difference.norm();
-   WALBERLA_LOG_INFO_ON_ROOT( "   Frobenius norm of difference to control is " << diffNorm );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Frobenius norm of difference to control is " << diffNorm );
    WALBERLA_CHECK_LESS( diffNorm, real_c( 1e-10 ) );
 
    Matrix< real_t, 10, 10 > ctrlMatStiff;
@@ -100,8 +101,49 @@ void testForms()
 
    difference = ( elMat - ctrlMatStiff );
    diffNorm   = difference.norm();
-   WALBERLA_LOG_INFO_ON_ROOT( "   Frobenius norm of difference to control is " << diffNorm );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Frobenius norm of difference to control is " << diffNorm );
    WALBERLA_CHECK_LESS( diffNorm, real_c( 1e-8 ) );
+}
+
+void testFormsBlueTriangle()
+{
+   forms::p3_diffusion_affine_q4 formDiffusion;
+
+   printSeparator();
+   WALBERLA_LOG_INFO_ON_ROOT( "*** BLUE TRIANGLE ***" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing evaluation of forms:" );
+
+   // set triangle coordinates
+   std::array< Point3D, 3 > coords;
+   coords[0] = Point3D{ real_c( 1 ), real_c( 0 ), real_c( 0 ) };
+   coords[1] = Point3D{ real_c( 0 ), real_c( 1 ), real_c( 0 ) };
+   coords[2] = Point3D{ real_c( 1 ), real_c( 1 ), real_c( 0 ) };
+
+   Matrix< real_t, 10, 10 > elMat;
+
+   Matrix< real_t, 10, 10 > ctrlMatStiff;
+   ctrlMatStiff << .4250000000, .1615417985e-18, -.8749999997e-1, -.3749999991e-1, -.6749999999, .3750000010e-1, -.3749999991e-1,
+       .3374999999, .3749999991e-1, -.15887e-9, .1615417985e-18, .4249999998, -.8750000000e-1, -.6749999998, -.3750000000e-1,
+       .3750000000e-1, .3375000000, -.3750000000e-1, .3750000000e-1, .1536398597e-13, -.8749999997e-1, -.8750000000e-1,
+       .8499999999, .3750000000, .3749999999, -.7500000003e-1, -.6375000000, -.6374999999, -.7500000000e-1, .770e-10,
+       -.3749999991e-1, -.6749999998, .3750000000, 3.374999999, -.6879e-10, .3374999997, -1.687500000, -.2802093018e-10,
+       -1.687499999, .3174e-9, -.6749999999, -.3750000000e-1, .3749999999, -.6879e-10, 3.375000000, -1.687500000, -.2427e-9,
+       -1.687500000, .3375000001, .3704e-9, .3750000010e-1, .3750000000e-1, -.7500000003e-1, .3374999997, -1.687500000,
+       3.375000000, .3374999999, .3375000001, -.6749999996, -2.025000000, -.3749999991e-1, .3375000000, -.6375000000,
+       -1.687500000, -.2427e-9, .3374999999, 3.374999999, .2088e-9, .3375000000, -2.024999999, .3374999999, -.3750000000e-1,
+       -.6374999999, -.2802093018e-10, -1.687500000, .3375000001, .2088e-9, 3.375000000, .3375000000, -2.025000000,
+       .3749999991e-1, .3750000000e-1, -.7500000000e-1, -1.687499999, .3375000001, -.6749999996, .3375000000, .3375000000,
+       3.374999999, -2.025000000, -.15887e-9, .1536398597e-13, .770e-10, .3174e-9, .3704e-9, -2.025000000, -2.024999999,
+       -2.025000000, -2.025000000, 8.0999999;
+
+   formDiffusion.integrateAll( coords, elMat );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> diffusion form\n" << elMat );
+
+   Matrix< real_t, 10, 10 > difference = ( elMat - ctrlMatStiff );
+   real_t                   diffNorm   = difference.norm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Frobenius norm of difference to control is " << diffNorm );
+   WALBERLA_CHECK_LESS( diffNorm, real_c( 2e-7 ) );
 }
 
 } // namespace hyteg
@@ -113,8 +155,10 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::testForms();
+   hyteg::testFormsUnitTriangle();
+   hyteg::testFormsBlueTriangle();
 
    hyteg::printSeparator();
+
    return EXIT_SUCCESS;
 }
