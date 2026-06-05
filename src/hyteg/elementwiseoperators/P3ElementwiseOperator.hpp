@@ -317,7 +317,7 @@ void assembleLocalElementMatrix2D( const Face&            face,
                                    Matrix10r&             elMat )
 {
    // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace< true >( microFace, fType );
    std::array< Point3D, 3 >         coords;
    for ( uint_t k = 0; k < 3; ++k )
    {

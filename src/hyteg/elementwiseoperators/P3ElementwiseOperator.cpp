@@ -90,6 +90,7 @@ void P3ElementwiseOperator< P3FormHyTeG >::gemv( const real_t&               alp
    else
    {
       communication::syncFunctionBetweenPrimitives( src, level );
+      // communication::syncFunctionBetweenPrimitives( src, level, communication::syncDirection_t::LOW2HIGH );
    }
    this->storage_->getTimingTree()->stop( "sync source communication" );
 
@@ -295,7 +296,7 @@ void P3ElementwiseOperator< P3FormHyTeG >::localMatrixVectorMultiply2D( uint_t  
    vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, fType, level, vertexDoFIndices );
 
    std::array< uint_t, 3 > edgeDoFIndices;
-   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, fType, level, edgeDoFIndices );
+   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering< true >( microFace, fType, level, edgeDoFIndices );
 
    uint_t faceDoFIdx = volumedofspace::indexing::index(
        microFace.x(), microFace.y(), fType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
