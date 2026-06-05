@@ -12,3 +12,8 @@ if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME P3PetscSolveTest3 COMMAND $<TARGET_FILE:P3PetscSolveTest> PROCESSES 8)
   endif ()
 endif ()
+
+waLBerla_add_test_executable( P3DiffusionTest P3DiffusionTest.cpp )
+target_link_libraries       ( P3DiffusionTest hyteg walberla::core )
+waLBerla_execute_test(NAME P3DiffusionTest1 COMMAND $<TARGET_FILE:P3DiffusionTest> PROCESSES 1)
+waLBerla_execute_test(NAME P3DiffusionTest2 COMMAND $<TARGET_FILE:P3DiffusionTest> PROCESSES 2)
