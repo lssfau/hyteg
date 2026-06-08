@@ -293,7 +293,7 @@ void P3ElementwiseOperator< P3FormHyTeG >::localMatrixVectorMultiply2D( uint_t  
 {
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, fType, level, vertexDoFIndices );
+   vertexdof::getVertexDoFDataIndicesFromMicroFace< true >( microFace, fType, level, vertexDoFIndices );
 
    std::array< uint_t, 3 > edgeDoFIndices;
    edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering< true >( microFace, fType, level, edgeDoFIndices );
@@ -533,10 +533,10 @@ void P3ElementwiseOperator< P3FormHyTeG >::computeLocalDiagonalContributions2D( 
 
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, faceType, level, vertexDoFIndices );
+   vertexdof::getVertexDoFDataIndicesFromMicroFace< true >( microFace, faceType, level, vertexDoFIndices );
 
    std::array< uint_t, 3 > edgeDoFIndices;
-   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, faceType, level, edgeDoFIndices );
+   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering< true >( microFace, faceType, level, edgeDoFIndices );
 
    uint_t faceDoFIdx = volumedofspace::indexing::index(
        microFace.x(), microFace.y(), faceType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
@@ -697,10 +697,10 @@ void P3ElementwiseOperator< P3FormHyTeG >::localMatrixAssembly2D( const std::sha
 
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, faceType, level, vertexDoFIndices );
+   vertexdof::getVertexDoFDataIndicesFromMicroFace< true >( microFace, faceType, level, vertexDoFIndices );
 
    std::array< uint_t, 3 > edgeDoFIndices;
-   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, faceType, level, edgeDoFIndices );
+   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering< true >( microFace, faceType, level, edgeDoFIndices );
 
    uint_t faceDoFIdx = volumedofspace::indexing::index(
        microFace.x(), microFace.y(), faceType, 0, 1, level, volumedofspace::indexing::VolumeDoFMemoryLayout::AoS );
