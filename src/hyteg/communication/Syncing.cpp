@@ -395,14 +395,12 @@ void syncRegisteredFunctions( const FEFunctionRegistry& feFunctionRegistry,
    }
    for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< int32_t >() )
    {
-      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
-      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
       controlCount++;
    }
    for ( const auto& function : feFunctionRegistry.getP3Functions().getFunctions< int64_t >() )
    {
-      // hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
-      WALBERLA_LOG_WARNING_ON_ROOT( "Syncing: Skipping P3Function" );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level, direction );
       controlCount++;
    }
 
