@@ -4,12 +4,12 @@ waLBerla_execute_test(NAME P3FunctionTest1 COMMAND $<TARGET_FILE:P3FunctionTest>
 waLBerla_execute_test(NAME P3FunctionTest2 COMMAND $<TARGET_FILE:P3FunctionTest> PROCESSES 2)
 
 if (HYTEG_BUILD_WITH_PETSC)
-  waLBerla_add_test_executable( P3PetscSolveTest P3PetscSolveTest.cpp )
-  target_link_libraries       ( P3PetscSolveTest hyteg )
-  waLBerla_execute_test(NAME P3PetscSolveTest1 COMMAND $<TARGET_FILE:P3PetscSolveTest> PROCESSES 1)
-  waLBerla_execute_test(NAME P3PetscSolveTest2 COMMAND $<TARGET_FILE:P3PetscSolveTest> PROCESSES 2)
+  waLBerla_add_test_executable( P3PetscTest P3PetscTest.cpp )
+  target_link_libraries       ( P3PetscTest hyteg )
+  waLBerla_execute_test(NAME P3PetscTest1 COMMAND $<TARGET_FILE:P3PetscTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P3PetscTest2 COMMAND $<TARGET_FILE:P3PetscTest> PROCESSES 2)
   if (NOT WALBERLA_CXX_COMPILER_IS_INTELLLVM)
-    waLBerla_execute_test(NAME P3PetscSolveTest3 COMMAND $<TARGET_FILE:P3PetscSolveTest> PROCESSES 8)
+    waLBerla_execute_test(NAME P3PetscTest3 COMMAND $<TARGET_FILE:P3PetscTest> PROCESSES 8)
   endif ()
 endif ()
 

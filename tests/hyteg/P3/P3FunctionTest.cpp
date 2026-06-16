@@ -42,7 +42,7 @@ void printSeparator()
 void testDoFCounting()
 {
    printSeparator();
-   WALBERLA_LOG_INFO_ON_ROOT( "DoF Countingtion Test" );
+   WALBERLA_LOG_INFO_ON_ROOT( "DoF Counting Test" );
    WALBERLA_LOG_INFO_ON_ROOT( "-> running 2D test" );
    {
       MeshInfo              mesh2D = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/penta_5el.msh" ) );
@@ -266,7 +266,7 @@ int main( int argc, char* argv[] )
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::INFO );
    walberla::MPIManager::instance()->useWorldComm();
 
    hyteg::testDoFCounting();
