@@ -708,36 +708,36 @@ void P3ElementwiseOperator< P3FormHyTeG >::localMatrixAssembly2D( const std::sha
    // determine row indices in global matrix
    std::vector< uint_t > rowIdx( 10 );
 
-   rowIdx[0] = uint_c( indexDataPointer[0][vertexDoFIndices[0]] );
-   rowIdx[1] = uint_c( indexDataPointer[0][vertexDoFIndices[1]] );
-   rowIdx[2] = uint_c( indexDataPointer[0][vertexDoFIndices[2]] );
+   rowIdx[0] = uint_c( indexDataPointer[4][vertexDoFIndices[0]] );
+   rowIdx[1] = uint_c( indexDataPointer[4][vertexDoFIndices[1]] );
+   rowIdx[2] = uint_c( indexDataPointer[4][vertexDoFIndices[2]] );
 
-   rowIdx[3] = uint_c( indexDataPointer[1][edgeDoFIndices[0]] );
-   rowIdx[4] = uint_c( indexDataPointer[1][edgeDoFIndices[1]] );
-   rowIdx[5] = uint_c( indexDataPointer[1][edgeDoFIndices[2]] );
+   rowIdx[3] = uint_c( indexDataPointer[5][edgeDoFIndices[0]] );
+   rowIdx[4] = uint_c( indexDataPointer[5][edgeDoFIndices[1]] );
+   rowIdx[5] = uint_c( indexDataPointer[5][edgeDoFIndices[2]] );
 
-   rowIdx[6] = uint_c( indexDataPointer[2][edgeDoFIndices[0]] );
-   rowIdx[7] = uint_c( indexDataPointer[2][edgeDoFIndices[1]] );
-   rowIdx[8] = uint_c( indexDataPointer[2][edgeDoFIndices[2]] );
+   rowIdx[6] = uint_c( indexDataPointer[6][edgeDoFIndices[0]] );
+   rowIdx[7] = uint_c( indexDataPointer[6][edgeDoFIndices[1]] );
+   rowIdx[8] = uint_c( indexDataPointer[6][edgeDoFIndices[2]] );
 
-   rowIdx[9] = uint_c( indexDataPointer[3][faceDoFIdx] );
+   rowIdx[9] = uint_c( indexDataPointer[7][faceDoFIdx] );
 
    // determine column indices in global matrix
    std::vector< uint_t > colIdx( 10 );
 
-   colIdx[0] = uint_c( indexDataPointer[4][vertexDoFIndices[0]] );
-   colIdx[1] = uint_c( indexDataPointer[4][vertexDoFIndices[1]] );
-   colIdx[2] = uint_c( indexDataPointer[4][vertexDoFIndices[2]] );
+   colIdx[0] = uint_c( indexDataPointer[0][vertexDoFIndices[0]] );
+   colIdx[1] = uint_c( indexDataPointer[0][vertexDoFIndices[1]] );
+   colIdx[2] = uint_c( indexDataPointer[0][vertexDoFIndices[2]] );
 
-   colIdx[3] = uint_c( indexDataPointer[5][edgeDoFIndices[0]] );
-   colIdx[4] = uint_c( indexDataPointer[5][edgeDoFIndices[1]] );
-   colIdx[5] = uint_c( indexDataPointer[5][edgeDoFIndices[2]] );
+   colIdx[3] = uint_c( indexDataPointer[1][edgeDoFIndices[0]] );
+   colIdx[4] = uint_c( indexDataPointer[1][edgeDoFIndices[1]] );
+   colIdx[5] = uint_c( indexDataPointer[1][edgeDoFIndices[2]] );
 
-   colIdx[6] = uint_c( indexDataPointer[6][edgeDoFIndices[0]] );
-   colIdx[7] = uint_c( indexDataPointer[6][edgeDoFIndices[1]] );
-   colIdx[8] = uint_c( indexDataPointer[6][edgeDoFIndices[2]] );
+   colIdx[6] = uint_c( indexDataPointer[2][edgeDoFIndices[0]] );
+   colIdx[7] = uint_c( indexDataPointer[2][edgeDoFIndices[1]] );
+   colIdx[8] = uint_c( indexDataPointer[2][edgeDoFIndices[2]] );
 
-   colIdx[9] = uint_c( indexDataPointer[7][faceDoFIdx] );
+   colIdx[9] = uint_c( indexDataPointer[3][faceDoFIdx] );
 
    // format conversion and (potential) scaling of element matrix
    const uint_t          elMatSize = 100;
