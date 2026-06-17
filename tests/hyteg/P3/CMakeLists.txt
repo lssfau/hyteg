@@ -3,7 +3,7 @@ target_link_libraries       ( P3FunctionTest hyteg walberla::core )
 waLBerla_execute_test(NAME P3FunctionTest1 COMMAND $<TARGET_FILE:P3FunctionTest> PROCESSES 1)
 waLBerla_execute_test(NAME P3FunctionTest2 COMMAND $<TARGET_FILE:P3FunctionTest> PROCESSES 2)
 
-if (HYTEG_BUILD_WITH_PETSC)
+if (HYTEG_BUILD_WITH_PETSC AND WALBERLA_DOUBLE_ACCURACY)
   waLBerla_add_test_executable( P3PetscTest P3PetscTest.cpp )
   target_link_libraries       ( P3PetscTest hyteg )
   waLBerla_execute_test(NAME P3PetscTest1 COMMAND $<TARGET_FILE:P3PetscTest> PROCESSES 1)

@@ -19,6 +19,7 @@
  */
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
+#include "core/math/Constants.h"
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
@@ -82,8 +83,8 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
 
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " globalDoFs: " << globalDoFs );
 
-   // PETScLUSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
-   EigenSparseDirectSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
+   PETScLUSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
+   // EigenSparseDirectSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
 
    walberla::WcTimer timer;
    solver.solve( A, x, b, level );
@@ -117,6 +118,7 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
 
 void petscMassMatrixApplyTest( const uint_t& level )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "\n*** PETSc Mass Matrix Apply Test ***" );
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with Backward Facing Step" );
 
    MeshInfo meshInfo = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/bfs_12el.msh" ) );
@@ -136,27 +138,111 @@ void petscMassMatrixApplyTest( const uint_t& level )
    vecOfOnes.interpolate( real_c( 1 ), level, All );
    enumerator.enumerate( level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "* Assembling global mass matrix" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Assembling global mass matrix" );
    PETScManager                                   petscManager;
    PETScSparseMatrix< P3ElementwiseMassOperator > matrix( "GlobalMassMatrix" );
 
    matrix.createMatrixFromOperator( massOp, level, enumerator, All );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "* Assembling vector of ones" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Assembling vector of ones" );
    PETScVector< real_t, P3Function > srcVector( vecOfOnes, enumerator, level, All, "src" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "* Performing MatVec" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Performing MatVec" );
    PETScVector< real_t, P3Function > dstVector( aux, enumerator, level, All, "dst" );
    auto                              petscErrorCode = MatMult( matrix.get(), srcVector.get(), dstVector.get() );
    WALBERLA_CHECK_EQUAL( petscErrorCode, PETSC_SUCCESS );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "* Computing dot product" );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Computing dot product" );
    real_t measure = real_c( 0 );
    petscErrorCode = VecDot( srcVector.get(), dstVector.get(), &measure );
    WALBERLA_CHECK_EQUAL( petscErrorCode, PETSC_SUCCESS );
 
    WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
    WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
+}
+
+void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool doVTKOutput )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "\n*** Diffusion Mass Matrix Apply Test ***" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with unit square" );
+   Point2D  lowerLeft( real_c( 0.0 ), real_c( 0.0 ) );
+   Point2D  upperRight( real_c( 1.0 ), real_c( 1.0 ) );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( lowerLeft, upperRight, MeshInfo::meshFlavour::CRISS, 1, 1 );
+
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   loadbalancing::roundRobin( setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up functions and operator" );
+   P3ElementwiseDiffusionOperator diffusionOp( storage, level, level );
+
+   P3Function< real_t > src( "Source function", storage, level, level );
+   P3Function< real_t > dstWithHyTeG( "HyTeG result", storage, level, level );
+   P3Function< real_t > dstWithPETSc( "PETSc result", storage, level, level );
+
+   real_t freqX = real_c( 1 );
+   real_t freqY = real_c( 2 );
+
+   std::function< real_t( const hyteg::Point3D& ) > expression = [&freqX, &freqY]( const Point3D& x ) -> real_t {
+      using walberla::math::pi;
+      real_t retVal = std::sin( freqX * pi * x[0] ) * std::sin( freqY * pi * x[1] );
+      return real_c(1);
+      // return retVal;
+   };
+
+   src.interpolate( expression, level, All );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Applying HyTeG's elementwise operator" );
+   dstWithHyTeG.interpolate( expression, level, DirichletBoundary );
+   diffusionOp.apply( src, dstWithHyTeG, level, dofFlag );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Assembling global diffusion matrix" );
+   P3Function< idx_t > enumerator( "enumerator", storage, level, level );
+   enumerator.enumerate( level );
+
+   PETScManager                                        petscManager;
+   PETScSparseMatrix< P3ElementwiseDiffusionOperator > matrix( "GlobalDiffusionMatrix" );
+
+   matrix.createMatrixFromOperator( diffusionOp, level, enumerator, All );
+
+   if ( dofFlag == Inner )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Eliminating Dirichlet Boundary Conditions" );
+      PETScVector< real_t, P3Function< real_t >::FunctionType > rhsVector( dstWithPETSc, enumerator, level, DirichletBoundary, "rhs" );
+      matrix.applyDirichletBCSymmetrically( src, enumerator, rhsVector, level );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Converting src function to PETSc vector" );
+   PETScVector< real_t, P3Function > srcVector( src, enumerator, level, All, "src" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Performing MatVec" );
+   PETScVector< real_t, P3Function > dstVector( dstWithPETSc, enumerator, level, All, "src" );
+   auto                              petscErrorCode = MatMult( matrix.get(), srcVector.get(), dstVector.get() );
+   WALBERLA_CHECK_EQUAL( petscErrorCode, PETSC_SUCCESS );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Converting PETSc result vector back" );
+   dstVector.createFunctionFromVector( dstWithPETSc, enumerator, level, All );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Computing difference between approaches" );
+   P3Function< real_t > diff( "Differences", storage, level, level );
+   diff.add( { real_c( 1 ), real_c( -1 ) }, { dstWithHyTeG, dstWithPETSc }, level, All );
+
+   if ( doVTKOutput )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Exporting functions to VTU file" );
+      VTKOutput vtkOutput( ".", "P3PetscTest-Diffusion", storage );
+      vtkOutput.add( src );
+      vtkOutput.add( dstWithHyTeG );
+      vtkOutput.add( dstWithPETSc );
+      vtkOutput.add( diff );
+      vtkOutput.write( level );
+   }
+
+   real_t measure = diff.getMaxDoFMagnitude( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
+   WALBERLA_CHECK_LESS_EQUAL( measure, real_c( 1e-14 ) );
 }
 
 } // namespace hyteg
@@ -170,6 +256,8 @@ int main( int argc, char* argv[] )
    PETScManager petscManager( &argc, &argv );
 
    petscMassMatrixApplyTest( 2 );
+   petscDiffusionMatrixApplyTest( 5, All, false );
+   petscDiffusionMatrixApplyTest( 5, Inner, true );
 
    // petscSolveTest( 0, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-04, true );
    // petscSolveTest( 1, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 2.0e-05 );
