@@ -105,30 +105,31 @@ void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace:
                                                            uint_t                                                level,
                                                            DoFType                                               flag )
 {
-   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
-   WALBERLA_UNUSED( flag );
-
    if ( function.getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
    }
    else
    {
-      for ( auto& it : function.getStorage()->getFaces() )
+      // face DoFs are never on the boundary in 2D
+      if ( flag == All || flag == Inner )
       {
-         const auto  faceID = it.first;
-         const auto& face   = *it.second;
-
-         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
-
-         const auto memLayout = function.memoryLayout();
-         auto       dofs      = function.dofMemory( faceID, level );
-
-         for ( auto faceType : facedof::allFaceTypes )
+         for ( auto& it : function.getStorage()->getFaces() )
          {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            const auto  faceID = it.first;
+            const auto& face   = *it.second;
+
+            WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+            const auto memLayout = function.memoryLayout();
+            auto       dofs      = function.dofMemory( faceID, level );
+
+            for ( auto faceType : facedof::allFaceTypes )
             {
-               dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = constant;
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+               {
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = constant;
+               }
             }
          }
       }
@@ -152,63 +153,14 @@ void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace:
                                                            uint_t                                                level,
                                                            DoFType                                               flag )
 {
-   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
-   WALBERLA_UNUSED( flag );
-
    if ( function.getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
    }
    else
    {
-      for ( auto& it : function.getStorage()->getFaces() )
-      {
-         const auto  faceID = it.first;
-         const auto& face   = *it.second;
-
-         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
-
-         const auto memLayout = function.memoryLayout();
-         auto       dofs      = function.dofMemory( faceID, level );
-
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
-            {
-               const Point3D centroid =
-                   micromesh::microFaceCenterPosition( function.getStorage(), faceID, level, idxIt, faceType );
-
-               const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
-
-               dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] = ValueType( val );
-            }
-         }
-      }
-   }
-}
-
-template < typename ValueType >
-void P3Function< ValueType >::faceDoFHelpers::invertElementwise( const volumedofspace::VolumeDoFFunction< ValueType >& function,
-                                                                 uint_t                                                level,
-                                                                 DoFType                                               flag )
-{
-   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
-   WALBERLA_UNUSED( flag );
-
-   if constexpr ( !std::is_floating_point< ValueType >::value )
-   {
-      WALBERLA_UNUSED( level );
-      WALBERLA_UNUSED( flag );
-      WALBERLA_ABORT( "P3Function< ValueType >::faceDoFHelpers::invertElementwise not available for requested ValueType" );
-   }
-
-   else
-   {
-      if ( function.getStorage()->hasGlobalCells() )
-      {
-         WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
-      }
-      else
+      // face DoFs are never on the boundary in 2D
+      if ( flag == All || flag == Inner )
       {
          for ( auto& it : function.getStorage()->getFaces() )
          {
@@ -224,8 +176,60 @@ void P3Function< ValueType >::faceDoFHelpers::invertElementwise( const volumedof
             {
                for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
                {
-                  uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
-                  dofs[idx]  = real_c( 1 ) / dofs[idx];
+                  const Point3D centroid =
+                      micromesh::microFaceCenterPosition( function.getStorage(), faceID, level, idxIt, faceType );
+
+                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
+
+                  dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
+                      ValueType( val );
+               }
+            }
+         }
+      }
+   }
+}
+
+template < typename ValueType >
+void P3Function< ValueType >::faceDoFHelpers::invertElementwise( const volumedofspace::VolumeDoFFunction< ValueType >& function,
+                                                                 uint_t                                                level,
+                                                                 DoFType                                               flag )
+{
+   if constexpr ( !std::is_floating_point< ValueType >::value )
+   {
+      WALBERLA_UNUSED( level );
+      WALBERLA_UNUSED( flag );
+      WALBERLA_ABORT( "P3Function< ValueType >::faceDoFHelpers::invertElementwise not available for requested ValueType" );
+   }
+
+   else
+   {
+      if ( function.getStorage()->hasGlobalCells() )
+      {
+         WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
+      }
+      else
+      {
+         // face DoFs are never on the boundary in 2D
+         if ( flag == All || flag == Inner )
+         {
+            for ( auto& it : function.getStorage()->getFaces() )
+            {
+               const auto  faceID = it.first;
+               const auto& face   = *it.second;
+
+               WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+               const auto memLayout = function.memoryLayout();
+               auto       dofs      = function.dofMemory( faceID, level );
+
+               for ( auto faceType : facedof::allFaceTypes )
+               {
+                  for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+                  {
+                     uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
+                     dofs[idx]  = real_c( 1 ) / dofs[idx];
+                  }
                }
             }
          }
@@ -240,46 +244,47 @@ void P3Function< ValueType >::faceDoFHelpers::multElementwise(
     uint_t                                                                                               level,
     DoFType                                                                                              flag )
 {
-   // NOTE: We pass "flag" here, as this will become important in 3D; for 2D it is not used
-   WALBERLA_UNUSED( flag );
-
    if ( function.getStorage()->hasGlobalCells() )
    {
       WALBERLA_ABORT( "No 3D support in P3Function, yet!" );
    }
    else
    {
-      for ( auto& it : function.getStorage()->getFaces() )
+      // face DoFs are never on the boundary in 2D
+      if ( flag == All || flag == Inner )
       {
-         const auto  faceID = it.first;
-         const auto& face   = *it.second;
-
-         WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
-
-         // does not really matter, if we have AoS or SoA in the case of a single value
-         const auto memLayout = function.memoryLayout();
-
-         ValueType* dstPtr = function.dofMemory( faceID, level );
-
-         std::vector< ValueType* > srcPtrs;
-         srcPtrs.reserve( srcFunctions.size() );
-         for ( const volumedofspace::VolumeDoFFunction< ValueType >& src : srcFunctions )
+         for ( auto& it : function.getStorage()->getFaces() )
          {
-            srcPtrs.push_back( src.dofMemory( faceID, level ) );
-         }
+            const auto  faceID = it.first;
+            const auto& face   = *it.second;
 
-         for ( auto faceType : facedof::allFaceTypes )
-         {
-            for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+            WALBERLA_CHECK_EQUAL( function.getNumScalarsPerPrimitive( faceID ), 1 );
+
+            // does not really matter, if we have AoS or SoA in the case of a single value
+            const auto memLayout = function.memoryLayout();
+
+            ValueType* dstPtr = function.dofMemory( faceID, level );
+
+            std::vector< ValueType* > srcPtrs;
+            srcPtrs.reserve( srcFunctions.size() );
+            for ( const volumedofspace::VolumeDoFFunction< ValueType >& src : srcFunctions )
             {
-               uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
+               srcPtrs.push_back( src.dofMemory( faceID, level ) );
+            }
 
-               ValueType tmp = srcPtrs[0][idx];
-               for ( uint_t k = 1; k < srcPtrs.size(); ++k )
+            for ( auto faceType : facedof::allFaceTypes )
+            {
+               for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
                {
-                  tmp *= srcPtrs[k][idx];
+                  uint_t idx = volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout );
+
+                  ValueType tmp = srcPtrs[0][idx];
+                  for ( uint_t k = 1; k < srcPtrs.size(); ++k )
+                  {
+                     tmp *= srcPtrs[k][idx];
+                  }
+                  dstPtr[idx] = tmp;
                }
-               dstPtr[idx] = tmp;
             }
          }
       }
@@ -353,8 +358,12 @@ void P3Function< ValueType >::add( const std::vector< ValueType >&              
    edgeDoFFunctionBlue_.add( scalars, edgeDoFFunctionsBlue, level, flag );
    edgeDoFFunctionRed_.add( scalars, edgeDoFFunctionsRed, level, flag );
 
-   // Will need a version that supports flag argument for 3D!
-   faceDoFFunction_.add( scalars, faceDoFFunctions, level );
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      // Will need a version that supports flag argument for 3D!
+      faceDoFFunction_.add( scalars, faceDoFFunctions, level );
+   }
 }
 
 template < typename ValueType >
@@ -389,8 +398,12 @@ void P3Function< ValueType >::assign( const std::vector< ValueType >&           
    edgeDoFFunctionBlue_.assign( scalars, edgeDoFFunctionsBlue, level, flag );
    edgeDoFFunctionRed_.assign( scalars, edgeDoFFunctionsRed, level, flag );
 
-   // Will need a version that supports flag argument for 3D!
-   faceDoFFunction_.assign( scalars, faceDoFFunctions, level );
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      // Will need a version that supports flag argument for 3D!
+      faceDoFFunction_.assign( scalars, faceDoFFunctions, level );
+   }
 }
 
 template < typename ValueType >
@@ -401,8 +414,12 @@ ValueType P3Function< ValueType >::dotLocal( const P3Function< ValueType >& rhs,
    sum += edgeDoFFunctionBlue_.dotLocal( rhs.edgeDoFFunctionBlue_, level, flag );
    sum += edgeDoFFunctionRed_.dotLocal( rhs.edgeDoFFunctionRed_, level, flag );
 
-   // Will need a version that supports flag argument for 3D!
-   sum += faceDoFFunction_.dotLocal( rhs.faceDoFFunction_, level );
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      // Will need a version that supports flag argument for 3D!
+      sum += faceDoFFunction_.dotLocal( rhs.faceDoFFunction_, level );
+   }
 
    return sum;
 }
@@ -492,8 +509,13 @@ ValueType P3Function< ValueType >::getMaxDoFValue( uint_t level, DoFType flag, b
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionBlue_.getMaxDoFValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionRed_.getMaxDoFValue( level, flag, false ) );
-   // will need to pass a flag below for 3D!
-   localMax = std::max( localMax, faceDoFFunction_.getMaxDoFValue( level, false ) );
+
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      localMax = std::max( localMax, faceDoFFunction_.getMaxDoFValue( level, false ) );
+   }
+
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -512,8 +534,13 @@ ValueType P3Function< ValueType >::getMaxDoFMagnitude( uint_t level, DoFType fla
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxDoFMagnitude( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionBlue_.getMaxDoFMagnitude( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunctionRed_.getMaxDoFMagnitude( level, flag, false ) );
-   // will need to pass a flag below for 3D!
-   localMax = std::max( localMax, faceDoFFunction_.getMaxDoFMagnitude( level, false ) );
+
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      localMax = std::max( localMax, faceDoFFunction_.getMaxDoFMagnitude( level, false ) );
+   }
+
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMax = localMax;
@@ -532,8 +559,13 @@ ValueType P3Function< ValueType >::getMinDoFValue( uint_t level, DoFType flag, b
    localMin      = std::min( localMin, vertexDoFFunction_.getMinDoFValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunctionBlue_.getMinDoFValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunctionRed_.getMinDoFValue( level, flag, false ) );
-   // will need to pass a flag below for 3D!
-   localMin = std::min( localMin, faceDoFFunction_.getMinDoFValue( level, false ) );
+
+   // face DoFs are never on the boundary in 2D
+   if ( flag == All || flag == Inner )
+   {
+      localMin = std::min( localMin, faceDoFFunction_.getMinDoFValue( level, false ) );
+   }
+
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
    ValueType globalMin = localMin;
