@@ -89,7 +89,7 @@ std::map< std::string, oprInfo > oprMap = { { "CCRStokes", { CCRSTOKES, "StokesO
                                             { "P2Mass", { P2MASS, "MassOpP2", false } },
                                             { "P2Diff", { P2LAPLACE, "DiffOpP2", true } },
                                             { "P3Mass", { P3MASS, "MassOpP3", false } },
-                                            { "P3Diff", { P3LAPLACE, "DiffOpP3", true } },
+                                            { "P3Diff", { P3LAPLACE, "DiffOpP3", false } },
                                             { "P2PlusBubbleDiff", { P2PLUSBUBBLELAPLACE, "DiffOpP2PlusBubble", true } },
                                             { "P2P1Stokes", { P2P1STOKES, "StokesOpP2P1", true } },
                                             { "P2EdgeMass", { P2EDGEMASS, "MassOpP2_EdgeDoFs", false } } };
