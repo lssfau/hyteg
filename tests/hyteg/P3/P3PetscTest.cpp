@@ -163,7 +163,20 @@ void petscMassMatrixApplyTest( const uint_t& level )
 
 void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool doVTKOutput )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "\n*** Diffusion Mass Matrix Apply Test ***" );
+   std::string tag;
+   switch ( dofFlag )
+   {
+   case Inner:
+      tag = "(Inner)";
+      break;
+   case All:
+      tag = "(All)";
+      break;
+   default:
+      WALBERLA_ABORT( "Can only handle dofFlag = Inner or All!" );
+   }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "\n*** Diffusion Matrix Apply Test " << tag << " ***" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with unit square" );
    Point2D  lowerLeft( real_c( 0.0 ), real_c( 0.0 ) );
@@ -187,16 +200,11 @@ void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool d
 
    std::function< real_t( const hyteg::Point3D& ) > expression = [&freqX, &freqY]( const Point3D& x ) -> real_t {
       using walberla::math::pi;
-      real_t retVal = std::sin( freqX * pi * x[0] ) * std::sin( freqY * pi * x[1] );
-      return real_c(1);
-      // return retVal;
+      real_t retVal = std::sin( freqX * pi * x[0] ) * std::sin( freqY * pi * x[1] ) + real_c( 1 );
+      return retVal;
    };
 
    src.interpolate( expression, level, All );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "-> Applying HyTeG's elementwise operator" );
-   dstWithHyTeG.interpolate( expression, level, DirichletBoundary );
-   diffusionOp.apply( src, dstWithHyTeG, level, dofFlag );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Assembling global diffusion matrix" );
    P3Function< idx_t > enumerator( "enumerator", storage, level, level );
@@ -207,12 +215,22 @@ void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool d
 
    matrix.createMatrixFromOperator( diffusionOp, level, enumerator, All );
 
+   PETScVector< real_t, P3Function< real_t >::FunctionType > rhsVector(
+       dstWithPETSc, enumerator, level, DirichletBoundary, "rhs" );
+
    if ( dofFlag == Inner )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "-> Eliminating Dirichlet Boundary Conditions" );
-      PETScVector< real_t, P3Function< real_t >::FunctionType > rhsVector( dstWithPETSc, enumerator, level, DirichletBoundary, "rhs" );
       matrix.applyDirichletBCSymmetrically( src, enumerator, rhsVector, level );
+
+      // the "operator application" in the form of a matrix-vector product in PETSc will know
+      // nothing on the Dirichlet values on the boundary now
+      // src.interpolate( real_c( 0 ), level, DirichletBoundary );
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Applying HyTeG's elementwise operator" );
+   dstWithHyTeG.assign( { real_c( 1 ) }, { src }, level, DirichletBoundary );
+   diffusionOp.apply( src, dstWithHyTeG, level, dofFlag );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Converting src function to PETSc vector" );
    PETScVector< real_t, P3Function > srcVector( src, enumerator, level, All, "src" );
@@ -222,12 +240,22 @@ void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool d
    auto                              petscErrorCode = MatMult( matrix.get(), srcVector.get(), dstVector.get() );
    WALBERLA_CHECK_EQUAL( petscErrorCode, PETSC_SUCCESS );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Performing VecAXPY to re-add Dirichlet Values for apply at neighbours" );
+   petscErrorCode = VecAXPY( dstVector.get(), -1.0, rhsVector.get() );
+   WALBERLA_CHECK_EQUAL( petscErrorCode, PETSC_SUCCESS );
+
    WALBERLA_LOG_INFO_ON_ROOT( "-> Converting PETSc result vector back" );
    dstVector.createFunctionFromVector( dstWithPETSc, enumerator, level, All );
 
+   if ( dofFlag == Inner )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Re-adding Dirichlet Values to PETSc result" );
+      dstWithPETSc.add( { real_c( 1 ) }, { src }, level, DirichletBoundary );
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "-> Computing difference between approaches" );
    P3Function< real_t > diff( "Differences", storage, level, level );
-   diff.add( { real_c( 1 ), real_c( -1 ) }, { dstWithHyTeG, dstWithPETSc }, level, All );
+   diff.assign( { real_c( 1 ), real_c( -1 ) }, { dstWithHyTeG, dstWithPETSc }, level, All );
 
    if ( doVTKOutput )
    {
@@ -257,7 +285,7 @@ int main( int argc, char* argv[] )
 
    petscMassMatrixApplyTest( 2 );
    petscDiffusionMatrixApplyTest( 5, All, false );
-   petscDiffusionMatrixApplyTest( 5, Inner, true );
+   petscDiffusionMatrixApplyTest( 5, Inner, false );
 
    // petscSolveTest( 0, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-04, true );
    // petscSolveTest( 1, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 2.0e-05 );
