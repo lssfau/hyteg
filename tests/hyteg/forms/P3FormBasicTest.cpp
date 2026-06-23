@@ -102,7 +102,8 @@ void testFormsUnitTriangle()
    difference = ( elMat - ctrlMatStiff );
    diffNorm   = difference.norm();
    WALBERLA_LOG_INFO_ON_ROOT( "-> Frobenius norm of difference to control is " << diffNorm );
-   WALBERLA_CHECK_LESS( diffNorm, real_c( 1e-8 ) );
+   real_t threshold = std::is_same_v< real_t, double > ? real_c( 1e-8 ) : real_c( 3.1e-6 );
+   WALBERLA_CHECK_LESS( diffNorm, threshold );
 }
 
 void testFormsBlueTriangle()
@@ -143,7 +144,8 @@ void testFormsBlueTriangle()
    real_t                   diffNorm   = difference.norm();
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Frobenius norm of difference to control is " << diffNorm );
-   WALBERLA_CHECK_LESS( diffNorm, real_c( 2e-7 ) );
+   real_t threshold = std::is_same_v< real_t, double > ? real_c( 2e-7 ) : real_c( 2.5e-6 );
+   WALBERLA_CHECK_LESS( diffNorm, threshold );
 }
 
 } // namespace hyteg
