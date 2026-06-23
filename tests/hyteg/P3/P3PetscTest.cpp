@@ -48,7 +48,10 @@ namespace hyteg {
 
 void petscSolveTest( const uint_t& level, const std::string& meshFileName, const real_t& errEps, bool doVTKOutput = false )
 {
-   WALBERLA_LOG_INFO_ON_ROOT( "##### Mesh file: " << meshFileName << " / level: " << level << " #####" )
+   WALBERLA_LOG_INFO_ON_ROOT( "\n*** PETSc Solve Test (cubic polynomial) ***" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "-> loading mesh from: " << meshFileName );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> refinement level: " << level );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -59,60 +62,79 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   P3Function< real_t > x( "x", storage, level, level );
-   P3Function< real_t > x_exact( "x_exact", storage, level, level );
+   // setup FE functions
+   WALBERLA_LOG_INFO_ON_ROOT( "-> setting up FE functions" );
+   P3Function< real_t > uDiscr( "uDiscr", storage, level, level );
+   P3Function< real_t > uExact( "uExact", storage, level, level );
    P3Function< real_t > b( "b", storage, level, level );
+   P3Function< real_t > bInitial( "bInitial", storage, level, level );
+   P3Function< real_t > bPostInner( "bPostInner", storage, level, level );
+   P3Function< real_t > rhs( "rhs", storage, level, level );
    P3Function< real_t > err( "err", storage, level, level );
-   P3Function< real_t > residuum( "residuum", storage, level, level );
 
-   P3ElementwiseDiffusionOperator A( storage, level, level );
+   // define and interpolate exact solution
+   WALBERLA_LOG_INFO_ON_ROOT( "-> performing interpolation for exact solution and boundary values" );
+   std::function< real_t( const Point3D& ) > exact = []( const Point3D& x ) { return x[0] * x[1] * x[1] + real_c( 2 ); };
+   uExact.interpolate( exact, level, All );
 
-   std::function< real_t( const Point3D& ) > exact = []( const Point3D& xx ) { return std::sin( xx[0] ) * std::sinh( xx[1] ); };
+   // this is helpful to check that nothing bad happens internally for facedofs in PETScLUSolver when assining stuff
    walberla::math::seedRandomGenerator( 0 );
    std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) {
       return real_c( walberla::math::realRandom( 0.0, 1.0 ) );
    };
+   uDiscr.interpolate( rand, level, Inner );
 
-   x.interpolate( exact, level, DirichletBoundary );
-   x.interpolate( rand, level, Inner );
-   b.interpolate( exact, level, DirichletBoundary );
-   x_exact.interpolate( exact, level );
+   // set Dirichlet BCs in discrete solution
+   uDiscr.interpolate( exact, level, DirichletBoundary );
+
+   // setup rhs
+   WALBERLA_LOG_INFO_ON_ROOT( "-> computing RHS" );
+   P3ElementwiseMassOperator massOpr( storage, level, level );
+
+   std::function< real_t( const Point3D& ) > expressionRHS = []( const Point3D& x ) { return -real_c( 2 ) * x[0]; };
+
+   rhs.interpolate( expressionRHS, level, All );
+   massOpr.apply( rhs, b, level, All );
+   bInitial.assign( { real_c( 1 ) }, { b }, level, All );
+
+   // solve linear system
+   WALBERLA_LOG_INFO_ON_ROOT( "-> solving linear system" );
 
    uint_t localDoFs  = numberOfLocalDoFs< P3FunctionTag >( *storage, level );
    uint_t globalDoFs = numberOfGlobalDoFs< P3FunctionTag >( *storage, level );
+   WALBERLA_LOG_INFO( "   localDoFs: " << localDoFs << ", globalDoFs: " << globalDoFs );
 
-   WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " globalDoFs: " << globalDoFs );
-
+   P3ElementwiseDiffusionOperator                  diffOpr( storage, level, level );
    PETScLUSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
-   // EigenSparseDirectSolver< P3ElementwiseDiffusionOperator > solver( storage, level );
 
-   walberla::WcTimer timer;
-   solver.solve( A, x, b, level );
-   timer.end();
+   solver.setVerbose( true );
+   solver.assumeSymmetry( true );
+   solver.solve( diffOpr, uDiscr, b, level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   A.apply( x, residuum, level, Inner );
+   bPostInner.assign( { real_c( 1 ) }, { b }, level, Inner );
 
-   err.assign( { 1.0, -1.0 }, { x, x_exact }, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> checking error in discrete solution" );
+   err.assign( { 1.0, -1.0 }, { uDiscr, uExact }, level );
 
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
-   real_t residuum_l2  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 1 = " << discr_l2_err );
-   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> discrete L2 error = " << discr_l2_err );
 
    if ( doVTKOutput )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "****************************" );
-      VTKOutput vtkOutput( ".", "P3PetscSolve", storage );
-      vtkOutput.add( x );
-      vtkOutput.add( x_exact );
+      std::string fname = "P3PetscSolve";
+      WALBERLA_LOG_INFO_ON_ROOT( "-> Exporting functions to VTU file '" << fname << "'" );
+      VTKOutput vtkOutput( ".", fname, storage );
+      vtkOutput.add( uDiscr );
+      vtkOutput.add( uExact );
+      vtkOutput.add( b );
+      vtkOutput.add( bInitial );
+      vtkOutput.add( bPostInner );
+      vtkOutput.add( rhs );
       vtkOutput.add( err );
-      vtkOutput.add( residuum );
       vtkOutput.write( level );
    }
 
-   WALBERLA_CHECK_LESS( residuum_l2, real_c( 4e-15 ) );
    WALBERLA_CHECK_LESS( discr_l2_err, errEps );
 }
 
@@ -139,7 +161,6 @@ void petscMassMatrixApplyTest( const uint_t& level )
    enumerator.enumerate( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Assembling global mass matrix" );
-   PETScManager                                   petscManager;
    PETScSparseMatrix< P3ElementwiseMassOperator > matrix( "GlobalMassMatrix" );
 
    matrix.createMatrixFromOperator( massOp, level, enumerator, All );
@@ -210,7 +231,6 @@ void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool d
    P3Function< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   PETScManager                                        petscManager;
    PETScSparseMatrix< P3ElementwiseDiffusionOperator > matrix( "GlobalDiffusionMatrix" );
 
    matrix.createMatrixFromOperator( diffusionOp, level, enumerator, All );
@@ -222,10 +242,6 @@ void petscDiffusionMatrixApplyTest( const uint_t& level, DoFType dofFlag, bool d
    {
       WALBERLA_LOG_INFO_ON_ROOT( "-> Eliminating Dirichlet Boundary Conditions" );
       matrix.applyDirichletBCSymmetrically( src, enumerator, rhsVector, level );
-
-      // the "operator application" in the form of a matrix-vector product in PETSc will know
-      // nothing on the Dirichlet values on the boundary now
-      // src.interpolate( real_c( 0 ), level, DirichletBoundary );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> Applying HyTeG's elementwise operator" );
@@ -286,10 +302,7 @@ int main( int argc, char* argv[] )
    petscMassMatrixApplyTest( 2 );
    petscDiffusionMatrixApplyTest( 5, All, false );
    petscDiffusionMatrixApplyTest( 5, Inner, false );
-
-   // petscSolveTest( 0, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-04, true );
-   // petscSolveTest( 1, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 2.0e-05 );
-   // petscSolveTest( 3, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 3.0e-07, true );
+   petscSolveTest( 3, prependHyTeGMeshDir( "2D/quad_4el.msh" ), 1e-13 );
 
    return EXIT_SUCCESS;
 }
