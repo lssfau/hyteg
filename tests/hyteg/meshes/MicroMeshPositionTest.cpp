@@ -31,6 +31,7 @@
 // b) blending
 // c) use of degree 1 micromesh
 // d) use of degree 2 micromesh
+// e) use of degree 3 micromesh
 
 #include "core/Environment.h"
 

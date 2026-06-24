@@ -39,7 +39,35 @@ template < typename >
 class VolumeDoFFunction;
 }
 
-// template < concepts::value_type ValueType >
+/// Class representing an FE function of continuous Lagrangre type of order 3
+///
+/// The P3Function clas simplements support for the continuous Lagrange element of order 3
+/// in a nodal basis representation. It is currently limited to triangles.
+///
+/// The P3 Lagrange element for triangles has 10 local degrees of freedom. In a nodal basis
+/// representation these are associated with the three vertices, two equidistantly spaced
+/// nodes on each edge and the barycenter of the triangle.
+/// 
+/// In order to distinguish between the two degrees of freedom and have consistency between
+/// neighbouring micro-cells, we use the following approach, see also Scroggs et al.,
+/// "Construction of Arbitrary Order Finite Element Degree-of-Freedom Maps on Polygonal and
+/// Polyhedral Cell Meshes" (2022).
+/// 
+/// We index the three vertices of a micro-cell in such a way that for gray triangles their
+/// ordering corresponds to the ordering of the vertices of the macro-face. For blue
+/// triangles we assign an index of 0 to the lower vertex and then go anti-clockwise.
+/// 
+/// We make the definition that an edge is always oriented from the micro-vertex with the
+/// smaller index to that with the larger index. Hence, the indexing described above will
+/// give us a consistent edge orientation for the micro-edgesbetween neighbouring micro-faces.
+/// 
+/// Along an edge we call the degree freedom closer to the vertex with the smaller index as
+/// blue and the one farther away as red. We index these degrees of freedom in the same fashion
+/// used by FEniCS for the P2 element, going first over the blue dofs and then over the red ones.
+/// The face degree of freedom finally gets index 9.
+/// <center>
+/// <img src="P3_Local_Indexing.png" width="600">
+/// </center>
 template < typename ValueType >
 class P3Function final : public Function< P3Function< ValueType > >
 {
