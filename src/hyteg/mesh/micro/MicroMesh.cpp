@@ -1191,14 +1191,13 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
                const auto edgeIndex = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
 
                // not ideal, but a way to check whether we can avoid interpolation
-               real_t tolerance = real_c( 1e-11 );
-               if ( std::abs( positionFactor - real_c( 1.0 / 3.0 ) ) )
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* blueData = edge->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getEdgeDataID() )
                                          ->getPointer( level );
                   position( Eigen::Index( i ) ) = blueData[edgedof::macroedge::index( level, edgeIndex.x() )];
                }
-               else if ( std::abs( positionFactor - real_c( 2.0 / 3.0 ) ) )
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* redData = edge->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getEdgeDataID() )
                                         ->getPointer( level );
