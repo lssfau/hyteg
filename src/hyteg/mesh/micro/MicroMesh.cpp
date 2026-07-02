@@ -1190,7 +1190,7 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
             {
                const auto edgeIndex = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
 
-               // not ideal, but a way to check whether we can avoid interpolation
+               // maybe not ideal, but a way to check whether we can avoid interpolation
                if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* blueData = edge->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getEdgeDataID() )
@@ -1260,16 +1260,15 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
                const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
                const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
 
-               // not ideal, but a way to check whether we can avoid interpolation
-               real_t tolerance = real_c( 1e-11 );
-               if ( std::abs( positionFactor - real_c( 1.0 / 3.0 ) ) < tolerance )
+               // maybe not ideal, but a way to check whether we can avoid interpolation
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* blueData = face->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getFaceDataID() )
                                          ->getPointer( level );
                   position( Eigen::Index( i ) ) =
                       blueData[edgedof::macroface::index( level, edgeIndex.x(), edgeIndex.y(), edgeOrientation )];
                }
-               else if ( std::abs( positionFactor - real_c( 2.0 / 3.0 ) ) < tolerance )
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* redData = face->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getFaceDataID() )
                                         ->getPointer( level );
@@ -1338,16 +1337,15 @@ Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& s
                const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
                const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
 
-               // not ideal, but a way to check whether we can avoid interpolation
-               real_t tolerance = real_c( 1e-11 );
-               if ( std::abs( positionFactor - real_c( 1.0 / 3.0 ) ) < tolerance )
+               // maybe not ideal, but a way to check whether we can avoid interpolation
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* blueData = cell->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getCellDataID() )
                                          ->getPointer( level );
                   position( Eigen::Index( i ) ) =
                       blueData[edgedof::macrocell::index( level, edgeIndex.x(), edgeIndex.y(), edgeIndex.z(), edgeOrientation )];
                }
-               else if ( std::abs( positionFactor - real_c( 2.0 / 3.0 ) ) < tolerance )
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
                {
                   real_t* redData = cell->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getCellDataID() )
                                         ->getPointer( level );
