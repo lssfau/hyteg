@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 
 namespace hyteg {
+
 // Some forward declarations
 template < typename funcType >
 class P2Function;
@@ -33,6 +34,9 @@ class P1VectorFunction;
 
 template < typename vType >
 class P2VectorFunction;
+
+template < typename vType >
+class P3VectorFunction;
 
 template < typename vType >
 class EGFunction;
@@ -60,6 +64,11 @@ void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& funct
 
 template < typename vType >
 void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& function,
+                                          const uint_t&                    level,
+                                          syncDirection_t                  direction = syncDirection_t::BIDIRECTIONAL );
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P3VectorFunction< vType >& function,
                                           const uint_t&                    level,
                                           syncDirection_t                  direction = syncDirection_t::BIDIRECTIONAL );
 

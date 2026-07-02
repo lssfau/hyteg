@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2017-2026 Marcus Mohr.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+#pragma once
+
+#include "core/Abort.h"
+
+#include "hyteg/forms/Form.hpp"
+#include "hyteg/geometry/GeometryMap.hpp"
+#include "hyteg/types/Matrix.hpp"
+#include "hyteg/types/PointND.hpp"
+
+namespace hyteg {
+
+/// Base class for HyTeG forms for the P3 element
+///
+/// This class forms the base class for HyTeG forms computing element matrices for bilinear forms using P3 functions
+/// as test and trial functions. The local DoF ordering for triangles is given in the following figure:
+///
+/// <center>
+/// <img src="P3_Local_Indexing.png" width="600">
+/// </center>
+class P3FormHyTeG : public Form
+{
+ public:
+   virtual ~P3FormHyTeG() {}
+
+   virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 10, 10 >& elMat ) const = 0;
+
+   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 20, 20 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
+
+ private:
+   virtual void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 10 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
+
+   virtual void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 20 >& elMat ) const
+   {
+      WALBERLA_ABORT( "not implemented" );
+   };
+};
+
+} // namespace hyteg

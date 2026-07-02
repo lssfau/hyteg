@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Marcus Mohr, Roman Freissler.
+ * Copyright (c) 2023-2026 Marcus Mohr, Roman Freissler.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -202,7 +202,7 @@ void AdiosWriterForP2::writeMesh( const std::vector< std::string >& p2FunctionLi
 
    for ( auto doftype : doftypes )
    {
-      VTKMeshWriter::writePointsForMicroEdges( write2D, vertexStream, storage_, level_, doftype );
+      VTKMeshWriter::writeCentersOfMicroEdges( write2D, vertexStream, storage_, level_, doftype );
    }
 
    // store element connectivity

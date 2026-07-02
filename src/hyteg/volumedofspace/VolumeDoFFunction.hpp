@@ -298,6 +298,14 @@ class VolumeDoFFunction : public Function< VolumeDoFFunction< ValueType > >
                     DoFType                               flag ) const;
    /// @}
 
+   /// Returns the number of scalar values for a specific primitive, see c'tor
+   [[nodiscard]] uint_t getNumScalarsPerPrimitive( const PrimitiveID& primitiveID ) const
+   {
+      WALBERLA_ASSERT( this->storage_->primitiveExistsLocally( primitiveID ),
+                       "No information on number of scalars on this primitive available as primitive does not exist locally!" );
+      return numScalarsPerPrimitive_.at( primitiveID );
+   }
+
  private:
    using Function< VolumeDoFFunction< ValueType > >::communicators_;
 

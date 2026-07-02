@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -519,6 +519,7 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir );
 // ##############
 // ### Others ###
 // ##############
+template < bool useConsistentEdgeOrientation = false >
 void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceIndex,
                                            const facedof::FaceType& faceType,
                                            const uint_t             level,

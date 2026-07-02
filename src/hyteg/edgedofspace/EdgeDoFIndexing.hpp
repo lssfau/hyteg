@@ -1326,13 +1326,14 @@ inline void getEdgeDoFDataIndicesFromMicroCell( const indexing::Index&   microCe
 }
 
 /// Return data indices for the edge dofs of a given micro-face in a macro-face
+template < bool useConsistentEdgeOrientation = false >
 inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::Index&   microFaceIndex,
                                                               const facedof::FaceType& faceType,
                                                               const uint_t             level,
                                                               std::array< uint_t, 3 >& edgeDoFIndices )
 {
    // get indices of micro-vertices forming the micro-cell
-   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace< useConsistentEdgeOrientation >( microFaceIndex, faceType );
 
    // loop over micro-vertex pairs
    std::array< std::pair< uint_t, uint_t >, 3 > pairs = {
@@ -1343,7 +1344,7 @@ inline void getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( const indexing::In
 
    for ( uint_t k = 0; k < 3; ++k )
    {
-      // generate Indexs for vertices in the current pair
+      // generate Index for vertices in the current pair
       uint_t n1 = pairs[k].first;
       uint_t n2 = pairs[k].second;
 

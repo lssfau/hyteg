@@ -25,7 +25,7 @@ namespace hyteg {
 namespace edgedof {
 
 /// Mapping of X,Y,Z coordinates to uint_t
-/// located in seperate file to reduce dependencies in generated kernels
+/// located in separate file to reduce dependencies in generated kernels
 enum class EdgeDoFOrientation : walberla::uint_t
 {
    X,
@@ -37,5 +37,5 @@ enum class EdgeDoFOrientation : walberla::uint_t
    XYZ,
    INVALID,
 };
-}// namespace edgedof
-}// namespace hyteg
+} // namespace edgedof
+} // namespace hyteg

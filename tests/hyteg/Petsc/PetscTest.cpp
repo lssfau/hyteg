@@ -31,6 +31,7 @@
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -250,6 +251,7 @@ int main( int argc, char* argv[] )
    conversionTest< P0Function >( "P0Function" );
    conversionTest< P1Function >( "P1Function" );
    conversionTest< P2Function >( "P2Function" );
+   conversionTest< P3Function >( "P3Function", false );
    conversionTest< DG1Function >( "DG1Function" );
    conversionTest< P2PlusBubbleFunction >( "P2PlusBubbleFunction", false );
    conversionTest< P2P1TaylorHoodFunction >( "P2P1TaylorHoodFunction" );

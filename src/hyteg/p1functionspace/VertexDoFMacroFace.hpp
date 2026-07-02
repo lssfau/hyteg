@@ -1234,6 +1234,31 @@ inline void
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );
 }
 
+template < concepts::value_type ValueType >
+inline void setBoundaryToZero( const uint_t&                                               level,
+                               const Face&                                                 face,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceDataID )
+{
+   real_t* data = face.getData( faceDataID )->getPointer( level );
+
+   for ( const auto& idx :
+         vertexdof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT ) )
+   {
+      data[vertexdof::macroface::index( level, idx.x(), idx.y() )] = 0;
+   }
+
+   for ( const auto& idx : vertexdof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP ) )
+   {
+      data[vertexdof::macroface::index( level, idx.x(), idx.y() )] = 0;
+   }
+
+   for ( const auto& idx :
+         vertexdof::macroface::BoundaryIterator( level, indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+   {
+      data[vertexdof::macroface::index( level, idx.x(), idx.y() )] = 0;
+   }
+}
+
 } // namespace macroface
 } // namespace vertexdof
 } // namespace hyteg

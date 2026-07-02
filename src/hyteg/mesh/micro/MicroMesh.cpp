@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2025 Nils Kohl, Marcus Mohr.
+* Copyright (c) 2017-2026 Nils Kohl, Marcus Mohr.
 *
 * This file is part of HyTeG
 * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,6 +30,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg::micromesh {
@@ -136,11 +137,11 @@ static Point3D microVertexPositionNoMesh( uint_t                                
 /// Micro-edges ///
 ///////////////////
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Edge&                 edge,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Edge&                 edge,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    WALBERLA_UNUSED( microEdgeOrientation );
 
@@ -154,11 +155,11 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, edge );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Face&                 face,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Face&                 face,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    Point3D pos = edgedof::macroface::coordinateFromIndex( level, face, microEdgeIndex, microEdgeOrientation );
 
@@ -170,11 +171,11 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, face );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                      level,
-                                        const Cell&                 cell,
-                                        const indexing::Index&      microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation microEdgeOrientation,
-                                        bool                        withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                      level,
+                                              const Cell&                 cell,
+                                              const indexing::Index&      microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation microEdgeOrientation,
+                                              bool                        withBlending )
 {
    Point3D pos = edgedof::macrocell::coordinateFromIndex( level, cell, microEdgeIndex, microEdgeOrientation );
 
@@ -186,27 +187,27 @@ static Point3D microEdgePositionNoMesh( uint_t                      level,
    return applyBlending( pos, cell );
 }
 
-static Point3D microEdgePositionNoMesh( uint_t                                     level,
-                                        const std::shared_ptr< PrimitiveStorage >& storage,
-                                        PrimitiveID                                primitiveId,
-                                        const indexing::Index&                     microEdgeIndex,
-                                        edgedof::EdgeDoFOrientation                microEdgeOrientation,
-                                        bool                                       withBlending )
+static Point3D microEdgeCenterPositionNoMesh( uint_t                                     level,
+                                              const std::shared_ptr< PrimitiveStorage >& storage,
+                                              PrimitiveID                                primitiveId,
+                                              const indexing::Index&                     microEdgeIndex,
+                                              edgedof::EdgeDoFOrientation                microEdgeOrientation,
+                                              bool                                       withBlending )
 {
    auto cellPtr = storage->getLocalCell( primitiveId );
    if ( cellPtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *cellPtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *cellPtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
    auto facePtr = storage->getLocalFace( primitiveId );
    if ( facePtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *facePtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *facePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
    auto edgePtr = storage->getLocalEdge( primitiveId );
    if ( edgePtr != nullptr )
    {
-      return microEdgePositionNoMesh( level, *edgePtr, microEdgeIndex, microEdgeOrientation, withBlending );
+      return microEdgeCenterPositionNoMesh( level, *edgePtr, microEdgeIndex, microEdgeOrientation, withBlending );
    }
 
    WALBERLA_ABORT( "MicroMesh: Primitive does not exist locally, or you passed a macro-vertex!" );
@@ -299,7 +300,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
       for ( auto idx : edgedof::macroedge::Iterator( level ) )
       {
-         auto pos = microEdgePositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending );
+         auto pos = microEdgeCenterPositionNoMesh( level, *edge, idx, edgedof::EdgeDoFOrientation::X, withBlending );
          for ( uint_t i = 0; i < dimension; i++ )
          {
             auto edata = edge->getData( p2Mesh.component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
@@ -324,7 +325,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
       {
          for ( auto idx : edgedof::macroface::Iterator( level ) )
          {
-            auto pos = microEdgePositionNoMesh( level, *face, idx, orientation, withBlending );
+            auto pos = microEdgeCenterPositionNoMesh( level, *face, idx, orientation, withBlending );
             for ( uint_t i = 0; i < dimension; i++ )
             {
                auto edata = face->getData( p2Mesh.component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
@@ -350,7 +351,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
       {
          for ( auto idx : edgedof::macrocell::Iterator( level ) )
          {
-            auto pos = microEdgePositionNoMesh( level, *cell, idx, orientation, withBlending );
+            auto pos = microEdgeCenterPositionNoMesh( level, *cell, idx, orientation, withBlending );
             for ( uint_t i = 0; i < dimension; i++ )
             {
                auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
@@ -361,7 +362,7 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
 
       for ( auto idx : edgedof::macrocell::IteratorXYZ( level ) )
       {
-         auto pos = microEdgePositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending );
+         auto pos = microEdgeCenterPositionNoMesh( level, *cell, idx, edgedof::EdgeDoFOrientation::XYZ, withBlending );
          for ( uint_t i = 0; i < dimension; i++ )
          {
             auto edata = cell->getData( p2Mesh.component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
@@ -369,6 +370,174 @@ static void initMicroMeshFromMacroMesh( P2VectorFunction< real_t >& p2Mesh, uint
                 pos( Eigen::Index( i ) );
          }
       }
+   }
+}
+
+static void initMicroMeshFromMacroMesh( P3VectorFunction< real_t >& p3Mesh, uint_t level, bool withBlending )
+{
+   auto         storage   = p3Mesh.getStorage();
+   const uint_t dimension = p3Mesh.getDimension();
+
+   for ( const auto& [pid, vertex] : storage->getVertices() )
+   {
+      auto pos = microVertexPositionNoMesh( level, *vertex, indexing::Index( 0, 0, 0 ), withBlending );
+      for ( uint_t i = 0; i < dimension; i++ )
+      {
+         vertex->getData( p3Mesh.component( i ).getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] =
+             pos( Eigen::Index( i ) );
+      }
+   }
+
+   for ( const auto& [pid, edge] : storage->getEdges() )
+   {
+      for ( auto idx : vertexdof::macroedge::Iterator( level ) )
+      {
+         auto pos = microVertexPositionNoMesh( level, *edge, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
+         {
+            auto vdata = edge->getData( p3Mesh.component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
+            vdata[vertexdof::macroedge::index( level, idx.x() )] = pos( Eigen::Index( i ) );
+         }
+      }
+
+      for ( auto microEdgeIdx : edgedof::macroedge::Iterator( level ) )
+      {
+         indexing::Index v0 = microEdgeIdx;
+         indexing::Index v1 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+
+         Point3D posBlue = microEdgeArbitraryPosition( storage, pid, level, v0, v1, real_c( 1.0 / 3.0 ) );
+         Point3D posRed  = microEdgeArbitraryPosition( storage, pid, level, v0, v1, real_c( 2.0 / 3.0 ) );
+
+         for ( uint_t i = 0; i < dimension; i++ )
+         {
+            auto eDataBlue = edge->getData( p3Mesh.component( i ).getEdgeDoFFunctionBlue().getEdgeDataID() )->getPointer( level );
+            eDataBlue[edgedof::macroedge::index( level, microEdgeIdx.x() )] = posBlue( Eigen::Index( i ) );
+
+            auto eDataRed = edge->getData( p3Mesh.component( i ).getEdgeDoFFunctionRed().getEdgeDataID() )->getPointer( level );
+            eDataRed[edgedof::macroedge::index( level, microEdgeIdx.x() )] = posRed( Eigen::Index( i ) );
+         }
+      }
+   }
+
+   for ( const auto& [faceID, face] : storage->getFaces() )
+   {
+      for ( auto idx : vertexdof::macroface::Iterator( level ) )
+      {
+         auto pos = microVertexPositionNoMesh( level, *face, idx, withBlending );
+         for ( uint_t i = 0; i < dimension; i++ )
+         {
+            auto vdata = face->getData( p3Mesh.component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+            vdata[vertexdof::macroface::index( level, idx.x(), idx.y() )] = pos( Eigen::Index( i ) );
+         }
+      }
+
+      for ( auto microEdgeIdx : edgedof::macroface::Iterator( level ) )
+      {
+         // horizontal DoFs
+         {
+            indexing::Index v0 = microEdgeIdx;
+            indexing::Index v1 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+
+#ifndef NDEBUG
+            std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::X );
+            WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 1, 0, 0 ) );
+#endif
+
+            const Point3D posBlue = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 1.0 / 3.0 ) );
+            const Point3D posRed  = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 2.0 / 3.0 ) );
+
+            for ( uint_t i = 0; i < dimension; i++ )
+            {
+               auto eDataBlue =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionBlue().getFaceDataID() )->getPointer( level );
+               eDataBlue[edgedof::macroface::index( level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::X )] =
+                   posBlue( Eigen::Index( i ) );
+
+               auto eDataRed =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionRed().getFaceDataID() )->getPointer( level );
+               eDataRed[edgedof::macroface::index( level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::X )] =
+                   posRed( Eigen::Index( i ) );
+            }
+         }
+
+         // Vertical DoFs
+         {
+            indexing::Index v0 = microEdgeIdx;
+            indexing::Index v1 = microEdgeIdx + indexing::Index( 0, 1, 0 );
+
+#ifndef NDEBUG
+            std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::Y );
+            WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 0, 1, 0 ) );
+#endif
+
+            const Point3D posBlue = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 1.0 / 3.0 ) );
+            const Point3D posRed  = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 2.0 / 3.0 ) );
+
+            for ( uint_t i = 0; i < dimension; i++ )
+            {
+               auto eDataBlue =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionBlue().getFaceDataID() )->getPointer( level );
+               eDataBlue[edgedof::macroface::index( level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::Y )] =
+                   posBlue( Eigen::Index( i ) );
+
+               auto eDataRed =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionRed().getFaceDataID() )->getPointer( level );
+               eDataRed[edgedof::macroface::index( level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::Y )] =
+                   posRed( Eigen::Index( i ) );
+            }
+         }
+
+         // Diagonal DoFs
+         {
+            indexing::Index v0 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+            indexing::Index v1 = microEdgeIdx + indexing::Index( 0, 1, 0 );
+
+#ifndef NDEBUG
+            std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::XY );
+            WALBERLA_ASSERT_EQUAL( offset[0], indexing::Index( 1, 0, 0 ) );
+            WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 0, 1, 0 ) );
+#endif
+
+            const Point3D posBlue = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 1.0 / 3.0 ) );
+            const Point3D posRed  = microEdgeArbitraryPosition( storage, faceID, level, v0, v1, real_c( 2.0 / 3.0 ) );
+
+            for ( uint_t i = 0; i < dimension; i++ )
+            {
+               auto eDataBlue =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionBlue().getFaceDataID() )->getPointer( level );
+               eDataBlue[edgedof::macroface::index(
+                   level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::XY )] = posBlue( Eigen::Index( i ) );
+
+               auto eDataRed =
+                   face->getData( p3Mesh.component( i ).getEdgeDoFFunctionRed().getFaceDataID() )->getPointer( level );
+               eDataRed[edgedof::macroface::index( level, microEdgeIdx.x(), microEdgeIdx.y(), edgedof::EdgeDoFOrientation::XY )] =
+                   posRed( Eigen::Index( i ) );
+            }
+         }
+      }
+
+      // FaceDoFs
+      for ( auto faceType : facedof::allFaceTypes )
+      {
+         for ( const auto& idxIt : facedof::macroface::Iterator( level, faceType ) )
+         {
+            const Point3D pos = micromesh::microFaceCenterPosition( p3Mesh.getStorage(), faceID, level, idxIt, faceType );
+
+            for ( uint_t i = 0; i < dimension; i++ )
+            {
+               const auto memLayout = p3Mesh.component( i ).getFaceDoFFunction().memoryLayout();
+               auto       dofs      = p3Mesh.component( i ).getFaceDoFFunction().dofMemory( faceID, level );
+
+               dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
+                   pos( Eigen::Index( i ) );
+            }
+         }
+      }
+   }
+
+   for ( const auto& [cellID, cell] : storage->getCells() )
+   {
+      WALBERLA_ABORT( "initMicroMeshFromMacroMesh() not implemented for the p3Mesh and 3D combo, yet!" );
    }
 }
 
@@ -405,6 +574,14 @@ MicroMesh::MicroMesh( const std::shared_ptr< PrimitiveStorage >& storage,
          initMicroMeshFromMacroMesh( *p2_, level, withBlending );
       }
    }
+   else if ( polynomialDegree == 3 )
+   {
+      p3_ = std::make_shared< P3VectorFunction< real_t > >( "microMeshP3", storage, minLevel, maxLevel, dimension );
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         initMicroMeshFromMacroMesh( *p3_, level, withBlending );
+      }
+   }
    else
    {
       WALBERLA_ABORT( "MicroMesh with polynomial degree " << polynomialDegree << " not supported." );
@@ -419,6 +596,10 @@ MicroMesh::MicroMesh( const std::shared_ptr< P2VectorFunction< real_t > >& mesh 
 : p2_{ mesh }
 {}
 
+MicroMesh::MicroMesh( const std::shared_ptr< P3VectorFunction< real_t > >& mesh )
+: p3_{ mesh }
+{}
+
 uint_t MicroMesh::polynomialDegree() const
 {
    if ( p1Mesh() )
@@ -429,6 +610,11 @@ uint_t MicroMesh::polynomialDegree() const
    if ( p2Mesh() )
    {
       return 2;
+   }
+
+   if ( p3Mesh() )
+   {
+      return 3;
    }
 
    WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
@@ -446,6 +632,11 @@ uint_t MicroMesh::dimension() const
       return p2Mesh()->getDimension();
    }
 
+   if ( p3Mesh() )
+   {
+      return p3Mesh()->getDimension();
+   }
+
    WALBERLA_ABORT( "MicroMesh has no function allocated (this should never happen) :/" )
 }
 
@@ -459,10 +650,20 @@ std::shared_ptr< P2VectorFunction< real_t > > MicroMesh::p2Mesh() const
    return p2_;
 }
 
-std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > >
+std::shared_ptr< P3VectorFunction< real_t > > MicroMesh::p3Mesh() const
+{
+   return p3_;
+}
+
+std::variant< std::shared_ptr< P1VectorFunction< real_t > >,
+              std::shared_ptr< P2VectorFunction< real_t > >,
+              std::shared_ptr< P3VectorFunction< real_t > > >
     MicroMesh::mesh() const
 {
-   std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2VectorFunction< real_t > > > mesh;
+   std::variant< std::shared_ptr< P1VectorFunction< real_t > >,
+                 std::shared_ptr< P2VectorFunction< real_t > >,
+                 std::shared_ptr< P3VectorFunction< real_t > > >
+       mesh;
    if ( p1Mesh() )
    {
       mesh = p1Mesh();
@@ -470,6 +671,10 @@ std::variant< std::shared_ptr< P1VectorFunction< real_t > >, std::shared_ptr< P2
    else if ( p2Mesh() )
    {
       mesh = p2Mesh();
+   }
+   else if ( p3Mesh() )
+   {
+      mesh = p3Mesh();
    }
    return mesh;
 }
@@ -487,6 +692,10 @@ void communicate( MicroMesh& microMesh, uint_t level )
    else if ( microMesh.p2Mesh() )
    {
       communication::syncVectorFunctionBetweenPrimitives( *microMesh.p2Mesh(), level );
+   }
+   else if ( microMesh.p3Mesh() )
+   {
+      communication::syncVectorFunctionBetweenPrimitives( *microMesh.p3Mesh(), level );
    }
 }
 
@@ -518,6 +727,10 @@ void interpolate( MicroMesh&                                                    
    {
       microMesh.p2Mesh()->interpolate( map, level );
    }
+   else if ( microMesh.p3Mesh() )
+   {
+      microMesh.p3Mesh()->interpolate( map, level );
+   }
    else
    {
       WALBERLA_ABORT( "MicroMesh has no function allocated :/" )
@@ -530,7 +743,7 @@ void interpolate( const std::shared_ptr< PrimitiveStorage >&                    
 {
    auto microMesh = storage->getMicroMesh();
 
-   WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate if no mesh has been added to the PrimitiveStorage!" )
+   WALBERLA_CHECK_NOT_NULLPTR( microMesh, "MicroMesh: Cannot interpolate, if no mesh was added to the PrimitiveStorage!" )
 
    interpolate( *microMesh, map, level );
 }
@@ -561,6 +774,10 @@ void interpolateRefinedCoarseMesh( MicroMesh& microMesh, uint_t level, bool with
    {
       initMicroMeshFromMacroMesh( *microMesh.p2Mesh(), level, withBlending );
    }
+   else if ( microMesh.p3Mesh() )
+   {
+      initMicroMeshFromMacroMesh( *microMesh.p3Mesh(), level, withBlending );
+   }
 }
 
 void interpolateRefinedCoarseMesh( const std::shared_ptr< PrimitiveStorage >& storage, uint_t level, bool withBlending )
@@ -590,7 +807,7 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
       return microVertexPositionNoMesh( level, storage, primitiveId, microVertexIndex, true );
    }
 
-   WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
+   WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2 || microMesh->polynomialDegree() == 3,
                    "Invalid polynomial degree of MicroMesh." )
 
    const uint_t dim = microMesh->dimension();
@@ -611,6 +828,11 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
          else if ( microMesh->polynomialDegree() == 2 )
          {
             vdata = vertex->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getVertexDataID() )
+                        ->getPointer( level );
+         }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            vdata = vertex->getData( microMesh->p3Mesh()->component( i ).getVertexDoFFunction().getVertexDataID() )
                         ->getPointer( level );
          }
          else
@@ -636,6 +858,11 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
             vdata =
                 edge->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
          }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            vdata =
+                edge->getData( microMesh->p3Mesh()->component( i ).getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
+         }
          else
          {
             WALBERLA_ABORT( "MicroMesh: polynomial degree not supported." )
@@ -657,6 +884,11 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
          {
             vdata =
                 face->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            vdata =
+                face->getData( microMesh->p3Mesh()->component( i ).getVertexDoFFunction().getFaceDataID() )->getPointer( level );
          }
          else
          {
@@ -680,6 +912,11 @@ Point3D microVertexPosition( const std::shared_ptr< PrimitiveStorage >& storage,
          {
             vdata =
                 cell->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
+         }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            vdata =
+                cell->getData( microMesh->p3Mesh()->component( i ).getVertexDoFFunction().getCellDataID() )->getPointer( level );
          }
          else
          {
@@ -723,10 +960,10 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
 
    if ( !microMesh )
    {
-      return microEdgePositionNoMesh( level, storage, primitiveId, microEdgeIndex, microEdgeOrientation, true );
+      return microEdgeCenterPositionNoMesh( level, storage, primitiveId, microEdgeIndex, microEdgeOrientation, true );
    }
 
-   WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2,
+   WALBERLA_CHECK( microMesh->polynomialDegree() == 1 || microMesh->polynomialDegree() == 2 || microMesh->polynomialDegree() == 3,
                    "Invalid polynomial degree of MicroMesh." )
 
    const uint_t dim = microMesh->dimension();
@@ -755,6 +992,20 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
                 edge->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
             p( Eigen::Index( i ) ) = edata[edgedof::macroedge::index( level, microEdgeIndex.x() )];
          }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            const P3Function< real_t >& component = microMesh->p3Mesh()->component( i );
+            real_t* vData     = edge->getData( component.getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
+            real_t* eDataBlue = edge->getData( component.getEdgeDoFFunctionBlue().getEdgeDataID() )->getPointer( level );
+            real_t* eDataRed  = edge->getData( component.getEdgeDoFFunctionRed().getEdgeDataID() )->getPointer( level );
+
+            // need to interpolate along edge
+            p( Eigen::Index( i ) ) =
+                -real_c( 1.0 / 16.0 ) * ( vData[vertexdof::macroedge::index( level, microVertexIndexA.x() )] +
+                                          vData[vertexdof::macroedge::index( level, microVertexIndexB.x() )] ) +
+                real_c( 9.0 / 16.0 ) * ( eDataBlue[edgedof::macroedge::index( level, microEdgeIndex.x() )] +
+                                         eDataRed[edgedof::macroedge::index( level, microEdgeIndex.x() )] );
+         }
       }
    }
    else if ( storage->faceExistsLocally( primitiveId ) )
@@ -775,6 +1026,23 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
                 face->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
             p( Eigen::Index( i ) ) =
                 edata[edgedof::macroface::index( level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeOrientation )];
+         }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            const P3Function< real_t >& component = microMesh->p3Mesh()->component( i );
+            real_t* vData     = face->getData( component.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+            real_t* eDataBlue = face->getData( component.getEdgeDoFFunctionBlue().getFaceDataID() )->getPointer( level );
+            real_t* eDataRed  = face->getData( component.getEdgeDoFFunctionRed().getFaceDataID() )->getPointer( level );
+
+            // need to interpolate along edge
+            p( Eigen::Index( i ) ) =
+                -real_c( 1.0 / 16.0 ) *
+                    ( vData[vertexdof::macroface::index( level, microVertexIndexA.x(), microVertexIndexA.y() )] +
+                      vData[vertexdof::macroface::index( level, microVertexIndexB.x(), microVertexIndexB.y() )] ) +
+                real_c( 9.0 / 16.0 ) * ( eDataBlue[edgedof::macroface::index(
+                                             level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeOrientation )] +
+                                         eDataRed[edgedof::macroface::index(
+                                             level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeOrientation )] );
          }
          else
          {
@@ -803,6 +1071,25 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
             p( Eigen::Index( i ) ) = edata[edgedof::macrocell::index(
                 level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeIndex.z(), microEdgeOrientation )];
          }
+         else if ( microMesh->polynomialDegree() == 3 )
+         {
+            const P3Function< real_t >& component = microMesh->p3Mesh()->component( i );
+            real_t* vData     = cell->getData( component.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+            real_t* eDataBlue = cell->getData( component.getEdgeDoFFunctionBlue().getCellDataID() )->getPointer( level );
+            real_t* eDataRed  = cell->getData( component.getEdgeDoFFunctionRed().getCellDataID() )->getPointer( level );
+
+            // need to interpolate along edge
+            p( Eigen::Index( i ) ) =
+                -real_c( 1.0 / 16.0 ) * ( vData[vertexdof::macrocell::index(
+                                              level, microVertexIndexA.x(), microVertexIndexA.y(), microVertexIndexA.z() )] +
+                                          vData[vertexdof::macrocell::index(
+                                              level, microVertexIndexB.x(), microVertexIndexB.y(), microVertexIndexB.z() )] ) +
+                real_c( 9.0 / 16.0 ) *
+                    ( eDataBlue[edgedof::macrocell::index(
+                          level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeIndex.z(), microEdgeOrientation )] +
+                      eDataRed[edgedof::macrocell::index(
+                          level, microEdgeIndex.x(), microEdgeIndex.y(), microEdgeIndex.z(), microEdgeOrientation )] );
+         }
          else
          {
             WALBERLA_ABORT( "MicroMesh: this should not happen." );
@@ -815,6 +1102,274 @@ Point3D microEdgeCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
    }
 
    return p;
+}
+
+Point3D microEdgeArbitraryPosition( const std::shared_ptr< PrimitiveStorage >& storage,
+                                    PrimitiveID                                primitiveId,
+                                    uint_t                                     level,
+                                    const indexing::Index&                     microVertexIndexA,
+                                    const indexing::Index&                     microVertexIndexB,
+                                    real_t                                     positionFactor )
+{
+   WALBERLA_CHECK( storage->primitiveExistsLocally( primitiveId ), "Cannot compute micro-mesh index of non-local primitive." );
+
+   WALBERLA_ASSERT_GREATER_EQUAL( positionFactor, real_c( 0 ) );
+   WALBERLA_ASSERT_LESS_EQUAL( positionFactor, real_c( 1 ) );
+
+   auto microMesh = storage->getMicroMesh();
+
+   // for a cubic micromesh we expect that the given vertex indices are consistent in the sense that when
+   // the micro edge points from A -> B this is the same direction as the macro edge of the face/cell
+   WALBERLA_DEBUG_SECTION()
+   {
+      if ( microMesh && microMesh->polynomialDegree() == 3 )
+      {
+         const edgedof::EdgeDoFOrientation microEdgeOrientation =
+             edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+         const indexing::Index offset = microVertexIndexB - microVertexIndexA;
+
+         // WALBERLA_LOG_INFO( "edge orientation is: " << edgedof::edgeDoFOrientationToString.at( microEdgeOrientation ) );
+         // WALBERLA_LOG_INFO( "offsets: x = " << offset.x() << ", y = " << offset.y() );
+
+         if ( ( microEdgeOrientation == edgedof::EdgeDoFOrientation::X && offset.x() == -1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::Y && offset.y() == -1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::Z && offset.z() == -1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::XY && offset.x() == +1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::XZ && offset.x() == +1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::YZ && offset.y() == +1 ) ||
+              ( microEdgeOrientation == edgedof::EdgeDoFOrientation::XYZ && offset.y() == -1 ) )
+         {
+            WALBERLA_ABORT( "microEdgeArbitraryPosition() requires a 'consistent' edge orientation when using a cubic micromesh." );
+         }
+      }
+   }
+
+   Point3D position;
+   position.setZero();
+
+   if ( storage->edgeExistsLocally( primitiveId ) )
+   {
+      auto edge = storage->getEdge( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macroedge::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *edge, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *edge, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *edge );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = edge->getData( microMesh->p1Mesh()->component( i ).getEdgeDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macroedge::index( level, microVertexIndexA.x() )];
+               real_t  coordB = vdata[vertexdof::macroedge::index( level, microVertexIndexB.x() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = edge->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getEdgeDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   edge->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
+               const auto edgeIndex = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macroedge::index( level, microVertexIndexA.x() )];
+               real_t weightB = edata[edgedof::macroedge::index( level, edgeIndex.x() )];
+               real_t weightC = vdata[vertexdof::macroedge::index( level, microVertexIndexB.x() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else if ( microMesh->polynomialDegree() == 3 )
+            {
+               const auto edgeIndex = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+
+               // maybe not ideal, but a way to check whether we can avoid interpolation
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* blueData = edge->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getEdgeDataID() )
+                                         ->getPointer( level );
+                  position( Eigen::Index( i ) ) = blueData[edgedof::macroedge::index( level, edgeIndex.x() )];
+               }
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* redData = edge->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getEdgeDataID() )
+                                        ->getPointer( level );
+                  position( Eigen::Index( i ) ) = redData[edgedof::macroedge::index( level, edgeIndex.x() )];
+               }
+               else
+               {
+                  WALBERLA_CHECK( microMesh->polynomialDegree() == 3, "Full P3 interpolation not implemented, yet!" );
+               }
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else if ( storage->faceExistsLocally( primitiveId ) )
+   {
+      auto face = storage->getFace( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macroface::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *face, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *face, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *face );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = face->getData( microMesh->p1Mesh()->component( i ).getFaceDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macroface::index( level, microVertexIndexA.x(), microVertexIndexA.y() )];
+               real_t  coordB = vdata[vertexdof::macroface::index( level, microVertexIndexB.x(), microVertexIndexB.y() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = face->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getFaceDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   face->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macroface::index( level, microVertexIndexA.x(), microVertexIndexA.y() )];
+               real_t weightB = edata[edgedof::macroface::index( level, edgeIndex.x(), edgeIndex.y(), edgeOrientation )];
+               real_t weightC = vdata[vertexdof::macroface::index( level, microVertexIndexB.x(), microVertexIndexB.y() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else if ( microMesh->polynomialDegree() == 3 )
+            {
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               // maybe not ideal, but a way to check whether we can avoid interpolation
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* blueData = face->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getFaceDataID() )
+                                         ->getPointer( level );
+                  position( Eigen::Index( i ) ) =
+                      blueData[edgedof::macroface::index( level, edgeIndex.x(), edgeIndex.y(), edgeOrientation )];
+               }
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* redData = face->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getFaceDataID() )
+                                        ->getPointer( level );
+                  position( Eigen::Index( i ) ) =
+                      redData[edgedof::macroface::index( level, edgeIndex.x(), edgeIndex.y(), edgeOrientation )];
+               }
+               else
+               {
+                  WALBERLA_CHECK( microMesh->polynomialDegree() == 3, "Full P3 interpolation not implemented, yet!" );
+               }
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else if ( storage->cellExistsLocally( primitiveId ) )
+   {
+      auto cell = storage->getCell( primitiveId );
+      if ( !microMesh )
+      {
+         using vertexdof::macrocell::coordinateFromIndex;
+         Point3D vertexA = coordinateFromIndex( level, *cell, microVertexIndexA );
+         Point3D vertexB = coordinateFromIndex( level, *cell, microVertexIndexB );
+         position        = vertexA + positionFactor * ( vertexB - vertexA );
+         return applyBlending( position, *cell );
+      }
+      else
+      {
+         for ( uint_t i = 0; i < microMesh->dimension(); i++ )
+         {
+            if ( microMesh->polynomialDegree() == 1 )
+            {
+               real_t* vdata  = cell->getData( microMesh->p1Mesh()->component( i ).getCellDataID() )->getPointer( level );
+               real_t  coordA = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexA.x(), microVertexIndexA.y(), microVertexIndexA.z() )];
+               real_t  coordB = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexB.x(), microVertexIndexB.y(), microVertexIndexB.z() )];
+               position( Eigen::Index( i ) ) = coordA + positionFactor * ( coordB - coordA );
+            }
+            else if ( microMesh->polynomialDegree() == 2 )
+            {
+               real_t* vdata = cell->getData( microMesh->p2Mesh()->component( i ).getVertexDoFFunction().getCellDataID() )
+                                   ->getPointer( level );
+               real_t* edata =
+                   cell->getData( microMesh->p2Mesh()->component( i ).getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               real_t weightA = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexA.x(), microVertexIndexA.y(), microVertexIndexA.z() )];
+               real_t weightB =
+                   edata[edgedof::macrocell::index( level, edgeIndex.x(), edgeIndex.y(), edgeIndex.z(), edgeOrientation )];
+               real_t weightC = vdata[vertexdof::macrocell::index(
+                   level, microVertexIndexB.x(), microVertexIndexB.y(), microVertexIndexB.z() )];
+
+               const real_t xi = positionFactor;
+               position( Eigen::Index( i ) ) =
+                   ( real_c( 2 ) * weightA - real_c( 4 ) * weightB + real_c( 2 ) * weightC ) * xi * xi -
+                   ( real_c( 3 ) * weightA - real_c( 4 ) * weightB + weightC ) * xi + weightA;
+            }
+            else if ( microMesh->polynomialDegree() == 3 )
+            {
+               const auto edgeIndex       = edgedof::calcEdgeDoFIndex( microVertexIndexA, microVertexIndexB );
+               const auto edgeOrientation = edgedof::calcEdgeDoFOrientation( microVertexIndexA, microVertexIndexB );
+
+               // maybe not ideal, but a way to check whether we can avoid interpolation
+               if ( std::fpclassify( positionFactor - real_c( 1.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* blueData = cell->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionBlue().getCellDataID() )
+                                         ->getPointer( level );
+                  position( Eigen::Index( i ) ) =
+                      blueData[edgedof::macrocell::index( level, edgeIndex.x(), edgeIndex.y(), edgeIndex.z(), edgeOrientation )];
+               }
+               else if ( std::fpclassify( positionFactor - real_c( 2.0 / 3.0 ) ) == FP_ZERO )
+               {
+                  real_t* redData = cell->getData( microMesh->p3Mesh()->component( i ).getEdgeDoFFunctionRed().getCellDataID() )
+                                        ->getPointer( level );
+                  position( Eigen::Index( i ) ) =
+                      redData[edgedof::macrocell::index( level, edgeIndex.x(), edgeIndex.y(), edgeIndex.z(), edgeOrientation )];
+               }
+               else
+               {
+                  WALBERLA_CHECK( microMesh->polynomialDegree() == 3, "Full P3 interpolation not implemented, yet!" );
+               }
+            }
+            else
+            {
+               WALBERLA_ABORT( "MicroMesh: this should not happen." );
+            }
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "MicroMesh: PrimitiveID not existing locally. " )
+   }
+
+   return position;
 }
 
 std::vector< std::function< real_t( const Point3D& ) > > microMeshMapFromGeometryMap( const GeometryMap& geometryMap )
@@ -932,6 +1487,17 @@ Point3D microFaceCenterPosition( const std::shared_ptr< PrimitiveStorage >& stor
          real_t node5 = eData[edgeDoFIndices[2]];
 
          center( Eigen::Index( k ) ) = ( real_c( 4 ) * ( node3 + node4 + node5 ) - ( node0 + node1 + node2 ) ) / real_c( 9 );
+      }
+   }
+   else if ( microMesh->polynomialDegree() == 3 )
+   {
+      for ( uint_t k = 0; k < dim; k++ )
+      {
+         const auto memLayout = microMesh->p3Mesh()->component( k ).getFaceDoFFunction().memoryLayout();
+         auto       dofs      = microMesh->p3Mesh()->component( k ).getFaceDoFFunction().dofMemory( faceId, level );
+
+         center( Eigen::Index( k ) ) =
+             dofs[volumedofspace::indexing::index( microFaceIndex.x(), microFaceIndex.y(), faceType, 0, 1, level, memLayout )];
       }
    }
    else

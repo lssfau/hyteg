@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,7 +32,7 @@ using walberla::real_c;
 namespace hyteg {
 
 
-MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRight,
+MeshInfo MeshInfo::meshRectangle( const Point2D& lowerLeft, const Point2D& upperRight,
                                   const meshFlavour flavour, uint_t nx, uint_t ny )
 {
 

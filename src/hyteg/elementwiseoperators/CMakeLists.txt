@@ -22,4 +22,6 @@ target_sources( hyteg
     P2P1ElementwiseConstantCoefficientStokesOperator.hpp
     P2ToP1ElementwiseOperator.cpp
     P2ToP1ElementwiseOperator.hpp
+    P3ElementwiseOperator.cpp
+    P3ElementwiseOperator.hpp
 )

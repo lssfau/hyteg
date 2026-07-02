@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -301,6 +301,70 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
 
          faceData[edgedof::macroface::diagonalIndex( Level, it.x(), it.y() )] =
              expr( diagonalMicroEdgePosition, srcVectorDiagonal );
+      }
+   }
+}
+
+template < concepts::value_type ValueType >
+inline void interpolate( const std::shared_ptr< PrimitiveStorage >&                  storage,
+                         uint_t                                                      level,
+                         const Face&                                                 face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
+                         real_t                                                      positionFactor,
+                         const std::function< ValueType( const hyteg::Point3D& ) >&  expr )
+{
+   auto faceData = face.getData( faceMemoryId )->getPointer( level );
+
+   for ( const auto& microEdgeIdx : edgedof::macroface::Iterator( level, 0 ) )
+   {
+      // Do not update horizontal DoFs at bottom
+      if ( microEdgeIdx.y() != 0 )
+      {
+         indexing::Index v0 = microEdgeIdx;
+         indexing::Index v1 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+
+#ifndef NDEBUG
+         std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::X );
+         WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 1, 0, 0 ) );
+#endif
+
+         const Point3D currentCoordinates =
+             micromesh::microEdgeArbitraryPosition( storage, face.getID(), level, v0, v1, positionFactor );
+
+         faceData[edgedof::macroface::horizontalIndex( level, microEdgeIdx.x(), microEdgeIdx.y() )] = expr( currentCoordinates );
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( microEdgeIdx.x() != 0 )
+      {
+         indexing::Index v0 = microEdgeIdx;
+         indexing::Index v1 = microEdgeIdx + indexing::Index( 0, 1, 0 );
+
+#ifndef NDEBUG
+         std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::Y );
+         WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 0, 1, 0 ) );
+#endif
+         const Point3D currentCoordinates =
+             micromesh::microEdgeArbitraryPosition( storage, face.getID(), level, v0, v1, positionFactor );
+
+         faceData[edgedof::macroface::verticalIndex( level, microEdgeIdx.x(), microEdgeIdx.y() )] = expr( currentCoordinates );
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( microEdgeIdx.x() + microEdgeIdx.y() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+         indexing::Index v0 = microEdgeIdx + indexing::Index( 1, 0, 0 );
+         indexing::Index v1 = microEdgeIdx + indexing::Index( 0, 1, 0 );
+
+#ifndef NDEBUG
+         std::array< indexing::Index, 2 > offset = edgedof::calcNeighboringVertexDoFIndices( edgedof::EdgeDoFOrientation::XY );
+         WALBERLA_ASSERT_EQUAL( offset[0], indexing::Index( 1, 0, 0 ) );
+         WALBERLA_ASSERT_EQUAL( offset[1], indexing::Index( 0, 1, 0 ) );
+#endif
+         const Point3D currentCoordinates =
+             micromesh::microEdgeArbitraryPosition( storage, face.getID(), level, v0, v1, positionFactor );
+
+         faceData[edgedof::macroface::diagonalIndex( level, microEdgeIdx.x(), microEdgeIdx.y() )] = expr( currentCoordinates );
       }
    }
 }

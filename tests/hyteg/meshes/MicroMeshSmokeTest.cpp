@@ -98,7 +98,10 @@ void test( const MeshInfo& meshInfo, uint_t level, uint_t mappingDegree, const s
        "../../output", "MicroMeshSmokeTest" + std::to_string( dim ) + "D" + "P" + std::to_string( mappingDegree ), storage );
    vtkOutput.add( u );
    vtkOutput.write( level, 0 );
-   improveMesh( storage, level );
+   if ( mappingDegree == 2 )
+   {
+      improveMesh( storage, level );
+   }
    vtkOutput.write( level, 1 );
 }
 
@@ -117,6 +120,8 @@ int main( int argc, char* argv[] )
    {
       test( MeshInfo::meshUnitSquare( 1 ), level, 2, blendingFunc );
       test( MeshInfo::meshSymmetricCuboid( Point3D( 0, 0, 0 ), Point3D( 1, 1, 1 ), 1, 1, 1 ), level, 2, blendingFunc );
+
+      test( MeshInfo::meshUnitSquare( 1 ), level, 3, blendingFunc );
    }
 
    return 0;

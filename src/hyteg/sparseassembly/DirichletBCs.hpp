@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,6 +35,8 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
+#include "hyteg/p3functionspace/P3VectorFunction.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
@@ -116,6 +118,13 @@ inline void applyDirichletBC( const P2PlusBubbleFunction< idx_t >& numerator, st
    applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
 }
 
+inline void applyDirichletBC( const P3Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
+   applyDirichletBC( numerator.getEdgeDoFFunctionBlue(), mat, level );
+   applyDirichletBC( numerator.getEdgeDoFFunctionRed(), mat, level );
+}
+
 // ==================
 //  Vector Functions
 // ==================
@@ -136,6 +145,14 @@ inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::v
 }
 
 inline void applyDirichletBC( const P2PlusBubbleVectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
+   {
+      applyDirichletBC( numerator[k], mat, level );
+   }
+}
+
+inline void applyDirichletBC( const P3VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
    {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -526,8 +526,8 @@ indexing::Index logicalIndexOffsetFromVertex( const stencilDirection& dir )
 
 stencilDirection stencilDirectionFromLogicalOffset( const indexing::Index& offset )
 {
-   typedef stencilDirection         sD;
-   typedef indexing::Index inc;
+   typedef stencilDirection sD;
+   typedef indexing::Index  inc;
 
    if ( offset == inc( 0, 0, 0 ) )
       return sD::VERTEX_C;
@@ -744,12 +744,14 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir )
 // ### Others ###
 // ##############
 
+template < bool useConsistentEdgeOrientation >
 void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceIndex,
                                            const facedof::FaceType& faceType,
                                            const uint_t             level,
                                            std::array< uint_t, 3 >& vertexDoFIndices )
 {
-   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   std::array< indexing::Index, 3 > verts =
+       facedof::macroface::getMicroVerticesFromMicroFace< useConsistentEdgeOrientation >( microFaceIndex, faceType );
    for ( uint_t k = 0; k < 3; ++k )
    {
       vertexDoFIndices[k] =
@@ -765,10 +767,21 @@ void getVertexDoFDataIndicesFromMicroCell( const indexing::Index&   microCellInd
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
    for ( uint_t k = 0; k < 4; ++k )
    {
-      vertexDoFIndices[k] = vertexdof::macrocell::indexFromVertex(
-          level, verts[k].x(), verts[k].y(), verts[k].z(), stencilDirection::VERTEX_C );
+      vertexDoFIndices[k] =
+          vertexdof::macrocell::indexFromVertex( level, verts[k].x(), verts[k].y(), verts[k].z(), stencilDirection::VERTEX_C );
    }
 }
+
+// explicit instantiation
+template void getVertexDoFDataIndicesFromMicroFace< true >( const indexing::Index&   microFaceIndex,
+                                                            const facedof::FaceType& faceType,
+                                                            const uint_t             level,
+                                                            std::array< uint_t, 3 >& vertexDoFIndices );
+
+template void getVertexDoFDataIndicesFromMicroFace< false >( const indexing::Index&   microFaceIndex,
+                                                             const facedof::FaceType& faceType,
+                                                             const uint_t             level,
+                                                             std::array< uint_t, 3 >& vertexDoFIndices );
 
 } // namespace vertexdof
 } // namespace hyteg

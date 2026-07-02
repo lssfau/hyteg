@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Marcus Mohr, Dominik Thoennes.
+ * Copyright (c) 2017-2026 Marcus Mohr, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -30,6 +30,7 @@
 #include "hyteg/p0functionspace/P0Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -86,8 +87,8 @@ void runFindTest( std::string                                       mesg,
       break;
    }
 
-   WALBERLA_CHECK_FLOAT_EQUAL( measure, refVal );
    WALBERLA_LOG_INFO_ON_ROOT( mesg << std::scientific << std::showpos << measure );
+   WALBERLA_CHECK_FLOAT_EQUAL( measure, refVal );
 }
 
 // --------------------------------------------------------------------------------------------------
@@ -298,6 +299,43 @@ int main( int argc, char* argv[] )
    runFindTest( "Test #D (face/edge): maximum   = ", FIND_MAX, theLevel, p2func, testFuncMax, TEST_MAX_VALUE );
    runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p2func, testFuncMin, TEST_MIN_VALUE );
    runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
+
+   // ============
+   //  P3Function
+   // ============
+
+   WALBERLA_LOG_INFO_ON_ROOT( "\n\nP3Function (DoFType=All)\n" );
+
+   theLevel = 2;
+   hyteg::P3Function< real_t > p3func( "", storage, theLevel, theLevel );
+
+   // Special value on macro edge (vertexdof)
+   xLocPos = 0.25;
+   yLocPos = 0.25;
+   runFindTest( "Test #E (edge/vert): maximum   = ", FIND_MAX, theLevel, p3func, testFuncMax, TEST_MAX_VALUE );
+   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p3func, testFuncMin, TEST_MIN_VALUE );
+   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p3func, testFuncMin, TEST_MAG_VALUE );
+
+   // Special value on macro edge (edgedof-blue)
+   xLocPos = real_c( 1.0 / 12.0 );
+   yLocPos = real_c( 2.0 / 12.0 );
+   runFindTest( "Test #F (edge/edge): maximum   = ", FIND_MAX, theLevel, p3func, testFuncMax, TEST_MAX_VALUE );
+   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p3func, testFuncMin, TEST_MIN_VALUE );
+   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p3func, testFuncMin, TEST_MAG_VALUE );
+
+   // Special value on macro face (edgedof-red)
+   xLocPos = real_c( 4.0 / 12.0 );
+   yLocPos = real_c( 4.0 / 12.0 );
+   runFindTest( "Test #G (face/edge): maximum   = ", FIND_MAX, theLevel, p3func, testFuncMax, TEST_MAX_VALUE );
+   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p3func, testFuncMin, TEST_MIN_VALUE );
+   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p3func, testFuncMin, TEST_MAG_VALUE );
+
+   // Special value on macro face (facedof)
+   xLocPos = real_c( 7.0 / 12.0 );
+   yLocPos = real_c( 8.0 / 12.0 );
+   runFindTest( "Test #H (face/edge): maximum   = ", FIND_MAX, theLevel, p3func, testFuncMax, TEST_MAX_VALUE );
+   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, p3func, testFuncMin, TEST_MIN_VALUE );
+   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, p3func, testFuncMin, TEST_MAG_VALUE );
 
    // ===========
    //  3D Meshes

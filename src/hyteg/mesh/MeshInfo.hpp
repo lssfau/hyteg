@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann, Andreas Burkhart.
+ * Copyright (c) 2017-2026 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl, Benjamin Mann, Andreas Burkhart.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -272,7 +272,7 @@ class MeshInfo
    /// \param nx           (nx+1) gives the number of vertices along the top and bottom edge of the rectangle
    /// \param ny           (ny+1) gives the number of vertices along the left and right edge of the rectangle
    static MeshInfo
-       meshRectangle( const Point2D lowerLeft, const Point2D upperRight, const meshFlavour flavour, uint_t nx, uint_t ny );
+       meshRectangle( const Point2D& lowerLeft, const Point2D& upperRight, const meshFlavour flavour, uint_t nx, uint_t ny );
 
    /// Construct a MeshInfo object for a partial annulus
    ///

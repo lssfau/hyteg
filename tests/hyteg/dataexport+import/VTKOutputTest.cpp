@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
+ * Copyright (c) 2017-2026 Dominik Thoennes, Marcus Mohr, Michael Zikeli.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -38,6 +38,7 @@
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/p3functionspace/P3Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
@@ -55,7 +56,7 @@ static void exportFunctions2D( uint_t level )
    uint_t minLevel = level;
    uint_t maxLevel = level;
 
-   MeshInfo                            mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/penta_5el.msh" ) );
+   MeshInfo mesh = MeshInfo::fromGmshFile( prependHyTeGMeshDir( "2D/penta_5el.msh" ) );
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage   = std::make_shared< PrimitiveStorage >( setupStorage );
    std::shared_ptr< PrimitiveStorage > storageDG = std::make_shared< PrimitiveStorage >( setupStorage, 1 );
@@ -69,6 +70,9 @@ static void exportFunctions2D( uint_t level )
 
    P2Function< real_t > p2ScalarFunc1( "P2 scalar function 1", storage, minLevel, maxLevel );
    P2Function< real_t > p2ScalarFunc2( "P2 scalar function 2", storage, minLevel, maxLevel );
+
+   P3Function< real_t > p3ScalarFunc1( "P3 scalar function 1", storage, minLevel, maxLevel );
+   P3Function< real_t > p3ScalarFunc2( "P3 scalar function 2", storage, minLevel, maxLevel );
 
    DG1Function< real_t > dg1ScalarFunc1( "DG1 scalar function 1", storageDG, minLevel, maxLevel );
    DG1Function< real_t > dg1ScalarFunc2( "DG1 scalar function 2", storageDG, minLevel, maxLevel );
@@ -86,6 +90,7 @@ static void exportFunctions2D( uint_t level )
    // Interpolate
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
    std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1]; };
+
    std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc };
 
    p0ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
@@ -96,6 +101,9 @@ static void exportFunctions2D( uint_t level )
 
    p2ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
    p2ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
+
+   p3ScalarFunc1.interpolate( xFunc, maxLevel, DoFType::All );
+   p3ScalarFunc2.interpolate( yFunc, maxLevel, DoFType::All );
 
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
@@ -146,6 +154,13 @@ static void exportFunctions2D( uint_t level )
             vtkOutput2.add( p2ScalarFunc1 );
          }
       }
+
+      fName = "VTKOutputTest-P3";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput3( fPath, fName, storage );
+      vtkOutput3.add( p3ScalarFunc1 );
+      vtkOutput3.add( p3ScalarFunc2 );
+      vtkOutput3.write( maxLevel );
 
       fName = "VTKOutputTest-DG1";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );

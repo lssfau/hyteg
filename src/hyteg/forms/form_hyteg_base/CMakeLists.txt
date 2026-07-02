@@ -6,5 +6,7 @@ target_sources( hyteg
     P2FormHyTeG.hpp
     P2PlusBubbleToDG1FormHyTeG.hpp
     P2ToP1FormHyTeG.hpp
+    P3FormHyTeG.hpp
+    P3FormHyTeG.hpp
 )
 
