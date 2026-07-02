@@ -163,16 +163,6 @@ class P3ElementwiseOperator : public Operator< P3Function< real_t >, P3Function<
                     size_t                      level,
                     DoFType                     flag ) const override;
 
-   void smooth_gs( const P3Function< real_t >&, const P3Function< real_t >&, size_t, DoFType ) const
-   {
-      WALBERLA_ABORT( "Gauss-Seidel not implemented for P3ElementwiseOperator." )
-   }
-
-   void smooth_sor( const P3Function< real_t >&, const P3Function< real_t >&, real_t, size_t, DoFType ) const
-   {
-      WALBERLA_ABORT( "SOR not implemented for P3ElementwiseOperator." )
-   }
-
    /// Assemble operator as sparse matrix with scaling
    ///
    /// \param alpha constant scaling of the matrix
@@ -329,8 +319,8 @@ void assembleLocalElementMatrix2D( const Face&            face,
    form.integrateAll( coords, elMat );
 }
 
-typedef P3ElementwiseOperator< forms::p3_mass_affine_qe > P3ElementwiseMassOperator;
-typedef P3ElementwiseOperator< forms::p3_mass_blending_q6 > P3ElementwiseBlendingMassOperator;
+typedef P3ElementwiseOperator< forms::p3_mass_affine_qe >      P3ElementwiseMassOperator;
+typedef P3ElementwiseOperator< forms::p3_mass_blending_q6 >    P3ElementwiseBlendingMassOperator;
 typedef P3ElementwiseOperator< forms::p3_diffusion_affine_q4 > P3ElementwiseDiffusionOperator;
 
 } // namespace hyteg
