@@ -179,7 +179,7 @@ void P3Function< ValueType >::faceDoFHelpers::interpolate( const volumedofspace:
                   const Point3D centroid =
                       micromesh::microFaceCenterPosition( function.getStorage(), faceID, level, idxIt, faceType );
 
-                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), 0 ) );
+                  const auto val = expr( Point3D( centroid( 0 ), centroid( 1 ), centroid( 2 ) ) );
 
                   dofs[volumedofspace::indexing::index( idxIt.x(), idxIt.y(), faceType, 0, 1, level, memLayout )] =
                       ValueType( val );
