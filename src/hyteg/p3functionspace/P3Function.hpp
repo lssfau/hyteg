@@ -41,7 +41,7 @@ class VolumeDoFFunction;
 
 /// Class representing an FE function of continuous Lagrangre type of order 3
 ///
-/// The P3Function clas simplements support for the continuous Lagrange element of order 3
+/// The P3Function class implements support for the continuous Lagrange element of order 3
 /// in a nodal basis representation. It is currently limited to triangles.
 ///
 /// The P3 Lagrange element for triangles has 10 local degrees of freedom. In a nodal basis
@@ -59,9 +59,9 @@ class VolumeDoFFunction;
 /// 
 /// We make the definition that an edge is always oriented from the micro-vertex with the
 /// smaller index to that with the larger index. Hence, the indexing described above will
-/// give us a consistent edge orientation for the micro-edgesbetween neighbouring micro-faces.
+/// give us a consistent edge orientation for the micro-edges between neighbouring micro-faces.
 /// 
-/// Along an edge we call the degree freedom closer to the vertex with the smaller index as
+/// Along an edge we call the degree of freedom closer to the vertex with the smaller index as
 /// blue and the one farther away as red. We index these degrees of freedom in the same fashion
 /// used by FEniCS for the P2 element, going first over the blue dofs and then over the red ones.
 /// The face degree of freedom finally gets index 9.
