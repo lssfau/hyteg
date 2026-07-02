@@ -115,8 +115,8 @@ void P3FunctionPackInfo< ValueType >::communicateLocalEdgeToVertex( const Edge* 
    }
    else
    {
-      edgeDoFPackInfoBlue_.communicateLocalEdgeToVertex( sender, receiver );
       edgeDoFPackInfoRed_.communicateLocalEdgeToVertex( sender, receiver );
+      edgeDoFPackInfoBlue_.communicateLocalEdgeToVertex( sender, receiver );
    }
 }
 
