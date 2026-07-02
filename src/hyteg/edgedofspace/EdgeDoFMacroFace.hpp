@@ -364,9 +364,6 @@ inline void interpolate( const std::shared_ptr< PrimitiveStorage >&             
          const Point3D currentCoordinates =
              micromesh::microEdgeArbitraryPosition( storage, face.getID(), level, v0, v1, positionFactor );
 
-         const Point3D diagonalMicroEdgePosition =
-             micromesh::microEdgeCenterPosition( storage, face.getID(), level, microEdgeIdx, edgedof::EdgeDoFOrientation::XY );
-
          faceData[edgedof::macroface::diagonalIndex( level, microEdgeIdx.x(), microEdgeIdx.y() )] = expr( currentCoordinates );
       }
    }
