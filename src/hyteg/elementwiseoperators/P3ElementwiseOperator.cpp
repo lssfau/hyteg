@@ -20,6 +20,8 @@
 
 #include "P3ElementwiseOperator.hpp"
 
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/volumedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
@@ -153,28 +155,9 @@ void P3ElementwiseOperator< P3FormHyTeG >::gemv( const real_t&               alp
          //
          // This is also necessary when using update type == Add.
          // During additive comm we then skip zeroing the data on the lower-dim primitives.
-
-         for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
-         {
-            if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
-            {
-               auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
-               dstVertexData[arrayIdx] = real_c( 0 );
-            }
-         }
-
-         for ( const auto& idx : edgedof::macroface::Iterator( level ) )
-         {
-            for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
-            {
-               if ( !edgedof::macroface::isInnerEdgeDoF( level, idx, orientation ) )
-               {
-                  auto arrayIdx             = edgedof::macroface::index( level, idx.x(), idx.y(), orientation );
-                  dstEdgeDataBlue[arrayIdx] = real_c( 0 );
-                  dstEdgeDataRed[arrayIdx]  = real_c( 0 );
-               }
-            }
-         }
+         vertexdof::macroface::setBoundaryToZero( level, face, dstVertexDoFIdx );
+         edgedof::macroface::setBoundaryToZero( level, face, dstEdgeDoFIdxBlue );
+         edgedof::macroface::setBoundaryToZero( level, face, dstEdgeDoFIdxRed );
 
          Matrix10r elMat = Matrix10r::Zero();
 
